@@ -55,7 +55,8 @@ impl Registry {
 		// insert `TypeDef::Primitive` as placeholder, instead of calling `f`, to avoid circular calling
 		self.types.insert(type_ident.clone(), TypeDef::Primitive);
 
-		self.types.insert(type_ident, f(self));
+		let type_def = f(self);
+		self.types.insert(type_ident, type_def);
 	}
 
 	pub fn exists(&self, type_ident: &TypeIdent) -> bool {

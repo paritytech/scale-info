@@ -64,11 +64,15 @@ pub struct EnumVariant {
 }
 pub type EnumDef = Vec<EnumVariant>;
 
-pub trait TypeMetadata {
+pub trait Metadata {
 	fn type_ident() -> TypeIdent;
 
 	/// `type_def` would do registration if needed
-	fn type_def(registry: &Registry) -> TypeDef;
+	fn type_def(registry: &mut Registry) -> TypeDef;
+
+	fn register(registry: &mut Registry) {
+		registry.register(Self::type_ident(), Self::type_def);
+	}
 }
 
 #[cfg(test)]
