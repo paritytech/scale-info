@@ -15,14 +15,34 @@
 mod registry;
 pub use registry::Registry;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone)]
+mod tests;
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct TypeIdent {
-	namespace: Vec<String>,
-	ident: IdentKind,
-	args: Vec<TypeIdent>,
+	pub namespace: Vec<String>,
+	pub ident: IdentKind,
+	pub args: Vec<TypeIdent>,
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone)]
+impl TypeIdent {
+	pub fn new(ident: IdentKind) -> TypeIdent {
+		TypeIdent {
+			namespace: vec![],
+			ident,
+			args: vec![],
+		}
+	}
+	pub fn namespace(mut self, namespace: Vec<String>) -> Self {
+		self.namespace = namespace;
+		self
+	}
+	pub fn args(mut self, args: Vec<TypeIdent>) -> Self {
+		self.args = args;
+		self
+	}
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub enum IdentKind {
 	Custom(String),
 
@@ -87,11 +107,7 @@ macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
 		impl Metadata for $t {
 			fn type_ident() -> TypeIdent {
-				TypeIdent {
-					namespace: vec![],
-					ident: $ident_kind,
-					args: vec![],
-				}
+				TypeIdent::new($ident_kind)
 			}
 
 			fn type_def(_registry: &mut Registry) -> TypeDef {
@@ -254,27 +270,9 @@ impl<T: Metadata> Metadata for [T] {
 	}
 }
 
-impl<T: Metadata> Metadata for std::marker::PhantomData<T> {
-	fn type_ident() -> TypeIdent {
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Unit,
-			args: vec![T::type_ident()],
-		}
-	}
-
-	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::Primitive
-	}
-}
-
 impl Metadata for () {
 	fn type_ident() -> TypeIdent {
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Unit,
-			args: vec![],
-		}
+		TypeIdent::new(IdentKind::Unit)
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
@@ -284,11 +282,7 @@ impl Metadata for () {
 
 impl Metadata for &str {
 	fn type_ident() -> TypeIdent {
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Str,
-			args: vec![],
-		}
+		TypeIdent::new(IdentKind::Str)
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
@@ -298,10 +292,20 @@ impl Metadata for &str {
 
 impl Metadata for String {
 	fn type_ident() -> TypeIdent {
+		TypeIdent::new(IdentKind::Str)
+	}
+
+	fn type_def(_registry: &mut Registry) -> TypeDef {
+		TypeDef::Primitive
+	}
+}
+
+impl<T: Metadata> Metadata for std::marker::PhantomData<T> {
+	fn type_ident() -> TypeIdent {
 		TypeIdent {
 			namespace: vec![],
-			ident: IdentKind::Str,
-			args: vec![],
+			ident: IdentKind::Unit,
+			args: vec![T::type_ident()],
 		}
 	}
 
