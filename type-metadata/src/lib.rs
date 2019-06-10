@@ -69,22 +69,26 @@ pub enum IdentKind {
 	Result,
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub enum TypeDef {
 	Primitive,
 	Struct(StructDef),
 	EnumDef(EnumDef),
 }
 
+#[derive(PartialEq, Eq, Debug)]
 pub enum FieldName {
 	Unnamed(u16),
 	Named(String),
 }
+#[derive(PartialEq, Eq, Debug)]
 pub struct Field {
 	pub name: FieldName,
 	pub ident: TypeIdent,
 }
 pub type StructDef = Vec<Field>;
 
+#[derive(PartialEq, Eq, Debug)]
 pub struct EnumVariant {
 	pub name: String,
 	pub index: u16,

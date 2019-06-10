@@ -13,7 +13,7 @@
 // limitations under the License.
 
 #[cfg(test)]
-use super::{IdentKind, Metadata, TypeIdent};
+use super::*;
 
 #[test]
 fn primitives_metadata_impl_should_work() {
@@ -98,4 +98,61 @@ fn lists_metadata_impl_should_work() {
 			args: vec![TypeIdent::new(IdentKind::Bool)],
 		},
 	);
+}
+
+#[test]
+fn struct_with_generics_metadata_impl_should_work() {
+	struct MyStruct<T> {
+		data: T,
+	}
+
+	impl<T: Metadata> Metadata for MyStruct<T> {
+		fn type_ident() -> TypeIdent {
+			TypeIdent {
+				namespace: vec!["MyTestMod".into()],
+				ident: IdentKind::Custom("MyStruct".into()),
+				args: vec![T::type_ident()],
+			}
+		}
+
+		fn type_def(registry: &mut Registry) -> TypeDef {
+			registry.register(T::type_ident(), T::type_def);
+			TypeDef::Struct(vec![Field {
+				name: FieldName::Named("data".into()),
+				ident: T::type_ident(),
+			}])
+		}
+	}
+
+	// normal struct
+	let struct_bool_ident = TypeIdent {
+		namespace: vec!["MyTestMod".into()],
+		ident: IdentKind::Custom("MyStruct".into()),
+		args: vec![TypeIdent::new(IdentKind::Bool)],
+	};
+	assert_eq!(<MyStruct<bool>>::type_ident(), struct_bool_ident);
+	let mut registry = Registry::new();
+	let struct_bool_def = TypeDef::Struct(vec![Field {
+		name: FieldName::Named("data".into()),
+		ident: TypeIdent::new(IdentKind::Bool),
+	}]);
+	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
+
+	// with "`Self` typed" fields
+	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
+	assert_eq!(
+		SelfTyped::type_ident(),
+		TypeIdent {
+			namespace: vec!["MyTestMod".into()],
+			ident: IdentKind::Custom("MyStruct".into()),
+			args: vec![struct_bool_ident.clone()],
+		},
+	);
+	assert_eq!(
+		SelfTyped::type_def(&mut registry),
+		TypeDef::Struct(vec![Field {
+			name: FieldName::Named("data".into()),
+			ident: struct_bool_ident,
+		}]),
+	)
 }
