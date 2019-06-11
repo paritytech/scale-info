@@ -14,10 +14,10 @@
 
 use std::collections::BTreeMap;
 
-use super::{IdentKind, TypeDef, TypeIdent};
+use super::{IdentKind, TypeDef};
 
 pub struct Registry {
-	pub types: BTreeMap<TypeIdent, TypeDef>,
+	pub types: BTreeMap<IdentKind, TypeDef>,
 }
 
 impl Registry {
@@ -25,12 +25,16 @@ impl Registry {
 		Registry { types: BTreeMap::new() }
 	}
 
-	pub fn register<F: Fn(&mut Registry) -> TypeDef>(&mut self, type_ident: TypeIdent, f: F) {
+	pub fn register<F: Fn(&mut Registry) -> TypeDef>(&mut self, type_ident: IdentKind, f: F) {
 		// simple primitives would not be actually registered, as an optimization to reduce storage
 		// usage, they're assumed to be decodable by any valid decoder impl.
-		let should_ignore = match type_ident.ident {
+		let should_ignore = match type_ident {
 			IdentKind::Custom(_) => false,
-			IdentKind::Array(_) | IdentKind::Vector | IdentKind::Tuple | IdentKind::Option | IdentKind::Result => {
+			IdentKind::Array(_)
+			| IdentKind::Slice(_)
+			| IdentKind::Tuple(_)
+			| IdentKind::Option(_)
+			| IdentKind::Result(_) => {
 				// build-ins are also ignored but their sub-types are registered
 				f(self);
 				true
@@ -51,7 +55,7 @@ impl Registry {
 		self.types.insert(type_ident, type_def);
 	}
 
-	pub fn exists(&self, type_ident: &TypeIdent) -> bool {
+	pub fn exists(&self, type_ident: &IdentKind) -> bool {
 		self.types.contains_key(type_ident)
 	}
 }
