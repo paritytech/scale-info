@@ -34,11 +34,11 @@ pub enum IdentKind {
 	I32,
 	I64,
 	I128,
-	Array(Box<ArrayIdent>),
-	Slice(Box<SliceIdent>),
-	Tuple(Box<TupleIdent>),
-	Option(Box<OptionIdent>),
-	Result(Box<ResultIdent>),
+	Array(ArrayIdent),
+	Slice(SliceIdent),
+	Tuple(TupleIdent),
+	Option(OptionIdent),
+	Result(ResultIdent),
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
@@ -53,27 +53,54 @@ pub struct CustomIdent {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct ArrayIdent {
 	pub len: u16,
-	pub type_param: IdentKind,
+	pub type_param: Box<IdentKind>,
+}
+impl ArrayIdent {
+	fn new(len: u16, type_param: IdentKind) -> Self {
+		ArrayIdent { len, type_param: Box::new(type_param) }
+	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct TupleIdent {
 	pub type_params: Option<Vec<IdentKind>>,
 }
+impl TupleIdent {
+	fn new(type_params: Option<Vec<IdentKind>>) -> Self {
+		TupleIdent { type_params }
+	}
+}
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct SliceIdent {
-	pub type_param: IdentKind,
+	pub type_param: Box<IdentKind>,
+}
+impl SliceIdent {
+	fn new(type_param: IdentKind) -> Self {
+		SliceIdent { type_param: Box::new(type_param) }
+	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct OptionIdent {
-	pub type_param: IdentKind,
+	pub type_param: Box<IdentKind>,
+}
+impl OptionIdent {
+	fn new(type_param: IdentKind) -> Self {
+		OptionIdent { type_param: Box::new(type_param) }
+	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct ResultIdent {
-	pub type_params: (IdentKind, IdentKind),
+	pub type_params: (Box<IdentKind>, Box<IdentKind>),
+}
+impl ResultIdent {
+	fn new(type_params: (IdentKind, IdentKind)) -> Self {
+		ResultIdent {
+			type_params: (Box::new(type_params.0), Box::new(type_params.1))
+		}
+	}
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -146,10 +173,7 @@ macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => { $(
 		impl<T: Metadata> Metadata for [T; $n] {
 			fn type_ident() -> IdentKind {
-				IdentKind::Array(Box::new(ArrayIdent {
-					len: $n,
-					type_param: T::type_ident(),
-				}))
+				IdentKind::Array(ArrayIdent::new($n, T::type_ident()))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
 				registry.register(T::type_ident(), T::type_def);
@@ -166,9 +190,7 @@ macro_rules! impl_metadata_for_tuple {
 	($one:ident,) => {
 		impl<$one: Metadata> Metadata for ($one,) {
 			fn type_ident() -> IdentKind {
-				IdentKind::Tuple(Box::new(TupleIdent {
-					type_params: Some(vec![<$one>::type_ident()]),
-				}))
+				IdentKind::Tuple(TupleIdent::new(Some(vec![<$one>::type_ident()])))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
 				registry.register(<$one>::type_ident(), <$one>::type_def);
@@ -179,9 +201,9 @@ macro_rules! impl_metadata_for_tuple {
 	($first:ident, $($rest:ident,)+) => {
 		impl<$first: Metadata, $($rest: Metadata),+> Metadata for ($first, $($rest),+) {
 			fn type_ident() -> IdentKind {
-				IdentKind::Tuple(Box::new(TupleIdent {
-					type_params: Some(vec![<$first>::type_ident(), $( <$rest>::type_ident(), )+])
-				}))
+				IdentKind::Tuple(TupleIdent::new(
+					Some(vec![<$first>::type_ident(), $( <$rest>::type_ident(), )+])
+				))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
 				registry.register(<$first>::type_ident(), <$first>::type_def);
@@ -198,9 +220,7 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K,);
 
 impl<T: Metadata> Metadata for Vec<T> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Slice(Box::new(SliceIdent {
-			type_param: T::type_ident(),
-		}))
+		IdentKind::Slice(SliceIdent::new(T::type_ident()))
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
@@ -211,9 +231,7 @@ impl<T: Metadata> Metadata for Vec<T> {
 
 impl<T: Metadata> Metadata for Option<T> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Option(Box::new(OptionIdent {
-			type_param: T::type_ident(),
-		}))
+		IdentKind::Option(OptionIdent::new(T::type_ident()))
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
@@ -224,9 +242,7 @@ impl<T: Metadata> Metadata for Option<T> {
 
 impl<T: Metadata, E: Metadata> Metadata for Result<T, E> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Result(Box::new(ResultIdent {
-			type_params: (T::type_ident(), E::type_ident()),
-		}))
+		IdentKind::Result(ResultIdent::new((T::type_ident(), E::type_ident())))
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
@@ -268,7 +284,7 @@ impl<T: Metadata> Metadata for [T] {
 
 impl Metadata for () {
 	fn type_ident() -> IdentKind {
-		IdentKind::Tuple(Box::new(TupleIdent { type_params: None }))
+		IdentKind::Tuple(TupleIdent::new(None))
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
@@ -298,7 +314,7 @@ impl Metadata for String {
 
 impl<T: Metadata> Metadata for std::marker::PhantomData<T> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Tuple(Box::new(TupleIdent { type_params: None }))
+		IdentKind::Tuple(TupleIdent::new(None))
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
