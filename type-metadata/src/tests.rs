@@ -17,86 +17,54 @@ use super::*;
 
 #[test]
 fn primitives_metadata_impl_should_work() {
-	assert_eq!(bool::type_ident(), TypeIdent::new(IdentKind::Bool),);
-	assert_eq!(String::type_ident(), TypeIdent::new(IdentKind::Str),);
-	assert_eq!(<&str>::type_ident(), TypeIdent::new(IdentKind::Str),);
-	assert_eq!(<()>::type_ident(), TypeIdent::new(IdentKind::Unit),);
-	assert_eq!(i8::type_ident(), TypeIdent::new(IdentKind::I8),);
+	assert_eq!(bool::type_ident(), IdentKind::Bool);
+	assert_eq!(String::type_ident(), IdentKind::Str);
+	assert_eq!(<&str>::type_ident(), IdentKind::Str);
+	assert_eq!(i8::type_ident(), IdentKind::I8);
 
 	assert_eq!(
-		<Option<isize>>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Option,
-			args: vec![TypeIdent::new(IdentKind::Isize)],
-		}
+		<Option<u128>>::type_ident(),
+		IdentKind::Option(OptionIdent::new(IdentKind::U128)),
 	);
 	assert_eq!(
 		<Result<bool, String>>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Result,
-			args: vec![TypeIdent::new(IdentKind::Bool), TypeIdent::new(IdentKind::Str)],
-		}
+		IdentKind::Result(ResultIdent::new((IdentKind::Bool, IdentKind::Str))),
 	);
-	assert_eq!(<Box<String>>::type_ident(), TypeIdent::new(IdentKind::Str));
-	assert_eq!(<&String>::type_ident(), TypeIdent::new(IdentKind::Str));
+	assert_eq!(<Box<String>>::type_ident(), IdentKind::Str);
+	assert_eq!(<&String>::type_ident(), IdentKind::Str);
 	assert_eq!(
-		<[usize]>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Vector,
-			args: vec![TypeIdent::new(IdentKind::Usize)],
-		}
+		<[bool]>::type_ident(),
+		IdentKind::Slice(SliceIdent::new(IdentKind::Bool)),
 	);
 	assert_eq!(
 		<std::marker::PhantomData<bool>>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Unit,
-			args: vec![TypeIdent::new(IdentKind::Bool)],
-		}
+		IdentKind::Tuple(TupleIdent::new(Some(vec![IdentKind::Bool]))),
 	)
 }
 
 #[test]
 fn lists_metadata_impl_should_work() {
-	// tuple
+	// tuple with one element
 	assert_eq!(
 		<(bool,)>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Tuple,
-			args: vec![TypeIdent::new(IdentKind::Bool)],
-		},
+		IdentKind::Tuple(TupleIdent::new(Some(vec![IdentKind::Bool]))),
 	);
+	// tuple with multiple elements
 	assert_eq!(
 		<(bool, String)>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Tuple,
-			args: vec![TypeIdent::new(IdentKind::Bool), TypeIdent::new(IdentKind::Str)],
-		},
+		IdentKind::Tuple(TupleIdent::new(Some(vec![IdentKind::Bool, IdentKind::Str]))),
 	);
 
 	// array
 	assert_eq!(
-		<[usize; 3]>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Array(3),
-			args: vec![TypeIdent::new(IdentKind::Usize)],
-		},
+		<[bool; 3]>::type_ident(),
+		IdentKind::Array(ArrayIdent::new(3, IdentKind::Bool)),
 	);
 
 	// vec
 	assert_eq!(
 		<Vec<bool>>::type_ident(),
-		TypeIdent {
-			namespace: vec![],
-			ident: IdentKind::Vector,
-			args: vec![TypeIdent::new(IdentKind::Bool)],
-		},
+		IdentKind::Slice(SliceIdent::new(IdentKind::Bool)),
 	);
 }
 
@@ -107,12 +75,12 @@ fn struct_with_generics_metadata_impl_should_work() {
 	}
 
 	impl<T: Metadata> Metadata for MyStruct<T> {
-		fn type_ident() -> TypeIdent {
-			TypeIdent {
-				namespace: vec!["MyTestMod".into()],
-				ident: IdentKind::Custom("MyStruct".into()),
-				args: vec![T::type_ident()],
-			}
+		fn type_ident() -> IdentKind {
+			IdentKind::Custom(CustomIdent {
+				name: "MyStruct",
+				namespace: Namespace(vec!["MyTestMod"]),
+				type_params: vec![T::type_ident()],
+			})
 		}
 
 		fn type_def(registry: &mut Registry) -> TypeDef {
@@ -125,16 +93,16 @@ fn struct_with_generics_metadata_impl_should_work() {
 	}
 
 	// normal struct
-	let struct_bool_ident = TypeIdent {
-		namespace: vec!["MyTestMod".into()],
-		ident: IdentKind::Custom("MyStruct".into()),
-		args: vec![TypeIdent::new(IdentKind::Bool)],
-	};
+	let struct_bool_ident = IdentKind::Custom(CustomIdent {
+		name: "MyStruct",
+		namespace: Namespace(vec!["MyTestMod"]),
+		type_params: vec![IdentKind::Bool],
+	});
 	assert_eq!(<MyStruct<bool>>::type_ident(), struct_bool_ident);
 	let mut registry = Registry::new();
 	let struct_bool_def = TypeDef::Struct(vec![Field {
 		name: FieldName::Named("data".into()),
-		ident: TypeIdent::new(IdentKind::Bool),
+		ident: IdentKind::Bool,
 	}]);
 	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
 
@@ -142,11 +110,11 @@ fn struct_with_generics_metadata_impl_should_work() {
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
 	assert_eq!(
 		SelfTyped::type_ident(),
-		TypeIdent {
-			namespace: vec!["MyTestMod".into()],
-			ident: IdentKind::Custom("MyStruct".into()),
-			args: vec![struct_bool_ident.clone()],
-		},
+		IdentKind::Custom(CustomIdent {
+			name: "MyStruct",
+			namespace: Namespace(vec!["MyTestMod"]),
+			type_params: vec![struct_bool_ident.clone()],
+		}),
 	);
 	assert_eq!(
 		SelfTyped::type_def(&mut registry),

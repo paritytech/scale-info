@@ -57,7 +57,10 @@ pub struct ArrayIdent {
 }
 impl ArrayIdent {
 	fn new(len: u16, type_param: IdentKind) -> Self {
-		ArrayIdent { len, type_param: Box::new(type_param) }
+		ArrayIdent {
+			len,
+			type_param: Box::new(type_param),
+		}
 	}
 }
 
@@ -77,7 +80,9 @@ pub struct SliceIdent {
 }
 impl SliceIdent {
 	fn new(type_param: IdentKind) -> Self {
-		SliceIdent { type_param: Box::new(type_param) }
+		SliceIdent {
+			type_param: Box::new(type_param),
+		}
 	}
 }
 
@@ -87,7 +92,9 @@ pub struct OptionIdent {
 }
 impl OptionIdent {
 	fn new(type_param: IdentKind) -> Self {
-		OptionIdent { type_param: Box::new(type_param) }
+		OptionIdent {
+			type_param: Box::new(type_param),
+		}
 	}
 }
 
@@ -98,7 +105,7 @@ pub struct ResultIdent {
 impl ResultIdent {
 	fn new(type_params: (IdentKind, IdentKind)) -> Self {
 		ResultIdent {
-			type_params: (Box::new(type_params.0), Box::new(type_params.1))
+			type_params: (Box::new(type_params.0), Box::new(type_params.1)),
 		}
 	}
 }
@@ -314,7 +321,7 @@ impl Metadata for String {
 
 impl<T: Metadata> Metadata for std::marker::PhantomData<T> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Tuple(TupleIdent::new(None))
+		IdentKind::Tuple(TupleIdent::new(Some(vec![T::type_ident()])))
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
