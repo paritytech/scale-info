@@ -120,7 +120,7 @@ impl ResultIdent {
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum TypeDef {
-	Primitive,
+	None,
 	Struct(StructDef),
 	TupleStruct(TupleStructDef),
 	Enum(EnumDef),
@@ -180,7 +180,7 @@ macro_rules! impl_metadata_for_primitives {
 			}
 
 			fn type_def(_registry: &mut Registry) -> TypeDef {
-				TypeDef::Primitive
+				TypeDef::None
 			}
 		}
 	)* }
@@ -208,7 +208,7 @@ macro_rules! impl_metadata_for_array {
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
 				registry.register(T::type_ident(), T::type_def);
-				TypeDef::Primitive
+				TypeDef::None
 			}
 		}
 	)* }
@@ -225,7 +225,7 @@ macro_rules! impl_metadata_for_tuple {
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
 				registry.register(<$one>::type_ident(), <$one>::type_def);
-				TypeDef::Primitive
+				TypeDef::None
 			}
 		}
 	};
@@ -239,7 +239,7 @@ macro_rules! impl_metadata_for_tuple {
 			fn type_def(registry: &mut Registry) -> TypeDef {
 				registry.register(<$first>::type_ident(), <$first>::type_def);
 				$({ registry.register(<$rest>::type_ident(), <$rest>::type_def); })+
-				TypeDef::Primitive
+				TypeDef::None
 			}
 		}
 
@@ -256,7 +256,7 @@ impl<T: Metadata> Metadata for Vec<T> {
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register(T::type_ident(), T::type_def);
-		TypeDef::Primitive
+		TypeDef::None
 	}
 }
 
@@ -267,7 +267,7 @@ impl<T: Metadata> Metadata for Option<T> {
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register(T::type_ident(), T::type_def);
-		TypeDef::Primitive
+		TypeDef::None
 	}
 }
 
@@ -279,7 +279,7 @@ impl<T: Metadata, E: Metadata> Metadata for Result<T, E> {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register(T::type_ident(), T::type_def);
 		registry.register(E::type_ident(), E::type_def);
-		TypeDef::Primitive
+		TypeDef::None
 	}
 }
 
@@ -319,7 +319,7 @@ impl Metadata for () {
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::Primitive
+		TypeDef::None
 	}
 }
 
@@ -329,7 +329,7 @@ impl Metadata for &str {
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::Primitive
+		TypeDef::None
 	}
 }
 
@@ -339,7 +339,7 @@ impl Metadata for String {
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::Primitive
+		TypeDef::None
 	}
 }
 
@@ -349,6 +349,6 @@ impl<T: Metadata> Metadata for std::marker::PhantomData<T> {
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::Primitive
+		TypeDef::None
 	}
 }
