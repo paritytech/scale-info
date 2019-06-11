@@ -154,7 +154,9 @@ pub struct EnumDef(Vec<VariantKind>);
 pub trait Metadata {
 	fn type_ident() -> IdentKind;
 
-	/// `type_def` would do registration if needed
+	/// If the current type contains any other types, `type_def` would register their metadata into the given
+	/// `registry`. For instance, `<Option<MyStruct>>::type_def()` would register `MyStruct` metadata. All
+	/// implementation must register these contained types' metadata.
 	fn type_def(registry: &mut Registry) -> TypeDef;
 
 	fn register(registry: &mut Registry) {
