@@ -78,7 +78,7 @@ fn struct_with_generics_metadata_impl_should_work() {
 		fn type_ident() -> IdentKind {
 			IdentKind::Custom(CustomIdent {
 				name: "MyStruct",
-				namespace: Namespace(vec!["MyTestMod"]),
+				namespace: Namespace::new(vec!["MyTestMod"]),
 				type_params: vec![T::type_ident()],
 			})
 		}
@@ -95,7 +95,7 @@ fn struct_with_generics_metadata_impl_should_work() {
 	// normal struct
 	let struct_bool_ident = IdentKind::Custom(CustomIdent {
 		name: "MyStruct",
-		namespace: Namespace(vec!["MyTestMod"]),
+		namespace: Namespace::new(vec!["MyTestMod"]),
 		type_params: vec![IdentKind::Bool],
 	});
 	assert_eq!(<MyStruct<bool>>::type_ident(), struct_bool_ident);
@@ -112,7 +112,7 @@ fn struct_with_generics_metadata_impl_should_work() {
 		SelfTyped::type_ident(),
 		IdentKind::Custom(CustomIdent {
 			name: "MyStruct",
-			namespace: Namespace(vec!["MyTestMod"]),
+			namespace: Namespace::new(vec!["MyTestMod"]),
 			type_params: vec![struct_bool_ident.clone()],
 		}),
 	);

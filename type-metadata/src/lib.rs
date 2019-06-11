@@ -42,7 +42,15 @@ pub enum IdentKind {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
-pub struct Namespace(Vec<&'static str>);
+pub struct Namespace {
+	segments: Vec<&'static str>,
+}
+impl Namespace {
+	fn new(segments: Vec<&'static str>) -> Self {
+		Namespace { segments }
+	}
+}
+
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct CustomIdent {
 	pub name: &'static str,
