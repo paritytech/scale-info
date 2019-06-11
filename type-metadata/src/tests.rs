@@ -85,10 +85,10 @@ fn struct_with_generics_metadata_impl_should_work() {
 
 		fn type_def(registry: &mut Registry) -> TypeDef {
 			registry.register(T::type_ident(), T::type_def);
-			TypeDef::Struct(vec![Field {
-				name: FieldName::Named("data".into()),
+			TypeDef::Struct(StructDef(vec![Field {
+				name: "data",
 				ident: T::type_ident(),
-			}])
+			}]))
 		}
 	}
 
@@ -100,10 +100,10 @@ fn struct_with_generics_metadata_impl_should_work() {
 	});
 	assert_eq!(<MyStruct<bool>>::type_ident(), struct_bool_ident);
 	let mut registry = Registry::new();
-	let struct_bool_def = TypeDef::Struct(vec![Field {
-		name: FieldName::Named("data".into()),
+	let struct_bool_def = TypeDef::Struct(StructDef(vec![Field {
+		name: "data",
 		ident: IdentKind::Bool,
-	}]);
+	}]));
 	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
 
 	// with "`Self` typed" fields
@@ -118,9 +118,9 @@ fn struct_with_generics_metadata_impl_should_work() {
 	);
 	assert_eq!(
 		SelfTyped::type_def(&mut registry),
-		TypeDef::Struct(vec![Field {
-			name: FieldName::Named("data".into()),
+		TypeDef::Struct(StructDef(vec![Field {
+			name: "data",
 			ident: struct_bool_ident,
-		}]),
-	)
+		}])),
+	);
 }

@@ -114,28 +114,42 @@ impl ResultIdent {
 pub enum TypeDef {
 	Primitive,
 	Struct(StructDef),
-	EnumDef(EnumDef),
+	TupleStruct(TupleStructDef),
+	Enum(EnumDef),
 }
 
-#[derive(PartialEq, Eq, Debug)]
-pub enum FieldName {
-	Unnamed(u16),
-	Named(String),
-}
 #[derive(PartialEq, Eq, Debug)]
 pub struct Field {
-	pub name: FieldName,
+	pub name: &'static str,
 	pub ident: IdentKind,
 }
-pub type StructDef = Vec<Field>;
+#[derive(PartialEq, Eq, Debug)]
+pub struct StructDef(Vec<Field>);
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct EnumVariant {
-	pub name: String,
+pub struct TupleStructDef(Vec<IdentKind>);
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct DataVariant<T> {
+	pub name: &'static str,
 	pub index: u16,
-	pub fields: Vec<Field>,
+	pub struct_def: T,
 }
-pub type EnumDef = Vec<EnumVariant>;
+
+#[derive(PartialEq, Eq, Debug)]
+pub struct NoDataVariant {
+	pub name: &'static str,
+	pub index: u16,
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub enum VariantKind {
+	NoData(NoDataVariant),
+	Struct(DataVariant<StructDef>),
+	TupleStruct(DataVariant<TupleStructDef>),
+}
+#[derive(PartialEq, Eq, Debug)]
+pub struct EnumDef(Vec<VariantKind>);
 
 pub trait Metadata {
 	fn type_ident() -> IdentKind;
