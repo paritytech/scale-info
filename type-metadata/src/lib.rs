@@ -74,11 +74,14 @@ impl ArrayIdent {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct TupleIdent {
-	pub type_params: Option<Vec<IdentKind>>,
+	pub type_params: Vec<IdentKind>,
 }
 impl TupleIdent {
-	fn new(type_params: Option<Vec<IdentKind>>) -> Self {
+	fn new(type_params: Vec<IdentKind>) -> Self {
 		TupleIdent { type_params }
+	}
+	fn unit() -> Self {
+		TupleIdent { type_params: vec![] }
 	}
 }
 
@@ -221,7 +224,7 @@ macro_rules! impl_metadata_for_tuple {
 	($one:ident,) => {
 		impl<$one: Metadata> Metadata for ($one,) {
 			fn type_ident() -> IdentKind {
-				IdentKind::Tuple(TupleIdent::new(Some(vec![<$one>::type_ident()])))
+				IdentKind::Tuple(TupleIdent::new(vec![<$one>::type_ident()]))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
 				registry.register(<$one>::type_ident(), <$one>::type_def);
@@ -233,7 +236,7 @@ macro_rules! impl_metadata_for_tuple {
 		impl<$first: Metadata, $($rest: Metadata),+> Metadata for ($first, $($rest),+) {
 			fn type_ident() -> IdentKind {
 				IdentKind::Tuple(TupleIdent::new(
-					Some(vec![<$first>::type_ident(), $( <$rest>::type_ident(), )+])
+					vec![<$first>::type_ident(), $( <$rest>::type_ident(), )+],
 				))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
@@ -315,7 +318,7 @@ impl<T: Metadata> Metadata for [T] {
 
 impl Metadata for () {
 	fn type_ident() -> IdentKind {
-		IdentKind::Tuple(TupleIdent::new(None))
+		IdentKind::Tuple(TupleIdent::unit())
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {
@@ -345,7 +348,7 @@ impl Metadata for String {
 
 impl<T: Metadata> Metadata for std::marker::PhantomData<T> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Tuple(TupleIdent::new(Some(vec![T::type_ident()])))
+		IdentKind::Tuple(TupleIdent::new(vec![T::type_ident()]))
 	}
 
 	fn type_def(_registry: &mut Registry) -> TypeDef {

@@ -38,21 +38,23 @@ fn primitives_metadata_impl_should_work() {
 	);
 	assert_eq!(
 		<std::marker::PhantomData<bool>>::type_ident(),
-		IdentKind::Tuple(TupleIdent::new(Some(vec![IdentKind::Bool]))),
+		IdentKind::Tuple(TupleIdent::new(vec![IdentKind::Bool])),
 	)
 }
 
 #[test]
 fn lists_metadata_impl_should_work() {
+	// unit
+	assert_eq!(<()>::type_ident(), IdentKind::Tuple(TupleIdent::new(vec![])),);
 	// tuple with one element
 	assert_eq!(
 		<(bool,)>::type_ident(),
-		IdentKind::Tuple(TupleIdent::new(Some(vec![IdentKind::Bool]))),
+		IdentKind::Tuple(TupleIdent::new(vec![IdentKind::Bool])),
 	);
 	// tuple with multiple elements
 	assert_eq!(
 		<(bool, String)>::type_ident(),
-		IdentKind::Tuple(TupleIdent::new(Some(vec![IdentKind::Bool, IdentKind::Str]))),
+		IdentKind::Tuple(TupleIdent::new(vec![IdentKind::Bool, IdentKind::Str])),
 	);
 
 	// array
