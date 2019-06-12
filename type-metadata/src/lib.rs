@@ -37,8 +37,6 @@ pub enum IdentKind {
 	Array(ArrayIdent),
 	Slice(SliceIdent),
 	Tuple(TupleIdent),
-	Option(OptionIdent),
-	Result(ResultIdent),
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
@@ -46,8 +44,11 @@ pub struct Namespace {
 	segments: Vec<&'static str>,
 }
 impl Namespace {
-	fn new(segments: Vec<&'static str>) -> Self {
+	pub fn new(segments: Vec<&'static str>) -> Self {
 		Namespace { segments }
+	}
+	fn prelude() -> Self {
+		Namespace { segments: vec![] }
 	}
 }
 
@@ -93,30 +94,6 @@ impl SliceIdent {
 	fn new(type_param: IdentKind) -> Self {
 		SliceIdent {
 			type_param: Box::new(type_param),
-		}
-	}
-}
-
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
-pub struct OptionIdent {
-	pub type_param: Box<IdentKind>,
-}
-impl OptionIdent {
-	fn new(type_param: IdentKind) -> Self {
-		OptionIdent {
-			type_param: Box::new(type_param),
-		}
-	}
-}
-
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
-pub struct ResultIdent {
-	pub type_params: (Box<IdentKind>, Box<IdentKind>),
-}
-impl ResultIdent {
-	fn new(type_params: (IdentKind, IdentKind)) -> Self {
-		ResultIdent {
-			type_params: (Box::new(type_params.0), Box::new(type_params.1)),
 		}
 	}
 }
@@ -265,7 +242,11 @@ impl<T: Metadata> Metadata for Vec<T> {
 
 impl<T: Metadata> Metadata for Option<T> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Option(OptionIdent::new(T::type_ident()))
+		IdentKind::Custom(CustomIdent {
+			name: "Option",
+			namespace: Namespace::prelude(),
+			type_params: vec![T::type_ident()],
+		})
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
@@ -276,7 +257,11 @@ impl<T: Metadata> Metadata for Option<T> {
 
 impl<T: Metadata, E: Metadata> Metadata for Result<T, E> {
 	fn type_ident() -> IdentKind {
-		IdentKind::Result(ResultIdent::new((T::type_ident(), E::type_ident())))
+		IdentKind::Custom(CustomIdent {
+			name: "Result",
+			namespace: Namespace::prelude(),
+			type_params: vec![T::type_ident(), E::type_ident()],
+		})
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {

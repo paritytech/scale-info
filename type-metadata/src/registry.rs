@@ -30,11 +30,7 @@ impl Registry {
 		// usage, they're assumed to be decodable by any valid decoder impl.
 		let should_ignore = match type_ident {
 			IdentKind::Custom(_) => false,
-			IdentKind::Array(_)
-			| IdentKind::Slice(_)
-			| IdentKind::Tuple(_)
-			| IdentKind::Option(_)
-			| IdentKind::Result(_) => {
+			IdentKind::Array(_) | IdentKind::Slice(_) | IdentKind::Tuple(_) => {
 				// build-ins are also ignored but their sub-types are registered
 				f(self);
 				true

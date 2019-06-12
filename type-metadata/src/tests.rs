@@ -22,14 +22,6 @@ fn primitives_metadata_impl_should_work() {
 	assert_eq!(<&str>::type_ident(), IdentKind::Str);
 	assert_eq!(i8::type_ident(), IdentKind::I8);
 
-	assert_eq!(
-		<Option<u128>>::type_ident(),
-		IdentKind::Option(OptionIdent::new(IdentKind::U128)),
-	);
-	assert_eq!(
-		<Result<bool, String>>::type_ident(),
-		IdentKind::Result(ResultIdent::new((IdentKind::Bool, IdentKind::Str))),
-	);
 	assert_eq!(<Box<String>>::type_ident(), IdentKind::Str);
 	assert_eq!(<&String>::type_ident(), IdentKind::Str);
 	assert_eq!(
@@ -40,6 +32,26 @@ fn primitives_metadata_impl_should_work() {
 		<std::marker::PhantomData<bool>>::type_ident(),
 		IdentKind::Tuple(TupleIdent::new(vec![IdentKind::Bool])),
 	)
+}
+
+#[test]
+fn preludes_metadata_impl_should_work() {
+	assert_eq!(
+		<Option<u128>>::type_ident(),
+		IdentKind::Custom(CustomIdent {
+			name: "Option",
+			namespace: Namespace { segments: vec![] },
+			type_params: vec![IdentKind::U128]
+		}),
+	);
+	assert_eq!(
+		<Result<bool, String>>::type_ident(),
+		IdentKind::Custom(CustomIdent {
+			name: "Result",
+			namespace: Namespace { segments: vec![] },
+			type_params: vec![IdentKind::Bool, IdentKind::Str]
+		}),
+	);
 }
 
 #[test]
