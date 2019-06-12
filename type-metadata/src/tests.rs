@@ -98,7 +98,7 @@ fn struct_with_generics_metadata_impl_should_work() {
 		}
 
 		fn type_def(registry: &mut Registry) -> TypeDef {
-			registry.register(T::type_ident(), T::type_def);
+			registry.register_type::<T>();
 			TypeDef::Struct(StructDef(vec![Field {
 				name: "data",
 				ident: T::type_ident(),

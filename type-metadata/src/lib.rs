@@ -146,10 +146,6 @@ pub trait Metadata {
 	/// `registry`. For instance, `<Option<MyStruct>>::type_def()` would register `MyStruct` metadata. All
 	/// implementation must register these contained types' metadata.
 	fn type_def(registry: &mut Registry) -> TypeDef;
-
-	fn register(registry: &mut Registry) {
-		registry.register(Self::type_ident(), Self::type_def);
-	}
 }
 
 macro_rules! impl_metadata_for_primitives {
@@ -187,7 +183,7 @@ macro_rules! impl_metadata_for_array {
 				IdentKind::Array(ArrayIdent::new($n, T::type_ident()))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
-				registry.register(T::type_ident(), T::type_def);
+				registry.register_type::<T>();
 				TypeDef::None
 			}
 		}
@@ -204,7 +200,7 @@ macro_rules! impl_metadata_for_tuple {
 				IdentKind::Tuple(TupleIdent::new(vec![<$one>::type_ident()]))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
-				registry.register(<$one>::type_ident(), <$one>::type_def);
+				registry.register_type::<$one>();
 				TypeDef::None
 			}
 		}
@@ -217,8 +213,8 @@ macro_rules! impl_metadata_for_tuple {
 				))
 			}
 			fn type_def(registry: &mut Registry) -> TypeDef {
-				registry.register(<$first>::type_ident(), <$first>::type_def);
-				$({ registry.register(<$rest>::type_ident(), <$rest>::type_def); })+
+				registry.register_type::<$first>();
+				$({ registry.register_type::<$rest>(); })+
 				TypeDef::None
 			}
 		}
@@ -235,7 +231,7 @@ impl<T: Metadata> Metadata for Vec<T> {
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register(T::type_ident(), T::type_def);
+		registry.register_type::<T>();
 		TypeDef::None
 	}
 }
@@ -250,7 +246,7 @@ impl<T: Metadata> Metadata for Option<T> {
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register(T::type_ident(), T::type_def);
+		registry.register_type::<T>();
 		TypeDef::None
 	}
 }
@@ -265,8 +261,8 @@ impl<T: Metadata, E: Metadata> Metadata for Result<T, E> {
 	}
 
 	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register(T::type_ident(), T::type_def);
-		registry.register(E::type_ident(), E::type_def);
+		registry.register_type::<T>();
+		registry.register_type::<E>();
 		TypeDef::None
 	}
 }

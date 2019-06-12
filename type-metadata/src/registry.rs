@@ -14,7 +14,7 @@
 
 use std::collections::BTreeMap;
 
-use super::{IdentKind, TypeDef};
+use super::{IdentKind, Metadata, TypeDef};
 
 pub struct Registry {
 	pub types: BTreeMap<IdentKind, TypeDef>,
@@ -49,6 +49,10 @@ impl Registry {
 
 		let type_def = f(self);
 		self.types.insert(type_ident, type_def);
+	}
+
+	pub fn register_type<T: Metadata>(&mut self) {
+		self.register(T::type_ident(), T::type_def);
 	}
 
 	pub fn exists(&self, type_ident: &IdentKind) -> bool {
