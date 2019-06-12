@@ -102,25 +102,25 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
 
 impl<T> HasTypeId for Vec<T>
 where
-    T: HasTypeId,
+	T: HasTypeId,
 {
-    fn type_id() -> TypeId {
-        <[T]>::type_id()
-    }
+	fn type_id() -> TypeId {
+		<[T]>::type_id()
+	}
 }
 
 impl<T> HasTypeDef for Vec<T>
 where
-    T: Metadata,
+	T: Metadata,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
-        <[T]>::type_def(registry)
+		<[T]>::type_def(registry)
 	}
 }
 
 impl<T> HasTypeId for Option<T>
 where
-    T: HasTypeId,
+	T: HasTypeId,
 {
 	fn type_id() -> TypeId {
 		TypeIdCustom::new("Option", Namespace::prelude(), tuple_type_id![T]).into()
@@ -129,7 +129,7 @@ where
 
 impl<T> HasTypeDef for Option<T>
 where
-    T: Metadata,
+	T: Metadata,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
@@ -139,18 +139,18 @@ where
 
 impl<T, E> HasTypeId for Result<T, E>
 where
-    T: HasTypeId,
-    E: HasTypeId,
+	T: HasTypeId,
+	E: HasTypeId,
 {
-    fn type_id() -> TypeId {
-        TypeIdCustom::new("Result", Namespace::prelude(), tuple_type_id!(T, E)).into()
-    }
+	fn type_id() -> TypeId {
+		TypeIdCustom::new("Result", Namespace::prelude(), tuple_type_id!(T, E)).into()
+	}
 }
 
 impl<T, E> HasTypeDef for Result<T, E>
 where
-    T: Metadata,
-    E: Metadata,
+	T: Metadata,
+	E: Metadata,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
@@ -161,7 +161,7 @@ where
 
 impl<T> HasTypeId for Box<T>
 where
-    T: HasTypeId + ?Sized,
+	T: HasTypeId + ?Sized,
 {
 	fn type_id() -> TypeId {
 		T::type_id()
@@ -170,7 +170,7 @@ where
 
 impl<T> HasTypeDef for Box<T>
 where
-    T: Metadata + ?Sized,
+	T: Metadata + ?Sized,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		T::type_def(registry)
@@ -179,7 +179,7 @@ where
 
 impl<T> HasTypeId for &T
 where
-    T: HasTypeId + ?Sized,
+	T: HasTypeId + ?Sized,
 {
 	fn type_id() -> TypeId {
 		T::type_id()
@@ -188,7 +188,7 @@ where
 
 impl<T> HasTypeDef for &T
 where
-    T: Metadata + ?Sized,
+	T: Metadata + ?Sized,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		T::type_def(registry)
@@ -197,7 +197,7 @@ where
 
 impl<T> HasTypeId for &mut T
 where
-    T: HasTypeId + ?Sized,
+	T: HasTypeId + ?Sized,
 {
 	fn type_id() -> TypeId {
 		T::type_id()
@@ -206,7 +206,7 @@ where
 
 impl<T> HasTypeDef for &mut T
 where
-    T: Metadata + ?Sized,
+	T: Metadata + ?Sized,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		T::type_def(registry)
@@ -215,16 +215,16 @@ where
 
 impl<T> HasTypeId for [T]
 where
-    T: HasTypeId,
+	T: HasTypeId,
 {
-    fn type_id() -> TypeId {
+	fn type_id() -> TypeId {
 		TypeIdSlice::new(T::type_id()).into()
-    }
+	}
 }
 
 impl<T> HasTypeDef for [T]
 where
-    T: Metadata,
+	T: Metadata,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
@@ -233,9 +233,9 @@ where
 }
 
 impl HasTypeId for str {
-    fn type_id() -> TypeId {
+	fn type_id() -> TypeId {
 		TypeIdPrimitive::Str.into()
-    }
+	}
 }
 
 impl HasTypeDef for str {
@@ -245,9 +245,9 @@ impl HasTypeDef for str {
 }
 
 impl HasTypeId for String {
-    fn type_id() -> TypeId {
+	fn type_id() -> TypeId {
 		<str>::type_id()
-    }
+	}
 }
 
 impl HasTypeDef for String {
@@ -260,16 +260,16 @@ use core::marker::PhantomData;
 
 impl<T> HasTypeId for PhantomData<T>
 where
-    T: HasTypeId + ?Sized,
+	T: HasTypeId + ?Sized,
 {
-    fn type_id() -> TypeId {
+	fn type_id() -> TypeId {
 		<T>::type_id() // TODO: Maybe we need another special case here!
-    }
+	}
 }
 
 impl<T> HasTypeDef for PhantomData<T>
 where
-    T: Metadata + ?Sized,
+	T: Metadata + ?Sized,
 {
 	fn type_def(_registry: &mut Registry) -> TypeDef {
 		TypeDef::None

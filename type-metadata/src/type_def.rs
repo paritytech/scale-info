@@ -1,15 +1,12 @@
 // TODO: This file contents have not yet been modified thoroughly.
 
-use crate::{
-    TypeId,
-    Registry,
-};
+use crate::{Registry, TypeId};
 
 /// If the current type contains any other types, `type_def` would register their metadata into the given
 /// `registry`. For instance, `<Option<MyStruct>>::type_def()` would register `MyStruct` metadata. All
 /// implementation must register these contained types' metadata.
 pub trait HasTypeDef {
-    fn type_def(registry: &mut Registry) -> TypeDef;
+	fn type_def(registry: &mut Registry) -> TypeDef;
 }
 
 #[derive(PartialEq, Eq, Debug)]

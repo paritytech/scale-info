@@ -25,23 +25,16 @@ macro_rules! tuple_type_id {
     }
 }
 
-mod registry;
-mod type_id;
-mod type_def;
 mod impls;
+mod registry;
+mod type_def;
+mod type_id;
 
 #[cfg(test)]
 mod tests;
 
-pub use self::{
-    type_id::*,
-    type_def::*,
-    registry::Registry,
-};
+pub use self::{registry::Registry, type_def::*, type_id::*};
 
 pub trait Metadata: HasTypeId + HasTypeDef {}
 
-impl<T> Metadata for T
-where
-    T: HasTypeId + HasTypeDef + ?Sized,
-{}
+impl<T> Metadata for T where T: HasTypeId + HasTypeDef + ?Sized {}

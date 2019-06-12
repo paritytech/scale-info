@@ -14,7 +14,7 @@
 
 use std::collections::BTreeMap;
 
-use super::{TypeId, Metadata, TypeDef};
+use super::{Metadata, TypeDef, TypeId};
 
 pub struct Registry {
 	pub types: BTreeMap<TypeId, TypeDef>,
@@ -26,16 +26,16 @@ impl Registry {
 	}
 
 	pub fn register<F>(&mut self, type_id: TypeId, f: F)
-    where
-        F: Fn(&mut Registry) -> TypeDef,
-    {
+	where
+		F: Fn(&mut Registry) -> TypeDef,
+	{
 		// Simple primitives would not be actually registered,
-        // as an optimization to reduce storage usage,
-        // they're assumed to be decodable by any valid decoder impl.
-        if let TypeId::Array(_) | TypeId::Slice(_) | TypeId::Tuple(_) = type_id {
-            f(self);
+		// as an optimization to reduce storage usage,
+		// they're assumed to be decodable by any valid decoder impl.
+		if let TypeId::Array(_) | TypeId::Slice(_) | TypeId::Tuple(_) = type_id {
+			f(self);
 			return;
-        }
+		}
 		if self.exists(&type_id) {
 			return;
 		}
