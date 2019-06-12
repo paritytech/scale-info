@@ -51,30 +51,19 @@ pub enum TypeId {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum TypeIdPrimitive {
-	#[serde(rename = "bool")]
 	Bool,
-	#[serde(rename = "str")]
 	Str,
-	#[serde(rename = "u8")]
 	U8,
-	#[serde(rename = "u16")]
 	U16,
-	#[serde(rename = "u32")]
 	U32,
-	#[serde(rename = "u64")]
 	U64,
-	#[serde(rename = "u128")]
 	U128,
-	#[serde(rename = "i8")]
 	I8,
-	#[serde(rename = "i16")]
 	I16,
-	#[serde(rename = "i32")]
 	I32,
-	#[serde(rename = "i64")]
 	I64,
-	#[serde(rename = "i128")]
 	I128,
 }
 
