@@ -12,129 +12,164 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(test)]
 use super::*;
+use std::marker::PhantomData;
 
-#[test]
-fn primitives_metadata_impl_should_work() {
-	assert_eq!(bool::type_ident(), IdentKind::Bool);
-	assert_eq!(String::type_ident(), IdentKind::Str);
-	assert_eq!(<&str>::type_ident(), IdentKind::Str);
-	assert_eq!(i8::type_ident(), IdentKind::I8);
+fn assert_type_id<T, E>(expected: E)
+where
+    T: Metadata + ?Sized,
+    E: Into<TypeId>,
+{
+    assert_eq!(T::type_id(), expected.into());
+}
 
-	assert_eq!(<Box<String>>::type_ident(), IdentKind::Str);
-	assert_eq!(<&String>::type_ident(), IdentKind::Str);
-	assert_eq!(
-		<[bool]>::type_ident(),
-		IdentKind::Slice(SliceIdent::new(IdentKind::Bool)),
-	);
-	assert_eq!(
-		<std::marker::PhantomData<bool>>::type_ident(),
-		IdentKind::Tuple(TupleIdent::new(vec![IdentKind::Bool])),
-	)
+macro_rules! assert_type_id {
+    ( $ty:ty, $expected:expr ) => {
+        {
+            assert_type_id::<$ty, _>($expected)
+        }
+    };
 }
 
 #[test]
-fn preludes_metadata_impl_should_work() {
-	assert_eq!(
-		<Option<u128>>::type_ident(),
-		IdentKind::Custom(CustomIdent {
-			name: "Option",
-			namespace: Namespace { segments: vec![] },
-			type_params: vec![IdentKind::U128]
-		}),
-	);
-	assert_eq!(
-		<Result<bool, String>>::type_ident(),
-		IdentKind::Custom(CustomIdent {
-			name: "Result",
-			namespace: Namespace { segments: vec![] },
-			type_params: vec![IdentKind::Bool, IdentKind::Str]
-		}),
+fn primitives() {
+    assert_type_id!(bool, TypeIdPrimitive::Bool);
+    assert_type_id!(String, TypeIdPrimitive::Str);
+    assert_type_id!(&str, TypeIdPrimitive::Str);
+    assert_type_id!(i8, TypeIdPrimitive::I8);
+
+    assert_type_id!(Box<String>, TypeIdPrimitive::Str);
+    assert_type_id!(&String, TypeIdPrimitive::Str);
+    assert_type_id!([bool], TypeIdSlice::new(TypeIdPrimitive::Bool));
+    assert_type_id!(PhantomData<bool>, TypeIdPrimitive::Bool);
+}
+
+#[test]
+fn prelude_items() {
+    assert_type_id!(
+        Option<u128>,
+        TypeIdCustom::new("Option", Namespace::prelude(), tuple_type_id!(u128))
+    );
+	assert_type_id!(
+		Result<bool, String>,
+        TypeIdCustom::new("Result", Namespace::prelude(), tuple_type_id!(bool, str))
 	);
 }
 
 #[test]
-fn lists_metadata_impl_should_work() {
+fn tuple_primitives() {
 	// unit
-	assert_eq!(<()>::type_ident(), IdentKind::Tuple(TupleIdent::new(vec![])),);
+    assert_type_id!((), TypeIdTuple::new(tuple_type_id!()));
+
 	// tuple with one element
-	assert_eq!(
-		<(bool,)>::type_ident(),
-		IdentKind::Tuple(TupleIdent::new(vec![IdentKind::Bool])),
-	);
+	assert_type_id!(
+		(bool,),
+		TypeIdTuple::new(tuple_type_id!(bool))
+    );
+
 	// tuple with multiple elements
-	assert_eq!(
-		<(bool, String)>::type_ident(),
-		IdentKind::Tuple(TupleIdent::new(vec![IdentKind::Bool, IdentKind::Str])),
+	assert_type_id!(
+		(bool, String),
+		TypeIdTuple::new(tuple_type_id!(bool, String))
 	);
 
+    // nested tuple
+    assert_type_id!(
+        ((i8, i16), (u32, u64)),
+        TypeIdTuple::new(
+            vec![
+                TypeIdTuple::new(tuple_type_id!(i8, i16)).into(),
+                TypeIdTuple::new(tuple_type_id!(u32, u64)).into(),
+            ]
+        )
+    );
+}
+
+#[test]
+fn array_primitives() {
 	// array
-	assert_eq!(
-		<[bool; 3]>::type_ident(),
-		IdentKind::Array(ArrayIdent::new(3, IdentKind::Bool)),
+	assert_type_id!(
+		[bool; 3],
+		TypeIdArray::new(3, bool::type_id())
 	);
-
+    // nested
+    assert_type_id!(
+        [[i32; 5]; 5],
+        TypeIdArray::new(5, TypeIdArray::new(5, i32::type_id()))
+    );
 	// vec
-	assert_eq!(
-		<Vec<bool>>::type_ident(),
-		IdentKind::Slice(SliceIdent::new(IdentKind::Bool)),
+	assert_type_id!(
+		Vec<bool>,
+		TypeIdSlice::new(bool::type_id())
 	);
 }
 
 #[test]
-fn struct_with_generics_metadata_impl_should_work() {
+fn struct_with_generics() {
+    #[allow(unused)]
 	struct MyStruct<T> {
 		data: T,
 	}
 
-	impl<T: Metadata> Metadata for MyStruct<T> {
-		fn type_ident() -> IdentKind {
-			IdentKind::Custom(CustomIdent {
-				name: "MyStruct",
-				namespace: Namespace::new(vec!["MyTestMod"]),
-				type_params: vec![T::type_ident()],
-			})
+	impl<T> HasTypeId for MyStruct<T>
+    where
+        T: HasTypeId,
+    {
+		fn type_id() -> TypeId {
+            TypeIdCustom::new(
+                "MyStruct",
+                Namespace::from_str(module_path!()).unwrap(),
+                tuple_type_id!(T)
+            ).into()
 		}
+    }
 
+    impl<T> HasTypeDef for MyStruct<T>
+    where
+        T: Metadata,
+    {
 		fn type_def(registry: &mut Registry) -> TypeDef {
 			registry.register_type::<T>();
 			TypeDef::Struct(StructDef(vec![Field {
 				name: "data",
-				ident: T::type_ident(),
+				ident: T::type_id(),
 			}]))
 		}
 	}
 
-	// normal struct
-	let struct_bool_ident = IdentKind::Custom(CustomIdent {
-		name: "MyStruct",
-		namespace: Namespace::new(vec!["MyTestMod"]),
-		type_params: vec![IdentKind::Bool],
-	});
-	assert_eq!(<MyStruct<bool>>::type_ident(), struct_bool_ident);
+	// Normal struct
+    let struct_bool_id =
+        TypeIdCustom::new(
+            "MyStruct",
+            Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+            tuple_type_id!(bool)
+        );
+    assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
+
 	let mut registry = Registry::new();
 	let struct_bool_def = TypeDef::Struct(StructDef(vec![Field {
 		name: "data",
-		ident: IdentKind::Bool,
+		ident: bool::type_id(),
 	}]));
 	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
 
-	// with "`Self` typed" fields
+	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	assert_eq!(
-		SelfTyped::type_ident(),
-		IdentKind::Custom(CustomIdent {
-			name: "MyStruct",
-			namespace: Namespace::new(vec!["MyTestMod"]),
-			type_params: vec![struct_bool_ident.clone()],
-		}),
+    let expected_type_id =
+        TypeIdCustom::new(
+            "MyStruct",
+            Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+            vec![struct_bool_id.clone().into()]
+        );
+	assert_type_id!(
+		SelfTyped,
+		expected_type_id
 	);
 	assert_eq!(
 		SelfTyped::type_def(&mut registry),
 		TypeDef::Struct(StructDef(vec![Field {
 			name: "data",
-			ident: struct_bool_ident,
+			ident: struct_bool_id.clone().into(),
 		}])),
 	);
 }

@@ -14,10 +14,10 @@
 
 use std::collections::BTreeMap;
 
-use super::{IdentKind, Metadata, TypeDef};
+use super::{TypeId, Metadata, TypeDef};
 
 pub struct Registry {
-	pub types: BTreeMap<IdentKind, TypeDef>,
+	pub types: BTreeMap<TypeId, TypeDef>,
 }
 
 impl Registry {
@@ -25,37 +25,33 @@ impl Registry {
 		Registry { types: BTreeMap::new() }
 	}
 
-	pub fn register<F: Fn(&mut Registry) -> TypeDef>(&mut self, type_ident: IdentKind, f: F) {
-		// simple primitives would not be actually registered, as an optimization to reduce storage
-		// usage, they're assumed to be decodable by any valid decoder impl.
-		let should_ignore = match type_ident {
-			IdentKind::Custom(_) => false,
-			IdentKind::Array(_) | IdentKind::Slice(_) | IdentKind::Tuple(_) => {
-				// build-ins are also ignored but their sub-types are registered
-				f(self);
-				true
-			}
-			_ => true,
-		};
-		if should_ignore {
+	pub fn register<F>(&mut self, type_id: TypeId, f: F)
+    where
+        F: Fn(&mut Registry) -> TypeDef,
+    {
+		// Simple primitives would not be actually registered,
+        // as an optimization to reduce storage usage,
+        // they're assumed to be decodable by any valid decoder impl.
+        if let TypeId::Array(_) | TypeId::Slice(_) | TypeId::Tuple(_) = type_id {
+            f(self);
 			return;
-		}
-		if self.exists(&type_ident) {
+        }
+		if self.exists(&type_id) {
 			return;
 		}
 
-		// insert `TypeDef::Primitive` as placeholder, instead of calling `f`, to avoid circular calling
-		self.types.insert(type_ident.clone(), TypeDef::None);
+		// Insert `TypeDef::Primitive` as placeholder, instead of calling `f`, to avoid circular calling.
+		self.types.insert(type_id.clone(), TypeDef::None);
 
 		let type_def = f(self);
-		self.types.insert(type_ident, type_def);
+		self.types.insert(type_id, type_def);
 	}
 
 	pub fn register_type<T: Metadata>(&mut self) {
-		self.register(T::type_ident(), T::type_def);
+		self.register(T::type_id(), T::type_def);
 	}
 
-	pub fn exists(&self, type_ident: &IdentKind) -> bool {
+	pub fn exists(&self, type_ident: &TypeId) -> bool {
 		self.types.contains_key(type_ident)
 	}
 }
