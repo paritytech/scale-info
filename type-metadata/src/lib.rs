@@ -21,7 +21,10 @@ mod tests;
 pub enum IdentKind {
 	Custom(CustomIdent),
 
-	// primitives, including build-in types and common precludes
+	// primitives and common preludes
+	Slice(SliceIdent),
+	Array(ArrayIdent),
+	Tuple(TupleIdent),
 	Bool,
 	Str,
 	U8,
@@ -34,9 +37,6 @@ pub enum IdentKind {
 	I32,
 	I64,
 	I128,
-	Array(ArrayIdent),
-	Slice(SliceIdent),
-	Tuple(TupleIdent),
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
