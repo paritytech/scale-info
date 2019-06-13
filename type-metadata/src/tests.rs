@@ -112,10 +112,7 @@ fn struct_with_generics() {
 	{
 		fn type_def(registry: &mut Registry) -> TypeDef {
 			registry.register_type::<T>();
-			TypeDef::Struct(StructDef(vec![Field {
-				name: "data",
-				ident: T::type_id(),
-			}]))
+			TypeDefKind::from(TypeDefStruct::new(vec![NamedField::new("data", T::type_id())])).into()
 		}
 	}
 
@@ -128,10 +125,7 @@ fn struct_with_generics() {
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
 
 	let mut registry = Registry::new();
-	let struct_bool_def = TypeDef::Struct(StructDef(vec![Field {
-		name: "data",
-		ident: bool::type_id(),
-	}]));
+	let struct_bool_def = TypeDefKind::from(TypeDefStruct::new(vec![NamedField::new("data", bool::type_id())])).into();
 	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
 
 	// With "`Self` typed" fields
@@ -144,9 +138,10 @@ fn struct_with_generics() {
 	assert_type_id!(SelfTyped, expected_type_id);
 	assert_eq!(
 		SelfTyped::type_def(&mut registry),
-		TypeDef::Struct(StructDef(vec![Field {
-			name: "data",
-			ident: struct_bool_id.clone().into(),
-		}])),
+		TypeDefKind::from(TypeDefStruct::new(vec![NamedField::new(
+			"data",
+			struct_bool_id.clone()
+		),]))
+		.into(),
 	);
 }

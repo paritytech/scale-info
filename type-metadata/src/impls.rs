@@ -10,7 +10,7 @@ macro_rules! impl_metadata_for_primitives {
 
         impl HasTypeDef for $t {
             fn type_def(_registry: &mut Registry) -> TypeDef {
-                TypeDef::None
+                TypeDef::builtin()
             }
         }
 	)* }
@@ -42,7 +42,7 @@ macro_rules! impl_metadata_for_array {
             impl<T: Metadata> HasTypeDef for [T; $n] {
                 fn type_def(registry: &mut Registry) -> TypeDef {
                     registry.register_type::<T>();
-                    TypeDef::None
+                    TypeDef::builtin()
                 }
             }
 	    )*
@@ -82,7 +82,7 @@ macro_rules! impl_metadata_for_tuple {
                 $(
                     registry.register_type::<$ty>();
                 )*
-				TypeDef::None
+				TypeDef::builtin()
 			}
         }
     }
@@ -115,7 +115,7 @@ where
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
-		TypeDef::None
+		TypeDef::builtin() // TODO: We will use a proper Custom type here
 	}
 }
 
@@ -134,7 +134,7 @@ where
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
-		TypeDef::None
+		TypeDef::builtin() // TODO: We will use a proper Custom type here
 	}
 }
 
@@ -156,7 +156,7 @@ where
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
 		registry.register_type::<E>();
-		TypeDef::None
+		TypeDef::builtin() // TODO: We will use a proper Custom type here
 	}
 }
 
@@ -229,7 +229,7 @@ where
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
-		TypeDef::None
+		TypeDef::builtin()
 	}
 }
 
@@ -241,7 +241,7 @@ impl HasTypeId for str {
 
 impl HasTypeDef for str {
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::None
+		TypeDef::builtin()
 	}
 }
 
@@ -253,7 +253,7 @@ impl HasTypeId for String {
 
 impl HasTypeDef for String {
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::None
+		TypeDef::builtin() // TODO: We will use a proper Custom type here
 	}
 }
 
@@ -273,6 +273,6 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::None
+		TypeDef::builtin()
 	}
 }

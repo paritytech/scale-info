@@ -41,7 +41,7 @@ impl Registry {
 		}
 
 		// Insert `TypeDef::Primitive` as placeholder, instead of calling `f`, to avoid circular calling.
-		self.types.insert(type_id.clone(), TypeDef::None);
+		self.types.insert(type_id.clone(), TypeDef::builtin());
 
 		let type_def = f(self);
 		self.types.insert(type_id, type_def);
