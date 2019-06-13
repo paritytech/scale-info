@@ -10,19 +10,58 @@ pub struct Namespace {
 	segments: Vec<&'static str>,
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct InvalidNamespace;
+#[derive(PartialEq, Eq, Debug)]
+pub enum NamespaceError {
+    /// If the module path does not at least have one segment.
+    MissingSegments,
+    /// If a segment within a module path is not a proper Rust identifier.
+    InvalidIdentifier {
+        segment: usize,
+    },
+}
 
 impl Namespace {
 	/// Creates a new namespace from the given segments.
-	pub fn new<S>(segments: S) -> Result<Self, InvalidNamespace>
+	pub fn new<S>(segments: S) -> Result<Self, NamespaceError>
 	where
 		S: IntoIterator<Item = &'static str>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
 		if segments.len() == 0 {
-			return Err(InvalidNamespace);
-		}
+			return Err(NamespaceError::MissingSegments)
+        }
+        if let Some(err_at) = segments.iter().position(|seg| {
+            /// Returns `true` if the given string is a proper Rust identifier.
+            fn is_rust_identifier(s: &str) -> bool {
+                // Only ascii encoding is allowed.
+                // Note: Maybe this check is superseeded by the `head` and `tail` check.
+                println!("is_rust_identifier? \"{}\"", s);
+                if !s.is_ascii() {
+                    return false
+                }
+                if let Some((&head, tail)) = s.as_bytes().split_first() {
+                    // Check if head and tail make up a proper Rust identifier.
+                    let head_ok =
+                        head == b'_' ||
+                        head >= b'a' && head <= b'z' ||
+                        head >= b'A' && head <= b'Z';
+                    let tail_ok =
+                        tail.iter().all(|&ch| {
+                            ch == b'_' ||
+                            ch >= b'a' && ch <= b'z' ||
+                            ch >= b'A' && ch <= b'Z' ||
+                            ch >= b'0' && ch <= b'9'
+                        });
+                    head_ok && tail_ok
+                } else {
+                    // String is empty and thus not a valid Rust identifier.
+                    false
+                }
+            }
+            !is_rust_identifier(seg)
+        }) {
+            return Err(NamespaceError::InvalidIdentifier { segment: err_at })
+        }
 		Ok(Self { segments })
 	}
 
@@ -31,7 +70,7 @@ impl Namespace {
 	/// # Note
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn from_str(module_path: &'static str) -> Result<Self, InvalidNamespace> {
+	pub fn from_str(module_path: &'static str) -> Result<Self, NamespaceError> {
 		Self::new(module_path.split("::"))
 	}
 
@@ -143,4 +182,57 @@ impl TypeIdSlice {
 			type_param: Box::new(type_param.into()),
 		}
 	}
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn namespace_ok() {
+        assert_eq!(
+            Namespace::new(vec!["hello"]),
+            Ok(Namespace { segments: vec!["hello"] })
+        );
+        assert_eq!(
+            Namespace::new(vec!["Hello", "World"]),
+            Ok(Namespace { segments: vec!["Hello", "World"] })
+        );
+        assert_eq!(
+            Namespace::new(vec!["_"]),
+            Ok(Namespace { segments: vec!["_"] })
+        );
+    }
+
+    #[test]
+    fn namespace_err() {
+        assert_eq!(
+            Namespace::new(vec![]),
+            Err(NamespaceError::MissingSegments)
+        );
+        assert_eq!(
+            Namespace::new(vec![""]),
+            Err(NamespaceError::InvalidIdentifier { segment: 0 })
+        );
+        assert_eq!(
+            Namespace::new(vec!["1"]),
+            Err(NamespaceError::InvalidIdentifier { segment: 0 })
+        );
+        assert_eq!(
+            Namespace::new(vec!["Hello", ", World!"]),
+            Err(NamespaceError::InvalidIdentifier { segment: 1 })
+        );
+    }
+
+    #[test]
+    fn namespace_from_str() {
+        assert_eq!(
+            Namespace::from_str("hello::world"),
+            Ok(Namespace { segments: vec!["hello", "world"] })
+        );
+        assert_eq!(
+            Namespace::from_str("::world"),
+            Err(NamespaceError::InvalidIdentifier { segment: 0 })
+        );
+    }
 }
