@@ -89,6 +89,8 @@ pub enum TypeId {
 	Array(TypeIdArray),
 	Tuple(TypeIdTuple),
 	Primitive(TypeIdPrimitive),
+	// TODO: Shall we also add Ref and RefMut as builtins? Provides more information.
+	// TODO: Shall we add PhantomData as another builtin? It is often treated as such.
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
