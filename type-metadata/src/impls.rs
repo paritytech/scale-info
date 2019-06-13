@@ -105,7 +105,7 @@ where
 	T: HasTypeId,
 {
 	fn type_id() -> TypeId {
-		<[T]>::type_id()
+		TypeIdCustom::new("Vec", Namespace::prelude(), tuple_type_id![T]).into()
 	}
 }
 
@@ -114,7 +114,8 @@ where
 	T: Metadata,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
-		<[T]>::type_def(registry)
+		registry.register_type::<T>();
+		TypeDef::None
 	}
 }
 
