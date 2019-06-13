@@ -17,7 +17,7 @@ use std::collections::BTreeMap;
 use super::{Metadata, TypeDef, TypeId};
 
 pub struct Registry {
-	pub types: BTreeMap<TypeId, TypeDef>,
+	types: BTreeMap<TypeId, TypeDef>,
 }
 
 impl Registry {
@@ -25,10 +25,7 @@ impl Registry {
 		Registry { types: BTreeMap::new() }
 	}
 
-	pub fn register<F>(&mut self, type_id: TypeId, f: F)
-	where
-		F: Fn(&mut Registry) -> TypeDef,
-	{
+	pub fn register(&mut self, type_id: TypeId, f: fn(&mut Registry) -> TypeDef) {
 		// Simple primitives would not be actually registered,
 		// as an optimization to reduce storage usage,
 		// they're assumed to be decodable by any valid decoder impl.
