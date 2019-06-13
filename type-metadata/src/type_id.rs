@@ -5,17 +5,26 @@ pub trait HasTypeId {
 	fn type_id() -> TypeId;
 }
 
+/// Represents the namespace of a type definition.
+///
+/// This consists of several segments that each have to be a valid Rust identifier.
+/// The first segment represents the crate name in which the type has been defined.
+///
+/// Rust prelude type may have an empty namespace definition.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 pub struct Namespace {
+    /// The segments of the namespace.
 	segments: Vec<&'static str>,
 }
 
+/// An error that may be encountered upon constructing namespaces.
 #[derive(PartialEq, Eq, Debug)]
 pub enum NamespaceError {
     /// If the module path does not at least have one segment.
     MissingSegments,
     /// If a segment within a module path is not a proper Rust identifier.
     InvalidIdentifier {
+        /// The index of the errorneous segment.
         segment: usize,
     },
 }
