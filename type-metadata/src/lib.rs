@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+extern crate alloc;
+
 macro_rules! tuple_type_id {
     ( $($ty:ident),* ) => {
         {
@@ -29,6 +31,7 @@ mod impls;
 mod registry;
 mod type_def;
 mod type_id;
+pub mod interner;
 
 #[cfg(test)]
 mod tests;
