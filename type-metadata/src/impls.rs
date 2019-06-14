@@ -264,7 +264,7 @@ where
 	T: HasTypeId + ?Sized,
 {
 	fn type_id() -> TypeId {
-		<T>::type_id() // TODO: Maybe we need another special case here!
+		<T>::type_id()
 	}
 }
 

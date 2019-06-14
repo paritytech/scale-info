@@ -1,5 +1,3 @@
-// TODO: This file contents have not yet been modified thoroughly.
-
 use crate::{Registry, TypeId};
 use derive_more::From;
 use serde::Serialize;
