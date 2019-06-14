@@ -36,7 +36,14 @@ pub mod interner;
 #[cfg(test)]
 mod tests;
 
-pub use self::{registry::Registry, type_def::*, type_id::*};
+pub use self::{
+    registry::{
+        Registry,
+        Tables,
+    },
+    type_def::*,
+    type_id::*,
+};
 
 pub trait Metadata: HasTypeId + HasTypeDef {}
 

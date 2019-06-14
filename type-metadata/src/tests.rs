@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::*;
+use crate::*;
 use std::marker::PhantomData;
 
 fn assert_type_id<T, E>(expected: E)
@@ -129,7 +129,8 @@ fn struct_with_generics() {
 	);
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
 
-	let mut registry = Registry::new();
+    let mut tables = Tables::new();
+	let mut registry = Registry::new(&mut tables);
 	let struct_bool_def = TypeDefKind::from(TypeDefStruct::new(vec![NamedField::new("data", bool::type_id())])).into();
 	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
 

@@ -14,15 +14,43 @@
 
 use std::collections::BTreeMap;
 
-use super::{Metadata, TypeDef, TypeId};
+use crate::{
+    Metadata,
+    TypeDef,
+    TypeId,
+    interner::{
+        StringInterner,
+        TypeIdInterner,
+    },
+};
 
-pub struct Registry {
+pub struct Tables {
+    pub string_table: StringInterner,
+    pub typeid_table: TypeIdInterner,
+}
+
+impl Tables {
+    pub fn new() -> Self {
+        Self {
+            string_table: StringInterner::new(),
+            typeid_table: TypeIdInterner::new(),
+        }
+    }
+}
+
+pub struct Registry<'t> {
+    tables: &'t mut Tables,
 	types: BTreeMap<TypeId, TypeDef>,
 }
 
-impl Registry {
-	pub fn new() -> Registry {
-		Registry { types: BTreeMap::new() }
+impl<'t> Registry<'t> {
+	pub fn new(
+        tables: &'t mut Tables,
+    ) -> Self {
+		Self {
+            tables,
+            types: BTreeMap::new()
+        }
 	}
 
 	pub fn register(&mut self, type_id: TypeId, f: fn(&mut Registry) -> TypeDef) {
