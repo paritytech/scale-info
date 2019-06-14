@@ -115,7 +115,9 @@ where
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
-		TypeDef::builtin() // TODO: We will use a proper Custom type here
+        TypeDefKind::Struct(TypeDefStruct::new(vec![
+            NamedField::new("elems", <[T]>::type_id()),
+        ])).into()
 	}
 }
 
@@ -134,29 +136,43 @@ where
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
-		TypeDef::builtin() // TODO: We will use a proper Custom type here
+
+        TypeDefKind::Enum(TypeDefEnum::new(vec![
+            EnumVariantUnit::new("None").into(),
+            EnumVariantTupleStruct::new("Some", vec![
+                UnnamedField::new::<T>()
+            ]).into()
+        ])).into()
 	}
 }
 
-impl<T, E> HasTypeId for Result<T, E>
+impl<Ok, Err> HasTypeId for Result<Ok, Err>
 where
-	T: HasTypeId,
-	E: HasTypeId,
+	Ok: HasTypeId,
+	Err: HasTypeId,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Result", Namespace::prelude(), tuple_type_id!(T, E)).into()
+		TypeIdCustom::new("Result", Namespace::prelude(), tuple_type_id!(Ok, Err)).into()
 	}
 }
 
-impl<T, E> HasTypeDef for Result<T, E>
+impl<Ok, Err> HasTypeDef for Result<Ok, Err>
 where
-	T: Metadata,
-	E: Metadata,
+	Ok: Metadata,
+	Err: Metadata,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register_type::<T>();
-		registry.register_type::<E>();
-		TypeDef::builtin() // TODO: We will use a proper Custom type here
+		registry.register_type::<Ok>();
+		registry.register_type::<Err>();
+
+        TypeDefKind::Enum(TypeDefEnum::new(vec![
+            EnumVariantTupleStruct::new("Ok", vec![
+                UnnamedField::new::<Ok>()
+            ]).into(),
+            EnumVariantTupleStruct::new("Err", vec![
+                UnnamedField::new::<Err>()
+            ]).into()
+        ])).into()
 	}
 }
 
@@ -253,7 +269,9 @@ impl HasTypeId for String {
 
 impl HasTypeDef for String {
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-		TypeDef::builtin() // TODO: We will use a proper Custom type here
+        TypeDefKind::Struct(TypeDefStruct::new(vec![
+            NamedField::new("vec", Vec::<u8>::type_id()),
+        ])).into()
 	}
 }
 
