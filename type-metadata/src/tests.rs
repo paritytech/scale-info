@@ -81,8 +81,13 @@ fn array_primitives() {
 	assert_type_id!([bool; 3], TypeIdArray::new(3, bool::type_id()));
 	// nested
 	assert_type_id!([[i32; 5]; 5], TypeIdArray::new(5, TypeIdArray::new(5, i32::type_id())));
-	// vec
-	assert_type_id!(Vec<bool>, TypeIdSlice::new(bool::type_id()));
+	// slice
+    assert_type_id!([bool], TypeIdSlice::new(bool::type_id()));
+    // vec
+	assert_type_id!(
+        Vec<bool>,
+        TypeIdCustom::new("Vec", Namespace::prelude(), tuple_type_id![bool])
+    );
 }
 
 #[test]
