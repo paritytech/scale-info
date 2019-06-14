@@ -1,4 +1,4 @@
-use crate::{Registry, TypeId};
+use crate::{Registry, TypeId, HasTypeId};
 use derive_more::From;
 use serde::Serialize;
 
@@ -108,6 +108,17 @@ pub struct UnnamedField {
 	ty: TypeId,
 }
 
+impl UnnamedField {
+    pub fn new<T>() -> Self
+    where
+        T: HasTypeId,
+    {
+        Self {
+            ty: T::type_id(),
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct TypeDefClikeEnum {
 	variants: Vec<ClikeEnumVariant>,
@@ -124,16 +135,67 @@ pub struct TypeDefEnum {
 	variants: Vec<EnumVariant>,
 }
 
+impl TypeDefEnum {
+    pub fn new<V>(variants: V) -> Self
+    where
+        V: IntoIterator<Item = EnumVariant>,
+    {
+        Self { variants: variants.into_iter().collect(), }
+    }
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 pub enum EnumVariant {
 	Unit(EnumVariantUnit),
-	Struct(TypeDefTupleStruct),
-	TupleStruct(TypeDefEnum),
+    Struct(EnumVariantStruct),
+    TupleStruct(EnumVariantTupleStruct),
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct EnumVariantUnit {
 	name: &'static str,
+}
+
+impl EnumVariantUnit {
+    pub fn new(name: &'static str) -> Self {
+        Self { name }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Serialize)]
+pub struct EnumVariantStruct {
+    name: &'static str,
+    fields: Vec<NamedField>,
+}
+
+impl EnumVariantStruct {
+    pub fn new<F>(name: &'static str, fields: F) -> Self
+    where
+        F: IntoIterator<Item = NamedField>,
+    {
+        Self {
+            name,
+            fields: fields.into_iter().collect(),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Serialize)]
+pub struct EnumVariantTupleStruct {
+    name: &'static str,
+    fields: Vec<UnnamedField>,
+}
+
+impl EnumVariantTupleStruct {
+    pub fn new<F>(name: &'static str, fields: F) -> Self
+    where
+        F: IntoIterator<Item = UnnamedField>,
+    {
+        Self {
+            name,
+            fields: fields.into_iter().collect(),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
