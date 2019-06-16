@@ -53,30 +53,21 @@ impl<'t> Registry<'t> {
         }
 	}
 
-	pub fn register(&mut self, type_id: TypeId, f: fn(&mut Registry) -> TypeDef) {
-		// Simple primitives would not be actually registered,
-		// as an optimization to reduce storage usage,
-		// they're assumed to be decodable by any valid decoder impl.
-		if let TypeId::Array(_) | TypeId::Slice(_) | TypeId::Tuple(_) = type_id {
-			f(self);
-			return;
-		}
-		if self.exists(&type_id) {
-			return;
-		}
-
-		// Insert `TypeDef::Primitive` as placeholder, instead of calling `f`, to avoid circular calling.
-		self.types.insert(type_id.clone(), TypeDef::builtin());
-
-		let type_def = f(self);
-		self.types.insert(type_id, type_def);
-	}
-
 	pub fn register_type<T: Metadata>(&mut self) {
-		self.register(T::type_id(), T::type_def);
-	}
+        let type_id = T::type_id();
 
-	pub fn exists(&self, type_ident: &TypeId) -> bool {
-		self.types.contains_key(type_ident)
+        match type_id {
+            | TypeId::Primitive(_) => (),
+            | TypeId::Array(_)
+            | TypeId::Slice(_)
+            | TypeId::Tuple(_) => { T::type_def(self); },
+            | TypeId::Custom(_) => {
+                if !self.types.contains_key(&type_id) {
+                    self.types.insert(type_id.clone(), TypeDef::builtin());
+                    let type_def = T::type_def(self);
+                    self.types.insert(type_id, type_def);
+                }
+            }
+        }
 	}
 }
