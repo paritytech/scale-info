@@ -70,7 +70,7 @@ impl<'t> Registry<'t> {
 				if !self.types.contains_key(&type_id) {
 					self.types.insert(type_id.clone(), TypeDef::builtin());
 					T::register_subtypes(self);
-					let type_def = T::type_def(self);
+					let type_def = T::type_def();
 					self.types.insert(type_id, type_def);
 				}
 			}
