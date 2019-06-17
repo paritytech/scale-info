@@ -115,9 +115,9 @@ where
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
-        TypeDefKind::Struct(TypeDefStruct::new(vec![
+        TypeDefStruct::new(vec![
             NamedField::new("elems", <[T]>::type_id()),
-        ])).into()
+        ]).into()
 	}
 }
 
@@ -137,12 +137,12 @@ where
 	fn type_def(registry: &mut Registry) -> TypeDef {
 		registry.register_type::<T>();
 
-        TypeDefKind::Enum(TypeDefEnum::new(vec![
+        TypeDefEnum::new(vec![
             EnumVariantUnit::new("None").into(),
             EnumVariantTupleStruct::new("Some", vec![
                 UnnamedField::new::<T>()
             ]).into()
-        ])).into()
+        ]).into()
 	}
 }
 
@@ -165,14 +165,14 @@ where
 		registry.register_type::<T>();
 		registry.register_type::<E>();
 
-        TypeDefKind::Enum(TypeDefEnum::new(vec![
+        TypeDefEnum::new(vec![
             EnumVariantTupleStruct::new("Ok", vec![
                 UnnamedField::new::<T>()
             ]).into(),
             EnumVariantTupleStruct::new("Err", vec![
                 UnnamedField::new::<E>()
             ]).into()
-        ])).into()
+        ]).into()
 	}
 }
 
@@ -269,9 +269,9 @@ impl HasTypeId for String {
 
 impl HasTypeDef for String {
 	fn type_def(_registry: &mut Registry) -> TypeDef {
-        TypeDefKind::Struct(TypeDefStruct::new(vec![
+        TypeDefStruct::new(vec![
             NamedField::new("vec", Vec::<u8>::type_id()),
-        ])).into()
+        ]).into()
 	}
 }
 
