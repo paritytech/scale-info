@@ -67,39 +67,39 @@ impl_metadata_for_array!(
 
 macro_rules! impl_metadata_for_tuple {
     ( $($ty:ident),* ) => {
-        impl<$($ty),*> HasTypeId for ($($ty,)*)
-        where
-            $(
-                $ty: HasTypeId,
-            )*
-        {
-            fn type_id() -> TypeId {
-                TypeIdTuple::new(tuple_type_id!($($ty),*)).into()
-            }
-        }
+		impl<$($ty),*> HasTypeId for ($($ty,)*)
+		where
+			$(
+				$ty: HasTypeId,
+			)*
+		{
+			fn type_id() -> TypeId {
+				TypeIdTuple::new(tuple_type_id!($($ty),*)).into()
+			}
+		}
 
-        impl<$($ty),*> HasTypeDef for ($($ty,)*)
-        where
-            $(
-                $ty: Metadata,
-            )*
-        {
+		impl<$($ty),*> HasTypeDef for ($($ty,)*)
+		where
+			$(
+				$ty: Metadata,
+			)*
+		{
 			fn type_def() -> TypeDef {
 				TypeDef::builtin()
 			}
-        }
+		}
 
 		impl<$($ty),*> RegisterSubtypes for ($($ty,)*)
-        where
-            $(
-                $ty: Metadata,
-            )*
+		where
+			$(
+				$ty: Metadata,
+			)*
 		{
-            #[allow(unused)]
+			#[allow(unused)]
 			fn register_subtypes(registry: &mut Registry) {
-                $(
-                    registry.register_type::<$ty>();
-                )*
+				$(
+					registry.register_type::<$ty>();
+				)*
 			}
 		}
     }
