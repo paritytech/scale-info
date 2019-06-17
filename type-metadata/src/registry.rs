@@ -24,6 +24,18 @@ pub struct Tables {
 	pub typeid_table: TypeIdInterner,
 }
 
+/// Used by the type registry in order to recursively traverse through
+/// all static generic types given a concrete metadata type.
+pub trait RegisterSubtypes {
+	/// Registers all subtypes for `Self`.
+	///
+	/// # Note
+	///
+	/// A subtype in this context is basically all types that make up any
+	/// given generic types. E.g. `Option<T>` has `T` as subtype.
+	fn register_subtypes(_registry: &mut Registry) {}
+}
+
 impl Tables {
 	pub fn new() -> Self {
 		Self {
@@ -52,11 +64,12 @@ impl<'t> Registry<'t> {
 		match type_id {
 			TypeId::Primitive(_) => (),
 			TypeId::Array(_) | TypeId::Slice(_) | TypeId::Tuple(_) => {
-				T::type_def(self);
+				T::register_subtypes(self);
 			}
 			TypeId::Custom(_) => {
 				if !self.types.contains_key(&type_id) {
 					self.types.insert(type_id.clone(), TypeDef::builtin());
+					T::register_subtypes(self);
 					let type_def = T::type_def(self);
 					self.types.insert(type_id, type_def);
 				}

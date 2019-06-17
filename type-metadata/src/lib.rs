@@ -37,11 +37,11 @@ mod type_id;
 mod tests;
 
 pub use self::{
-	registry::{Registry, Tables},
+	registry::{RegisterSubtypes, Registry, Tables},
 	type_def::*,
 	type_id::*,
 };
 
-pub trait Metadata: HasTypeId + HasTypeDef {}
+pub trait Metadata: HasTypeId + HasTypeDef + RegisterSubtypes {}
 
-impl<T> Metadata for T where T: HasTypeId + HasTypeDef + ?Sized {}
+impl<T> Metadata for T where T: ?Sized + HasTypeId + HasTypeDef + RegisterSubtypes {}
