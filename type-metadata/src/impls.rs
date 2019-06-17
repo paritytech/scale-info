@@ -2,17 +2,17 @@ use crate::*;
 
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
-        impl HasTypeId for $t {
-            fn type_id() -> TypeId {
-                TypeId::Primitive($ident_kind)
-            }
-        }
+		impl HasTypeId for $t {
+			fn type_id() -> TypeId {
+				TypeId::Primitive($ident_kind)
+			}
+		}
 
-        impl HasTypeDef for $t {
-            fn type_def() -> TypeDef {
-                TypeDef::builtin()
-            }
-        }
+		impl HasTypeDef for $t {
+			fn type_def() -> TypeDef {
+				TypeDef::builtin()
+			}
+		}
 
 		impl RegisterSubtypes for $t {}
 	)* }
@@ -35,17 +35,17 @@ impl_metadata_for_primitives!(
 macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
         $(
-            impl<T: HasTypeId> HasTypeId for [T; $n] {
-                fn type_id() -> TypeId {
-                    TypeIdArray::new($n, T::type_id()).into()
-                }
-            }
+			impl<T: HasTypeId> HasTypeId for [T; $n] {
+				fn type_id() -> TypeId {
+					TypeIdArray::new($n, T::type_id()).into()
+				}
+			}
 
-            impl<T: Metadata> HasTypeDef for [T; $n] {
-                fn type_def() -> TypeDef {
-                    TypeDef::builtin()
-                }
-            }
+			impl<T: Metadata> HasTypeDef for [T; $n] {
+				fn type_def() -> TypeDef {
+					TypeDef::builtin()
+				}
+			}
 
 			impl<T: Metadata> RegisterSubtypes for [T; $n] {
 				fn register_subtypes(registry: &mut Registry) {
