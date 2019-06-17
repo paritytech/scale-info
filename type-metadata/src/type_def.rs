@@ -1,4 +1,4 @@
-use crate::{Registry, TypeId, HasTypeId};
+use crate::{HasTypeId, Registry, TypeId};
 use derive_more::From;
 use serde::Serialize;
 
@@ -13,35 +13,35 @@ pub trait HasTypeDef {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct TypeDef {
-    /// Stores count and names of all generic parameters.
-    ///
-    /// This can be used to verify that type id's refer to
-    /// correct instantiations of a generic type.
+	/// Stores count and names of all generic parameters.
+	///
+	/// This can be used to verify that type id's refer to
+	/// correct instantiations of a generic type.
 	generic_params: GenericParams,
-    /// The underlying structure of the type definition.
+	/// The underlying structure of the type definition.
 	kind: TypeDefKind,
 }
 
 impl TypeDef {
-    pub fn new<G, K>(generic_params: G, kind: K) -> Self
-    where
-        G: IntoIterator<Item = &'static str>,
-        K: Into<TypeDefKind>,
-    {
-        Self {
-            generic_params: generic_params
-                .into_iter()
-                .map(|name| GenericArg::from(name))
-                .collect::<Vec<_>>()
-                .into(),
-            kind: kind.into(),
-        }
-    }
+	pub fn new<G, K>(generic_params: G, kind: K) -> Self
+	where
+		G: IntoIterator<Item = &'static str>,
+		K: Into<TypeDefKind>,
+	{
+		Self {
+			generic_params: generic_params
+				.into_iter()
+				.map(|name| GenericArg::from(name))
+				.collect::<Vec<_>>()
+				.into(),
+			kind: kind.into(),
+		}
+	}
 }
 
 impl<K> From<K> for TypeDef
 where
-    K: Into<TypeDefKind>,
+	K: Into<TypeDefKind>,
 {
 	fn from(kind: K) -> Self {
 		Self {
@@ -134,14 +134,12 @@ pub struct UnnamedField {
 }
 
 impl UnnamedField {
-    pub fn new<T>() -> Self
-    where
-        T: HasTypeId,
-    {
-        Self {
-            ty: T::type_id(),
-        }
-    }
+	pub fn new<T>() -> Self
+	where
+		T: HasTypeId,
+	{
+		Self { ty: T::type_id() }
+	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
@@ -161,19 +159,21 @@ pub struct TypeDefEnum {
 }
 
 impl TypeDefEnum {
-    pub fn new<V>(variants: V) -> Self
-    where
-        V: IntoIterator<Item = EnumVariant>,
-    {
-        Self { variants: variants.into_iter().collect(), }
-    }
+	pub fn new<V>(variants: V) -> Self
+	where
+		V: IntoIterator<Item = EnumVariant>,
+	{
+		Self {
+			variants: variants.into_iter().collect(),
+		}
+	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 pub enum EnumVariant {
 	Unit(EnumVariantUnit),
-    Struct(EnumVariantStruct),
-    TupleStruct(EnumVariantTupleStruct),
+	Struct(EnumVariantStruct),
+	TupleStruct(EnumVariantTupleStruct),
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
@@ -182,45 +182,45 @@ pub struct EnumVariantUnit {
 }
 
 impl EnumVariantUnit {
-    pub fn new(name: &'static str) -> Self {
-        Self { name }
-    }
+	pub fn new(name: &'static str) -> Self {
+		Self { name }
+	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct EnumVariantStruct {
-    name: &'static str,
-    fields: Vec<NamedField>,
+	name: &'static str,
+	fields: Vec<NamedField>,
 }
 
 impl EnumVariantStruct {
-    pub fn new<F>(name: &'static str, fields: F) -> Self
-    where
-        F: IntoIterator<Item = NamedField>,
-    {
-        Self {
-            name,
-            fields: fields.into_iter().collect(),
-        }
-    }
+	pub fn new<F>(name: &'static str, fields: F) -> Self
+	where
+		F: IntoIterator<Item = NamedField>,
+	{
+		Self {
+			name,
+			fields: fields.into_iter().collect(),
+		}
+	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct EnumVariantTupleStruct {
-    name: &'static str,
-    fields: Vec<UnnamedField>,
+	name: &'static str,
+	fields: Vec<UnnamedField>,
 }
 
 impl EnumVariantTupleStruct {
-    pub fn new<F>(name: &'static str, fields: F) -> Self
-    where
-        F: IntoIterator<Item = UnnamedField>,
-    {
-        Self {
-            name,
-            fields: fields.into_iter().collect(),
-        }
-    }
+	pub fn new<F>(name: &'static str, fields: F) -> Self
+	where
+		F: IntoIterator<Item = UnnamedField>,
+	{
+		Self {
+			name,
+			fields: fields.into_iter().collect(),
+		}
+	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]

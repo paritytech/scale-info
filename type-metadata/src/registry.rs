@@ -15,59 +15,52 @@
 use std::collections::BTreeMap;
 
 use crate::{
-    Metadata,
-    TypeDef,
-    TypeId,
-    interner::{
-        StringInterner,
-        TypeIdInterner,
-    },
+	interner::{StringInterner, TypeIdInterner},
+	Metadata, TypeDef, TypeId,
 };
 
 pub struct Tables {
-    pub string_table: StringInterner,
-    pub typeid_table: TypeIdInterner,
+	pub string_table: StringInterner,
+	pub typeid_table: TypeIdInterner,
 }
 
 impl Tables {
-    pub fn new() -> Self {
-        Self {
-            string_table: StringInterner::new(),
-            typeid_table: TypeIdInterner::new(),
-        }
-    }
+	pub fn new() -> Self {
+		Self {
+			string_table: StringInterner::new(),
+			typeid_table: TypeIdInterner::new(),
+		}
+	}
 }
 
 pub struct Registry<'t> {
-    tables: &'t mut Tables,
+	tables: &'t mut Tables,
 	types: BTreeMap<TypeId, TypeDef>,
 }
 
 impl<'t> Registry<'t> {
-	pub fn new(
-        tables: &'t mut Tables,
-    ) -> Self {
+	pub fn new(tables: &'t mut Tables) -> Self {
 		Self {
-            tables,
-            types: BTreeMap::new()
-        }
+			tables,
+			types: BTreeMap::new(),
+		}
 	}
 
 	pub fn register_type<T: Metadata>(&mut self) {
-        let type_id = T::type_id();
+		let type_id = T::type_id();
 
-        match type_id {
-            | TypeId::Primitive(_) => (),
-            | TypeId::Array(_)
-            | TypeId::Slice(_)
-            | TypeId::Tuple(_) => { T::type_def(self); },
-            | TypeId::Custom(_) => {
-                if !self.types.contains_key(&type_id) {
-                    self.types.insert(type_id.clone(), TypeDef::builtin());
-                    let type_def = T::type_def(self);
-                    self.types.insert(type_id, type_def);
-                }
-            }
-        }
+		match type_id {
+			TypeId::Primitive(_) => (),
+			TypeId::Array(_) | TypeId::Slice(_) | TypeId::Tuple(_) => {
+				T::type_def(self);
+			}
+			TypeId::Custom(_) => {
+				if !self.types.contains_key(&type_id) {
+					self.types.insert(type_id.clone(), TypeDef::builtin());
+					let type_def = T::type_def(self);
+					self.types.insert(type_id, type_def);
+				}
+			}
+		}
 	}
 }

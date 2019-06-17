@@ -82,12 +82,12 @@ fn array_primitives() {
 	// nested
 	assert_type_id!([[i32; 5]; 5], TypeIdArray::new(5, TypeIdArray::new(5, i32::type_id())));
 	// slice
-    assert_type_id!([bool], TypeIdSlice::new(bool::type_id()));
-    // vec
+	assert_type_id!([bool], TypeIdSlice::new(bool::type_id()));
+	// vec
 	assert_type_id!(
-        Vec<bool>,
-        TypeIdCustom::new("Vec", Namespace::prelude(), tuple_type_id![bool])
-    );
+		Vec<bool>,
+		TypeIdCustom::new("Vec", Namespace::prelude(), tuple_type_id![bool])
+	);
 }
 
 #[test]
@@ -129,7 +129,7 @@ fn struct_with_generics() {
 	);
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
 
-    let mut tables = Tables::new();
+	let mut tables = Tables::new();
 	let mut registry = Registry::new(&mut tables);
 	let struct_bool_def = TypeDefStruct::new(vec![NamedField::new("data", bool::type_id())]).into();
 	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
@@ -144,10 +144,6 @@ fn struct_with_generics() {
 	assert_type_id!(SelfTyped, expected_type_id);
 	assert_eq!(
 		SelfTyped::type_def(&mut registry),
-		TypeDefStruct::new(vec![NamedField::new(
-			"data",
-			struct_bool_id.clone()
-		),])
-		.into(),
+		TypeDefStruct::new(vec![NamedField::new("data", struct_bool_id.clone()),]).into(),
 	);
 }

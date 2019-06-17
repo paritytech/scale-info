@@ -28,21 +28,18 @@ macro_rules! tuple_type_id {
 }
 
 mod impls;
+pub mod interner;
 mod registry;
 mod type_def;
 mod type_id;
-pub mod interner;
 
 #[cfg(test)]
 mod tests;
 
 pub use self::{
-    registry::{
-        Registry,
-        Tables,
-    },
-    type_def::*,
-    type_id::*,
+	registry::{Registry, Tables},
+	type_def::*,
+	type_id::*,
 };
 
 pub trait Metadata: HasTypeId + HasTypeDef {}
