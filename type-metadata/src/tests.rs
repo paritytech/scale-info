@@ -17,7 +17,7 @@ use std::marker::PhantomData;
 
 fn assert_type_id<T, E>(expected: E)
 where
-	T: Metadata + ?Sized,
+	T: HasTypeId + ?Sized,
 	E: Into<TypeId>,
 {
 	assert_eq!(T::type_id(), expected.into());
@@ -115,9 +115,17 @@ fn struct_with_generics() {
 	where
 		T: Metadata,
 	{
-		fn type_def(registry: &mut Registry) -> TypeDef {
-			registry.register_type::<T>();
+		fn type_def() -> TypeDef {
 			TypeDefStruct::new(vec![NamedField::new("data", T::type_id())]).into()
+		}
+	}
+
+	impl<T> RegisterSubtypes for MyStruct<T>
+	where
+		T: Metadata,
+	{
+		fn register_subtypes(registry: &mut Registry) {
+			registry.register_type::<T>();
 		}
 	}
 
@@ -129,10 +137,8 @@ fn struct_with_generics() {
 	);
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
 
-	let mut tables = Tables::new();
-	let mut registry = Registry::new(&mut tables);
 	let struct_bool_def = TypeDefStruct::new(vec![NamedField::new("data", bool::type_id())]).into();
-	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
+	assert_eq!(<MyStruct<bool>>::type_def(), struct_bool_def);
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
@@ -143,7 +149,7 @@ fn struct_with_generics() {
 	);
 	assert_type_id!(SelfTyped, expected_type_id);
 	assert_eq!(
-		SelfTyped::type_def(&mut registry),
+		SelfTyped::type_def(),
 		TypeDefStruct::new(vec![NamedField::new("data", struct_bool_id.clone()),]).into(),
 	);
 }
