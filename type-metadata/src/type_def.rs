@@ -22,11 +22,31 @@ pub struct TypeDef {
 	kind: TypeDefKind,
 }
 
-impl From<TypeDefKind> for TypeDef {
-	fn from(kind: TypeDefKind) -> Self {
+impl TypeDef {
+    pub fn new<G, K>(generic_params: G, kind: K) -> Self
+    where
+        G: IntoIterator<Item = &'static str>,
+        K: Into<TypeDefKind>,
+    {
+        Self {
+            generic_params: generic_params
+                .into_iter()
+                .map(|name| GenericArg::from(name))
+                .collect::<Vec<_>>()
+                .into(),
+            kind: kind.into(),
+        }
+    }
+}
+
+impl<K> From<K> for TypeDef
+where
+    K: Into<TypeDefKind>,
+{
+	fn from(kind: K) -> Self {
 		Self {
 			generic_params: GenericParams::empty(),
-			kind,
+			kind: kind.into(),
 		}
 	}
 }
@@ -44,7 +64,7 @@ impl TypeDef {
 	}
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, From)]
 pub struct GenericParams {
 	params: Vec<GenericArg>,
 }
@@ -55,7 +75,7 @@ impl GenericParams {
 	}
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize)]
+#[derive(PartialEq, Eq, Debug, Serialize, From)]
 pub struct GenericArg {
 	name: &'static str,
 }
