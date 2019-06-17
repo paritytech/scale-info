@@ -8,7 +8,7 @@ use serde::Serialize;
 /// `registry`. For instance, `<Option<MyStruct>>::type_def()` would register `MyStruct` metadata. All
 /// implementation must register these contained types' metadata.
 pub trait HasTypeDef {
-	fn type_def(registry: &mut Registry) -> TypeDef;
+	fn type_def() -> TypeDef;
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]

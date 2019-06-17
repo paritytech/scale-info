@@ -9,7 +9,7 @@ macro_rules! impl_metadata_for_primitives {
         }
 
         impl HasTypeDef for $t {
-            fn type_def(_registry: &mut Registry) -> TypeDef {
+            fn type_def() -> TypeDef {
                 TypeDef::builtin()
             }
         }
@@ -42,8 +42,7 @@ macro_rules! impl_metadata_for_array {
             }
 
             impl<T: Metadata> HasTypeDef for [T; $n] {
-                fn type_def(registry: &mut Registry) -> TypeDef {
-                    registry.register_type::<T>();
+                fn type_def() -> TypeDef {
                     TypeDef::builtin()
                 }
             }
@@ -85,6 +84,10 @@ macro_rules! impl_metadata_for_tuple {
                 $ty: Metadata,
             )*
         {
+			fn type_def() -> TypeDef {
+				TypeDef::builtin()
+			}
+        }
 
 		impl<$($ty),*> RegisterSubtypes for ($($ty,)*)
         where
@@ -127,8 +130,7 @@ impl<T> HasTypeDef for Vec<T>
 where
 	T: Metadata,
 {
-	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register_type::<T>();
+	fn type_def() -> TypeDef {
 		TypeDefStruct::new(vec![NamedField::new("elems", <[T]>::type_id())]).into()
 	}
 }
@@ -155,9 +157,7 @@ impl<T> HasTypeDef for Option<T>
 where
 	T: Metadata,
 {
-	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register_type::<T>();
-
+	fn type_def() -> TypeDef {
 		TypeDefEnum::new(vec![
 			EnumVariantUnit::new("None").into(),
 			EnumVariantTupleStruct::new("Some", vec![UnnamedField::new::<T>()]).into(),
@@ -190,10 +190,7 @@ where
 	T: Metadata,
 	E: Metadata,
 {
-	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register_type::<T>();
-		registry.register_type::<E>();
-
+	fn type_def() -> TypeDef {
 		TypeDefEnum::new(vec![
 			EnumVariantTupleStruct::new("Ok", vec![UnnamedField::new::<T>()]).into(),
 			EnumVariantTupleStruct::new("Err", vec![UnnamedField::new::<E>()]).into(),
@@ -226,8 +223,10 @@ impl<T> HasTypeDef for Box<T>
 where
 	T: Metadata + ?Sized,
 {
-	fn type_def(registry: &mut Registry) -> TypeDef {
-		T::type_def(registry)
+	fn type_def() -> TypeDef {
+		T::type_def()
+	}
+}
 
 impl<T> RegisterSubtypes for Box<T>
 where
@@ -251,8 +250,10 @@ impl<T> HasTypeDef for &T
 where
 	T: Metadata + ?Sized,
 {
-	fn type_def(registry: &mut Registry) -> TypeDef {
-		T::type_def(registry)
+	fn type_def() -> TypeDef {
+		T::type_def()
+	}
+}
 
 impl<T> RegisterSubtypes for &T
 where
@@ -276,8 +277,10 @@ impl<T> HasTypeDef for &mut T
 where
 	T: Metadata + ?Sized,
 {
-	fn type_def(registry: &mut Registry) -> TypeDef {
-		T::type_def(registry)
+	fn type_def() -> TypeDef {
+		T::type_def()
+	}
+}
 
 impl<T> RegisterSubtypes for &mut T
 where
@@ -301,8 +304,7 @@ impl<T> HasTypeDef for [T]
 where
 	T: Metadata,
 {
-	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register_type::<T>();
+	fn type_def() -> TypeDef {
 		TypeDef::builtin()
 	}
 }
@@ -323,7 +325,7 @@ impl HasTypeId for str {
 }
 
 impl HasTypeDef for str {
-	fn type_def(_registry: &mut Registry) -> TypeDef {
+	fn type_def() -> TypeDef {
 		TypeDef::builtin()
 	}
 }
@@ -337,7 +339,7 @@ impl HasTypeId for String {
 }
 
 impl HasTypeDef for String {
-	fn type_def(_registry: &mut Registry) -> TypeDef {
+	fn type_def() -> TypeDef {
 		TypeDefStruct::new(vec![NamedField::new("vec", Vec::<u8>::type_id())]).into()
 	}
 }
@@ -359,7 +361,7 @@ impl<T> HasTypeDef for PhantomData<T>
 where
 	T: Metadata + ?Sized,
 {
-	fn type_def(_registry: &mut Registry) -> TypeDef {
+	fn type_def() -> TypeDef {
 		TypeDef::builtin()
 	}
 }
