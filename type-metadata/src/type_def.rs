@@ -127,7 +127,7 @@ pub struct TypeDefClikeEnum {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct ClikeEnumVariant {
 	name: &'static str,
-	value: u64,
+	discriminant: u64,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
