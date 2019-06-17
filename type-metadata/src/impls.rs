@@ -146,31 +146,31 @@ where
 	}
 }
 
-impl<Ok, Err> HasTypeId for Result<Ok, Err>
+impl<T, E> HasTypeId for Result<T, E>
 where
-	Ok: HasTypeId,
-	Err: HasTypeId,
+	T: HasTypeId,
+	E: HasTypeId,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Result", Namespace::prelude(), tuple_type_id!(Ok, Err)).into()
+		TypeIdCustom::new("Result", Namespace::prelude(), tuple_type_id!(T, E)).into()
 	}
 }
 
-impl<Ok, Err> HasTypeDef for Result<Ok, Err>
+impl<T, E> HasTypeDef for Result<T, E>
 where
-	Ok: Metadata,
-	Err: Metadata,
+	T: Metadata,
+	E: Metadata,
 {
 	fn type_def(registry: &mut Registry) -> TypeDef {
-		registry.register_type::<Ok>();
-		registry.register_type::<Err>();
+		registry.register_type::<T>();
+		registry.register_type::<E>();
 
         TypeDefKind::Enum(TypeDefEnum::new(vec![
             EnumVariantTupleStruct::new("Ok", vec![
-                UnnamedField::new::<Ok>()
+                UnnamedField::new::<T>()
             ]).into(),
             EnumVariantTupleStruct::new("Err", vec![
-                UnnamedField::new::<Err>()
+                UnnamedField::new::<E>()
             ]).into()
         ])).into()
 	}
