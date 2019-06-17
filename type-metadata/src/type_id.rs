@@ -1,7 +1,10 @@
+use crate::form::{Form, FreeForm};
 use derive_more::From;
 use serde::Serialize;
 
+/// Implementors return their meta type identifiers.
 pub trait HasTypeId {
+	/// Returns the static type identifier for `Self`.
 	fn type_id() -> TypeId;
 }
 
@@ -11,10 +14,10 @@ pub trait HasTypeId {
 /// The first segment represents the crate name in which the type has been defined.
 ///
 /// Rust prelude type may have an empty namespace definition.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct Namespace {
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+pub struct Namespace<F: Form = FreeForm> {
 	/// The segments of the namespace.
-	segments: Vec<&'static str>,
+	segments: Vec<F::String>,
 }
 
 /// An error that may be encountered upon constructing namespaces.
@@ -33,7 +36,7 @@ impl Namespace {
 	/// Creates a new namespace from the given segments.
 	pub fn new<S>(segments: S) -> Result<Self, NamespaceError>
 	where
-		S: IntoIterator<Item = &'static str>,
+		S: IntoIterator<Item = <FreeForm as Form>::String>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
 		if segments.len() == 0 {
@@ -72,7 +75,7 @@ impl Namespace {
 	/// # Note
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn from_str(module_path: &'static str) -> Result<Self, NamespaceError> {
+	pub fn from_str(module_path: <FreeForm as Form>::String) -> Result<Self, NamespaceError> {
 		Self::new(module_path.split("::"))
 	}
 
@@ -82,16 +85,16 @@ impl Namespace {
 	}
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize)]
-pub enum TypeId {
-	Custom(TypeIdCustom),
-	Slice(TypeIdSlice),
-	Array(TypeIdArray),
-	Tuple(TypeIdTuple),
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Serialize, Debug)]
+pub enum TypeId<F: Form = FreeForm> {
+	Custom(TypeIdCustom<F>),
+	Slice(TypeIdSlice<F>),
+	Array(TypeIdArray<F>),
+	Tuple(TypeIdTuple<F>),
 	Primitive(TypeIdPrimitive),
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum TypeIdPrimitive {
 	Bool,
@@ -108,12 +111,12 @@ pub enum TypeIdPrimitive {
 	I128,
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct TypeIdCustom {
-	name: &'static str,
-	namespace: Namespace,
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+pub struct TypeIdCustom<F: Form = FreeForm> {
+	name: F::String,
+	namespace: Namespace<F>,
 	#[serde(rename = "type")]
-	type_params: Vec<TypeId>,
+	type_params: Vec<F::TypeId>,
 }
 
 impl TypeIdCustom {
@@ -129,11 +132,11 @@ impl TypeIdCustom {
 	}
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct TypeIdArray {
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+pub struct TypeIdArray<F: Form = FreeForm> {
 	pub len: u16,
 	#[serde(rename = "type")]
-	pub type_param: Box<TypeId>,
+	pub type_param: Box<TypeId<F>>,
 }
 
 impl TypeIdArray {
@@ -148,10 +151,10 @@ impl TypeIdArray {
 	}
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct TypeIdTuple {
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+pub struct TypeIdTuple<F: Form = FreeForm> {
 	#[serde(rename = "type")]
-	pub type_params: Vec<TypeId>,
+	pub type_params: Vec<TypeId<F>>,
 }
 
 impl TypeIdTuple {
@@ -169,10 +172,10 @@ impl TypeIdTuple {
 	}
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct TypeIdSlice {
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+pub struct TypeIdSlice<F: Form = FreeForm> {
 	#[serde(rename = "type")]
-	type_param: Box<TypeId>,
+	type_param: Box<TypeId<F>>,
 }
 
 impl TypeIdSlice {

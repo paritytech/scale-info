@@ -27,6 +27,7 @@ macro_rules! tuple_type_id {
     }
 }
 
+mod form;
 mod impls;
 pub mod interner;
 mod registry;

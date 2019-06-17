@@ -1,4 +1,7 @@
-use crate::{HasTypeId, Registry, TypeId};
+use crate::{
+	form::{Form, FreeForm},
+	HasTypeId, TypeId,
+};
 use derive_more::From;
 use serde::Serialize;
 
@@ -12,20 +15,20 @@ pub trait HasTypeDef {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDef {
+pub struct TypeDef<F: Form = FreeForm> {
 	/// Stores count and names of all generic parameters.
 	///
 	/// This can be used to verify that type id's refer to
 	/// correct instantiations of a generic type.
-	generic_params: GenericParams,
+	generic_params: GenericParams<F>,
 	/// The underlying structure of the type definition.
-	kind: TypeDefKind,
+	kind: TypeDefKind<F>,
 }
 
-impl TypeDef {
+impl TypeDef<FreeForm> {
 	pub fn new<G, K>(generic_params: G, kind: K) -> Self
 	where
-		G: IntoIterator<Item = &'static str>,
+		G: IntoIterator<Item = <FreeForm as Form>::String>,
 		K: Into<TypeDefKind>,
 	{
 		Self {
@@ -65,8 +68,8 @@ impl TypeDef {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
-pub struct GenericParams {
-	params: Vec<GenericArg>,
+pub struct GenericParams<F: Form = FreeForm> {
+	params: Vec<GenericArg<F>>,
 }
 
 impl GenericParams {
@@ -75,15 +78,21 @@ impl GenericParams {
 	}
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize, From)]
-pub struct GenericArg {
-	name: &'static str,
+#[derive(PartialEq, Eq, Debug, Serialize)]
+pub struct GenericArg<F: Form = FreeForm> {
+	name: F::String,
+}
+
+impl From<<FreeForm as Form>::String> for GenericArg {
+	fn from(name: <FreeForm as Form>::String) -> Self {
+		Self { name }
+	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
-pub enum TypeDefKind {
+pub enum TypeDefKind<F: Form = FreeForm> {
 	Builtin,
-	Struct(TypeDefStruct),
+	Struct(TypeDefStruct<F>),
 	TupleStruct(TypeDefTupleStruct),
 	ClikeEnum(TypeDefClikeEnum),
 	Enum(TypeDefEnum),
@@ -91,8 +100,8 @@ pub enum TypeDefKind {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefStruct {
-	fields: Vec<NamedField>,
+pub struct TypeDefStruct<F: Form = FreeForm> {
+	fields: Vec<NamedField<F>>,
 }
 
 impl TypeDefStruct {
@@ -107,14 +116,14 @@ impl TypeDefStruct {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct NamedField {
-	name: &'static str,
+pub struct NamedField<F: Form = FreeForm> {
+	name: F::String,
 	#[serde(rename = "type")]
-	ty: TypeId,
+	ty: F::TypeId,
 }
 
 impl NamedField {
-	pub fn new<T>(name: &'static str, ty: T) -> Self
+	pub fn new<T>(name: <FreeForm as Form>::String, ty: T) -> Self
 	where
 		T: Into<TypeId>,
 	{
@@ -123,14 +132,14 @@ impl NamedField {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefTupleStruct {
-	fields: Vec<UnnamedField>,
+pub struct TypeDefTupleStruct<F: Form = FreeForm> {
+	fields: Vec<UnnamedField<F>>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct UnnamedField {
+pub struct UnnamedField<F: Form = FreeForm> {
 	#[serde(rename = "type")]
-	ty: TypeId,
+	ty: F::TypeId,
 }
 
 impl UnnamedField {
@@ -143,19 +152,19 @@ impl UnnamedField {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefClikeEnum {
-	variants: Vec<ClikeEnumVariant>,
+pub struct TypeDefClikeEnum<F: Form = FreeForm> {
+	variants: Vec<ClikeEnumVariant<F>>,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct ClikeEnumVariant {
-	name: &'static str,
+pub struct ClikeEnumVariant<F: Form = FreeForm> {
+	name: F::String,
 	discriminant: u64,
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefEnum {
-	variants: Vec<EnumVariant>,
+pub struct TypeDefEnum<F: Form = FreeForm> {
+	variants: Vec<EnumVariant<F>>,
 }
 
 impl TypeDefEnum {
@@ -170,15 +179,15 @@ impl TypeDefEnum {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
-pub enum EnumVariant {
-	Unit(EnumVariantUnit),
-	Struct(EnumVariantStruct),
-	TupleStruct(EnumVariantTupleStruct),
+pub enum EnumVariant<F: Form = FreeForm> {
+	Unit(EnumVariantUnit<F>),
+	Struct(EnumVariantStruct<F>),
+	TupleStruct(EnumVariantTupleStruct<F>),
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct EnumVariantUnit {
-	name: &'static str,
+pub struct EnumVariantUnit<F: Form = FreeForm> {
+	name: F::String,
 }
 
 impl EnumVariantUnit {
@@ -188,13 +197,13 @@ impl EnumVariantUnit {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct EnumVariantStruct {
-	name: &'static str,
-	fields: Vec<NamedField>,
+pub struct EnumVariantStruct<F: Form = FreeForm> {
+	name: F::String,
+	fields: Vec<NamedField<F>>,
 }
 
 impl EnumVariantStruct {
-	pub fn new<F>(name: &'static str, fields: F) -> Self
+	pub fn new<F>(name: <FreeForm as Form>::String, fields: F) -> Self
 	where
 		F: IntoIterator<Item = NamedField>,
 	{
@@ -206,13 +215,13 @@ impl EnumVariantStruct {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct EnumVariantTupleStruct {
-	name: &'static str,
-	fields: Vec<UnnamedField>,
+pub struct EnumVariantTupleStruct<F: Form = FreeForm> {
+	name: F::String,
+	fields: Vec<UnnamedField<F>>,
 }
 
 impl EnumVariantTupleStruct {
-	pub fn new<F>(name: &'static str, fields: F) -> Self
+	pub fn new<F>(name: <FreeForm as Form>::String, fields: F) -> Self
 	where
 		F: IntoIterator<Item = UnnamedField>,
 	{
@@ -224,6 +233,6 @@ impl EnumVariantTupleStruct {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefUnion {
-	fields: Vec<NamedField>,
+pub struct TypeDefUnion<F: Form = FreeForm> {
+	fields: Vec<NamedField<F>>,
 }
