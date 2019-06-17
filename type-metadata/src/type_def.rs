@@ -13,7 +13,12 @@ pub trait HasTypeDef {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct TypeDef {
+    /// Stores count and names of all generic parameters.
+    ///
+    /// This can be used to verify that type id's refer to
+    /// correct instantiations of a generic type.
 	generic_params: GenericParams,
+    /// The underlying structure of the type definition.
 	kind: TypeDefKind,
 }
 
