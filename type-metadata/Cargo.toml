@@ -1,7 +1,7 @@
 [package]
 name = "type-metadata"
 version = "0.1.0"
-authors = ["Shaopeng Wang <git@spwang.net>"]
+authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
