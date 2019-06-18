@@ -1,31 +1,23 @@
-// Copyright 2019 Parity Technologies (UK) Ltd.
-// This file is part of type-metadata.
+// Copyright 2019
+//     by  Centrality Investments Ltd.
+//     and Parity Technologies (UK) Ltd.
 //
-// type-metadata is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-// type-metadata is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
-// You should have received a copy of the GNU General Public License
-// along with type-metadata.  If not, see <http://www.gnu.org/licenses/>.
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-use core::{
-    marker::PhantomData,
-    num::NonZeroU32,
-};
-use serde::Serialize;
-use alloc::{
-    collections::btree_map::{
-        BTreeMap,
-        Entry,
-    },
-};
 use crate::TypeId;
+use alloc::collections::btree_map::{BTreeMap, Entry};
+use core::{marker::PhantomData, num::NonZeroU32};
+use serde::Serialize;
 
 pub type StringInterner = Interner<&'static str>;
 pub type TypeIdInterner = Interner<TypeId>;
@@ -33,98 +25,118 @@ pub type TypeIdInterner = Interner<TypeId>;
 pub type StringSymbol<'a> = Symbol<'a, &'static str>;
 pub type TypeIdSymbol<'a> = Symbol<'a, TypeId>;
 
-#[derive(Debug, PartialEq, Eq, Serialize)]
-pub struct Symbol<'a, T>{
-    id: NonZeroU32,
-    marker: PhantomData<fn() -> &'a T>,
+pub type UntrackedStringSymbol = UntrackedSymbol<&'static str>;
+pub type UntrackedTypeIdSymbol = UntrackedSymbol<TypeId>;
+
+/// A symbol that is not lifetime tracked.
+///
+/// This can be used by self-referential types but
+/// can no longer be used to resolve instances.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct UntrackedSymbol<T> {
+	id: NonZeroU32,
+	marker: PhantomData<fn() -> T>,
+}
+
+impl<T> From<Symbol<'_, T>> for UntrackedSymbol<T> {
+	fn from(symbol: Symbol<T>) -> Self {
+		Self {
+			id: symbol.id,
+			marker: PhantomData,
+		}
+	}
+}
+
+/// A symbol from an interner.
+///
+/// Can be used to resolve to the associated instance.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+pub struct Symbol<'a, T> {
+	id: NonZeroU32,
+	marker: PhantomData<fn() -> &'a T>,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Interner<T> {
-    #[serde(skip)]
-    map: BTreeMap<T, usize>,
-    vec: Vec<T>,
+	#[serde(skip)]
+	map: BTreeMap<T, usize>,
+	vec: Vec<T>,
 }
 
 impl<T> Interner<T>
 where
-    T: Ord,
+	T: Ord,
 {
-    pub fn new() -> Self {
-        Self {
-            map: BTreeMap::new(),
-            vec: Vec::new(),
-        }
-    }
+	pub fn new() -> Self {
+		Self {
+			map: BTreeMap::new(),
+			vec: Vec::new(),
+		}
+	}
 }
 
 impl<T> Interner<T>
 where
-    T: Ord + Clone,
+	T: Ord + Clone,
 {
-    pub fn intern_or_get(&mut self, s: T) -> Symbol<T> {
-        let next_id = self.vec.len();
-        let sym_id = match self.map.entry(s.clone()) {
-            Entry::Vacant(vacant) => {
-                vacant.insert(next_id);
-                self.vec.push(s);
-                next_id
-            }
-            Entry::Occupied(occupied) => {
-                *occupied.get()
-            }
-        };
-        Symbol {
-            id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
-            marker: PhantomData,
-        }
-    }
+	pub fn intern_or_get(&mut self, s: T) -> Symbol<T> {
+		let next_id = self.vec.len();
+		let sym_id = match self.map.entry(s.clone()) {
+			Entry::Vacant(vacant) => {
+				vacant.insert(next_id);
+				self.vec.push(s);
+				next_id
+			}
+			Entry::Occupied(occupied) => *occupied.get(),
+		};
+		Symbol {
+			id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
+			marker: PhantomData,
+		}
+	}
 
-    pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
-        let idx = (sym.id.get() - 1) as usize;
-        if idx >= self.vec.len() {
-            return None
-        }
-        self.vec.get((sym.id.get() - 1) as usize)
-    }
+	pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
+		let idx = (sym.id.get() - 1) as usize;
+		if idx >= self.vec.len() {
+			return None;
+		}
+		self.vec.get((sym.id.get() - 1) as usize)
+	}
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+	use super::*;
 
-    type StringInterner = Interner<&'static str>;
+	type StringInterner = Interner<&'static str>;
 
-    fn assert_id(interner: &mut StringInterner, new_symbol: &'static str, expected_id: u32) {
-        let actual_id = interner.intern_or_get(new_symbol).id.get();
-        assert_eq!(
-            actual_id,
-            expected_id,
-        );
-    }
+	fn assert_id(interner: &mut StringInterner, new_symbol: &'static str, expected_id: u32) {
+		let actual_id = interner.intern_or_get(new_symbol).id.get();
+		assert_eq!(actual_id, expected_id,);
+	}
 
-    fn assert_resolve<E>(interner: &mut StringInterner, symbol_id: u32, expected_str: E)
-    where
-        E: Into<Option<&'static str>>,
-    {
-        let actual_str = interner.resolve(Symbol { id: NonZeroU32::new(symbol_id).unwrap(), marker: PhantomData });
-        assert_eq!(
-            actual_str.cloned(),
-            expected_str.into(),
-        );
-    }
+	fn assert_resolve<E>(interner: &mut StringInterner, symbol_id: u32, expected_str: E)
+	where
+		E: Into<Option<&'static str>>,
+	{
+		let actual_str = interner.resolve(Symbol {
+			id: NonZeroU32::new(symbol_id).unwrap(),
+			marker: PhantomData,
+		});
+		assert_eq!(actual_str.cloned(), expected_str.into(),);
+	}
 
-    #[test]
-    fn simple() {
-        let mut interner = StringInterner::new();
-        assert_id(&mut interner, "Hello", 1);
-        assert_id(&mut interner, ", World!", 2);
-        assert_id(&mut interner, "1 2 3", 3);
-        assert_id(&mut interner, "Hello", 1);
+	#[test]
+	fn simple() {
+		let mut interner = StringInterner::new();
+		assert_id(&mut interner, "Hello", 1);
+		assert_id(&mut interner, ", World!", 2);
+		assert_id(&mut interner, "1 2 3", 3);
+		assert_id(&mut interner, "Hello", 1);
 
-        assert_resolve(&mut interner, 1, "Hello");
-        assert_resolve(&mut interner, 2, ", World!");
-        assert_resolve(&mut interner, 3, "1 2 3");
-        assert_resolve(&mut interner, 4, None);
-    }
+		assert_resolve(&mut interner, 1, "Hello");
+		assert_resolve(&mut interner, 2, ", World!");
+		assert_resolve(&mut interner, 3, "1 2 3");
+		assert_resolve(&mut interner, 4, None);
+	}
 }
