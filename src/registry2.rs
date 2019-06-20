@@ -39,16 +39,23 @@ pub trait RegisterSubtypes {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum IntoCompactError {
-	NotRegistered {
-		id: TypeId
+	MissingTypeId {
+		id: TypeId,
 	},
+	MissingString {
+		string: &'static str,
+	}
 }
 
 impl IntoCompactError {
 	pub fn missing_typeid(type_id: &TypeId) -> Self {
-		IntoCompactError::NotRegistered {
+		IntoCompactError::MissingTypeId {
 			id: type_id.clone(),
 		}
+	}
+
+	pub fn missing_string(string: &'static str) -> Self {
+		IntoCompactError::MissingString { string }
 	}
 }
 
