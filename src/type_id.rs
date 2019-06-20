@@ -167,12 +167,7 @@ impl IntoCompact for TypeIdCustom<FreeForm> {
 			namespace: self.namespace.into_compact(registry)?,
 			type_params: self.type_params
 				.into_iter()
-				.map(|param| {
-					registry
-						.resolve_type_id(&param)
-						.map(|symbol| symbol.into_untracked())
-						.ok_or(IntoCompactError::missing_typeid(&param))
-				})
+				.map(|param| registry.resolve_type_id(&param))
 				.collect::<Result<Vec<_>, _>>()?
 		})
 	}
@@ -204,10 +199,7 @@ impl IntoCompact for TypeIdArray<FreeForm> {
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(TypeIdArray {
 			len: self.len,
-			type_param: registry
-				.resolve_type_id(&self.type_param)
-				.ok_or(IntoCompactError::missing_typeid(&self.type_param))
-				.map(|sym| sym.into_untracked())?
+			type_param: registry.resolve_type_id(&self.type_param)?
 		})
 	}
 }
@@ -237,12 +229,7 @@ impl IntoCompact for TypeIdTuple<FreeForm> {
 		Ok(TypeIdTuple {
 			type_params: self.type_params
 				.into_iter()
-				.map(|param| {
-					registry
-						.resolve_type_id(&param)
-						.map(|symbol| symbol.into_untracked())
-						.ok_or(IntoCompactError::missing_typeid(&param))
-				})
+				.map(|param| registry.resolve_type_id(&param))
 				.collect::<Result<Vec<_>, _>>()?
 		})
 	}
@@ -274,10 +261,7 @@ impl IntoCompact for TypeIdSlice<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(TypeIdSlice {
-			type_param: registry
-				.resolve_type_id(&self.type_param)
-				.ok_or(IntoCompactError::missing_typeid(&self.type_param))
-				.map(|sym| sym.into_untracked())?
+			type_param: registry.resolve_type_id(&self.type_param)?
 		})
 	}
 }

@@ -210,10 +210,7 @@ impl IntoCompact for NamedField<FreeForm> {
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(NamedField {
 			name: registry.resolve_string(self.name)?,
-			ty: registry
-				.resolve_type_id(&self.ty)
-				.ok_or(IntoCompactError::missing_typeid(&self.ty))
-				.map(|symbol| symbol.into_untracked())?,
+			ty: registry.resolve_type_id(&self.ty)?,
 		})
 	}
 }
@@ -256,10 +253,7 @@ impl IntoCompact for UnnamedField<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(UnnamedField {
-			ty: registry
-				.resolve_type_id(&self.ty)
-				.ok_or(IntoCompactError::missing_typeid(&self.ty))
-				.map(|symbol| symbol.into_untracked())?,
+			ty: registry.resolve_type_id(&self.ty)?,
 		})
 	}
 }

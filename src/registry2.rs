@@ -102,8 +102,11 @@ impl Registry {
 			.map(|symbol| symbol.into_untracked())
 	}
 
-	pub fn resolve_type_id(&self, type_id: &TypeId) -> Option<TypeIdSymbol> {
-		self.typeid_table.get(type_id)
+	pub fn resolve_type_id(&self, type_id: &TypeId) -> Result<UntrackedTypeIdSymbol, IntoCompactError> {
+		self.typeid_table
+			.get(type_id)
+			.ok_or(IntoCompactError::missing_typeid(type_id))
+			.map(|symbol| symbol.into_untracked())
 	}
 
 	pub fn register_type<T>(&mut self) -> UntrackedTypeIdSymbol
