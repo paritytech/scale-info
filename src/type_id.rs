@@ -100,6 +100,7 @@ pub enum TypeId<F: Form = FreeForm> {
 #[serde(rename_all = "lowercase")]
 pub enum TypeIdPrimitive {
 	Bool,
+	Char,
 	Str,
 	U8,
 	U16,
