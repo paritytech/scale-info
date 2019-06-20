@@ -15,11 +15,27 @@
 // limitations under the License.
 
 use crate::{
-	interner::{StringInterner, StringSymbol, TypeIdInterner, TypeIdSymbol},
-	Form, CompactForm,
-	Metadata, Namespace, TypeDef, TypeId,
+	form::CompactForm,
+	interner::{StringInterner, StringSymbol, TypeIdInterner, TypeIdSymbol, UntrackedTypeIdSymbol},
+	HasTypeId, Metadata, Namespace, TypeDef, TypeId,
 };
 use serde::Serialize;
+
+/// Used by the type registry in order to recursively traverse through
+/// all static generic types given a concrete metadata type.
+///
+/// # Note
+///
+/// - Users should generally avoid implementing this manually and instead
+///   rely on the automated implementation through the derive macro.
+/// - The set of subtypes in this context consists of all types that make
+///   up a concrete instance of `Self`. E.g. for the tuple type of
+///   `(Vec<i32>, Box<u64>)` the direct subtypes are `Vec<i32>` and `Box<u64>`.
+/// - For enums this has to enumerate all subtypes of all variants.
+pub trait RegisterSubtypes {
+	/// Registers all subtypes for `Self`.
+	fn register_subtypes(_registry: &mut Registry) {}
+}
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct TypeIdDef {
