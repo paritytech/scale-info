@@ -95,16 +95,9 @@ impl Registry {
 		self.typeid_table.intern_or_get(T::type_id())
 	}
 
-	// pub fn get_string(&self, string: &'static str) -> Option<StringSymbol> {
-	// 	self.string_table.get(&string)
-	// }
-
-	// pub fn get_type_id<T>(&self) -> Option<TypeIdSymbol>
-	// where
-	// 	T: ?Sized + HasTypeId,
-	// {
-	// 	self.resolve_type_id(&T::type_id())
-	// }
+	pub fn resolve_string(&self, string: &'static str) -> Option<StringSymbol> {
+		self.string_table.get(&string)
+	}
 
 	pub fn resolve_type_id(&self, type_id: &TypeId) -> Option<TypeIdSymbol> {
 		self.typeid_table.get(type_id)
