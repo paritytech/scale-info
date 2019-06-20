@@ -37,6 +37,27 @@ pub trait RegisterSubtypes {
 	fn register_subtypes(_registry: &mut Registry) {}
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum IntoCompactError {
+	NotRegistered {
+		id: TypeId
+	},
+}
+
+impl IntoCompactError {
+	pub fn missing_typeid(type_id: &TypeId) -> Self {
+		IntoCompactError::NotRegistered {
+			id: type_id.clone(),
+		}
+	}
+}
+
+pub trait IntoCompact {
+	type Output;
+
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError>;
+}
+
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct TypeIdDef {
 	id: TypeId,
