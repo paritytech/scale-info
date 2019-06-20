@@ -60,30 +60,71 @@ pub trait IntoCompact {
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct TypeIdDef {
-	id: TypeId,
-	def: TypeDef,
+	id: TypeId<CompactForm>,
+	def: TypeDef<CompactForm>,
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Registry {
-	string_table: StringInterner,
+	pub string_table: StringInterner,
 	typeid_table: TypeIdInterner,
-	typedefs: Vec<TypeDef>,
+	types: Vec<TypeIdDef>,
 }
 
 impl Registry {
-	pub fn register_name(&mut self, name: &'static str) -> StringSymbol {
-		unimplemented!()
+	fn register_name(&mut self, name: &'static str) -> (bool, StringSymbol) {
+		self.string_table.intern_or_get(name)
 	}
 
-	pub fn register_namespace(&mut self, namespace: Namespace) -> CompactNamespace {
-		unimplemented!()
+	fn register_namespace(&mut self, namespace: Namespace) -> Namespace<CompactForm> {
+		namespace.into_compact(self)
+			.expect("registering namespaces cannot fail")
 	}
 
-	pub fn register_type<T>(&mut self) -> TypeIdSymbol
+	fn register_type_id<T>(&mut self) -> (bool, TypeIdSymbol)
 	where
-		T: Metadata,
+		T: ?Sized + HasTypeId,
 	{
-		unimplemented!()
+		self.typeid_table.intern_or_get(T::type_id())
+	}
+
+	// pub fn get_string(&self, string: &'static str) -> Option<StringSymbol> {
+	// 	self.string_table.get(&string)
+	// }
+
+	// pub fn get_type_id<T>(&self) -> Option<TypeIdSymbol>
+	// where
+	// 	T: ?Sized + HasTypeId,
+	// {
+	// 	self.resolve_type_id(&T::type_id())
+	// }
+
+	pub fn resolve_type_id(&self, type_id: &TypeId) -> Option<TypeIdSymbol> {
+		self.typeid_table.get(type_id)
+	}
+
+	pub fn register_type<T>(&mut self) -> UntrackedTypeIdSymbol
+	where
+		T: ?Sized + Metadata,
+	{
+		let (inserted, symbol) = self.register_type_id::<T>();
+		let symbol = symbol.into_untracked();
+		if inserted {
+			T::register_subtypes(self);
+			// let compact_id = T::type_id().into_compact(&self).into_untracked();
+			// let compact_def = T::type_def().into_compact(&self).into_untracked();
+			// self.types.push(TypeIdDef {
+			// 	id: compact_id,
+			// 	def: compact_def,
+			// });
+		}
+		symbol
+	}
+
+	fn register_type_of<T>(&mut self, _of: &T) -> UntrackedTypeIdSymbol
+	where
+		T: ?Sized + Metadata,
+	{
+		self.register_type::<T>()
 	}
 }
