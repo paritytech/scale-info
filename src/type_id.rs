@@ -138,7 +138,8 @@ impl TypeIdCustom {
 pub struct TypeIdArray<F: Form = FreeForm> {
 	pub len: u16,
 	#[serde(rename = "type")]
-	pub type_param: Box<TypeId<F>>,
+	pub type_param: F::IndirectTypeId,
+}
 }
 
 impl TypeIdArray {
@@ -156,7 +157,8 @@ impl TypeIdArray {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 pub struct TypeIdTuple<F: Form = FreeForm> {
 	#[serde(rename = "type")]
-	pub type_params: Vec<TypeId<F>>,
+	pub type_params: Vec<F::TypeId>,
+}
 }
 
 impl TypeIdTuple {
@@ -177,7 +179,8 @@ impl TypeIdTuple {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 pub struct TypeIdSlice<F: Form = FreeForm> {
 	#[serde(rename = "type")]
-	type_param: Box<TypeId<F>>,
+	type_param: F::IndirectTypeId,
+}
 }
 
 impl TypeIdSlice {
