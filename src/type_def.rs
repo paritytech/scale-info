@@ -132,10 +132,7 @@ impl IntoCompact for GenericArg<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(GenericArg {
-			name: registry
-				.resolve_string(self.name)
-				.ok_or(IntoCompactError::missing_string(self.name))
-				.map(|symbol| symbol.into_untracked())?
+			name: registry.resolve_string(self.name)?
 		})
 	}
 }
@@ -212,10 +209,7 @@ impl IntoCompact for NamedField<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(NamedField {
-			name: registry
-				.resolve_string(self.name)
-				.ok_or(IntoCompactError::missing_string(self.name))
-				.map(|symbol| symbol.into_untracked())?,
+			name: registry.resolve_string(self.name)?,
 			ty: registry
 				.resolve_type_id(&self.ty)
 				.ok_or(IntoCompactError::missing_typeid(&self.ty))
@@ -308,10 +302,7 @@ impl IntoCompact for ClikeEnumVariant<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(ClikeEnumVariant {
-			name: registry
-				.resolve_string(self.name)
-				.ok_or(IntoCompactError::missing_string(self.name))
-				.map(|symbol| symbol.into_untracked())?,
+			name: registry.resolve_string(self.name)?,
 			discriminant: self.discriminant,
 		})
 	}
@@ -375,10 +366,7 @@ impl IntoCompact for EnumVariantUnit<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(EnumVariantUnit {
-			name: registry
-				.resolve_string(self.name)
-				.ok_or(IntoCompactError::missing_string(self.name))
-				.map(|symbol| symbol.into_untracked())?,
+			name: registry.resolve_string(self.name)?,
 		})
 	}
 }
@@ -400,10 +388,7 @@ impl IntoCompact for EnumVariantStruct<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(EnumVariantStruct {
-			name: registry
-				.resolve_string(self.name)
-				.ok_or(IntoCompactError::missing_string(self.name))
-				.map(|symbol| symbol.into_untracked())?,
+			name: registry.resolve_string(self.name)?,
 			fields: self.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
@@ -435,10 +420,7 @@ impl IntoCompact for EnumVariantTupleStruct<FreeForm> {
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(EnumVariantTupleStruct {
-			name: registry
-				.resolve_string(self.name)
-				.ok_or(IntoCompactError::missing_string(self.name))
-				.map(|symbol| symbol.into_untracked())?,
+			name: registry.resolve_string(self.name)?,
 			fields: self.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))

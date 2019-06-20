@@ -16,7 +16,7 @@
 
 use crate::{
 	form::CompactForm,
-	interner::{StringInterner, StringSymbol, TypeIdInterner, TypeIdSymbol, UntrackedTypeIdSymbol},
+	interner::{StringInterner, StringSymbol, TypeIdInterner, TypeIdSymbol, UntrackedStringSymbol, UntrackedTypeIdSymbol},
 	HasTypeId, Metadata, Namespace, TypeDef, TypeId,
 };
 use serde::Serialize;
@@ -95,8 +95,11 @@ impl Registry {
 		self.typeid_table.intern_or_get(T::type_id())
 	}
 
-	pub fn resolve_string(&self, string: &'static str) -> Option<StringSymbol> {
-		self.string_table.get(&string)
+	pub fn resolve_string(&self, string: &'static str) -> Result<UntrackedStringSymbol, IntoCompactError> {
+		self.string_table
+			.get(&string)
+			.ok_or(IntoCompactError::missing_string(string))
+			.map(|symbol| symbol.into_untracked())
 	}
 
 	pub fn resolve_type_id(&self, type_id: &TypeId) -> Option<TypeIdSymbol> {
