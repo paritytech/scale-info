@@ -48,7 +48,15 @@ pub trait Form {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
 pub enum FreeForm {}
 
+impl Form for FreeForm {
+	type String = &'static str;
+	type TypeId = TypeId;
+	type IndirectTypeId = Box<TypeId>;
+}
+
 /// Compact form that is lifetime tracked in association to its interner.
+///
+/// # Note
 ///
 /// This ensures safe resolution and thus allows to transform this back into
 /// the free form. Can also be transformed into the untracked form, however,
@@ -58,39 +66,24 @@ pub struct TrackedForm<'a> {
 	interner: PhantomData<fn () -> &'a ()>,
 }
 
-/// Compact form is depending on interning data structures
-/// and generally requires less space. However, due to the dependency
-/// on some interning data structures it cannot be created without them.
-///
-/// # Note
-///
-/// The compact form is only in use by the type registry which itself
-/// owns the interning data structures.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
-pub enum CompactForm {}
-
-impl Form for FreeForm {
-	type String = &'static str;
-	type TypeId = TypeId;
-	type IndirectTypeId = Box<TypeId>;
-}
-
 impl<'a> Form for TrackedForm<'a> {
-	/// Lifetime tracked in association to the interner.
-	/// Allows resolution to the underlying string data.
 	type String = StringSymbol<'a>;
-	/// Lifetime tracked in association to the interner.
-	/// Allows resolution to the underlying type definition and type identifier.
 	type TypeId = TypeIdSymbol<'a>;
 	type IndirectTypeId = Self::TypeId;
 }
 
+/// Compact form that has its lifetime untracked in association to its interner.
+///
+/// # Note
+///
+/// This resolves some lifetime issues with self-referential structs (such as
+/// the registry itself) but can no longer be used to resolve to the original
+/// underlying data.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+pub enum CompactForm {}
+
 impl Form for CompactForm {
-	/// Untracked here means that we don't track lifetimes.
-	/// We use the untracked form to avoid lifetime issues within the later-to-be
-	/// self-referential registry data structure.
 	type String = UntrackedStringSymbol;
-	/// See above why we use the untracked symbol type.
 	type TypeId = UntrackedTypeIdSymbol;
 	type IndirectTypeId = Self::TypeId;
 }
