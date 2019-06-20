@@ -156,7 +156,7 @@ where
 	T: Metadata,
 {
 	fn register_subtypes(registry: &mut Registry) {
-		registry.register_type::<T>();
+		registry.register_type::<[T]>();
 	}
 }
 
@@ -360,7 +360,11 @@ impl HasTypeDef for String {
 	}
 }
 
-impl RegisterSubtypes for String {}
+impl RegisterSubtypes for String {
+	fn register_subtypes(registry: &mut Registry) {
+		registry.register_type::<Vec<u8>>();
+	}
+}
 
 use core::marker::PhantomData;
 
