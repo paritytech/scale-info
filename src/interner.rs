@@ -94,20 +94,28 @@ impl<T> Interner<T>
 where
 	T: Ord + Clone,
 {
-	pub fn intern_or_get(&mut self, s: T) -> Symbol<T> {
+	pub fn intern_or_get(&mut self, s: T) -> (bool, Symbol<T>) {
 		let next_id = self.vec.len();
-		let sym_id = match self.map.entry(s.clone()) {
+		let (inserted, sym_id) = match self.map.entry(s.clone()) {
 			Entry::Vacant(vacant) => {
 				vacant.insert(next_id);
 				self.vec.push(s);
-				next_id
+				(true, next_id)
 			}
-			Entry::Occupied(occupied) => *occupied.get(),
+			Entry::Occupied(occupied) => (false, *occupied.get()),
 		};
-		Symbol {
+		(inserted, Symbol {
 			id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
 			marker: PhantomData,
-		}
+		})
+	}
+
+	pub fn get(&self, s: &T) -> Option<Symbol<T>> {
+		self.map.get(s)
+			.map(|&id| Symbol {
+				id: NonZeroU32::new(id as u32).unwrap(),
+				marker: PhantomData,
+			})
 	}
 
 	pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
@@ -126,7 +134,7 @@ mod tests {
 	type StringInterner = Interner<&'static str>;
 
 	fn assert_id(interner: &mut StringInterner, new_symbol: &'static str, expected_id: u32) {
-		let actual_id = interner.intern_or_get(new_symbol).id.get();
+		let actual_id = interner.intern_or_get(new_symbol).1.id.get();
 		assert_eq!(actual_id, expected_id,);
 	}
 
