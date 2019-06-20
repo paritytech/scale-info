@@ -38,15 +38,6 @@ pub struct UntrackedSymbol<T> {
 	marker: PhantomData<fn() -> T>,
 }
 
-impl<T> From<Symbol<'_, T>> for UntrackedSymbol<T> {
-	fn from(symbol: Symbol<T>) -> Self {
-		Self {
-			id: symbol.id,
-			marker: PhantomData,
-		}
-	}
-}
-
 /// A symbol from an interner.
 ///
 /// Can be used to resolve to the associated instance.
@@ -54,6 +45,30 @@ impl<T> From<Symbol<'_, T>> for UntrackedSymbol<T> {
 pub struct Symbol<'a, T> {
 	id: NonZeroU32,
 	marker: PhantomData<fn() -> &'a T>,
+}
+
+impl<T> Symbol<'_, T> {
+	/// Removes the lifetime tracking for this symbol.
+	///
+	/// # Note
+	///
+	/// - This can be useful in situations where a data structure
+	///   owns all symbols and interners and can verify accesses by itself.
+	/// - For further safety reasons an untracked symbol
+	///   can no longer be used to resolve from an interner.
+	///   It is still useful for serialization purposes. 
+	///
+	/// # Safety
+	///
+	/// Although removing lifetime constraints this operation can be
+	/// considered to be safe since untracked symbols can no longer be
+	/// used to resolve their associated instance from the interner.
+	pub fn into_untracked(self) -> UntrackedSymbol<T> {
+		UntrackedSymbol {
+			id: self.id,
+			marker: PhantomData,
+		}
+	}
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
