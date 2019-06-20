@@ -32,16 +32,17 @@ macro_rules! tuple_type_id {
 mod form;
 mod impls;
 pub mod interner;
-mod registry;
-// mod registry2;
+// mod registry;
+mod registry2;
 mod type_def;
 mod type_id;
+mod utils;
 
 #[cfg(test)]
 mod tests;
 
 pub use self::{
-	registry::{RegisterSubtypes, Registry, Tables},
+	registry2::{RegisterSubtypes, Registry, IntoCompact, IntoCompactError},
 	type_def::*,
 	type_id::*,
 };
