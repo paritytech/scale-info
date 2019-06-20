@@ -19,7 +19,11 @@ use crate::{
 	form::{
 		Form,
 		FreeForm,
+		CompactForm,
 	},
+	Registry,
+	IntoCompact,
+	IntoCompactError,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -52,6 +56,23 @@ pub enum NamespaceError {
 		/// The index of the errorneous segment.
 		segment: usize,
 	},
+}
+
+impl IntoCompact for Namespace {
+	type Output = Namespace<CompactForm>;
+
+	/// Compacts this namespace using the given registry.
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+		Ok(Namespace {
+			segments: self.segments
+				.into_iter()
+				.map(|seg| {
+					let (_inserted, symbol) = registry.string_table.intern_or_get(seg);
+					symbol.into_untracked()
+				})
+				.collect::<Vec<_>>()
+		})
+	}
 }
 
 impl Namespace {
@@ -96,6 +117,20 @@ pub enum TypeId<F: Form = FreeForm> {
 	Primitive(TypeIdPrimitive),
 }
 
+impl IntoCompact for TypeId<FreeForm> {
+	type Output = TypeId<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+		match self {
+			TypeId::Custom(custom) => custom.into_compact(registry).map(Into::into),
+			TypeId::Slice(slice) => slice.into_compact(registry).map(Into::into),
+			TypeId::Array(array) => array.into_compact(registry).map(Into::into),
+			TypeId::Tuple(tuple) => tuple.into_compact(registry).map(Into::into),
+			TypeId::Primitive(primitive) => Ok(primitive.into()),
+		}
+	}
+}
+
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum TypeIdPrimitive {
@@ -122,6 +157,27 @@ pub struct TypeIdCustom<F: Form = FreeForm> {
 	type_params: Vec<F::TypeId>,
 }
 
+impl IntoCompact for TypeIdCustom<FreeForm> {
+	type Output = TypeIdCustom<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+		let (_inserted, name) = registry.string_table.intern_or_get(self.name);
+		Ok(TypeIdCustom {
+			name: name.into_untracked(),
+			namespace: self.namespace.into_compact(registry)?,
+			type_params: self.type_params
+				.into_iter()
+				.map(|param| {
+					registry
+						.resolve_type_id(&param)
+						.map(|symbol| symbol.into_untracked())
+						.ok_or(IntoCompactError::missing_typeid(&param))
+				})
+				.collect::<Result<Vec<_>, _>>()?
+		})
+	}
+}
+
 impl TypeIdCustom {
 	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
 	where
@@ -141,6 +197,19 @@ pub struct TypeIdArray<F: Form = FreeForm> {
 	#[serde(rename = "type")]
 	pub type_param: F::IndirectTypeId,
 }
+
+impl IntoCompact for TypeIdArray<FreeForm> {
+	type Output = TypeIdArray<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+		Ok(TypeIdArray {
+			len: self.len,
+			type_param: registry
+				.resolve_type_id(&self.type_param)
+				.ok_or(IntoCompactError::missing_typeid(&self.type_param))
+				.map(|sym| sym.into_untracked())?
+		})
+	}
 }
 
 impl TypeIdArray {
@@ -160,6 +229,23 @@ pub struct TypeIdTuple<F: Form = FreeForm> {
 	#[serde(rename = "type")]
 	pub type_params: Vec<F::TypeId>,
 }
+
+impl IntoCompact for TypeIdTuple<FreeForm> {
+	type Output = TypeIdTuple<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+		Ok(TypeIdTuple {
+			type_params: self.type_params
+				.into_iter()
+				.map(|param| {
+					registry
+						.resolve_type_id(&param)
+						.map(|symbol| symbol.into_untracked())
+						.ok_or(IntoCompactError::missing_typeid(&param))
+				})
+				.collect::<Result<Vec<_>, _>>()?
+		})
+	}
 }
 
 impl TypeIdTuple {
@@ -182,6 +268,18 @@ pub struct TypeIdSlice<F: Form = FreeForm> {
 	#[serde(rename = "type")]
 	type_param: F::IndirectTypeId,
 }
+
+impl IntoCompact for TypeIdSlice<FreeForm> {
+	type Output = TypeIdSlice<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+		Ok(TypeIdSlice {
+			type_param: registry
+				.resolve_type_id(&self.type_param)
+				.ok_or(IntoCompactError::missing_typeid(&self.type_param))
+				.map(|sym| sym.into_untracked())?
+		})
+	}
 }
 
 impl TypeIdSlice {
