@@ -29,6 +29,12 @@ pub trait Form {
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type identifier type.
 	type TypeId: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+	/// A type identifier with indirection.
+	///
+	/// # Note
+	///
+	/// This is an optimization for the compact forms.
+	type IndirectTypeId: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
 
 /// Free form is not depending on any interner data structure
@@ -55,6 +61,7 @@ pub enum CompactForm {}
 impl Form for FreeForm {
 	type String = &'static str;
 	type TypeId = TypeId;
+	type IndirectTypeId = Box<TypeId>;
 }
 
 impl Form for CompactForm {
@@ -64,4 +71,5 @@ impl Form for CompactForm {
 	type String = UntrackedStringSymbol;
 	/// See above why we use the untracked symbol type.
 	type TypeId = UntrackedTypeIdSymbol;
+	type IndirectTypeId = Self::TypeId;
 }
