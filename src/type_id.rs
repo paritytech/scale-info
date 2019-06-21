@@ -62,15 +62,14 @@ impl IntoCompact for Namespace {
 	type Output = Namespace<CompactForm>;
 
 	/// Compacts this namespace using the given registry.
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(Namespace {
 			segments: self.segments
 				.into_iter()
 				.map(|seg| {
-					let (_inserted, symbol) = registry.string_table.intern_or_get(seg);
-					symbol.into_untracked()
+					registry.resolve_string(seg)
 				})
-				.collect::<Vec<_>>()
+				.collect::<Result<Vec<_>, _>>()?
 		})
 	}
 }
@@ -120,7 +119,7 @@ pub enum TypeId<F: Form = FreeForm> {
 impl IntoCompact for TypeId<FreeForm> {
 	type Output = TypeId<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError> {
 		match self {
 			TypeId::Custom(custom) => custom.into_compact(registry).map(Into::into),
 			TypeId::Slice(slice) => slice.into_compact(registry).map(Into::into),
@@ -160,10 +159,9 @@ pub struct TypeIdCustom<F: Form = FreeForm> {
 impl IntoCompact for TypeIdCustom<FreeForm> {
 	type Output = TypeIdCustom<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		let (_inserted, name) = registry.string_table.intern_or_get(self.name);
+	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(TypeIdCustom {
-			name: name.into_untracked(),
+			name: registry.resolve_string(self.name)?,
 			namespace: self.namespace.into_compact(registry)?,
 			type_params: self.type_params
 				.into_iter()
@@ -196,7 +194,7 @@ pub struct TypeIdArray<F: Form = FreeForm> {
 impl IntoCompact for TypeIdArray<FreeForm> {
 	type Output = TypeIdArray<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(TypeIdArray {
 			len: self.len,
 			type_param: registry.resolve_type_id(&self.type_param)?
@@ -225,7 +223,7 @@ pub struct TypeIdTuple<F: Form = FreeForm> {
 impl IntoCompact for TypeIdTuple<FreeForm> {
 	type Output = TypeIdTuple<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(TypeIdTuple {
 			type_params: self.type_params
 				.into_iter()
@@ -259,7 +257,7 @@ pub struct TypeIdSlice<F: Form = FreeForm> {
 impl IntoCompact for TypeIdSlice<FreeForm> {
 	type Output = TypeIdSlice<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError> {
 		Ok(TypeIdSlice {
 			type_param: registry.resolve_type_id(&self.type_param)?
 		})

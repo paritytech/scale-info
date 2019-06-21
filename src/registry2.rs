@@ -17,7 +17,7 @@
 use crate::{
 	form::CompactForm,
 	interner::{StringInterner, StringSymbol, TypeIdInterner, TypeIdSymbol, UntrackedStringSymbol, UntrackedTypeIdSymbol},
-	HasTypeId, Metadata, Namespace, TypeDef, TypeId,
+	HasTypeId, Metadata, TypeDef, TypeId,
 };
 use serde::Serialize;
 
@@ -62,7 +62,7 @@ impl IntoCompactError {
 pub trait IntoCompact {
 	type Output;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError>;
+	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError>;
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
@@ -73,19 +73,15 @@ pub struct TypeIdDef {
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Registry {
-	pub string_table: StringInterner,
+	string_table: StringInterner,
 	typeid_table: TypeIdInterner,
 	types: Vec<TypeIdDef>,
 }
 
+/// Used by `RegisterSubtypes` implementers. (TODO)
 impl Registry {
 	fn register_name(&mut self, name: &'static str) -> (bool, StringSymbol) {
 		self.string_table.intern_or_get(name)
-	}
-
-	fn register_namespace(&mut self, namespace: Namespace) -> Namespace<CompactForm> {
-		namespace.into_compact(self)
-			.expect("registering namespaces cannot fail")
 	}
 
 	fn register_type_id<T>(&mut self) -> (bool, TypeIdSymbol)
@@ -94,7 +90,10 @@ impl Registry {
 	{
 		self.typeid_table.intern_or_get(T::type_id())
 	}
+}
 
+/// Used by `IntoCompact` implementers.
+impl Registry {
 	pub fn resolve_string(&self, string: &'static str) -> Result<UntrackedStringSymbol, IntoCompactError> {
 		self.string_table
 			.get(&string)
@@ -108,7 +107,9 @@ impl Registry {
 			.ok_or(IntoCompactError::missing_typeid(type_id))
 			.map(|symbol| symbol.into_untracked())
 	}
+}
 
+impl Registry {
 	pub fn register_type<T>(&mut self) -> UntrackedTypeIdSymbol
 	where
 		T: ?Sized + Metadata,
@@ -117,20 +118,13 @@ impl Registry {
 		let symbol = symbol.into_untracked();
 		if inserted {
 			T::register_subtypes(self);
-			// let compact_id = T::type_id().into_compact(&self).into_untracked();
-			// let compact_def = T::type_def().into_compact(&self).into_untracked();
-			// self.types.push(TypeIdDef {
-			// 	id: compact_id,
-			// 	def: compact_def,
-			// });
+			let compact_id = T::type_id().into_compact(self).unwrap();
+			let compact_def = T::type_def().into_compact(self).unwrap();
+			self.types.push(TypeIdDef {
+				id: compact_id,
+				def: compact_def,
+			});
 		}
 		symbol
-	}
-
-	fn register_type_of<T>(&mut self, _of: &T) -> UntrackedTypeIdSymbol
-	where
-		T: ?Sized + Metadata,
-	{
-		self.register_type::<T>()
 	}
 }
