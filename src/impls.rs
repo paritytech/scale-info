@@ -36,6 +36,7 @@ macro_rules! impl_metadata_for_primitives {
 
 impl_metadata_for_primitives!(
 	bool => TypeIdPrimitive::Bool,
+	char => TypeIdPrimitive::Char,
 	u8 => TypeIdPrimitive::U8,
 	u16 => TypeIdPrimitive::U16,
 	u32 => TypeIdPrimitive::U32,
