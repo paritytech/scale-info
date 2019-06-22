@@ -16,7 +16,7 @@
 
 use crate::{
 	form::CompactForm,
-	interner::{StringInterner, StringSymbol, TypeIdInterner, TypeIdSymbol, UntrackedStringSymbol, UntrackedTypeIdSymbol},
+	interner::{StringInterner, TypeIdInterner, UntrackedStringSymbol, UntrackedTypeIdSymbol},
 	HasTypeId, Metadata, TypeDef, TypeId,
 };
 use serde::Serialize;
@@ -62,7 +62,7 @@ impl IntoCompactError {
 pub trait IntoCompact {
 	type Output;
 
-	fn into_compact(self, registry: &Registry) -> Result<Self::Output, IntoCompactError>;
+	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError>;
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
@@ -78,27 +78,13 @@ pub struct Registry {
 	types: Vec<TypeIdDef>,
 }
 
-/// Used by `RegisterSubtypes` implementers. (TODO)
-impl Registry {
-	fn register_name(&mut self, name: &'static str) -> (bool, StringSymbol) {
-		self.string_table.intern_or_get(name)
-	}
-
-	fn register_type_id<T>(&mut self) -> (bool, TypeIdSymbol)
-	where
-		T: ?Sized + HasTypeId,
-	{
-		self.typeid_table.intern_or_get(T::type_id())
-	}
-}
-
 /// Used by `IntoCompact` implementers.
 impl Registry {
-	pub fn resolve_string(&self, string: &'static str) -> Result<UntrackedStringSymbol, IntoCompactError> {
+	pub fn register_string(&mut self, string: &'static str) -> UntrackedStringSymbol {
 		self.string_table
-			.get(&string)
-			.ok_or(IntoCompactError::missing_string(string))
-			.map(|symbol| symbol.into_untracked())
+			.intern_or_get(string)
+			.1
+			.into_untracked()
 	}
 
 	pub fn resolve_type_id(&self, type_id: &TypeId) -> Result<UntrackedTypeIdSymbol, IntoCompactError> {
@@ -107,19 +93,26 @@ impl Registry {
 			.ok_or(IntoCompactError::missing_typeid(type_id))
 			.map(|symbol| symbol.into_untracked())
 	}
-}
 
-impl Registry {
+	fn intern_typeid<T>(&mut self) -> (bool, UntrackedTypeIdSymbol)
+	where
+		T: ?Sized + HasTypeId,
+	{
+		let (inserted, symbol) = self.typeid_table.intern_or_get(T::type_id());
+		(inserted, symbol.into_untracked())
+	}
+
 	pub fn register_type<T>(&mut self) -> UntrackedTypeIdSymbol
 	where
 		T: ?Sized + Metadata,
 	{
-		let (inserted, symbol) = self.register_type_id::<T>();
-		let symbol = symbol.into_untracked();
+		let (inserted, symbol) = self.intern_typeid::<T>();
 		if inserted {
 			T::register_subtypes(self);
-			let compact_id = T::type_id().into_compact(self).unwrap();
-			let compact_def = T::type_def().into_compact(self).unwrap();
+			let compact_id = T::type_id().into_compact(self)
+				.expect("the type identifier is expected to be registered at this point");
+			let compact_def = T::type_def().into_compact(self)
+				.expect("the type definition is expected to be registered at this point");
 			self.types.push(TypeIdDef {
 				id: compact_id,
 				def: compact_def,
