@@ -51,7 +51,7 @@ impl_metadata_for_primitives!(
 
 macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
-        $(
+		$(
 			impl<T: HasTypeId> HasTypeId for [T; $n] {
 				fn type_id() -> TypeId {
 					TypeIdArray::new($n, T::type_id()).into()
@@ -69,8 +69,8 @@ macro_rules! impl_metadata_for_array {
 					registry.register_type::<T>();
 				}
 			}
-	    )*
-    }
+		)*
+	}
 }
 
 #[rustfmt::skip]
