@@ -14,30 +14,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-extern crate proc_macro;
+use proc_macro2::TokenStream as TokenStream2;
+use syn::{
+    self,
+    parse::Result,
+};
 
-mod type_id;
-mod type_def;
-mod register_subtypes;
-
-use proc_macro::TokenStream;
-
-#[proc_macro_derive(TypeId)]
-pub fn type_id(input: TokenStream) -> TokenStream {
-    type_id::generate(input.into()).into()
+pub fn generate(input: TokenStream2) -> TokenStream2 {
+    match generate_impl(input.into()) {
+        Ok(output) => output.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
 }
 
-#[proc_macro_derive(TypeDef)]
-pub fn type_def(input: TokenStream) -> TokenStream {
-    type_def::generate(input.into()).into()
-}
-
-#[proc_macro_derive(RegisterSubtypes)]
-pub fn register_subtypes(input: TokenStream) -> TokenStream {
-    register_subtypes::generate(input.into()).into()
-}
-
-#[proc_macro_derive(Metadata)]
-pub fn metadata(input: TokenStream) -> TokenStream {
-    type_id::generate(input.into()).into()
+pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
+	unimplemented!()
 }
