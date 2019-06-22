@@ -45,7 +45,7 @@ pub struct TypeDef<F: Form = FreeForm> {
 	kind: TypeDefKind<F>,
 }
 
-impl IntoCompact for TypeDef<FreeForm> {
+impl IntoCompact for TypeDef {
 	type Output = TypeDef<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -56,7 +56,7 @@ impl IntoCompact for TypeDef<FreeForm> {
 	}
 }
 
-impl TypeDef<FreeForm> {
+impl TypeDef {
 	pub fn new<G, K>(generic_params: G, kind: K) -> Self
 	where
 		G: IntoIterator<Item = <FreeForm as Form>::String>,
@@ -103,7 +103,7 @@ pub struct GenericParams<F: Form = FreeForm> {
 	params: Vec<GenericArg<F>>,
 }
 
-impl IntoCompact for GenericParams<FreeForm> {
+impl IntoCompact for GenericParams {
 	type Output = GenericParams<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -127,7 +127,7 @@ pub struct GenericArg<F: Form = FreeForm> {
 	name: F::String,
 }
 
-impl IntoCompact for GenericArg<FreeForm> {
+impl IntoCompact for GenericArg {
 	type Output = GenericArg<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -153,7 +153,7 @@ pub enum TypeDefKind<F: Form = FreeForm> {
 	Union(TypeDefUnion<F>),
 }
 
-impl IntoCompact for TypeDefKind<FreeForm> {
+impl IntoCompact for TypeDefKind {
 	type Output = TypeDefKind<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -173,7 +173,7 @@ pub struct TypeDefStruct<F: Form = FreeForm> {
 	fields: Vec<NamedField<F>>,
 }
 
-impl IntoCompact for TypeDefStruct<FreeForm> {
+impl IntoCompact for TypeDefStruct {
 	type Output = TypeDefStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -204,7 +204,7 @@ pub struct NamedField<F: Form = FreeForm> {
 	ty: F::TypeId,
 }
 
-impl IntoCompact for NamedField<FreeForm> {
+impl IntoCompact for NamedField {
 	type Output = NamedField<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -229,7 +229,7 @@ pub struct TypeDefTupleStruct<F: Form = FreeForm> {
 	fields: Vec<UnnamedField<F>>,
 }
 
-impl IntoCompact for TypeDefTupleStruct<FreeForm> {
+impl IntoCompact for TypeDefTupleStruct {
 	type Output = TypeDefTupleStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -248,7 +248,7 @@ pub struct UnnamedField<F: Form = FreeForm> {
 	ty: F::TypeId,
 }
 
-impl IntoCompact for UnnamedField<FreeForm> {
+impl IntoCompact for UnnamedField {
 	type Output = UnnamedField<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -272,7 +272,7 @@ pub struct TypeDefClikeEnum<F: Form = FreeForm> {
 	variants: Vec<ClikeEnumVariant<F>>,
 }
 
-impl IntoCompact for TypeDefClikeEnum<FreeForm> {
+impl IntoCompact for TypeDefClikeEnum {
 	type Output = TypeDefClikeEnum<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -291,7 +291,7 @@ pub struct ClikeEnumVariant<F: Form = FreeForm> {
 	discriminant: u64,
 }
 
-impl IntoCompact for ClikeEnumVariant<FreeForm> {
+impl IntoCompact for ClikeEnumVariant {
 	type Output = ClikeEnumVariant<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -307,7 +307,7 @@ pub struct TypeDefEnum<F: Form = FreeForm> {
 	variants: Vec<EnumVariant<F>>,
 }
 
-impl IntoCompact for TypeDefEnum<FreeForm> {
+impl IntoCompact for TypeDefEnum {
 	type Output = TypeDefEnum<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -338,7 +338,7 @@ pub enum EnumVariant<F: Form = FreeForm> {
 	TupleStruct(EnumVariantTupleStruct<F>),
 }
 
-impl IntoCompact for EnumVariant<FreeForm> {
+impl IntoCompact for EnumVariant {
 	type Output = EnumVariant<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -355,7 +355,7 @@ pub struct EnumVariantUnit<F: Form = FreeForm> {
 	name: F::String,
 }
 
-impl IntoCompact for EnumVariantUnit<FreeForm> {
+impl IntoCompact for EnumVariantUnit {
 	type Output = EnumVariantUnit<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -377,7 +377,7 @@ pub struct EnumVariantStruct<F: Form = FreeForm> {
 	fields: Vec<NamedField<F>>,
 }
 
-impl IntoCompact for EnumVariantStruct<FreeForm> {
+impl IntoCompact for EnumVariantStruct {
 	type Output = EnumVariantStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -409,7 +409,7 @@ pub struct EnumVariantTupleStruct<F: Form = FreeForm> {
 	fields: Vec<UnnamedField<F>>,
 }
 
-impl IntoCompact for EnumVariantTupleStruct<FreeForm> {
+impl IntoCompact for EnumVariantTupleStruct {
 	type Output = EnumVariantTupleStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
@@ -440,7 +440,7 @@ pub struct TypeDefUnion<F: Form = FreeForm> {
 	fields: Vec<NamedField<F>>,
 }
 
-impl IntoCompact for TypeDefUnion<FreeForm> {
+impl IntoCompact for TypeDefUnion {
 	type Output = TypeDefUnion<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
