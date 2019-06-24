@@ -1,4 +1,6 @@
-// Copyright 2019 Centrality Investments Limited
+// Copyright 2019
+//     by  Centrality Investments Ltd.
+//     and Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,29 +14,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-macro_rules! tuple_type_id {
-    ( $($ty:ident),* ) => {
-        {
-            #[allow(unused_mut)]
-            let mut v = vec![];
-            $(
-                v.push(<$ty as $crate::HasTypeId>::type_id());
-            )*
-            v
-        }
+use proc_macro2::TokenStream as TokenStream2;
+use syn::{
+    self,
+    parse::Result,
+};
+
+pub fn generate(input: TokenStream2) -> TokenStream2 {
+    match generate_impl(input.into()) {
+        Ok(output) => output.into(),
+        Err(err) => err.to_compile_error().into(),
     }
 }
 
-mod impls;
-mod registry;
-mod type_def;
-mod type_id;
-
-#[cfg(test)]
-mod tests;
-
-pub use self::{registry::Registry, type_def::*, type_id::*};
-
-pub trait Metadata: HasTypeId + HasTypeDef {}
-
-impl<T> Metadata for T where T: HasTypeId + HasTypeDef + ?Sized {}
+pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
+	unimplemented!()
+}

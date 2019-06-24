@@ -1,4 +1,6 @@
-// Copyright 2019 Centrality Investments Limited
+// Copyright 2019
+//     by  Centrality Investments Ltd.
+//     and Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,12 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use super::*;
+use crate::*;
 use std::marker::PhantomData;
 
 fn assert_type_id<T, E>(expected: E)
 where
-	T: Metadata + ?Sized,
+	T: HasTypeId + ?Sized,
 	E: Into<TypeId>,
 {
 	assert_eq!(T::type_id(), expected.into());
@@ -81,8 +83,13 @@ fn array_primitives() {
 	assert_type_id!([bool; 3], TypeIdArray::new(3, bool::type_id()));
 	// nested
 	assert_type_id!([[i32; 5]; 5], TypeIdArray::new(5, TypeIdArray::new(5, i32::type_id())));
+	// slice
+	assert_type_id!([bool], TypeIdSlice::new(bool::type_id()));
 	// vec
-	assert_type_id!(Vec<bool>, TypeIdSlice::new(bool::type_id()));
+	assert_type_id!(
+		Vec<bool>,
+		TypeIdCustom::new("Vec", Namespace::prelude(), tuple_type_id![bool])
+	);
 }
 
 #[test]
@@ -110,12 +117,17 @@ fn struct_with_generics() {
 	where
 		T: Metadata,
 	{
-		fn type_def(registry: &mut Registry) -> TypeDef {
+		fn type_def() -> TypeDef {
+			TypeDefStruct::new(vec![NamedField::new("data", T::type_id())]).into()
+		}
+	}
+
+	impl<T> RegisterSubtypes for MyStruct<T>
+	where
+		T: Metadata,
+	{
+		fn register_subtypes(registry: &mut Registry) {
 			registry.register_type::<T>();
-			TypeDef::Struct(StructDef(vec![Field {
-				name: "data",
-				ident: T::type_id(),
-			}]))
 		}
 	}
 
@@ -127,12 +139,8 @@ fn struct_with_generics() {
 	);
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
 
-	let mut registry = Registry::new();
-	let struct_bool_def = TypeDef::Struct(StructDef(vec![Field {
-		name: "data",
-		ident: bool::type_id(),
-	}]));
-	assert_eq!(<MyStruct<bool>>::type_def(&mut registry), struct_bool_def);
+	let struct_bool_def = TypeDefStruct::new(vec![NamedField::new("data", bool::type_id())]).into();
+	assert_eq!(<MyStruct<bool>>::type_def(), struct_bool_def);
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
@@ -143,10 +151,7 @@ fn struct_with_generics() {
 	);
 	assert_type_id!(SelfTyped, expected_type_id);
 	assert_eq!(
-		SelfTyped::type_def(&mut registry),
-		TypeDef::Struct(StructDef(vec![Field {
-			name: "data",
-			ident: struct_bool_id.clone().into(),
-		}])),
+		SelfTyped::type_def(),
+		TypeDefStruct::new(vec![NamedField::new("data", struct_bool_id.clone()),]).into(),
 	);
 }
