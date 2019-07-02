@@ -16,28 +16,28 @@
 
 extern crate proc_macro;
 
-mod type_id;
-mod type_def;
 mod register_subtypes;
+mod type_def;
+mod type_id;
 
 use proc_macro::TokenStream;
 
 #[proc_macro_derive(TypeId)]
 pub fn type_id(input: TokenStream) -> TokenStream {
-    type_id::generate(input.into()).into()
+	type_id::generate(input.into()).into()
 }
 
 #[proc_macro_derive(TypeDef)]
 pub fn type_def(input: TokenStream) -> TokenStream {
-    type_def::generate(input.into()).into()
+	type_def::generate(input.into()).into()
 }
 
 #[proc_macro_derive(RegisterSubtypes)]
 pub fn register_subtypes(input: TokenStream) -> TokenStream {
-    register_subtypes::generate(input.into()).into()
+	register_subtypes::generate(input.into()).into()
 }
 
 #[proc_macro_derive(Metadata)]
 pub fn metadata(input: TokenStream) -> TokenStream {
-    type_id::generate(input.into()).into()
+	type_id::generate(input.into()).into()
 }

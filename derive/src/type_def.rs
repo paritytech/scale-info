@@ -15,16 +15,13 @@
 // limitations under the License.
 
 use proc_macro2::TokenStream as TokenStream2;
-use syn::{
-    self,
-    parse::Result,
-};
+use syn::{self, parse::Result};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
-    match generate_impl(input.into()) {
-        Ok(output) => output.into(),
-        Err(err) => err.to_compile_error().into(),
-    }
+	match generate_impl(input.into()) {
+		Ok(output) => output.into(),
+		Err(err) => err.to_compile_error().into(),
+	}
 }
 
 pub fn generate_impl(_input: TokenStream2) -> Result<TokenStream2> {
