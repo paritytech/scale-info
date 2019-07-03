@@ -14,9 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{self, parse::Result, parse_quote, DeriveInput, GenericParam, TypeParamBound};
+use syn::{self, Ident, parse::Result, parse_quote, DeriveInput};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input.into()) {
@@ -29,37 +29,20 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
 	// add bound
-	let type_id_bound: TypeParamBound = parse_quote!(_type_metadata::HasTypeId);
-	ast.generics.params.iter_mut().for_each(|param| {
-		if let GenericParam::Type(ref mut type_param) = param {
-			type_param.bounds.push(type_id_bound.clone());
-		}
+	ast.generics.type_params_mut().for_each(|p| {
+		p.bounds.push(parse_quote!(_type_metadata::HasTypeId));
 	});
 
-	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-
-	// impl `HasTypeId`
-	let generic_type_params = ast
-		.generics
-		.params
-		.iter()
-		.filter_map(|param| {
-			if let GenericParam::Type(ref type_param) = param {
-				Some(type_param)
-			} else {
-				None
-			}
-		})
-		.collect::<Vec<_>>();
 	let ident = &ast.ident;
-	let generic_type_ids = generic_type_params.into_iter().map(|ty| {
+	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
+	let generic_type_ids = ast.generics.type_params().into_iter().map(|ty| {
+		let ty_ident = ty.ident.clone();
 		quote! {
-			<#ty as _type_metadata::HasTypeId>::type_id()
+			<#ty_ident as _type_metadata::HasTypeId>::type_id()
 		}
 	});
-
-	let impl_has_type_id = quote! {
-		impl _type_metadata::HasTypeId for #ident #ty_generics #where_clause {
+	let has_type_id_impl = quote! {
+		impl #impl_generics _type_metadata::HasTypeId for #ident #ty_generics #where_clause {
 			fn type_id() -> _type_metadata::TypeId {
 				_type_metadata::TypeIdCustom::new(
 					stringify!(#ident),
@@ -71,9 +54,18 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 		}
 	};
 
+	let mut renamed = String::from("_IMPL_HAS_TYPE_ID_FOR_");
+	renamed.push_str(ident.to_string().trim_start_matches("r#"));
+	let dummy_const = Ident::new(&renamed, Span::call_site());
 	let output = quote! {
-		use type_metadata as _type_metadata;
-		#impl_has_type_id;
+		#[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+		const #dummy_const: () = {
+			#[allow(unknown_lints)]
+			#[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
+			#[allow(rust_2018_idioms)]
+			use type_metadata as _type_metadata;
+			#has_type_id_impl;
+		};
 	};
 
 	Ok(output.into())
