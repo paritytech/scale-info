@@ -30,21 +30,26 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 
 	// add bound
 	ast.generics.type_params_mut().for_each(|p| {
+		p.bounds.push(parse_quote!(_type_metadata::HasTypeId));
 		p.bounds.push(parse_quote!(_type_metadata::HasTypeDef));
 	});
 
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-	let generic_type_ids = ast.generics.type_params().into_iter().map(|ty| {
-		let ty_ident = ty.ident.clone();
-		quote! {
-			<#ty_ident as _type_metadata::HasTypeDef>::type_def()
-		}
-	});
+	// let generic_type_ids = ast.generics.type_params().into_iter().map(|ty| {
+	// 	let ty_ident = ty.ident.clone();
+	// 	quote! {
+	// 		<#ty_ident as _type_metadata::HasTypeDef>::type_def()
+	// 	}
+	// });
 
 	let type_kind = match &ast.data {
 		Data::Struct(ref s) => generate_struct_def_kind(s),
 		Data::Enum(ref e) => generate_enum_def_kind(e),
+		// TODO: handle union
+		_ => quote! {
+			_type_metadata::TypeDefKind::Builtin
+		}
 	};
 
 	let has_type_def_impl = quote! {
@@ -52,7 +57,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 			fn type_def() -> _type_metadata::TypeDef {
 				_type_metadata::TypeDef::new(
 					// TODO: generate generic params
-					generic_params: _type_metadata::GenericParams::empty(),
+					_type_metadata::GenericParams::empty(),
 					#type_kind
 				)
 			}
@@ -79,12 +84,13 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 type FieldsList = Punctuated<Field, Comma>;
 
 fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
-	let fields = fields.iter().map(|f| quote_spanned! { f.span() =>
-		let type_id = <#f.ty as _type_metadata::HasTypeId>::type_id();
-		if let Some(ident) = #f.ident {
-			_type_metadata::NamedField::new(ident, type_id)
+	let fields = fields.iter().map(|f| {
+		let (ty, ident) = (f.ty.clone(), f.ident.clone());
+		let type_id = quote! { <#ty as _type_metadata::HasTypeId>::type_id() };
+		if let Some(i) = ident {
+			quote! { _type_metadata::NamedField::new(stringify!(#i), #type_id) }
 		} else {
-			_type_metadata::UnnamedField::new(type_id)
+			quote! { _type_metadata::UnnamedField::new(#type_id) }
 		}
 	});
 	quote! { vec![#( #fields, )*] }
@@ -93,21 +99,27 @@ fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
 fn generate_struct_def_kind(data_struct: &DataStruct) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
-			let fields = generate_fields_def(fs.named);
-			quote! { TypeDefKind::Struct(TypeDefStruct { fields }) }
+			let fields = generate_fields_def(fs.named.clone());
+			quote! { _type_metadata::TypeDefKind::Struct(
+				_type_metadata::TypeDefStruct { fields: #fields }
+			) }
 		},
 		Fields::Unnamed(ref fs) => {
-			let fields = generate_fields_def(fs.unnamed);
-			quote! { TypeDefKind::TupleStruct(TypeDefTupleStruct { fields }) }
+			let fields = generate_fields_def(fs.unnamed.clone());
+			quote! { _type_metadata::TypeDefKind::TupleStruct(
+				_type_metadata::TypeDefTupleStruct { fields: #fields }
+			) }
 		},
 		Fields::Unit => quote! {
-			TypeDefKind::TupleStruct(TypeDefTupleStruct {
-				fields: vec![],
-			})
+			_type_metadata::TypeDefKind::TupleStruct(
+				_type_metadata::TypeDefTupleStruct { fields: vec![] }
+			)
 		},
 	}
 }
 
 fn generate_enum_def_kind(data_enum: &DataEnum) -> TokenStream2 {
-
+	quote! {
+		_type_metadata::TypeDefKind::Builtin
+	}
 }
