@@ -267,7 +267,7 @@ fn enum_derive() {
 		tuple_type_id!(bool),
 	);
 	assert_type_id!(E<bool>, type_id);
-	
+
 	let type_def = TypeDefEnum::new(vec![
 		EnumVariantTupleStruct::new("A", vec![UnnamedField::new::<bool>()]).into(),
 		EnumVariantStruct::new("B", vec![
@@ -276,4 +276,29 @@ fn enum_derive() {
 		EnumVariantUnit::new("C").into(),
 	]).into();
 	assert_eq!(<E<bool>>::type_def(), type_def);
+}
+
+#[test]
+fn union_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::{TypeId, TypeDef};
+
+	#[allow(unused)]
+	#[repr(C)]
+	#[derive(TypeId, TypeDef)]
+	union U<T: Copy> {
+		u: T
+	}
+
+	let type_id = TypeIdCustom::new(
+		"U",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool),
+	);
+	assert_type_id!(U<bool>, type_id);
+
+	let type_def = TypeDefUnion::new(vec![
+		NamedField::new("u", bool::type_id()),
+	]).into();
+	assert_eq!(<U<bool>>::type_def(), type_def);
 }
