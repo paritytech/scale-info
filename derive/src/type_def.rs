@@ -36,12 +36,6 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-	// let generic_type_ids = ast.generics.type_params().into_iter().map(|ty| {
-	// 	let ty_ident = ty.ident.clone();
-	// 	quote! {
-	// 		<#ty_ident as _type_metadata::HasTypeDef>::type_def()
-	// 	}
-	// });
 
 	let type_kind = match &ast.data {
 		Data::Struct(ref s) => generate_struct_def_kind(s),
@@ -57,8 +51,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 			fn type_def() -> _type_metadata::TypeDef {
 				let annotated: _type_metadata::TypeDefKind = #type_kind;
 				_type_metadata::TypeDef::new(
-					// TODO: generate generic params
-					vec!["foo"],
+					// TODO: generic arg name are like `T` or for instance `u128`?
+					vec![],
 					annotated,
 				)
 			}

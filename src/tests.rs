@@ -155,3 +155,69 @@ fn struct_with_generics() {
 		TypeDefStruct::new(vec![NamedField::new("data", struct_bool_id.clone()),]).into(),
 	);
 }
+
+#[test]
+fn struct_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::{TypeId, TypeDef};
+
+	#[allow(unused)]
+	#[derive(TypeId, TypeDef)]
+	struct S<T, U> {
+		pub t: T,
+		pub u: U,
+	}
+
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool, u8),
+	);
+	assert_type_id!(S<bool, u8>, type_id);
+
+	let type_def = TypeDefStruct::new(vec![
+		NamedField::new("t", bool::type_id()),
+		NamedField::new("u", u8::type_id()),
+	]).into();
+	assert_eq!(<S<bool, u8>>::type_def(), type_def);
+}
+
+#[test]
+fn tuple_struct_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::{TypeId, TypeDef};
+
+	#[allow(unused)]
+	#[derive(TypeId, TypeDef)]
+	struct S<T>(T);
+
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool),
+	);
+	assert_type_id!(S<bool>, type_id);
+
+	let type_def = TypeDefTupleStruct::new(vec![UnnamedField::new::<bool>()]).into();
+	assert_eq!(<S<bool>>::type_def(), type_def);
+}
+
+#[test]
+fn unit_struct_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::{TypeId, TypeDef};
+
+	#[allow(unused)]
+	#[derive(TypeId, TypeDef)]
+	struct S;
+
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		vec![],
+	);
+	assert_type_id!(S, type_id);
+
+	let type_def = TypeDefTupleStruct::unit().into();
+	assert_eq!(S::type_def(), type_def);
+}
