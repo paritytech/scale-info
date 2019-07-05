@@ -16,7 +16,7 @@
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{self, Ident, parse::Result, parse_quote, DeriveInput};
+use syn::{self, parse::Result, parse_quote, DeriveInput, Ident};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input.into()) {

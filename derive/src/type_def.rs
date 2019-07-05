@@ -16,7 +16,10 @@
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{self, Data, DataStruct, DataEnum, DataUnion, Expr, ExprLit, Field, Fields, Ident, Lit, parse::Result, parse_quote, DeriveInput, punctuated::Punctuated, token::Comma, Variant};
+use syn::{
+	self, parse::Result, parse_quote, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DataUnion,
+	DeriveInput, Expr, ExprLit, Field, Fields, Ident, Lit, Variant,
+};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input.into()) {
@@ -74,10 +77,16 @@ fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
 	let fields_def = fields.iter().map(|f| {
 		let (ty, ident) = (f.ty.clone(), f.ident.clone());
 		if let Some(i) = ident {
-			let type_id = quote! { <#ty as _type_metadata::HasTypeId>::type_id() };
-			quote! { _type_metadata::NamedField::new(stringify!(#i), #type_id) }
+			let type_id = quote! {
+				<#ty as _type_metadata::HasTypeId>::type_id()
+			};
+			quote! {
+				_type_metadata::NamedField::new(stringify!(#i), #type_id)
+			}
 		} else {
-			quote! { _type_metadata::UnnamedField::new::<#ty>() }
+			quote! {
+				_type_metadata::UnnamedField::new::<#ty>()
+			}
 		}
 	});
 	quote! { vec![#( #fields_def, )*] }
@@ -87,13 +96,19 @@ fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
 			let fields = generate_fields_def(fs.named.clone());
-			quote! { _type_metadata::TypeDefStruct::new(#fields) }
-		},
+			quote! {
+				_type_metadata::TypeDefStruct::new(#fields)
+			}
+		}
 		Fields::Unnamed(ref fs) => {
 			let fields = generate_fields_def(fs.unnamed.clone());
-			quote! { _type_metadata::TypeDefTupleStruct::new(#fields) }
+			quote! {
+				_type_metadata::TypeDefTupleStruct::new(#fields)
+			}
+		}
+		Fields::Unit => quote! {
+			_type_metadata::TypeDefTupleStruct::unit()
 		},
-		Fields::Unit => quote! { _type_metadata::TypeDefTupleStruct::unit() },
 	}
 }
 
@@ -102,9 +117,13 @@ type VariantList = Punctuated<Variant, Comma>;
 fn generate_c_like_enum_def(variants: VariantList) -> TokenStream2 {
 	let variants_def = variants.into_iter().enumerate().map(|(i, v)| {
 		let name = v.ident;
-		let discriminant = if let Some(
-			(_, Expr::Lit(ExprLit { lit: Lit::Int(lit_int), .. }))
-		) = v.discriminant {
+		let discriminant = if let Some((
+			_,
+			Expr::Lit(ExprLit {
+				lit: Lit::Int(lit_int), ..
+			}),
+		)) = v.discriminant
+		{
 			lit_int.value()
 		} else {
 			i as u64
@@ -143,13 +162,13 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 				quote! {
 					_type_metadata::EnumVariantStruct::new(#v_name, #fields).into()
 				}
-			},
+			}
 			Fields::Unnamed(ref fs) => {
 				let fields = generate_fields_def(fs.unnamed.clone());
 				quote! {
 					_type_metadata::EnumVariantTupleStruct::new(#v_name, #fields).into()
 				}
-			},
+			}
 			Fields::Unit => quote! {
 				_type_metadata::EnumVariantUnit::new(#v_name).into()
 			},
