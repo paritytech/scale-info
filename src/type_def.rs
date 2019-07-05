@@ -242,6 +242,21 @@ impl IntoCompact for TypeDefTupleStruct {
 	}
 }
 
+impl TypeDefTupleStruct {
+	pub fn new<F>(fields: F) -> Self
+	where
+		F: IntoIterator<Item = UnnamedField>,
+	{
+		Self {
+			fields: fields.into_iter().collect(),
+		}
+	}
+
+	pub fn unit() -> Self {
+		Self { fields: vec![] }
+	}
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct UnnamedField<F: Form = FreeForm> {
 	#[serde(rename = "type")]

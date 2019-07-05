@@ -55,10 +55,11 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let has_type_def_impl = quote! {
 		impl #impl_generics _type_metadata::HasTypeDef for #ident #ty_generics #where_clause {
 			fn type_def() -> _type_metadata::TypeDef {
+				let annotated: _type_metadata::TypeDefKind = #type_kind;
 				_type_metadata::TypeDef::new(
 					// TODO: generate generic params
-					_type_metadata::GenericParams::empty(),
-					#type_kind
+					vec!["foo"],
+					annotated,
 				)
 			}
 		}
@@ -86,11 +87,11 @@ type FieldsList = Punctuated<Field, Comma>;
 fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
 	let fields = fields.iter().map(|f| {
 		let (ty, ident) = (f.ty.clone(), f.ident.clone());
-		let type_id = quote! { <#ty as _type_metadata::HasTypeId>::type_id() };
 		if let Some(i) = ident {
+			let type_id = quote! { <#ty as _type_metadata::HasTypeId>::type_id() };
 			quote! { _type_metadata::NamedField::new(stringify!(#i), #type_id) }
 		} else {
-			quote! { _type_metadata::UnnamedField::new(#type_id) }
+			quote! { _type_metadata::UnnamedField::new::<#ty>() }
 		}
 	});
 	quote! { vec![#( #fields, )*] }
@@ -100,21 +101,13 @@ fn generate_struct_def_kind(data_struct: &DataStruct) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
 			let fields = generate_fields_def(fs.named.clone());
-			quote! { _type_metadata::TypeDefKind::Struct(
-				_type_metadata::TypeDefStruct { fields: #fields }
-			) }
+			quote! { _type_metadata::TypeDefStruct::new(#fields).into() }
 		},
 		Fields::Unnamed(ref fs) => {
 			let fields = generate_fields_def(fs.unnamed.clone());
-			quote! { _type_metadata::TypeDefKind::TupleStruct(
-				_type_metadata::TypeDefTupleStruct { fields: #fields }
-			) }
+			quote! { _type_metadata::TypeDefTupleStruct::new(#fields).into() }
 		},
-		Fields::Unit => quote! {
-			_type_metadata::TypeDefKind::TupleStruct(
-				_type_metadata::TypeDefTupleStruct { fields: vec![] }
-			)
-		},
+		Fields::Unit => quote! { _type_metadata::TypeDefTupleStruct::unit().into() },
 	}
 }
 
