@@ -221,3 +221,30 @@ fn unit_struct_derive() {
 	let type_def = TypeDefTupleStruct::unit().into();
 	assert_eq!(S::type_def(), type_def);
 }
+
+#[test]
+fn c_like_enum_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::{TypeId, TypeDef};
+
+	#[allow(unused)]
+	#[derive(TypeId, TypeDef)]
+	enum E {
+		A,
+		B = 10,
+	}
+
+	let type_id = TypeIdCustom::new(
+		"E",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		vec![],
+	);
+	assert_type_id!(E, type_id);
+
+	let type_def = TypeDefClikeEnum::new(vec![
+		ClikeEnumVariant::new("A", 0u64),
+		ClikeEnumVariant::new("B", 10u64),
+	]).into();
+	assert_eq!(E::type_def(), type_def);
+}
+
