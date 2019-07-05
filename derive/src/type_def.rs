@@ -85,7 +85,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 type FieldsList = Punctuated<Field, Comma>;
 
 fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
-	let fields = fields.iter().map(|f| {
+	let fields_def = fields.iter().map(|f| {
 		let (ty, ident) = (f.ty.clone(), f.ident.clone());
 		if let Some(i) = ident {
 			let type_id = quote! { <#ty as _type_metadata::HasTypeId>::type_id() };
@@ -94,7 +94,7 @@ fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
 			quote! { _type_metadata::UnnamedField::new::<#ty>() }
 		}
 	});
-	quote! { vec![#( #fields, )*] }
+	quote! { vec![#( #fields_def, )*] }
 }
 
 fn generate_struct_def_kind(data_struct: &DataStruct) -> TokenStream2 {
