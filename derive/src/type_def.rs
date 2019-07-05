@@ -34,7 +34,6 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	// add bound
 	ast.generics.type_params_mut().for_each(|p| {
 		p.bounds.push(parse_quote!(_type_metadata::HasTypeId));
-		p.bounds.push(parse_quote!(_type_metadata::HasTypeDef));
 	});
 
 	let ident = &ast.ident;
