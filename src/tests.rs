@@ -248,3 +248,32 @@ fn c_like_enum_derive() {
 	assert_eq!(E::type_def(), type_def);
 }
 
+#[test]
+fn enum_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::{TypeId, TypeDef};
+
+	#[allow(unused)]
+	#[derive(TypeId, TypeDef)]
+	enum E<T> {
+		A(T),
+		B { b: T},
+		C,
+	}
+
+	let type_id = TypeIdCustom::new(
+		"E",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool),
+	);
+	assert_type_id!(E<bool>, type_id);
+	
+	let type_def = TypeDefEnum::new(vec![
+		EnumVariantTupleStruct::new("A", vec![UnnamedField::new::<bool>()]).into(),
+		EnumVariantStruct::new("B", vec![
+			NamedField::new("b", bool::type_id()),
+		]).into(),
+		EnumVariantUnit::new("C").into(),
+	]).into();
+	assert_eq!(<E<bool>>::type_def(), type_def);
+}
