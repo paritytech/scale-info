@@ -15,8 +15,8 @@
 // limitations under the License.
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
-use quote::{quote, quote_spanned};
-use syn::{self, Data, DataStruct, DataEnum, Field, Fields, Ident, parse::Result, parse_quote, DeriveInput, spanned::Spanned, punctuated::Punctuated, token::Comma};
+use quote::quote;
+use syn::{self, Data, DataStruct, DataEnum, Expr, ExprLit, Field, Fields, Ident, Lit, parse::Result, parse_quote, DeriveInput, punctuated::Punctuated, token::Comma, Variant};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input.into()) {
@@ -38,8 +38,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
 
 	let type_kind = match &ast.data {
-		Data::Struct(ref s) => generate_struct_def_kind(s),
-		Data::Enum(ref e) => generate_enum_def_kind(e),
+		Data::Struct(ref s) => generate_struct_def(s),
+		Data::Enum(ref e) => generate_enum_def(e),
 		// TODO: handle union
 		_ => quote! {
 			_type_metadata::TypeDefKind::Builtin
@@ -49,12 +49,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let has_type_def_impl = quote! {
 		impl #impl_generics _type_metadata::HasTypeDef for #ident #ty_generics #where_clause {
 			fn type_def() -> _type_metadata::TypeDef {
-				let annotated: _type_metadata::TypeDefKind = #type_kind;
-				_type_metadata::TypeDef::new(
-					// TODO: generic arg name are like `T` or for instance `u128`?
-					vec![],
-					annotated,
-				)
+				#type_kind.into()
 			}
 		}
 	};
@@ -91,22 +86,82 @@ fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
 	quote! { vec![#( #fields_def, )*] }
 }
 
-fn generate_struct_def_kind(data_struct: &DataStruct) -> TokenStream2 {
+fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
 			let fields = generate_fields_def(fs.named.clone());
-			quote! { _type_metadata::TypeDefStruct::new(#fields).into() }
+			quote! { _type_metadata::TypeDefStruct::new(#fields) }
 		},
 		Fields::Unnamed(ref fs) => {
 			let fields = generate_fields_def(fs.unnamed.clone());
-			quote! { _type_metadata::TypeDefTupleStruct::new(#fields).into() }
+			quote! { _type_metadata::TypeDefTupleStruct::new(#fields) }
 		},
-		Fields::Unit => quote! { _type_metadata::TypeDefTupleStruct::unit().into() },
+		Fields::Unit => quote! { _type_metadata::TypeDefTupleStruct::unit() },
 	}
 }
 
-fn generate_enum_def_kind(data_enum: &DataEnum) -> TokenStream2 {
+type VariantList = Punctuated<Variant, Comma>;
+
+fn generate_c_like_enum_def(variants: VariantList) -> TokenStream2 {
+	let variants_def = variants.into_iter().enumerate().map(|(i, v)| {
+		let name = v.ident;
+		let discriminant = if let Some(
+			(_, Expr::Lit(ExprLit { lit: Lit::Int(lit_int), .. }))
+		) = v.discriminant {
+			lit_int.value()
+		} else {
+			i as u64
+		};
+		quote! {
+			_type_metadata::ClikeEnumVariant {
+				name: stringify!(#name),
+				discriminant: #discriminant,
+			}
+		}
+	});
 	quote! {
-		_type_metadata::TypeDefKind::Builtin
+		_type_metadata::TypeDefClikeEnum::new(vec![#( #variants_def, )*])
+	}
+}
+
+fn is_c_like_enum(variants: &VariantList) -> bool {
+	// any viriant has a explicit discriminant
+	variants.iter().any(|v| v.discriminant.is_some()) ||
+	// all variants are unit
+	variants.iter().all(|v| v.fields == Fields::Unit)
+}
+
+fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
+	let variants = data_enum.variants.clone();
+
+	// C-Like enum
+	if is_c_like_enum(&variants) {
+		return generate_c_like_enum_def(variants);
+	}
+
+	// not C-Like
+	let variants_def = variants.into_iter().map(|v| {
+		let ident = v.ident;
+		let v_name = quote! {stringify!(#ident) };
+		match v.fields {
+			Fields::Named(ref fs) => {
+				let fields = generate_fields_def(fs.named.clone());
+				quote! {
+					_type_metadata::EnumVariantStruct::new(#v_name, #fields).into()
+				}
+			},
+			Fields::Unnamed(ref fs) => {
+				let fields = generate_fields_def(fs.unnamed.clone());
+				quote! {
+					_type_metadata::EnumVariantTupleStruct::new(#v_name, #fields).into()
+				}
+			},
+			Fields::Unit => quote! {
+				_type_metadata::EnumVariantUnit::new(#v_name).into()
+			},
+		}
+	});
+	quote! {
+		_type_metadata::TypeDefEnum::new(vec![#( #variants_def, )*])
 	}
 }

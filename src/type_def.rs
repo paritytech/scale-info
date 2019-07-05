@@ -300,6 +300,17 @@ impl IntoCompact for TypeDefClikeEnum {
 	}
 }
 
+impl TypeDefClikeEnum {
+	pub fn new<V>(variants: V) -> Self
+	where
+		V: IntoIterator<Item = ClikeEnumVariant>,
+	{
+		Self {
+			variants: variants.into_iter().collect(),
+		}
+	}
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct ClikeEnumVariant<F: Form = FreeForm> {
 	name: F::String,
