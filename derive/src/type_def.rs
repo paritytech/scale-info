@@ -16,7 +16,7 @@
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
-use syn::{self, Data, DataStruct, DataEnum, Expr, ExprLit, Field, Fields, Ident, Lit, parse::Result, parse_quote, DeriveInput, punctuated::Punctuated, token::Comma, Variant};
+use syn::{self, Data, DataStruct, DataEnum, DataUnion, Expr, ExprLit, Field, Fields, Ident, Lit, parse::Result, parse_quote, DeriveInput, punctuated::Punctuated, token::Comma, Variant};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input.into()) {
@@ -37,19 +37,16 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
 
-	let type_kind = match &ast.data {
+	let def = match &ast.data {
 		Data::Struct(ref s) => generate_struct_def(s),
 		Data::Enum(ref e) => generate_enum_def(e),
-		// TODO: handle union
-		_ => quote! {
-			_type_metadata::TypeDefKind::Builtin
-		}
+		Data::Union(ref u) => generate_union_def(u),
 	};
 
 	let has_type_def_impl = quote! {
 		impl #impl_generics _type_metadata::HasTypeDef for #ident #ty_generics #where_clause {
 			fn type_def() -> _type_metadata::TypeDef {
-				#type_kind.into()
+				#def.into()
 			}
 		}
 	};
@@ -160,5 +157,12 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 	});
 	quote! {
 		_type_metadata::TypeDefEnum::new(vec![#( #variants_def, )*])
+	}
+}
+
+fn generate_union_def(data_union: &DataUnion) -> TokenStream2 {
+	let fields = generate_fields_def(data_union.fields.named.clone());
+	quote! {
+		_type_metadata::TypeDefUnion::new(#fields)
 	}
 }
