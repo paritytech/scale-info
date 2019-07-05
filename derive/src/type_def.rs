@@ -113,10 +113,7 @@ fn generate_c_like_enum_def(variants: VariantList) -> TokenStream2 {
 			i as u64
 		};
 		quote! {
-			_type_metadata::ClikeEnumVariant {
-				name: stringify!(#name),
-				discriminant: #discriminant,
-			}
+			_type_metadata::ClikeEnumVariant::new(stringify!(#name), #discriminant)
 		}
 	});
 	quote! {

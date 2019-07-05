@@ -328,6 +328,18 @@ impl IntoCompact for ClikeEnumVariant {
 	}
 }
 
+impl ClikeEnumVariant {
+	pub fn new<D>(name: <FreeForm as Form>::String, discriminant: D) -> Self
+	where
+		D: Into<u64>,
+	{
+		Self {
+			name,
+			discriminant: discriminant.into(),
+		}
+	}
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct TypeDefEnum<F: Form = FreeForm> {
 	variants: Vec<EnumVariant<F>>,
