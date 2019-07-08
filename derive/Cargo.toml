@@ -14,4 +14,3 @@ proc-macro = true
 quote = "0.6"
 syn = { version = "0.15", features = ["full"] }
 proc-macro2 = "0.4"
-type-metadata = { version = "0.1.0", path = ".." }

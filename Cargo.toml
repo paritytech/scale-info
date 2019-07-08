@@ -10,8 +10,6 @@ readme = "README.md"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+type-metadata-derive = { version = "0.1.0", path = "derive" }
 serde = { version = "1", features = ["derive"] }
 derive_more = "0.15"
-
-[dev-dependencies]
-type-metadata-derive = { version = "0.1.0", path = "derive" }
