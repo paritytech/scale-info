@@ -159,10 +159,10 @@ fn struct_with_generics() {
 #[test]
 fn struct_derive() {
 	use crate as type_metadata;
-	use type_metadata_derive::{TypeId, TypeDef};
+	use type_metadata_derive::Metadata;
 
 	#[allow(unused)]
-	#[derive(TypeId, TypeDef)]
+	#[derive(Metadata)]
 	struct S<T, U> {
 		pub t: T,
 		pub u: U,
@@ -204,10 +204,10 @@ fn struct_derive() {
 #[test]
 fn tuple_struct_derive() {
 	use crate as type_metadata;
-	use type_metadata_derive::{TypeId, TypeDef};
+	use type_metadata_derive::Metadata;
 
 	#[allow(unused)]
-	#[derive(TypeId, TypeDef)]
+	#[derive(Metadata)]
 	struct S<T>(T);
 
 	let type_id = TypeIdCustom::new(
@@ -224,10 +224,10 @@ fn tuple_struct_derive() {
 #[test]
 fn unit_struct_derive() {
 	use crate as type_metadata;
-	use type_metadata_derive::{TypeId, TypeDef};
+	use type_metadata_derive::Metadata;
 
 	#[allow(unused)]
-	#[derive(TypeId, TypeDef)]
+	#[derive(Metadata)]
 	struct S;
 
 	let type_id = TypeIdCustom::new(
@@ -244,10 +244,10 @@ fn unit_struct_derive() {
 #[test]
 fn c_like_enum_derive() {
 	use crate as type_metadata;
-	use type_metadata_derive::{TypeId, TypeDef};
+	use type_metadata_derive::Metadata;
 
 	#[allow(unused)]
-	#[derive(TypeId, TypeDef)]
+	#[derive(Metadata)]
 	enum E {
 		A,
 		B = 10,
@@ -270,10 +270,10 @@ fn c_like_enum_derive() {
 #[test]
 fn enum_derive() {
 	use crate as type_metadata;
-	use type_metadata_derive::{TypeId, TypeDef};
+	use type_metadata_derive::Metadata;
 
 	#[allow(unused)]
-	#[derive(TypeId, TypeDef)]
+	#[derive(Metadata)]
 	enum E<T> {
 		A(T),
 		B { b: T},
@@ -300,11 +300,10 @@ fn enum_derive() {
 #[test]
 fn union_derive() {
 	use crate as type_metadata;
-	use type_metadata_derive::{TypeId, TypeDef};
+	use type_metadata_derive::Metadata;
 
 	#[allow(unused)]
-	#[repr(C)]
-	#[derive(TypeId, TypeDef)]
+	#[derive(Metadata)]
 	union U<T: Copy> {
 		u: T
 	}
