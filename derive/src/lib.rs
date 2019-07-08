@@ -16,6 +16,7 @@
 
 extern crate proc_macro;
 
+mod impl_wrapper;
 mod metadata;
 mod register_subtypes;
 mod type_def;

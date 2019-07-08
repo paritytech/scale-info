@@ -14,9 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use proc_macro2::{Span, TokenStream as TokenStream2};
+use crate::impl_wrapper::wrap;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{self, parse::Result, parse_quote, DeriveInput, Ident};
+use syn::{self, parse::Result, parse_quote, DeriveInput};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input.into()) {
@@ -54,19 +55,5 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 		}
 	};
 
-	let mut renamed = String::from("_IMPL_HAS_TYPE_ID_FOR_");
-	renamed.push_str(ident.to_string().trim_start_matches("r#"));
-	let dummy_const = Ident::new(&renamed, Span::call_site());
-	let output = quote! {
-		#[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
-		const #dummy_const: () = {
-			#[allow(unknown_lints)]
-			#[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
-			#[allow(rust_2018_idioms)]
-			use type_metadata as _type_metadata;
-			#has_type_id_impl;
-		};
-	};
-
-	Ok(output.into())
+	Ok(wrap(ident, "HAS_TYPE_ID", has_type_id_impl).into())
 }
