@@ -37,7 +37,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
 	let generic_type_ids = ast.generics.type_params().into_iter().map(|ty| {
-		let ty_ident = ty.ident.clone();
+		let ty_ident = &ty.ident;
 		quote! {
 			<#ty_ident as _type_metadata::HasTypeId>::type_id()
 		}

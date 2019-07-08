@@ -61,7 +61,7 @@ type FieldsList = Punctuated<Field, Comma>;
 
 fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
 	let fields_def = fields.iter().map(|f| {
-		let (ty, ident) = (f.ty.clone(), f.ident.clone());
+		let (ty, ident) = (&f.ty, &f.ident);
 		if let Some(i) = ident {
 			let type_id = quote! {
 				<#ty as _type_metadata::HasTypeId>::type_id()
@@ -100,15 +100,15 @@ fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
 
 type VariantList = Punctuated<Variant, Comma>;
 
-fn generate_c_like_enum_def(variants: VariantList) -> TokenStream2 {
+fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 	let variants_def = variants.into_iter().enumerate().map(|(i, v)| {
-		let name = v.ident;
+		let name = &v.ident;
 		let discriminant = if let Some((
 			_,
 			Expr::Lit(ExprLit {
 				lit: Lit::Int(lit_int), ..
 			}),
-		)) = v.discriminant
+		)) = &v.discriminant
 		{
 			lit_int.value()
 		} else {
@@ -131,7 +131,7 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 }
 
 fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
-	let variants = data_enum.variants.clone();
+	let variants = &data_enum.variants;
 
 	// C-Like enum
 	if is_c_like_enum(&variants) {
@@ -140,7 +140,7 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 
 	// not C-Like
 	let variants_def = variants.into_iter().map(|v| {
-		let ident = v.ident;
+		let ident = &v.ident;
 		let v_name = quote! {stringify!(#ident) };
 		match v.fields {
 			Fields::Named(ref fs) => {
