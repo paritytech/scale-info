@@ -16,10 +16,10 @@
 
 extern crate proc_macro;
 
+mod metadata;
 mod register_subtypes;
 mod type_def;
 mod type_id;
-mod metadata;
 
 use proc_macro::TokenStream;
 
