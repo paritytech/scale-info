@@ -173,13 +173,32 @@ fn struct_derive() {
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		tuple_type_id!(bool, u8),
 	);
-	assert_type_id!(S<bool, u8>, type_id);
+	assert_type_id!(S<bool, u8>, type_id.clone());
 
 	let type_def = TypeDefStruct::new(vec![
 		NamedField::new("t", bool::type_id()),
 		NamedField::new("u", u8::type_id()),
 	]).into();
 	assert_eq!(<S<bool, u8>>::type_def(), type_def);
+
+	// With "`Self` typed" fields
+
+	type SelfTyped = S<Box<S<bool, u8>>, bool>;
+
+	let self_typed_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		vec![type_id.clone().into(), bool::type_id()],
+	);
+	assert_type_id!(SelfTyped, self_typed_id);
+
+	assert_eq!(
+		SelfTyped::type_def(),
+		TypeDefStruct::new(vec![
+			NamedField::new("t", type_id),
+			NamedField::new("u", bool::type_id()),
+		]).into(),
+	);
 }
 
 #[test]
