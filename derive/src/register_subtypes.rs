@@ -57,7 +57,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 /// Register subtypes of `Punctuated<Field, Comma>`.
-fn register_fields_subtypes(fields: Punctuated<Field, Comma>) -> TokenStream2 {
+fn register_fields_subtypes(fields: &Punctuated<Field, Comma>) -> TokenStream2 {
 	let registers = fields.iter().map(|f| {
 		let ty = &f.ty;
 		quote! { registry.register_type::<#ty>(); }
@@ -68,8 +68,8 @@ fn register_fields_subtypes(fields: Punctuated<Field, Comma>) -> TokenStream2 {
 /// Register subtypes of `syn::Fields`.
 fn register_fields_kind_subtypes(fields_kind: &Fields) -> TokenStream2 {
 	match fields_kind {
-		Fields::Named(ref fs) => register_fields_subtypes(fs.named.clone()),
-		Fields::Unnamed(ref fs) => register_fields_subtypes(fs.unnamed.clone()),
+		Fields::Named(ref fs) => register_fields_subtypes(&fs.named),
+		Fields::Unnamed(ref fs) => register_fields_subtypes(&fs.unnamed),
 		Fields::Unit => quote! {},
 	}
 }
@@ -85,5 +85,5 @@ fn register_enum_subtypes(data_enum: &DataEnum) -> TokenStream2 {
 }
 
 fn register_union_subtypes(data_union: &DataUnion) -> TokenStream2 {
-	register_fields_subtypes(data_union.fields.named.clone())
+	register_fields_subtypes(&data_union.fields.named)
 }

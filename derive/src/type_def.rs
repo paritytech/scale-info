@@ -59,7 +59,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 
 type FieldsList = Punctuated<Field, Comma>;
 
-fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
+fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
 	let fields_def = fields.iter().map(|f| {
 		let (ty, ident) = (&f.ty, &f.ident);
 		if let Some(i) = ident {
@@ -81,13 +81,13 @@ fn generate_fields_def(fields: FieldsList) -> TokenStream2 {
 fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
-			let fields = generate_fields_def(fs.named.clone());
+			let fields = generate_fields_def(&fs.named);
 			quote! {
 				_type_metadata::TypeDefStruct::new(#fields)
 			}
 		}
 		Fields::Unnamed(ref fs) => {
-			let fields = generate_fields_def(fs.unnamed.clone());
+			let fields = generate_fields_def(&fs.unnamed);
 			quote! {
 				_type_metadata::TypeDefTupleStruct::new(#fields)
 			}
@@ -144,13 +144,13 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 		let v_name = quote! {stringify!(#ident) };
 		match v.fields {
 			Fields::Named(ref fs) => {
-				let fields = generate_fields_def(fs.named.clone());
+				let fields = generate_fields_def(&fs.named);
 				quote! {
 					_type_metadata::EnumVariantStruct::new(#v_name, #fields).into()
 				}
 			}
 			Fields::Unnamed(ref fs) => {
-				let fields = generate_fields_def(fs.unnamed.clone());
+				let fields = generate_fields_def(&fs.unnamed);
 				quote! {
 					_type_metadata::EnumVariantTupleStruct::new(#v_name, #fields).into()
 				}
@@ -166,7 +166,7 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 }
 
 fn generate_union_def(data_union: &DataUnion) -> TokenStream2 {
-	let fields = generate_fields_def(data_union.fields.named.clone());
+	let fields = generate_fields_def(&data_union.fields.named);
 	quote! {
 		_type_metadata::TypeDefUnion::new(#fields)
 	}
