@@ -32,7 +32,6 @@ pub fn generate(input: TokenStream2) -> TokenStream2 {
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
-	// add bound
 	ast.generics.type_params_mut().for_each(|p| {
 		p.bounds.push(parse_quote!(_type_metadata::Metadata));
 	});

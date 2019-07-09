@@ -32,7 +32,6 @@ pub fn generate(input: TokenStream2) -> TokenStream2 {
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
-	// add bound
 	ast.generics.type_params_mut().for_each(|p| {
 		p.bounds.push(parse_quote!(_type_metadata::HasTypeId));
 	});
@@ -124,7 +123,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 }
 
 fn is_c_like_enum(variants: &VariantList) -> bool {
-	// any viriant has a explicit discriminant
+	// any variant has an explicit discriminant
 	variants.iter().any(|v| v.discriminant.is_some()) ||
 	// all variants are unit
 	variants.iter().all(|v| v.fields == Fields::Unit)
@@ -133,12 +132,10 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 	let variants = &data_enum.variants;
 
-	// C-Like enum
 	if is_c_like_enum(&variants) {
 		return generate_c_like_enum_def(variants);
 	}
 
-	// not C-Like
 	let variants_def = variants.into_iter().map(|v| {
 		let ident = &v.ident;
 		let v_name = quote! {stringify!(#ident) };

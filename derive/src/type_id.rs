@@ -29,7 +29,6 @@ pub fn generate(input: TokenStream2) -> TokenStream2 {
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
-	// add bound
 	ast.generics.type_params_mut().for_each(|p| {
 		p.bounds.push(parse_quote!(_type_metadata::HasTypeId));
 	});
@@ -47,8 +46,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 			fn type_id() -> _type_metadata::TypeId {
 				_type_metadata::TypeIdCustom::new(
 					stringify!(#ident),
-					// namespace from module path cannot fail
-					_type_metadata::Namespace::from_str(module_path!()).unwrap(),
+					_type_metadata::Namespace::from_str(module_path!())
+						.expect("namespace from module path cannot fail"),
 					vec![ #( #generic_type_ids ),* ],
 				).into()
 			}
