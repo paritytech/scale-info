@@ -78,8 +78,18 @@ pub struct Registry {
 	types: Vec<TypeIdDef>,
 }
 
-/// Used by `IntoCompact` implementers.
 impl Registry {
+	/// Creates a new empty registry.
+	pub fn new() -> Self {
+		Self {
+			string_table: StringInterner::new(),
+			typeid_table: TypeIdInterner::new(),
+			types: vec![],
+		}
+	}
+
+	/// Registeres the given string into the registry and returns
+	/// its respective associated string symbol.
 	pub fn register_string(&mut self, string: &'static str) -> UntrackedStringSymbol {
 		self.string_table
 			.intern_or_get(string)
@@ -87,6 +97,7 @@ impl Registry {
 			.into_untracked()
 	}
 
+	/// Tries to resolve the given type ID or returns an error if it is missing.
 	pub fn resolve_type_id(&self, type_id: &TypeId) -> Result<UntrackedTypeIdSymbol, IntoCompactError> {
 		self.typeid_table
 			.get(type_id)
@@ -94,6 +105,15 @@ impl Registry {
 			.map(|symbol| symbol.into_untracked())
 	}
 
+	/// Registeres the given type ID into the registry.
+	///
+	/// Returns `false` as the first return value if the type ID has already
+	/// been registered into this registry.
+	/// Returns the associated type ID symbol as second return value.
+	///
+	/// # Note
+	///
+	/// This is an internal API and should not be called directly from the outside.
 	fn intern_typeid<T>(&mut self) -> (bool, UntrackedTypeIdSymbol)
 	where
 		T: ?Sized + HasTypeId,
@@ -102,6 +122,15 @@ impl Registry {
 		(inserted, symbol.into_untracked())
 	}
 
+	/// Registers the given type into the registry and returns
+	/// its associated type ID symbol.
+	///
+	/// # Note
+	///
+	/// Due to safety requirements the returns type ID symbol cannot
+	/// be used later to resolve back to the associated type definition.
+	/// However, since this facility is going to be used for serialization
+	/// purposes this functionality isn't needed anyway.
 	pub fn register_type<T>(&mut self) -> UntrackedTypeIdSymbol
 	where
 		T: ?Sized + Metadata,

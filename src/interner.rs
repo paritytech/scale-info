@@ -82,6 +82,7 @@ impl<T> Interner<T>
 where
 	T: Ord,
 {
+	/// Creates a new empty interner.
 	pub fn new() -> Self {
 		Self {
 			map: BTreeMap::new(),
