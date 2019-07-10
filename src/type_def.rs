@@ -242,6 +242,21 @@ impl IntoCompact for TypeDefTupleStruct {
 	}
 }
 
+impl TypeDefTupleStruct {
+	pub fn new<F>(fields: F) -> Self
+	where
+		F: IntoIterator<Item = UnnamedField>,
+	{
+		Self {
+			fields: fields.into_iter().collect(),
+		}
+	}
+
+	pub fn unit() -> Self {
+		Self { fields: vec![] }
+	}
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct UnnamedField<F: Form = FreeForm> {
 	#[serde(rename = "type")]
@@ -285,6 +300,17 @@ impl IntoCompact for TypeDefClikeEnum {
 	}
 }
 
+impl TypeDefClikeEnum {
+	pub fn new<V>(variants: V) -> Self
+	where
+		V: IntoIterator<Item = ClikeEnumVariant>,
+	{
+		Self {
+			variants: variants.into_iter().collect(),
+		}
+	}
+}
+
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct ClikeEnumVariant<F: Form = FreeForm> {
 	name: F::String,
@@ -299,6 +325,18 @@ impl IntoCompact for ClikeEnumVariant {
 			name: registry.register_string(self.name),
 			discriminant: self.discriminant,
 		})
+	}
+}
+
+impl ClikeEnumVariant {
+	pub fn new<D>(name: <FreeForm as Form>::String, discriminant: D) -> Self
+	where
+		D: Into<u64>,
+	{
+		Self {
+			name,
+			discriminant: discriminant.into(),
+		}
 	}
 }
 

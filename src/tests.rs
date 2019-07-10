@@ -155,3 +155,168 @@ fn struct_with_generics() {
 		TypeDefStruct::new(vec![NamedField::new("data", struct_bool_id.clone()),]).into(),
 	);
 }
+
+#[test]
+fn struct_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::Metadata;
+
+	#[allow(unused)]
+	#[derive(Metadata)]
+	struct S<T, U> {
+		pub t: T,
+		pub u: U,
+	}
+
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool, u8),
+	);
+	assert_type_id!(S<bool, u8>, type_id.clone());
+
+	let type_def = TypeDefStruct::new(vec![
+		NamedField::new("t", bool::type_id()),
+		NamedField::new("u", u8::type_id()),
+	]).into();
+	assert_eq!(<S<bool, u8>>::type_def(), type_def);
+
+	// With "`Self` typed" fields
+
+	type SelfTyped = S<Box<S<bool, u8>>, bool>;
+
+	let self_typed_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		vec![type_id.clone().into(), bool::type_id()],
+	);
+	assert_type_id!(SelfTyped, self_typed_id);
+
+	assert_eq!(
+		SelfTyped::type_def(),
+		TypeDefStruct::new(vec![
+			NamedField::new("t", type_id),
+			NamedField::new("u", bool::type_id()),
+		]).into(),
+	);
+}
+
+#[test]
+fn tuple_struct_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::Metadata;
+
+	#[allow(unused)]
+	#[derive(Metadata)]
+	struct S<T>(T);
+
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool),
+	);
+	assert_type_id!(S<bool>, type_id);
+
+	let type_def = TypeDefTupleStruct::new(vec![UnnamedField::new::<bool>()]).into();
+	assert_eq!(<S<bool>>::type_def(), type_def);
+}
+
+#[test]
+fn unit_struct_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::Metadata;
+
+	#[allow(unused)]
+	#[derive(Metadata)]
+	struct S;
+
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		vec![],
+	);
+	assert_type_id!(S, type_id);
+
+	let type_def = TypeDefTupleStruct::unit().into();
+	assert_eq!(S::type_def(), type_def);
+}
+
+#[test]
+fn c_like_enum_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::Metadata;
+
+	#[allow(unused)]
+	#[derive(Metadata)]
+	enum E {
+		A,
+		B = 10,
+	}
+
+	let type_id = TypeIdCustom::new(
+		"E",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		vec![],
+	);
+	assert_type_id!(E, type_id);
+
+	let type_def = TypeDefClikeEnum::new(vec![
+		ClikeEnumVariant::new("A", 0u64),
+		ClikeEnumVariant::new("B", 10u64),
+	]).into();
+	assert_eq!(E::type_def(), type_def);
+}
+
+#[test]
+fn enum_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::Metadata;
+
+	#[allow(unused)]
+	#[derive(Metadata)]
+	enum E<T> {
+		A(T),
+		B { b: T},
+		C,
+	}
+
+	let type_id = TypeIdCustom::new(
+		"E",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool),
+	);
+	assert_type_id!(E<bool>, type_id);
+
+	let type_def = TypeDefEnum::new(vec![
+		EnumVariantTupleStruct::new("A", vec![UnnamedField::new::<bool>()]).into(),
+		EnumVariantStruct::new("B", vec![
+			NamedField::new("b", bool::type_id()),
+		]).into(),
+		EnumVariantUnit::new("C").into(),
+	]).into();
+	assert_eq!(<E<bool>>::type_def(), type_def);
+}
+
+#[test]
+fn union_derive() {
+	use crate as type_metadata;
+	use type_metadata_derive::Metadata;
+
+	#[allow(unused)]
+	#[derive(Metadata)]
+	union U<T: Copy> {
+		u: T
+	}
+
+	let type_id = TypeIdCustom::new(
+		"U",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_type_id!(bool),
+	);
+	assert_type_id!(U<bool>, type_id);
+
+	let type_def = TypeDefUnion::new(vec![
+		NamedField::new("u", bool::type_id()),
+	]).into();
+	assert_eq!(<U<bool>>::type_def(), type_def);
+}
