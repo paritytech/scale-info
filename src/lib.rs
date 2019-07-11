@@ -36,6 +36,7 @@ mod registry;
 mod type_def;
 mod type_id;
 mod utils;
+mod trait_table;
 
 #[cfg(test)]
 mod tests;

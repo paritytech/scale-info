@@ -18,6 +18,9 @@ use crate::{
 	form::CompactForm,
 	interner::{StringInterner, TypeIdInterner, UntrackedStringSymbol, UntrackedTypeIdSymbol},
 	HasTypeId, Metadata, TypeDef, TypeId,
+	trait_table::{
+		TraitTable,
+	},
 };
 use serde::Serialize;
 
@@ -122,6 +125,11 @@ impl Registry {
 		(inserted, symbol.into_untracked())
 	}
 
+	fn intern_type_id(&mut self, id: TypeId) -> (bool, UntrackedTypeIdSymbol) {
+		let (inserted, symbol) = self.typeid_table.intern_or_get(id);
+		(inserted, symbol.into_untracked())
+	}
+
 	/// Registers the given type into the registry and returns
 	/// its associated type ID symbol.
 	///
@@ -141,6 +149,23 @@ impl Registry {
 			let compact_id = T::type_id().into_compact(self)
 				.expect("the type identifier is expected to be registered at this point");
 			let compact_def = T::type_def().into_compact(self)
+				.expect("the type definition is expected to be registered at this point");
+			self.types.push(TypeIdDef {
+				id: compact_id,
+				def: compact_def,
+			});
+		}
+		symbol
+	}
+
+	pub fn register_type_from_table(&mut self, table: &TraitTable) -> UntrackedTypeIdSymbol {
+		let id = table.type_id();
+		let (inserted, symbol) = self.intern_type_id(id.clone());
+		if inserted {
+			table.register_subtypes(self);
+			let compact_id = id.into_compact(self)
+				.expect("the type identifier is expected to be registered at this point");
+			let compact_def = table.type_def().into_compact(self)
 				.expect("the type definition is expected to be registered at this point");
 			self.types.push(TypeIdDef {
 				id: compact_id,

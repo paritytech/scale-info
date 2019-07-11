@@ -24,6 +24,7 @@ use crate::{
 	Registry,
 	IntoCompact,
 	IntoCompactError,
+	Metadata,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -104,6 +105,36 @@ impl Namespace {
 	/// Creates the prelude namespace.
 	pub fn prelude() -> Self {
 		Self { segments: vec![] }
+	}
+}
+
+/// Extended type ID that also provides access to the other
+/// metadat trait implementations for the same underlying type
+/// to which it refers as ID.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Serialize, Debug)]
+pub struct ExtTypeId<F: Form = FreeForm> {
+	/// The actual type ID.
+	pub id: F::TypeId,
+	/// The trait table that provides access to the other trait implementations.
+	#[serde(skip)]
+	vptr: F::TraitTable,
+}
+
+impl ExtTypeId {
+	/// Creates a new extended type ID from the given type.
+	pub fn new<T>() -> Self
+	where
+		T: Metadata,
+	{
+		Self {
+			id: T::type_id(),
+			vptr: <FreeForm as Form>::TraitTable::new::<T>(),
+		}
+	}
+
+	/// Returns access to the trait table.
+	pub fn table(&self) -> &<FreeForm as Form>::TraitTable {
+		&self.vptr
 	}
 }
 
