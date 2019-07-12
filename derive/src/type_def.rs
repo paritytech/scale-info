@@ -33,7 +33,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
 	ast.generics.type_params_mut().for_each(|p| {
-		p.bounds.push(parse_quote!(_type_metadata::HasTypeId));
+		p.bounds.push(parse_quote!(_type_metadata::Metadata));
+		p.bounds.push(parse_quote!('static));
 	});
 
 	let ident = &ast.ident;
@@ -63,7 +64,7 @@ fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
 		let (ty, ident) = (&f.ty, &f.ident);
 		if let Some(i) = ident {
 			let type_id = quote! {
-				<#ty as _type_metadata::HasTypeId>::type_id()
+				<#ty as _type_metadata::Metadata>::meta_type()
 			};
 			quote! {
 				_type_metadata::NamedField::new(stringify!(#i), #type_id)

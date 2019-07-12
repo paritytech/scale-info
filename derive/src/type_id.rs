@@ -30,7 +30,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
 	ast.generics.type_params_mut().for_each(|p| {
-		p.bounds.push(parse_quote!(_type_metadata::HasTypeId));
+		p.bounds.push(parse_quote!(_type_metadata::Metadata));
+		p.bounds.push(parse_quote!('static));
 	});
 
 	let ident = &ast.ident;
@@ -38,7 +39,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let generic_type_ids = ast.generics.type_params().into_iter().map(|ty| {
 		let ty_ident = &ty.ident;
 		quote! {
-			<#ty_ident as _type_metadata::HasTypeId>::type_id()
+			<#ty_ident as _type_metadata::Metadata>::meta_type()
 		}
 	});
 	let has_type_id_impl = quote! {

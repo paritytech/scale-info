@@ -15,12 +15,15 @@
 // limitations under the License.
 
 use crate::{
-	interner::{StringSymbol, TypeIdSymbol, UntrackedStringSymbol, UntrackedTypeIdSymbol},
-	trait_table::{TraitTable, NoTraitTable},
+	interner::{Symbol, UntrackedSymbol},
+	meta_type::MetaType,
 	TypeId,
 };
 use serde::Serialize;
-use core::marker::PhantomData;
+use core::{
+	marker::PhantomData,
+	any::TypeId as AnyTypeId,
+};
 
 /// Trait to control the internal structures of type identifiers and definitions.
 ///
@@ -30,22 +33,22 @@ pub trait Form {
 	/// The string type.
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type identifier type.
-	type TypeId: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+	type TypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// A type identifier with indirection.
 	///
 	/// # Note
 	///
 	/// This is an optimization for the compact forms.
-	type IndirectTypeId: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
-	/// Trait table.
-	///
-	/// Uses a similar concept as a virtual table but specific to the traits
-	/// `HasTypeId`, `HasTypeDef` and `RegisterSubtypes`.
-	/// This has the effect of unbinding a compile-time known constant
-	/// from its associated type thus making it possible to
-	/// derive `TypeId`, `TypeDef` and `RegisterSubtypes` implementations
-	/// without knowing the underlying type.
-	type TraitTable;
+	type IndirectTypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+}
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+pub enum MetaForm {}
+
+impl Form for MetaForm {
+	type String = &'static str;
+	type TypeId = MetaType;
+	type IndirectTypeId = MetaType;
 }
 
 /// Free form is not depending on any interner data structure
@@ -62,7 +65,6 @@ impl Form for FreeForm {
 	type String = &'static str;
 	type TypeId = TypeId;
 	type IndirectTypeId = Box<TypeId>;
-	type TraitTable = TraitTable;
 }
 
 /// Compact form that is lifetime tracked in association to its interner.
@@ -78,10 +80,9 @@ pub struct TrackedForm<'a> {
 }
 
 impl<'a> Form for TrackedForm<'a> {
-	type String = StringSymbol<'a>;
-	type TypeId = TypeIdSymbol<'a>;
+	type String = Symbol<'a, &'static str>;
+	type TypeId = Symbol<'a, AnyTypeId>;
 	type IndirectTypeId = Self::TypeId;
-	type TraitTable = NoTraitTable;
 }
 
 /// Compact form that has its lifetime untracked in association to its interner.
@@ -95,8 +96,7 @@ impl<'a> Form for TrackedForm<'a> {
 pub enum CompactForm {}
 
 impl Form for CompactForm {
-	type String = UntrackedStringSymbol;
-	type TypeId = UntrackedTypeIdSymbol;
+	type String = UntrackedSymbol<&'static str>;
+	type TypeId = UntrackedSymbol<AnyTypeId>;
 	type IndirectTypeId = Self::TypeId;
-	type TraitTable = NoTraitTable;
 }

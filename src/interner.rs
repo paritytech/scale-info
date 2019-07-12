@@ -14,19 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::TypeId;
 use alloc::collections::btree_map::{BTreeMap, Entry};
 use core::{marker::PhantomData, num::NonZeroU32};
 use serde::Serialize;
-
-pub type StringInterner = Interner<&'static str>;
-pub type TypeIdInterner = Interner<TypeId>;
-
-pub type StringSymbol<'a> = Symbol<'a, &'static str>;
-pub type TypeIdSymbol<'a> = Symbol<'a, TypeId>;
-
-pub type UntrackedStringSymbol = UntrackedSymbol<&'static str>;
-pub type UntrackedTypeIdSymbol = UntrackedSymbol<TypeId>;
 
 /// A symbol that is not lifetime tracked.
 ///

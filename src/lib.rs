@@ -16,13 +16,13 @@
 
 extern crate alloc;
 
-macro_rules! tuple_type_id {
-    ( $($ty:ident),* ) => {
+macro_rules! tuple_meta_type {
+    ( $($ty:ty),* ) => {
         {
             #[allow(unused_mut)]
             let mut v = vec![];
             $(
-                v.push(<$ty as $crate::HasTypeId>::type_id());
+				v.push(MetaType::new::<$ty>());
             )*
             v
         }
@@ -36,17 +36,27 @@ mod registry;
 mod type_def;
 mod type_id;
 mod utils;
-mod trait_table;
+mod meta_type;
 
 #[cfg(test)]
 mod tests;
 
 pub use self::{
-	registry::{RegisterSubtypes, Registry, IntoCompact, IntoCompactError},
+	registry::{
+		Registry,
+		IntoCompact,
+	},
+	meta_type::MetaType,
 	type_def::*,
 	type_id::*,
 };
 
-pub trait Metadata: HasTypeId + HasTypeDef + RegisterSubtypes {}
+pub trait Metadata: HasTypeId + HasTypeDef {
+	fn meta_type() -> MetaType;
+}
 
-impl<T> Metadata for T where T: ?Sized + HasTypeId + HasTypeDef + RegisterSubtypes {}
+impl<T> Metadata for T where T: ?Sized + HasTypeId + HasTypeDef + 'static {
+	fn meta_type() -> MetaType {
+		MetaType::new::<T>()
+	}
+}
