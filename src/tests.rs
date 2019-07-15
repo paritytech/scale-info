@@ -52,7 +52,7 @@ fn prelude_items() {
 	);
 	assert_type_id!(
 		Result<bool, String>,
-		TypeIdCustom::new("Result", Namespace::prelude(), tuple_meta_type!(bool, str))
+		TypeIdCustom::new("Result", Namespace::prelude(), tuple_meta_type!(bool, String))
 	);
 }
 
@@ -139,14 +139,14 @@ fn struct_with_generics() {
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		vec![
-			<MyStruct<bool>>::meta_type(),
+			<Box<MyStruct<bool>>>::meta_type(),
 		],
 	);
 	assert_type_id!(SelfTyped, expected_type_id);
 	assert_eq!(
 		SelfTyped::type_def(),
 		TypeDefStruct::new(vec![
-			NamedField::new("data", <MyStruct<bool>>::meta_type()),
+			NamedField::new("data", <Box<MyStruct<bool>>>::meta_type()),
 		]).into(),
 	);
 }
