@@ -52,6 +52,13 @@ pub use self::{
 	type_id::*,
 };
 
+#[cfg(feature = "derive")]
+pub use type_metadata_derive::{
+	Metadata,
+	TypeId,
+	TypeDef,
+};
+
 pub trait Metadata: HasTypeId + HasTypeDef {
 	fn meta_type() -> MetaType;
 }
