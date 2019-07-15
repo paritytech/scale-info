@@ -89,7 +89,7 @@ impl Registry {
 	/// be used later to resolve back to the associated type definition.
 	/// However, since this facility is going to be used for serialization
 	/// purposes this functionality isn't needed anyway.
-	pub fn register_type2(&mut self, ty: &MetaType) -> UntrackedSymbol<AnyTypeId> {
+	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<AnyTypeId> {
 		let (inserted, symbol) = self.intern_type_id(ty.any_id());
 		if inserted {
 			let compact_id = ty.type_id().into_compact(self);

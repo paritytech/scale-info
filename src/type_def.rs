@@ -214,7 +214,7 @@ impl IntoCompact for NamedField {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		NamedField {
 			name: registry.register_string(self.name),
-			ty: registry.register_type2(&self.ty),
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
@@ -278,7 +278,7 @@ impl IntoCompact for UnnamedField {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		UnnamedField {
-			ty: registry.register_type2(&self.ty),
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }

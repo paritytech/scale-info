@@ -172,7 +172,7 @@ impl IntoCompact for TypeIdCustom {
 			namespace: self.namespace.into_compact(registry),
 			type_params: self.type_params
 				.into_iter()
-				.map(|param| registry.register_type2(&param))
+				.map(|param| registry.register_type(&param))
 				.collect::<Vec<_>>()
 		}
 	}
@@ -205,7 +205,7 @@ impl IntoCompact for TypeIdArray {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeIdArray {
 			len: self.len,
-			type_param: registry.register_type2(&self.type_param),
+			type_param: registry.register_type(&self.type_param),
 		}
 	}
 }
@@ -233,7 +233,7 @@ impl IntoCompact for TypeIdTuple {
 		TypeIdTuple {
 			type_params: self.type_params
 				.into_iter()
-				.map(|param| registry.register_type2(&param))
+				.map(|param| registry.register_type(&param))
 				.collect::<Vec<_>>()
 		}
 	}
@@ -266,7 +266,7 @@ impl IntoCompact for TypeIdSlice {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeIdSlice {
-			type_param: registry.register_type2(&self.type_param),
+			type_param: registry.register_type(&self.type_param),
 		}
 	}
 }
