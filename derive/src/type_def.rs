@@ -62,16 +62,16 @@ type FieldsList = Punctuated<Field, Comma>;
 fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
 	let fields_def = fields.iter().map(|f| {
 		let (ty, ident) = (&f.ty, &f.ident);
+		let meta_type = quote! {
+			<#ty as _type_metadata::Metadata>::meta_type()
+		};
 		if let Some(i) = ident {
-			let type_id = quote! {
-				<#ty as _type_metadata::Metadata>::meta_type()
-			};
 			quote! {
-				_type_metadata::NamedField::new(stringify!(#i), #type_id)
+				_type_metadata::NamedField::new(stringify!(#i), #meta_type)
 			}
 		} else {
 			quote! {
-				_type_metadata::UnnamedField::new::<#ty>()
+				_type_metadata::UnnamedField::new(#meta_type)
 			}
 		}
 	});

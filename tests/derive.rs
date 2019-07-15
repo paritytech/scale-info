@@ -12,13 +12,13 @@ use type_metadata::{
 	TypeDefStruct,
 	TypeDefTupleStruct,
 	NamedField,
-	// UnnamedField,
+	UnnamedField,
 	TypeDefClikeEnum,
 	ClikeEnumVariant,
-	// TypeDefEnum,
-	// EnumVariantTupleStruct,
-	// EnumVariantStruct,
-	// EnumVariantUnit,
+	TypeDefEnum,
+	EnumVariantTupleStruct,
+	EnumVariantStruct,
+	EnumVariantUnit,
 	TypeDefUnion,
 };
 
@@ -78,22 +78,22 @@ fn struct_derive() {
 	);
 }
 
-// #[test]
-// fn tuple_struct_derive() {
-// 	#[allow(unused)]
-// 	#[derive(Metadata)]
-// 	struct S<T>(T);
+#[test]
+fn tuple_struct_derive() {
+	#[allow(unused)]
+	#[derive(Metadata)]
+	struct S<T>(T);
 
-// 	let type_id = TypeIdCustom::new(
-// 		"S",
-// 		Namespace::new(vec!["derive"]).unwrap(),
-// 		tuple_meta_type!(bool),
-// 	);
-// 	assert_type_id!(S<bool>, type_id);
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["derive"]).unwrap(),
+		tuple_meta_type!(bool),
+	);
+	assert_type_id!(S<bool>, type_id);
 
-// 	let type_def = TypeDefTupleStruct::new(vec![UnnamedField::of::<bool>()]).into();
-// 	assert_eq!(<S<bool>>::type_def(), type_def);
-// }
+	let type_def = TypeDefTupleStruct::new(vec![UnnamedField::of::<bool>()]).into();
+	assert_eq!(<S<bool>>::type_def(), type_def);
+}
 
 #[test]
 fn unit_struct_derive() {
@@ -135,32 +135,32 @@ fn c_like_enum_derive() {
 	assert_eq!(E::type_def(), type_def);
 }
 
-// #[test]
-// fn enum_derive() {
-// 	#[allow(unused)]
-// 	#[derive(Metadata)]
-// 	enum E<T> {
-// 		A(T),
-// 		B { b: T},
-// 		C,
-// 	}
+#[test]
+fn enum_derive() {
+	#[allow(unused)]
+	#[derive(Metadata)]
+	enum E<T> {
+		A(T),
+		B { b: T},
+		C,
+	}
 
-// 	let type_id = TypeIdCustom::new(
-// 		"E",
-// 		Namespace::new(vec!["derive"]).unwrap(),
-// 		tuple_meta_type!(bool),
-// 	);
-// 	assert_type_id!(E<bool>, type_id);
+	let type_id = TypeIdCustom::new(
+		"E",
+		Namespace::new(vec!["derive"]).unwrap(),
+		tuple_meta_type!(bool),
+	);
+	assert_type_id!(E<bool>, type_id);
 
-// 	let type_def = TypeDefEnum::new(vec![
-// 		EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
-// 		EnumVariantStruct::new("B", vec![
-// 			NamedField::new("b", bool::meta_type()),
-// 		]).into(),
-// 		EnumVariantUnit::new("C").into(),
-// 	]).into();
-// 	assert_eq!(<E<bool>>::type_def(), type_def);
-// }
+	let type_def = TypeDefEnum::new(vec![
+		EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
+		EnumVariantStruct::new("B", vec![
+			NamedField::new("b", bool::meta_type()),
+		]).into(),
+		EnumVariantUnit::new("C").into(),
+	]).into();
+	assert_eq!(<E<bool>>::type_def(), type_def);
+}
 
 #[test]
 // #[should_panic] // TODO: remove #[should_panic]
