@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+#[macro_export]
 macro_rules! tuple_meta_type {
     ( $($ty:ty),* ) => {
         {
