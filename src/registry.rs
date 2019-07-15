@@ -102,27 +102,3 @@ impl Registry {
 		symbol
 	}
 }
-
-// Register Algorithm
-// ==================
-//
-// Register `(Vec<(i32, Vec<i32>)>, bool, i32, Option<Vec<i32>>)`
-	// Register `Vec<(i32, Vec<i32>)>`
-		// Register `(i32, Vec<i32>)`
-			// Register `i32`
-				// => 0
-			// Register `Vec<i32>`
-				// Register `i32`
-					// => 0
-				// => 1
-			// => 2
-		// => 3
-	// Register `bool`
-		// => 4
-	// Register `i32`
-		// => 0
-	// Register `Option<Vec<i32>>`
-		// Register `Vec<i32>`
-			// => 1
-		// => 5
-	// => 6
