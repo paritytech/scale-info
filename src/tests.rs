@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::*;
-use std::marker::PhantomData;
+use core::marker::PhantomData;
 
 fn assert_type_id<T, E>(expected: E)
 where
