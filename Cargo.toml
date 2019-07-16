@@ -11,8 +11,8 @@ readme = "README.md"
 
 [dependencies]
 type-metadata-derive = { version = "0.1.0", path = "derive", default-features = false, optional = true }
-serde = { version = "1", features = ["derive"] }
-derive_more = "0.15"
+serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
+derive_more = { version = "0.15", features = ["no_std"] }
 
 [features]
 default = ["std"]
