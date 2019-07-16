@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::{
-	form::{CompactForm, Form, FreeForm, MetaForm},
+	form::{CompactForm, Form, MetaForm},
 	IntoCompact, MetaType, Metadata, Registry,
 };
 use derive_more::From;
@@ -56,7 +56,7 @@ impl IntoCompact for TypeDef {
 impl TypeDef {
 	pub fn new<G, K>(generic_params: G, kind: K) -> Self
 	where
-		G: IntoIterator<Item = <FreeForm as Form>::String>,
+		G: IntoIterator<Item = <MetaForm as Form>::String>,
 		K: Into<TypeDefKind>,
 	{
 		Self {
@@ -136,8 +136,8 @@ impl IntoCompact for GenericArg {
 	}
 }
 
-impl From<<FreeForm as Form>::String> for GenericArg {
-	fn from(name: <FreeForm as Form>::String) -> Self {
+impl From<<MetaForm as Form>::String> for GenericArg {
+	fn from(name: <MetaForm as Form>::String) -> Self {
 		Self { name }
 	}
 }
@@ -219,11 +219,11 @@ impl IntoCompact for NamedField {
 }
 
 impl NamedField {
-	pub fn new(name: <FreeForm as Form>::String, ty: MetaType) -> Self {
+	pub fn new(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
 		Self { name, ty }
 	}
 
-	pub fn of<T>(name: <FreeForm as Form>::String) -> Self
+	pub fn of<T>(name: <MetaForm as Form>::String) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
@@ -345,7 +345,7 @@ impl IntoCompact for ClikeEnumVariant {
 }
 
 impl ClikeEnumVariant {
-	pub fn new<D>(name: <FreeForm as Form>::String, discriminant: D) -> Self
+	pub fn new<D>(name: <MetaForm as Form>::String, discriminant: D) -> Self
 	where
 		D: Into<u64>,
 	{
@@ -451,7 +451,7 @@ impl IntoCompact for EnumVariantStruct {
 }
 
 impl EnumVariantStruct {
-	pub fn new<F>(name: <FreeForm as Form>::String, fields: F) -> Self
+	pub fn new<F>(name: <MetaForm as Form>::String, fields: F) -> Self
 	where
 		F: IntoIterator<Item = NamedField>,
 	{
@@ -485,7 +485,7 @@ impl IntoCompact for EnumVariantTupleStruct {
 }
 
 impl EnumVariantTupleStruct {
-	pub fn new<F>(name: <FreeForm as Form>::String, fields: F) -> Self
+	pub fn new<F>(name: <MetaForm as Form>::String, fields: F) -> Self
 	where
 		F: IntoIterator<Item = UnnamedField>,
 	{

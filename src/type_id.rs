@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::{
-	form::{CompactForm, Form, FreeForm, MetaForm},
+	form::{CompactForm, Form, MetaForm},
 	utils::is_rust_identifier,
 	IntoCompact, MetaType, Metadata, Registry,
 };
@@ -71,7 +71,7 @@ impl Namespace {
 	/// Creates a new namespace from the given segments.
 	pub fn new<S>(segments: S) -> Result<Self, NamespaceError>
 	where
-		S: IntoIterator<Item = <FreeForm as Form>::String>,
+		S: IntoIterator<Item = <MetaForm as Form>::String>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
 		if segments.len() == 0 {
@@ -88,7 +88,7 @@ impl Namespace {
 	/// # Note
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn from_str(module_path: <FreeForm as Form>::String) -> Result<Self, NamespaceError> {
+	pub fn from_str(module_path: <MetaForm as Form>::String) -> Result<Self, NamespaceError> {
 		Self::new(module_path.split("::"))
 	}
 
