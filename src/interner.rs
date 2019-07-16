@@ -46,7 +46,7 @@ impl<T> Symbol<'_, T> {
 	///   owns all symbols and interners and can verify accesses by itself.
 	/// - For further safety reasons an untracked symbol
 	///   can no longer be used to resolve from an interner.
-	///   It is still useful for serialization purposes. 
+	///   It is still useful for serialization purposes.
 	///
 	/// # Safety
 	///
@@ -95,18 +95,20 @@ where
 			}
 			Entry::Occupied(occupied) => (false, *occupied.get()),
 		};
-		(inserted, Symbol {
-			id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
-			marker: PhantomData,
-		})
+		(
+			inserted,
+			Symbol {
+				id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
+				marker: PhantomData,
+			},
+		)
 	}
 
 	pub fn get(&self, s: &T) -> Option<Symbol<T>> {
-		self.map.get(s)
-			.map(|&id| Symbol {
-				id: NonZeroU32::new(id as u32).unwrap(),
-				marker: PhantomData,
-			})
+		self.map.get(s).map(|&id| Symbol {
+			id: NonZeroU32::new(id as u32).unwrap(),
+			marker: PhantomData,
+		})
 	}
 
 	pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {

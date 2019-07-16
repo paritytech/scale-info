@@ -70,10 +70,7 @@ fn tuple_primitives() {
 	// nested tuple
 	assert_type_id!(
 		((i8, i16), (u32, u64)),
-		TypeIdTuple::new(vec![
-			<(i8, i16)>::meta_type(),
-			<(u32, u64)>::meta_type(),
-		])
+		TypeIdTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),])
 	);
 }
 
@@ -138,15 +135,11 @@ fn struct_with_generics() {
 	let expected_type_id = TypeIdCustom::new(
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
-		vec![
-			<Box<MyStruct<bool>>>::meta_type(),
-		],
+		vec![<Box<MyStruct<bool>>>::meta_type()],
 	);
 	assert_type_id!(SelfTyped, expected_type_id);
 	assert_eq!(
 		SelfTyped::type_def(),
-		TypeDefStruct::new(vec![
-			NamedField::new("data", <Box<MyStruct<bool>>>::meta_type()),
-		]).into(),
+		TypeDefStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type()),]).into(),
 	);
 }

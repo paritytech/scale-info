@@ -33,37 +33,33 @@ macro_rules! tuple_meta_type {
 pub mod form;
 mod impls;
 pub mod interner;
+mod meta_type;
 mod registry;
 mod type_def;
 mod type_id;
 mod utils;
-mod meta_type;
 
 #[cfg(test)]
 mod tests;
 
 pub use self::{
-	registry::{
-		Registry,
-		IntoCompact,
-	},
 	meta_type::MetaType,
+	registry::{IntoCompact, Registry},
 	type_def::*,
 	type_id::*,
 };
 
 #[cfg(feature = "derive")]
-pub use type_metadata_derive::{
-	Metadata,
-	TypeId,
-	TypeDef,
-};
+pub use type_metadata_derive::{Metadata, TypeDef, TypeId};
 
 pub trait Metadata: HasTypeId + HasTypeDef {
 	fn meta_type() -> MetaType;
 }
 
-impl<T> Metadata for T where T: ?Sized + HasTypeId + HasTypeDef + 'static {
+impl<T> Metadata for T
+where
+	T: ?Sized + HasTypeId + HasTypeDef + 'static,
+{
 	fn meta_type() -> MetaType {
 		MetaType::new::<T>()
 	}

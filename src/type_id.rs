@@ -15,17 +15,9 @@
 // limitations under the License.
 
 use crate::{
+	form::{CompactForm, Form, FreeForm, MetaForm},
 	utils::is_rust_identifier,
-	form::{
-		Form,
-		MetaForm,
-		FreeForm,
-		CompactForm,
-	},
-	Metadata,
-	Registry,
-	IntoCompact,
-	MetaType,
+	IntoCompact, MetaType, Metadata, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -66,12 +58,11 @@ impl IntoCompact for Namespace {
 	/// Compacts this namespace using the given registry.
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Namespace {
-			segments: self.segments
+			segments: self
+				.segments
 				.into_iter()
-				.map(|seg| {
-					registry.register_string(seg)
-				})
-				.collect::<Vec<_>>()
+				.map(|seg| registry.register_string(seg))
+				.collect::<Vec<_>>(),
 		}
 	}
 }
@@ -86,9 +77,7 @@ impl Namespace {
 		if segments.len() == 0 {
 			return Err(NamespaceError::MissingSegments);
 		}
-		if let Some(err_at) = segments.iter().position(|seg| {
-			!is_rust_identifier(seg)
-		}) {
+		if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
 			return Err(NamespaceError::InvalidIdentifier { segment: err_at });
 		}
 		Ok(Self { segments })
@@ -110,7 +99,7 @@ impl Namespace {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
-#[serde(bound =	"
+#[serde(bound = "
 	F::TypeId: Serialize,
 	F::IndirectTypeId: Serialize
 ")]
@@ -170,10 +159,11 @@ impl IntoCompact for TypeIdCustom {
 		TypeIdCustom {
 			name: registry.register_string(self.name),
 			namespace: self.namespace.into_compact(registry),
-			type_params: self.type_params
+			type_params: self
+				.type_params
 				.into_iter()
 				.map(|param| registry.register_type(&param))
-				.collect::<Vec<_>>()
+				.collect::<Vec<_>>(),
 		}
 	}
 }
@@ -212,10 +202,7 @@ impl IntoCompact for TypeIdArray {
 
 impl TypeIdArray {
 	pub fn new(len: u16, type_param: MetaType) -> Self {
-		Self {
-			len,
-			type_param,
-		}
+		Self { len, type_param }
 	}
 }
 
@@ -231,10 +218,11 @@ impl IntoCompact for TypeIdTuple {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeIdTuple {
-			type_params: self.type_params
+			type_params: self
+				.type_params
 				.into_iter()
 				.map(|param| registry.register_type(&param))
-				.collect::<Vec<_>>()
+				.collect::<Vec<_>>(),
 		}
 	}
 }
@@ -273,9 +261,7 @@ impl IntoCompact for TypeIdSlice {
 
 impl TypeIdSlice {
 	pub fn new(type_param: MetaType) -> Self {
-		Self {
-			type_param,
-		}
+		Self { type_param }
 	}
 
 	pub fn of<T>() -> Self

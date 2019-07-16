@@ -14,27 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-	TypeId,
-	HasTypeId,
-	TypeDef,
-	HasTypeDef,
-	Metadata,
-	form::MetaForm,
-};
+use crate::{form::MetaForm, HasTypeDef, HasTypeId, Metadata, TypeDef, TypeId};
 use core::{
 	any::TypeId as AnyTypeId,
 	cmp::Ordering,
+	fmt::{Debug, Error as FmtError, Formatter},
 	hash::{Hash, Hasher},
-	fmt::{
-		Debug,
-		Formatter,
-		Error as FmtError,
-	},
 };
 
 /// A metatype abstraction.
-/// 
+///
 /// Allows to store compile-time type information at runtime.
 /// This again allows to derive type ID and type definition from it.
 ///

@@ -16,16 +16,12 @@
 
 use crate::{
 	form::CompactForm,
-	interner::{
-		Interner,
-		UntrackedSymbol,
-	},
-	TypeDef,
-	TypeId,
+	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
+	TypeDef, TypeId,
 };
-use serde::Serialize;
 use core::any::TypeId as AnyTypeId;
+use serde::Serialize;
 
 pub trait IntoCompact {
 	type Output;
@@ -60,10 +56,7 @@ impl Registry {
 	/// Registeres the given string into the registry and returns
 	/// its respective associated string symbol.
 	pub fn register_string(&mut self, string: &'static str) -> UntrackedSymbol<&'static str> {
-		self.string_table
-			.intern_or_get(string)
-			.1
-			.into_untracked()
+		self.string_table.intern_or_get(string).1.into_untracked()
 	}
 
 	/// Registeres the given type ID into the registry.

@@ -19,11 +19,8 @@ use crate::{
 	meta_type::MetaType,
 	TypeId,
 };
+use core::{any::TypeId as AnyTypeId, marker::PhantomData};
 use serde::Serialize;
-use core::{
-	marker::PhantomData,
-	any::TypeId as AnyTypeId,
-};
 
 /// Trait to control the internal structures of type identifiers and definitions.
 ///
@@ -76,7 +73,7 @@ impl Form for FreeForm {
 /// doing so is ireversible.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
 pub struct TrackedForm<'a> {
-	interner: PhantomData<fn () -> &'a ()>,
+	interner: PhantomData<fn() -> &'a () -> &'a ()>,
 }
 
 impl<'a> Form for TrackedForm<'a> {

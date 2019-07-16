@@ -15,11 +15,8 @@
 // limitations under the License.
 
 use crate::{
-	form::{Form, MetaForm, FreeForm, CompactForm},
-	Registry,
-	IntoCompact,
-	Metadata,
-	MetaType,
+	form::{CompactForm, Form, FreeForm, MetaForm},
+	IntoCompact, MetaType, Metadata, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -109,10 +106,11 @@ impl IntoCompact for GenericParams {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		GenericParams {
-			params: self.params
+			params: self
+				.params
 				.into_iter()
 				.map(|param| param.into_compact(registry))
-				.collect::<Vec<_>>()
+				.collect::<Vec<_>>(),
 		}
 	}
 }
@@ -133,7 +131,7 @@ impl IntoCompact for GenericArg {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		GenericArg {
-			name: registry.register_string(self.name)
+			name: registry.register_string(self.name),
 		}
 	}
 }
@@ -181,10 +179,11 @@ impl IntoCompact for TypeDefStruct {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeDefStruct {
-			fields: self.fields
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
-				.collect::<Vec<_>>()
+				.collect::<Vec<_>>(),
 		}
 	}
 }
@@ -243,10 +242,11 @@ impl IntoCompact for TypeDefTupleStruct {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeDefTupleStruct {
-			fields: self.fields
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
-				.collect::<Vec<_>>()
+				.collect::<Vec<_>>(),
 		}
 	}
 }
@@ -307,7 +307,8 @@ impl IntoCompact for TypeDefClikeEnum {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeDefClikeEnum {
-			variants: self.variants
+			variants: self
+				.variants
 				.into_iter()
 				.map(|variant| variant.into_compact(registry))
 				.collect::<Vec<_>>(),
@@ -366,7 +367,8 @@ impl IntoCompact for TypeDefEnum {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeDefEnum {
-			variants: self.variants
+			variants: self
+				.variants
 				.into_iter()
 				.map(|variant| variant.into_compact(registry))
 				.collect::<Vec<_>>(),
@@ -439,7 +441,8 @@ impl IntoCompact for EnumVariantStruct {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		EnumVariantStruct {
 			name: registry.register_string(self.name),
-			fields: self.fields
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
 				.collect::<Vec<_>>(),
@@ -472,7 +475,8 @@ impl IntoCompact for EnumVariantTupleStruct {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		EnumVariantTupleStruct {
 			name: registry.register_string(self.name),
-			fields: self.fields
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
 				.collect::<Vec<_>>(),
@@ -503,7 +507,8 @@ impl IntoCompact for TypeDefUnion {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeDefUnion {
-			fields: self.fields
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
 				.collect::<Vec<_>>(),
