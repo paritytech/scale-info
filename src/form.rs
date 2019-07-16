@@ -14,12 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-	interner::{StringSymbol, TypeIdSymbol, UntrackedStringSymbol, UntrackedTypeIdSymbol},
-	TypeId,
-};
+use crate::{interner::UntrackedSymbol, meta_type::MetaType};
+use core::any::TypeId as AnyTypeId;
 use serde::Serialize;
-use core::marker::PhantomData;
 
 /// Trait to control the internal structures of type identifiers and definitions.
 ///
@@ -29,47 +26,26 @@ pub trait Form {
 	/// The string type.
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type identifier type.
-	type TypeId: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+	type TypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// A type identifier with indirection.
 	///
 	/// # Note
 	///
 	/// This is an optimization for the compact forms.
-	type IndirectTypeId: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+	type IndirectTypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
 
-/// Free form is not depending on any interner data structure
-/// to compact symbols and type identifiers. This means it requires
-/// more space but can also be created in flux.
+/// A meta meta-type.
 ///
-/// # Note
-///
-/// The free form is the default for all type identifiers and definitions.
+/// Allows to be converted into other forms such as compact form
+/// through the registry and `IntoCompact`.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
-pub enum FreeForm {}
+pub enum MetaForm {}
 
-impl Form for FreeForm {
+impl Form for MetaForm {
 	type String = &'static str;
-	type TypeId = TypeId;
-	type IndirectTypeId = Box<TypeId>;
-}
-
-/// Compact form that is lifetime tracked in association to its interner.
-///
-/// # Note
-///
-/// This ensures safe resolution and thus allows to transform this back into
-/// the free form. Can also be transformed into the untracked form, however,
-/// doing so is ireversible.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
-pub struct TrackedForm<'a> {
-	interner: PhantomData<fn () -> &'a ()>,
-}
-
-impl<'a> Form for TrackedForm<'a> {
-	type String = StringSymbol<'a>;
-	type TypeId = TypeIdSymbol<'a>;
-	type IndirectTypeId = Self::TypeId;
+	type TypeId = MetaType;
+	type IndirectTypeId = MetaType;
 }
 
 /// Compact form that has its lifetime untracked in association to its interner.
@@ -83,7 +59,7 @@ impl<'a> Form for TrackedForm<'a> {
 pub enum CompactForm {}
 
 impl Form for CompactForm {
-	type String = UntrackedStringSymbol;
-	type TypeId = UntrackedTypeIdSymbol;
+	type String = UntrackedSymbol<&'static str>;
+	type TypeId = UntrackedSymbol<AnyTypeId>;
 	type IndirectTypeId = Self::TypeId;
 }

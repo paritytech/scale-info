@@ -15,15 +15,9 @@
 // limitations under the License.
 
 use crate::{
+	form::{CompactForm, Form, MetaForm},
 	utils::is_rust_identifier,
-	form::{
-		Form,
-		FreeForm,
-		CompactForm,
-	},
-	Registry,
-	IntoCompact,
-	IntoCompactError,
+	IntoCompact, MetaType, Metadata, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -41,7 +35,7 @@ pub trait HasTypeId {
 ///
 /// Rust prelude type may have an empty namespace definition.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-pub struct Namespace<F: Form = FreeForm> {
+pub struct Namespace<F: Form = MetaForm> {
 	/// The segments of the namespace.
 	segments: Vec<F::String>,
 }
@@ -62,15 +56,14 @@ impl IntoCompact for Namespace {
 	type Output = Namespace<CompactForm>;
 
 	/// Compacts this namespace using the given registry.
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(Namespace {
-			segments: self.segments
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		Namespace {
+			segments: self
+				.segments
 				.into_iter()
-				.map(|seg| {
-					registry.register_string(seg)
-				})
-				.collect::<Vec<_>>()
-		})
+				.map(|seg| registry.register_string(seg))
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
@@ -78,15 +71,13 @@ impl Namespace {
 	/// Creates a new namespace from the given segments.
 	pub fn new<S>(segments: S) -> Result<Self, NamespaceError>
 	where
-		S: IntoIterator<Item = <FreeForm as Form>::String>,
+		S: IntoIterator<Item = <MetaForm as Form>::String>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
 		if segments.len() == 0 {
 			return Err(NamespaceError::MissingSegments);
 		}
-		if let Some(err_at) = segments.iter().position(|seg| {
-			!is_rust_identifier(seg)
-		}) {
+		if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
 			return Err(NamespaceError::InvalidIdentifier { segment: err_at });
 		}
 		Ok(Self { segments })
@@ -97,7 +88,7 @@ impl Namespace {
 	/// # Note
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn from_str(module_path: <FreeForm as Form>::String) -> Result<Self, NamespaceError> {
+	pub fn from_str(module_path: <MetaForm as Form>::String) -> Result<Self, NamespaceError> {
 		Self::new(module_path.split("::"))
 	}
 
@@ -107,8 +98,12 @@ impl Namespace {
 	}
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Serialize, Debug)]
-pub enum TypeId<F: Form = FreeForm> {
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
+#[serde(bound = "
+	F::TypeId: Serialize,
+	F::IndirectTypeId: Serialize
+")]
+pub enum TypeId<F: Form = MetaForm> {
 	Custom(TypeIdCustom<F>),
 	Slice(TypeIdSlice<F>),
 	Array(TypeIdArray<F>),
@@ -116,16 +111,16 @@ pub enum TypeId<F: Form = FreeForm> {
 	Primitive(TypeIdPrimitive),
 }
 
-impl IntoCompact for TypeId<FreeForm> {
+impl IntoCompact for TypeId {
 	type Output = TypeId<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeId::Custom(custom) => custom.into_compact(registry).map(Into::into),
-			TypeId::Slice(slice) => slice.into_compact(registry).map(Into::into),
-			TypeId::Array(array) => array.into_compact(registry).map(Into::into),
-			TypeId::Tuple(tuple) => tuple.into_compact(registry).map(Into::into),
-			TypeId::Primitive(primitive) => Ok(primitive.into()),
+			TypeId::Custom(custom) => custom.into_compact(registry).into(),
+			TypeId::Slice(slice) => slice.into_compact(registry).into(),
+			TypeId::Array(array) => array.into_compact(registry).into(),
+			TypeId::Tuple(tuple) => tuple.into_compact(registry).into(),
+			TypeId::Primitive(primitive) => primitive.into(),
 		}
 	}
 }
@@ -149,32 +144,34 @@ pub enum TypeIdPrimitive {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-pub struct TypeIdCustom<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeIdCustom<F: Form = MetaForm> {
 	name: F::String,
 	namespace: Namespace<F>,
 	#[serde(rename = "type")]
 	type_params: Vec<F::TypeId>,
 }
 
-impl IntoCompact for TypeIdCustom<FreeForm> {
+impl IntoCompact for TypeIdCustom {
 	type Output = TypeIdCustom<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeIdCustom {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeIdCustom {
 			name: registry.register_string(self.name),
-			namespace: self.namespace.into_compact(registry)?,
-			type_params: self.type_params
+			namespace: self.namespace.into_compact(registry),
+			type_params: self
+				.type_params
 				.into_iter()
-				.map(|param| registry.resolve_type_id(&param))
-				.collect::<Result<Vec<_>, _>>()?
-		})
+				.map(|param| registry.register_type(&param))
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
 impl TypeIdCustom {
 	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
 	where
-		T: IntoIterator<Item = TypeId>,
+		T: IntoIterator<Item = MetaType>,
 	{
 		Self {
 			name,
@@ -185,58 +182,55 @@ impl TypeIdCustom {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-pub struct TypeIdArray<F: Form = FreeForm> {
+#[serde(bound = "F::IndirectTypeId: Serialize")]
+pub struct TypeIdArray<F: Form = MetaForm> {
 	pub len: u16,
 	#[serde(rename = "type")]
 	pub type_param: F::IndirectTypeId,
 }
 
-impl IntoCompact for TypeIdArray<FreeForm> {
+impl IntoCompact for TypeIdArray {
 	type Output = TypeIdArray<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeIdArray {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeIdArray {
 			len: self.len,
-			type_param: registry.resolve_type_id(&self.type_param)?
-		})
-	}
-}
-
-impl TypeIdArray {
-	pub fn new<T>(len: u16, type_param: T) -> Self
-	where
-		T: Into<TypeId>,
-	{
-		Self {
-			len,
-			type_param: Box::new(type_param.into()),
+			type_param: registry.register_type(&self.type_param),
 		}
 	}
 }
 
+impl TypeIdArray {
+	pub fn new(len: u16, type_param: MetaType) -> Self {
+		Self { len, type_param }
+	}
+}
+
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-pub struct TypeIdTuple<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeIdTuple<F: Form = MetaForm> {
 	#[serde(rename = "type")]
 	pub type_params: Vec<F::TypeId>,
 }
 
-impl IntoCompact for TypeIdTuple<FreeForm> {
+impl IntoCompact for TypeIdTuple {
 	type Output = TypeIdTuple<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeIdTuple {
-			type_params: self.type_params
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeIdTuple {
+			type_params: self
+				.type_params
 				.into_iter()
-				.map(|param| registry.resolve_type_id(&param))
-				.collect::<Result<Vec<_>, _>>()?
-		})
+				.map(|param| registry.register_type(&param))
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
 impl TypeIdTuple {
 	pub fn new<T>(type_params: T) -> Self
 	where
-		T: IntoIterator<Item = TypeId>,
+		T: IntoIterator<Item = MetaType>,
 	{
 		Self {
 			type_params: type_params.into_iter().collect(),
@@ -249,29 +243,32 @@ impl TypeIdTuple {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-pub struct TypeIdSlice<F: Form = FreeForm> {
+#[serde(bound = "F::IndirectTypeId: Serialize")]
+pub struct TypeIdSlice<F: Form = MetaForm> {
 	#[serde(rename = "type")]
 	type_param: F::IndirectTypeId,
 }
 
-impl IntoCompact for TypeIdSlice<FreeForm> {
+impl IntoCompact for TypeIdSlice {
 	type Output = TypeIdSlice<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeIdSlice {
-			type_param: registry.resolve_type_id(&self.type_param)?
-		})
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeIdSlice {
+			type_param: registry.register_type(&self.type_param),
+		}
 	}
 }
 
 impl TypeIdSlice {
-	pub fn new<T>(type_param: T) -> Self
+	pub fn new(type_param: MetaType) -> Self {
+		Self { type_param }
+	}
+
+	pub fn of<T>() -> Self
 	where
-		T: Into<TypeId>,
+		T: Metadata + 'static,
 	{
-		Self {
-			type_param: Box::new(type_param.into()),
-		}
+		Self::new(MetaType::new::<T>())
 	}
 }
 

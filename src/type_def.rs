@@ -15,12 +15,8 @@
 // limitations under the License.
 
 use crate::{
-	form::{Form, FreeForm, CompactForm},
-	HasTypeId,
-	TypeId,
-	Registry,
-	IntoCompact,
-	IntoCompactError,
+	form::{CompactForm, Form, MetaForm},
+	IntoCompact, MetaType, Metadata, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -35,7 +31,8 @@ pub trait HasTypeDef {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDef<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeDef<F: Form = MetaForm> {
 	/// Stores count and names of all generic parameters.
 	///
 	/// This can be used to verify that type id's refer to
@@ -48,18 +45,18 @@ pub struct TypeDef<F: Form = FreeForm> {
 impl IntoCompact for TypeDef {
 	type Output = TypeDef<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeDef {
-			generic_params: self.generic_params.into_compact(registry)?,
-			kind: self.kind.into_compact(registry)?,
-		})
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeDef {
+			generic_params: self.generic_params.into_compact(registry),
+			kind: self.kind.into_compact(registry),
+		}
 	}
 }
 
 impl TypeDef {
 	pub fn new<G, K>(generic_params: G, kind: K) -> Self
 	where
-		G: IntoIterator<Item = <FreeForm as Form>::String>,
+		G: IntoIterator<Item = <MetaForm as Form>::String>,
 		K: Into<TypeDefKind>,
 	{
 		Self {
@@ -99,20 +96,22 @@ impl TypeDef {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
-pub struct GenericParams<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct GenericParams<F: Form = MetaForm> {
 	params: Vec<GenericArg<F>>,
 }
 
 impl IntoCompact for GenericParams {
 	type Output = GenericParams<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(GenericParams {
-			params: self.params
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		GenericParams {
+			params: self
+				.params
 				.into_iter()
 				.map(|param| param.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
@@ -123,28 +122,29 @@ impl GenericParams {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct GenericArg<F: Form = FreeForm> {
+pub struct GenericArg<F: Form = MetaForm> {
 	name: F::String,
 }
 
 impl IntoCompact for GenericArg {
 	type Output = GenericArg<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(GenericArg {
-			name: registry.register_string(self.name)
-		})
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		GenericArg {
+			name: registry.register_string(self.name),
+		}
 	}
 }
 
-impl From<<FreeForm as Form>::String> for GenericArg {
-	fn from(name: <FreeForm as Form>::String) -> Self {
+impl From<<MetaForm as Form>::String> for GenericArg {
+	fn from(name: <MetaForm as Form>::String) -> Self {
 		Self { name }
 	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
-pub enum TypeDefKind<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub enum TypeDefKind<F: Form = MetaForm> {
 	Builtin,
 	Struct(TypeDefStruct<F>),
 	TupleStruct(TypeDefTupleStruct<F>),
@@ -156,33 +156,35 @@ pub enum TypeDefKind<F: Form = FreeForm> {
 impl IntoCompact for TypeDefKind {
 	type Output = TypeDefKind<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeDefKind::Builtin => Ok(TypeDefKind::Builtin),
-			TypeDefKind::Struct(r#struct) => r#struct.into_compact(registry).map(Into::into),
-			TypeDefKind::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).map(Into::into),
-			TypeDefKind::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).map(Into::into),
-			TypeDefKind::Enum(r#enum) => r#enum.into_compact(registry).map(Into::into),
-			TypeDefKind::Union(union) => union.into_compact(registry).map(Into::into),
+			TypeDefKind::Builtin => TypeDefKind::Builtin,
+			TypeDefKind::Struct(r#struct) => r#struct.into_compact(registry).into(),
+			TypeDefKind::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
+			TypeDefKind::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
+			TypeDefKind::Enum(r#enum) => r#enum.into_compact(registry).into(),
+			TypeDefKind::Union(union) => union.into_compact(registry).into(),
 		}
 	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefStruct<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeDefStruct<F: Form = MetaForm> {
 	fields: Vec<NamedField<F>>,
 }
 
 impl IntoCompact for TypeDefStruct {
 	type Output = TypeDefStruct<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeDefStruct {
-			fields: self.fields
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeDefStruct {
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
@@ -198,7 +200,8 @@ impl TypeDefStruct {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct NamedField<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct NamedField<F: Form = MetaForm> {
 	name: F::String,
 	#[serde(rename = "type")]
 	ty: F::TypeId,
@@ -207,38 +210,44 @@ pub struct NamedField<F: Form = FreeForm> {
 impl IntoCompact for NamedField {
 	type Output = NamedField<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(NamedField {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		NamedField {
 			name: registry.register_string(self.name),
-			ty: registry.resolve_type_id(&self.ty)?,
-		})
+			ty: registry.register_type(&self.ty),
+		}
 	}
 }
 
 impl NamedField {
-	pub fn new<T>(name: <FreeForm as Form>::String, ty: T) -> Self
+	pub fn new(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
+		Self { name, ty }
+	}
+
+	pub fn of<T>(name: <MetaForm as Form>::String) -> Self
 	where
-		T: Into<TypeId>,
+		T: Metadata + ?Sized + 'static,
 	{
-		Self { name, ty: ty.into() }
+		Self::new(name, MetaType::new::<T>())
 	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefTupleStruct<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeDefTupleStruct<F: Form = MetaForm> {
 	fields: Vec<UnnamedField<F>>,
 }
 
 impl IntoCompact for TypeDefTupleStruct {
 	type Output = TypeDefTupleStruct<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeDefTupleStruct {
-			fields: self.fields
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeDefTupleStruct {
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
@@ -258,7 +267,8 @@ impl TypeDefTupleStruct {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct UnnamedField<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct UnnamedField<F: Form = MetaForm> {
 	#[serde(rename = "type")]
 	ty: F::TypeId,
 }
@@ -266,37 +276,43 @@ pub struct UnnamedField<F: Form = FreeForm> {
 impl IntoCompact for UnnamedField {
 	type Output = UnnamedField<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(UnnamedField {
-			ty: registry.resolve_type_id(&self.ty)?,
-		})
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		UnnamedField {
+			ty: registry.register_type(&self.ty),
+		}
 	}
 }
 
 impl UnnamedField {
-	pub fn new<T>() -> Self
+	pub fn new(meta_type: MetaType) -> Self {
+		Self { ty: meta_type }
+	}
+
+	pub fn of<T>() -> Self
 	where
-		T: HasTypeId,
+		T: Metadata + ?Sized + 'static,
 	{
-		Self { ty: T::type_id() }
+		Self::new(MetaType::new::<T>())
 	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefClikeEnum<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeDefClikeEnum<F: Form = MetaForm> {
 	variants: Vec<ClikeEnumVariant<F>>,
 }
 
 impl IntoCompact for TypeDefClikeEnum {
 	type Output = TypeDefClikeEnum<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeDefClikeEnum {
-			variants: self.variants
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeDefClikeEnum {
+			variants: self
+				.variants
 				.into_iter()
 				.map(|variant| variant.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?,
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
@@ -312,7 +328,7 @@ impl TypeDefClikeEnum {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct ClikeEnumVariant<F: Form = FreeForm> {
+pub struct ClikeEnumVariant<F: Form = MetaForm> {
 	name: F::String,
 	discriminant: u64,
 }
@@ -320,16 +336,16 @@ pub struct ClikeEnumVariant<F: Form = FreeForm> {
 impl IntoCompact for ClikeEnumVariant {
 	type Output = ClikeEnumVariant<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(ClikeEnumVariant {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		ClikeEnumVariant {
 			name: registry.register_string(self.name),
 			discriminant: self.discriminant,
-		})
+		}
 	}
 }
 
 impl ClikeEnumVariant {
-	pub fn new<D>(name: <FreeForm as Form>::String, discriminant: D) -> Self
+	pub fn new<D>(name: <MetaForm as Form>::String, discriminant: D) -> Self
 	where
 		D: Into<u64>,
 	{
@@ -341,20 +357,22 @@ impl ClikeEnumVariant {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefEnum<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeDefEnum<F: Form = MetaForm> {
 	variants: Vec<EnumVariant<F>>,
 }
 
 impl IntoCompact for TypeDefEnum {
 	type Output = TypeDefEnum<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeDefEnum {
-			variants: self.variants
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeDefEnum {
+			variants: self
+				.variants
 				.into_iter()
 				.map(|variant| variant.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?,
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
@@ -370,7 +388,8 @@ impl TypeDefEnum {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
-pub enum EnumVariant<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub enum EnumVariant<F: Form = MetaForm> {
 	Unit(EnumVariantUnit<F>),
 	Struct(EnumVariantStruct<F>),
 	TupleStruct(EnumVariantTupleStruct<F>),
@@ -379,27 +398,27 @@ pub enum EnumVariant<F: Form = FreeForm> {
 impl IntoCompact for EnumVariant {
 	type Output = EnumVariant<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			EnumVariant::Unit(unit) => unit.into_compact(registry).map(Into::into),
-			EnumVariant::Struct(r#struct) => r#struct.into_compact(registry).map(Into::into),
-			EnumVariant::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).map(Into::into),
+			EnumVariant::Unit(unit) => unit.into_compact(registry).into(),
+			EnumVariant::Struct(r#struct) => r#struct.into_compact(registry).into(),
+			EnumVariant::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
 		}
 	}
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct EnumVariantUnit<F: Form = FreeForm> {
+pub struct EnumVariantUnit<F: Form = MetaForm> {
 	name: F::String,
 }
 
 impl IntoCompact for EnumVariantUnit {
 	type Output = EnumVariantUnit<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(EnumVariantUnit {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		EnumVariantUnit {
 			name: registry.register_string(self.name),
-		})
+		}
 	}
 }
 
@@ -410,7 +429,8 @@ impl EnumVariantUnit {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct EnumVariantStruct<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct EnumVariantStruct<F: Form = MetaForm> {
 	name: F::String,
 	fields: Vec<NamedField<F>>,
 }
@@ -418,19 +438,20 @@ pub struct EnumVariantStruct<F: Form = FreeForm> {
 impl IntoCompact for EnumVariantStruct {
 	type Output = EnumVariantStruct<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(EnumVariantStruct {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		EnumVariantStruct {
 			name: registry.register_string(self.name),
-			fields: self.fields
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?,
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
 impl EnumVariantStruct {
-	pub fn new<F>(name: <FreeForm as Form>::String, fields: F) -> Self
+	pub fn new<F>(name: <MetaForm as Form>::String, fields: F) -> Self
 	where
 		F: IntoIterator<Item = NamedField>,
 	{
@@ -442,7 +463,8 @@ impl EnumVariantStruct {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct EnumVariantTupleStruct<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct EnumVariantTupleStruct<F: Form = MetaForm> {
 	name: F::String,
 	fields: Vec<UnnamedField<F>>,
 }
@@ -450,19 +472,20 @@ pub struct EnumVariantTupleStruct<F: Form = FreeForm> {
 impl IntoCompact for EnumVariantTupleStruct {
 	type Output = EnumVariantTupleStruct<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(EnumVariantTupleStruct {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		EnumVariantTupleStruct {
 			name: registry.register_string(self.name),
-			fields: self.fields
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?,
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 
 impl EnumVariantTupleStruct {
-	pub fn new<F>(name: <FreeForm as Form>::String, fields: F) -> Self
+	pub fn new<F>(name: <MetaForm as Form>::String, fields: F) -> Self
 	where
 		F: IntoIterator<Item = UnnamedField>,
 	{
@@ -474,20 +497,22 @@ impl EnumVariantTupleStruct {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct TypeDefUnion<F: Form = FreeForm> {
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeDefUnion<F: Form = MetaForm> {
 	fields: Vec<NamedField<F>>,
 }
 
 impl IntoCompact for TypeDefUnion {
 	type Output = TypeDefUnion<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Result<Self::Output, IntoCompactError> {
-		Ok(TypeDefUnion {
-			fields: self.fields
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeDefUnion {
+			fields: self
+				.fields
 				.into_iter()
 				.map(|field| field.into_compact(registry))
-				.collect::<Result<Vec<_>, _>>()?,
-		})
+				.collect::<Vec<_>>(),
+		}
 	}
 }
 

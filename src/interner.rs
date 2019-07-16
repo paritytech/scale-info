@@ -14,19 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::TypeId;
 use alloc::collections::btree_map::{BTreeMap, Entry};
 use core::{marker::PhantomData, num::NonZeroU32};
 use serde::Serialize;
-
-pub type StringInterner = Interner<&'static str>;
-pub type TypeIdInterner = Interner<TypeId>;
-
-pub type StringSymbol<'a> = Symbol<'a, &'static str>;
-pub type TypeIdSymbol<'a> = Symbol<'a, TypeId>;
-
-pub type UntrackedStringSymbol = UntrackedSymbol<&'static str>;
-pub type UntrackedTypeIdSymbol = UntrackedSymbol<TypeId>;
 
 /// A symbol that is not lifetime tracked.
 ///
@@ -56,7 +46,7 @@ impl<T> Symbol<'_, T> {
 	///   owns all symbols and interners and can verify accesses by itself.
 	/// - For further safety reasons an untracked symbol
 	///   can no longer be used to resolve from an interner.
-	///   It is still useful for serialization purposes. 
+	///   It is still useful for serialization purposes.
 	///
 	/// # Safety
 	///
@@ -82,6 +72,7 @@ impl<T> Interner<T>
 where
 	T: Ord,
 {
+	/// Creates a new empty interner.
 	pub fn new() -> Self {
 		Self {
 			map: BTreeMap::new(),
@@ -104,18 +95,20 @@ where
 			}
 			Entry::Occupied(occupied) => (false, *occupied.get()),
 		};
-		(inserted, Symbol {
-			id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
-			marker: PhantomData,
-		})
+		(
+			inserted,
+			Symbol {
+				id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
+				marker: PhantomData,
+			},
+		)
 	}
 
 	pub fn get(&self, s: &T) -> Option<Symbol<T>> {
-		self.map.get(s)
-			.map(|&id| Symbol {
-				id: NonZeroU32::new(id as u32).unwrap(),
-				marker: PhantomData,
-			})
+		self.map.get(s).map(|&id| Symbol {
+			id: NonZeroU32::new(id as u32).unwrap(),
+			marker: PhantomData,
+		})
 	}
 
 	pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {

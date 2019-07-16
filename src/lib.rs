@@ -14,24 +14,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+
 extern crate alloc;
 
-macro_rules! tuple_type_id {
-    ( $($ty:ident),* ) => {
+#[macro_export]
+macro_rules! tuple_meta_type {
+    ( $($ty:ty),* ) => {
         {
             #[allow(unused_mut)]
             let mut v = vec![];
             $(
-                v.push(<$ty as $crate::HasTypeId>::type_id());
+				v.push(MetaType::new::<$ty>());
             )*
             v
         }
     }
 }
 
-mod form;
+pub mod form;
 mod impls;
 pub mod interner;
+mod meta_type;
 mod registry;
 mod type_def;
 mod type_id;
@@ -41,11 +45,24 @@ mod utils;
 mod tests;
 
 pub use self::{
-	registry::{RegisterSubtypes, Registry, IntoCompact, IntoCompactError},
+	meta_type::MetaType,
+	registry::{IntoCompact, Registry},
 	type_def::*,
 	type_id::*,
 };
 
-pub trait Metadata: HasTypeId + HasTypeDef + RegisterSubtypes {}
+#[cfg(feature = "derive")]
+pub use type_metadata_derive::{Metadata, TypeDef, TypeId};
 
-impl<T> Metadata for T where T: ?Sized + HasTypeId + HasTypeDef + RegisterSubtypes {}
+pub trait Metadata: HasTypeId + HasTypeDef {
+	fn meta_type() -> MetaType;
+}
+
+impl<T> Metadata for T
+where
+	T: ?Sized + HasTypeId + HasTypeDef + 'static,
+{
+	fn meta_type() -> MetaType {
+		MetaType::new::<T>()
+	}
+}
