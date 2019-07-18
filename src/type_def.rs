@@ -14,6 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[cfg(not(feature = "std"))]
+use alloc::{vec, vec::Vec};
+
 use crate::{
 	form::{CompactForm, Form, MetaForm},
 	IntoCompact, MetaType, Metadata, Registry,
