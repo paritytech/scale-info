@@ -14,6 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#[cfg(not(feature = "std"))]
+use alloc::{string::{String, ToString}, format};
+
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::Ident;
@@ -30,6 +33,10 @@ pub fn wrap(ident: &Ident, trait_name: &'static str, impl_quote: TokenStream2) -
 			#[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
 			#[allow(rust_2018_idioms)]
 			use type_metadata as _type_metadata;
+			#[cfg(not(feature = "std"))]
+			extern crate alloc as _alloc;
+			#[cfg(not(feature = "std"))]
+			use _alloc::{vec, vec::Vec};
 			#impl_quote;
 		};
 	}
