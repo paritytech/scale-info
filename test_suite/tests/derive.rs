@@ -14,8 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg(feature = "derive")]
-
 use type_metadata::{
 	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasTypeDef,
 	HasTypeId, MetaType, Metadata, NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct,

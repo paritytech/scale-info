@@ -27,7 +27,7 @@ macro_rules! tuple_meta_type {
 			extern crate alloc as _alloc;
 			#[cfg(not(feature = "std"))]
 			#[allow(unused_mut)]
-            let mut v = _alloc::vec![];
+			let mut v = _alloc::vec![];
 
 			#[cfg(feature = "std")]
 			#[allow(unused_mut)]

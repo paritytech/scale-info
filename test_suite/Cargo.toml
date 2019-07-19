@@ -1,0 +1,13 @@
+[package]
+name = "type-metadata-test-suite"
+version = "0.0.0"
+authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
+edition = "2018"
+publish = false
+
+license = "Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+type-metadata = { path = "..", features = ["derive"] }
