@@ -15,7 +15,10 @@
 // limitations under the License.
 
 #[cfg(not(feature = "std"))]
-use alloc::{string::{String, ToString}, format};
+use alloc::{
+	format,
+	string::{String, ToString},
+};
 
 use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;

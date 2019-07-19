@@ -17,41 +17,45 @@
 //! Exports from `std`, `core` and `alloc` crates.
 
 mod core {
-    #[cfg(not(feature = "std"))]
-    pub use core::*;
-    #[cfg(feature = "std")]
-    pub use std::*;
+	#[cfg(not(feature = "std"))]
+	pub use core::*;
+
+	#[cfg(feature = "std")]
+	pub use std::*;
 }
 
+#[rustfmt::skip]
 pub use self::core::{
-    i8, i16, i32, i64, i128,
-    u8, u16, u32, u64, u128,
+	i8, i16, i32, i64, i128,
+	u8, u16, u32, u64, u128,
 
-    marker::PhantomData,
-    num::NonZeroU32,
-    option::Option,
-    result::Result,
+	marker::PhantomData,
+	num::NonZeroU32,
+	option::Option,
+	result::Result,
 
-    any::{TypeId as AnyTypeId},
+	any::{TypeId as AnyTypeId},
 
-    clone::{Clone},
-    cmp::{Eq, PartialEq, Ordering},
-    convert::{From, Into},
-    fmt::{Debug, Error as FmtError, Formatter},
-    hash::{Hash, Hasher},
-    iter,
+	clone::{Clone},
+	cmp::{Eq, PartialEq, Ordering},
+	convert::{From, Into},
+	fmt::{Debug, Error as FmtError, Formatter},
+	hash::{Hash, Hasher},
+	iter,
 };
 
 mod alloc {
-    #[cfg(not(feature = "std"))]
-    pub use ::alloc::*;
-    #[cfg(feature = "std")]
-    pub use std::*;
+	#[cfg(not(feature = "std"))]
+	pub use ::alloc::*;
+
+	#[cfg(feature = "std")]
+	pub use std::*;
 }
 
+#[rustfmt::skip]
 pub use self::alloc::{
-    boxed::Box,
-    collections::btree_map::{BTreeMap, Entry},
-    string::{String, ToString},
-    vec, vec::Vec,
+	boxed::Box,
+	collections::btree_map::{BTreeMap, Entry},
+	string::{String, ToString},
+	vec, vec::Vec,
 };

@@ -14,8 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{form::MetaForm, HasTypeDef, HasTypeId, Metadata, TypeDef, TypeId};
 use crate::tm_std::*;
+use crate::{form::MetaForm, HasTypeDef, HasTypeId, Metadata, TypeDef, TypeId};
 
 /// A metatype abstraction.
 ///
