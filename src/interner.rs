@@ -14,11 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(not(feature = "std"))]
-use alloc::vec::Vec;
-
-use alloc::collections::btree_map::{BTreeMap, Entry};
-use core::{marker::PhantomData, num::NonZeroU32};
+use crate::tm_std::*;
 use serde::Serialize;
 
 /// A symbol that is not lifetime tracked.

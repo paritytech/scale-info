@@ -16,14 +16,23 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(not(feature = "std"))]
 extern crate alloc;
 
 #[macro_export]
 macro_rules! tuple_meta_type {
     ( $($ty:ty),* ) => {
         {
-            #[allow(unused_mut)]
-            let mut v = vec![];
+			#[cfg(not(feature = "std"))]
+			extern crate alloc as _alloc;
+			#[cfg(not(feature = "std"))]
+			#[allow(unused_mut)]
+            let mut v = _alloc::vec![];
+
+			#[cfg(feature = "std")]
+			#[allow(unused_mut)]
+			let mut v = std::vec![];
+
             $(
 				v.push(MetaType::new::<$ty>());
             )*
@@ -31,6 +40,8 @@ macro_rules! tuple_meta_type {
         }
     }
 }
+
+mod tm_std;
 
 pub mod form;
 mod impls;

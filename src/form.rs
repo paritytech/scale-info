@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::{interner::UntrackedSymbol, meta_type::MetaType};
-use core::any::TypeId as AnyTypeId;
+use crate::tm_std::*;
 use serde::Serialize;
 
 /// Trait to control the internal structures of type identifiers and definitions.
