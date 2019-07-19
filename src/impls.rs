@@ -273,8 +273,6 @@ impl HasTypeDef for String {
 	}
 }
 
-use core::marker::PhantomData;
-
 impl<T> HasTypeId for PhantomData<T>
 where
 	T: HasTypeId + ?Sized,
