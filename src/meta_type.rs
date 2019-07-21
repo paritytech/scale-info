@@ -14,13 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::tm_std::*;
 use crate::{form::MetaForm, HasTypeDef, HasTypeId, Metadata, TypeDef, TypeId};
-use core::{
-	any::TypeId as AnyTypeId,
-	cmp::Ordering,
-	fmt::{Debug, Error as FmtError, Formatter},
-	hash::{Hash, Hasher},
-};
 
 /// A metatype abstraction.
 ///

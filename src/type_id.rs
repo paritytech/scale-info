@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::tm_std::*;
+
 use crate::{
 	form::{CompactForm, Form, MetaForm},
 	utils::is_rust_identifier,

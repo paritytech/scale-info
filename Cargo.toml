@@ -22,4 +22,5 @@ derive = ["type-metadata-derive"]
 [workspace]
 members = [
 	"derive",
+	"test_suite",
 ]

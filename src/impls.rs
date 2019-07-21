@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::tm_std::*;
 use crate::*;
 
 macro_rules! impl_metadata_for_primitives {
@@ -271,8 +272,6 @@ impl HasTypeDef for String {
 		TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into()
 	}
 }
-
-use core::marker::PhantomData;
 
 impl<T> HasTypeId for PhantomData<T>
 where

@@ -14,13 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
 	TypeDef, TypeId,
 };
-use core::any::TypeId as AnyTypeId;
 use serde::Serialize;
 
 pub trait IntoCompact {
