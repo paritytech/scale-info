@@ -23,5 +23,4 @@ derive = ["type-metadata-derive"]
 members = [
 	"derive",
 	"test_suite",
-	"test_suite/derive_tests_no_std",
 ]
