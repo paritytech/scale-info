@@ -49,7 +49,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 					stringify!(#ident),
 					_type_metadata::Namespace::from_str(module_path!())
 						.expect("namespace from module path cannot fail"),
-					vec![ #( #generic_type_ids ),* ],
+					__core::vec![ #( #generic_type_ids ),* ],
 				).into()
 			}
 		}

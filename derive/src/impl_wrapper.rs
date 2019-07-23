@@ -36,10 +36,22 @@ pub fn wrap(ident: &Ident, trait_name: &'static str, impl_quote: TokenStream2) -
 			#[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
 			#[allow(rust_2018_idioms)]
 			use type_metadata as _type_metadata;
+
 			#[cfg(not(feature = "std"))]
-			extern crate alloc as _alloc;
+			extern crate alloc;
+
+			#[cfg(feature = "std")]
+			mod __core {
+				pub use ::core::*;
+				pub use ::std::{vec, vec::Vec};
+			}
+
 			#[cfg(not(feature = "std"))]
-			use _alloc::{vec, vec::Vec};
+			mod __core {
+				pub use ::core::*;
+				pub use ::alloc::{vec, vec::Vec};
+			}
+
 			#impl_quote;
 		};
 	}

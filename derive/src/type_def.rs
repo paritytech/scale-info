@@ -75,7 +75,7 @@ fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
 			}
 		}
 	});
-	quote! { vec![#( #fields_def, )*] }
+	quote! { __core::vec![#( #fields_def, )*] }
 }
 
 fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
@@ -119,7 +119,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 		}
 	});
 	quote! {
-		_type_metadata::TypeDefClikeEnum::new(vec![#( #variants_def, )*])
+		_type_metadata::TypeDefClikeEnum::new(__core::vec![#( #variants_def, )*])
 	}
 }
 
@@ -159,7 +159,7 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 		}
 	});
 	quote! {
-		_type_metadata::TypeDefEnum::new(vec![#( #variants_def, )*])
+		_type_metadata::TypeDefEnum::new(__core::vec![#( #variants_def, )*])
 	}
 }
 
