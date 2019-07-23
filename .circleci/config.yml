@@ -1,0 +1,44 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/rust:1.36.0
+
+    steps:
+      - checkout
+
+      - run:
+          name: setup
+          command: |
+            rustup component add rustfmt --toolchain 1.36.0-x86_64-unknown-linux-gnu
+            rustup install nightly
+
+      - run:
+          name: fmt
+          command: |
+            cargo fmt --version
+            cargo fmt --all -- --check
+
+      - run:
+          name: build
+          command: |
+            cargo --version --verbose
+            cargo build --all
+            cargo +nightly build --all --no-default-features
+
+      - run:
+          name: unit tests
+          command: |
+            cargo test --all
+
+      - run:
+          name: no-std tests
+          command: |
+            cd ./test_suite/derive_tests_no_std
+            cargo +nightly build --no-default-features
+
+workflows:
+  version: 2
+  run-build:
+    jobs:
+      - build
