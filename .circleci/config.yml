@@ -16,8 +16,8 @@ jobs:
       - run:
           name: fmt
           command: |
-            cargo fmt --version
-            cargo fmt --all -- --check
+            cargo +nightly fmt --version
+            cargo +nightly fmt --all -- --check
 
       - run:
           name: build
