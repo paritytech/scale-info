@@ -10,7 +10,7 @@ jobs:
       - run:
           name: setup
           command: |
-            rustup component add rustfmt --toolchain 1.36.0-x86_64-unknown-linux-gnu
+            rustup component add rustfmt
             rustup install nightly
 
       - run:
