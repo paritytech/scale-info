@@ -18,7 +18,7 @@ use crate::*;
 use core::marker::PhantomData;
 
 #[cfg(not(feature = "std"))]
-use alloc::{vec, boxed::Box, string::String};
+use alloc::{boxed::Box, string::String, vec};
 
 fn assert_type_id<T, E>(expected: E)
 where
