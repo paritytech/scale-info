@@ -35,7 +35,7 @@ jobs:
           name: no-std tests
           command: |
             cd ./test_suite/derive_tests_no_std
-            cargo build --no-default-features
+            cargo +nightly build --no-default-features
 
 workflows:
   version: 2
