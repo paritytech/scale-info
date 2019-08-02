@@ -41,7 +41,6 @@ pub struct TypeDef<F: Form = MetaForm> {
 	/// correct instantiations of a generic type.
 	generic_params: GenericParams<F>,
 	/// The underlying structure of the type definition.
-	#[serde(flatten)]
 	kind: TypeDefKind<F>,
 }
 
@@ -89,7 +88,7 @@ impl TypeDef {
 	pub fn builtin() -> Self {
 		Self {
 			generic_params: GenericParams::empty(),
-			kind: TypeDefKind::Builtin,
+			kind: TypeDefKind::Builtin(Builtin),
 		}
 	}
 
@@ -150,7 +149,7 @@ impl From<<MetaForm as Form>::String> for GenericArg {
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(untagged)]
 pub enum TypeDefKind<F: Form = MetaForm> {
-	Builtin,
+	Builtin(Builtin),
 	Struct(TypeDefStruct<F>),
 	TupleStruct(TypeDefTupleStruct<F>),
 	ClikeEnum(TypeDefClikeEnum<F>),
@@ -158,12 +157,17 @@ pub enum TypeDefKind<F: Form = MetaForm> {
 	Union(TypeDefUnion<F>),
 }
 
+/// This struct just exists for the purpose of better JSON output.
+#[derive(PartialEq, Eq, Debug, Serialize)]
+#[serde(rename = "builtin")]
+pub struct Builtin;
+
 impl IntoCompact for TypeDefKind {
 	type Output = TypeDefKind<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeDefKind::Builtin => TypeDefKind::Builtin,
+			TypeDefKind::Builtin(builtin) => TypeDefKind::Builtin(builtin),
 			TypeDefKind::Struct(r#struct) => r#struct.into_compact(registry).into(),
 			TypeDefKind::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
 			TypeDefKind::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
