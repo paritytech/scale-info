@@ -88,7 +88,7 @@ impl TypeDef {
 	pub fn builtin() -> Self {
 		Self {
 			generic_params: GenericParams::empty(),
-			kind: TypeDefKind::Builtin(Builtin),
+			kind: TypeDefKind::Builtin(Builtin::Builtin),
 		}
 	}
 
@@ -159,8 +159,10 @@ pub enum TypeDefKind<F: Form = MetaForm> {
 
 /// This struct just exists for the purpose of better JSON output.
 #[derive(PartialEq, Eq, Debug, Serialize)]
-#[serde(rename = "builtin")]
-pub struct Builtin;
+pub enum Builtin {
+	#[serde(rename = "builtin")]
+	Builtin,
+}
 
 impl IntoCompact for TypeDefKind {
 	type Output = TypeDefKind<CompactForm>;
