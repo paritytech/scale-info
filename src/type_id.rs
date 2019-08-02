@@ -106,6 +106,7 @@ impl Namespace {
 	F::TypeId: Serialize,
 	F::IndirectTypeId: Serialize
 ")]
+#[serde(untagged)]
 pub enum TypeId<F: Form = MetaForm> {
 	Custom(TypeIdCustom<F>),
 	Slice(TypeIdSlice<F>),
@@ -130,7 +131,6 @@ impl IntoCompact for TypeId {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-#[serde(untagged)]
 pub enum TypeIdPrimitive {
 	Bool,
 	Char,
@@ -150,9 +150,11 @@ pub enum TypeIdPrimitive {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeIdCustom<F: Form = MetaForm> {
+	#[serde(rename = "custom.name")]
 	name: F::String,
+	#[serde(rename = "custom.namespace")]
 	namespace: Namespace<F>,
-	#[serde(rename = "type")]
+	#[serde(rename = "custom.params")]
 	type_params: Vec<F::TypeId>,
 }
 
@@ -188,8 +190,9 @@ impl TypeIdCustom {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::IndirectTypeId: Serialize")]
 pub struct TypeIdArray<F: Form = MetaForm> {
+	#[serde(rename = "array.len")]
 	pub len: u16,
-	#[serde(rename = "type")]
+	#[serde(rename = "array.type")]
 	pub type_param: F::IndirectTypeId,
 }
 
@@ -212,8 +215,8 @@ impl TypeIdArray {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct TypeIdTuple<F: Form = MetaForm> {
-	#[serde(rename = "type")]
 	pub type_params: Vec<F::TypeId>,
 }
 
@@ -249,7 +252,7 @@ impl TypeIdTuple {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::IndirectTypeId: Serialize")]
 pub struct TypeIdSlice<F: Form = MetaForm> {
-	#[serde(rename = "type")]
+	#[serde(rename = "slice.type")]
 	type_param: F::IndirectTypeId,
 }
 
