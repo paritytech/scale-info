@@ -147,6 +147,7 @@ impl From<<MetaForm as Form>::String> for GenericArg {
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(untagged)]
 pub enum TypeDefKind<F: Form = MetaForm> {
 	Builtin,
 	Struct(TypeDefStruct<F>),
@@ -174,6 +175,7 @@ impl IntoCompact for TypeDefKind {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeDefStruct<F: Form = MetaForm> {
+	#[serde(rename = "struct.fields")]
 	fields: Vec<NamedField<F>>,
 }
 
@@ -237,6 +239,7 @@ impl NamedField {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeDefTupleStruct<F: Form = MetaForm> {
+	#[serde(rename = "tuple_struct.types")]
 	fields: Vec<UnnamedField<F>>,
 }
 
@@ -271,6 +274,7 @@ impl TypeDefTupleStruct {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct UnnamedField<F: Form = MetaForm> {
 	#[serde(rename = "type")]
 	ty: F::TypeId,
@@ -301,7 +305,9 @@ impl UnnamedField {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct TypeDefClikeEnum<F: Form = MetaForm> {
+	#[serde(rename = "clike_enum.variants")]
 	variants: Vec<ClikeEnumVariant<F>>,
 }
 
@@ -361,7 +367,9 @@ impl ClikeEnumVariant {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct TypeDefEnum<F: Form = MetaForm> {
+	#[serde(rename = "enum.variants")]
 	variants: Vec<EnumVariant<F>>,
 }
 
@@ -392,6 +400,7 @@ impl TypeDefEnum {
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(untagged)]
 pub enum EnumVariant<F: Form = MetaForm> {
 	Unit(EnumVariantUnit<F>),
 	Struct(EnumVariantStruct<F>),
@@ -411,7 +420,9 @@ impl IntoCompact for EnumVariant {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
+#[serde(transparent)]
 pub struct EnumVariantUnit<F: Form = MetaForm> {
+	#[serde(rename = "unit_variant.name")]
 	name: F::String,
 }
 
@@ -434,7 +445,10 @@ impl EnumVariantUnit {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantStruct<F: Form = MetaForm> {
+	#[serde(rename = "struct_variant.name")]
 	name: F::String,
+	#[serde(rename = "struct_variant.fields")]
+	#[serde(flatten)]
 	fields: Vec<NamedField<F>>,
 }
 
@@ -468,7 +482,10 @@ impl EnumVariantStruct {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantTupleStruct<F: Form = MetaForm> {
+	#[serde(rename = "tuple_struct_variant.name")]
 	name: F::String,
+	#[serde(rename = "tuple_struct.types")]
+	#[serde(flatten)]
 	fields: Vec<UnnamedField<F>>,
 }
 
@@ -501,7 +518,9 @@ impl EnumVariantTupleStruct {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct TypeDefUnion<F: Form = MetaForm> {
+	#[serde(rename = "union.fields")]
 	fields: Vec<NamedField<F>>,
 }
 
