@@ -65,6 +65,7 @@ impl<T> Symbol<'_, T> {
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
 pub struct Interner<T> {
 	#[serde(skip)]
 	map: BTreeMap<T, usize>,

@@ -130,6 +130,7 @@ impl IntoCompact for TypeId {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
+#[serde(untagged)]
 pub enum TypeIdPrimitive {
 	Bool,
 	Char,
