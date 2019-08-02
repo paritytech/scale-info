@@ -69,6 +69,7 @@ impl<T> Symbol<'_, T> {
 pub struct Interner<T> {
 	#[serde(skip)]
 	map: BTreeMap<T, usize>,
+	#[serde(flatten)]
 	vec: Vec<T>,
 }
 
