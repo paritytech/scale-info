@@ -37,6 +37,7 @@ pub trait HasTypeId {
 ///
 /// Rust prelude type may have an empty namespace definition.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+#[serde(transparent)]
 pub struct Namespace<F: Form = MetaForm> {
 	/// The segments of the namespace.
 	segments: Vec<F::String>,

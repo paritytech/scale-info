@@ -99,6 +99,7 @@ impl TypeDef {
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct GenericParams<F: Form = MetaForm> {
 	params: Vec<GenericArg<F>>,
 }
