@@ -41,6 +41,7 @@ pub struct TypeDef<F: Form = MetaForm> {
 	/// correct instantiations of a generic type.
 	generic_params: GenericParams<F>,
 	/// The underlying structure of the type definition.
+	#[serde(flatten)]
 	kind: TypeDefKind<F>,
 }
 
