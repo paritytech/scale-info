@@ -32,122 +32,11 @@ pub trait HasTypeDef {
 	fn type_def() -> TypeDef;
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct TypeDef<F: Form = MetaForm> {
-	/// Stores count and names of all generic parameters.
-	///
-	/// This can be used to verify that type id's refer to
-	/// correct instantiations of a generic type.
-	generic_params: GenericParams<F>,
-	/// The underlying structure of the type definition.
-	kind: TypeDefKind<F>,
-}
-
-impl IntoCompact for TypeDef {
-	type Output = TypeDef<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDef {
-			generic_params: self.generic_params.into_compact(registry),
-			kind: self.kind.into_compact(registry),
-		}
-	}
-}
-
-impl TypeDef {
-	pub fn new<G, K>(generic_params: G, kind: K) -> Self
-	where
-		G: IntoIterator<Item = <MetaForm as Form>::String>,
-		K: Into<TypeDefKind>,
-	{
-		Self {
-			generic_params: generic_params
-				.into_iter()
-				.map(|name| GenericArg::from(name))
-				.collect::<Vec<_>>()
-				.into(),
-			kind: kind.into(),
-		}
-	}
-}
-
-impl<K> From<K> for TypeDef
-where
-	K: Into<TypeDefKind>,
-{
-	fn from(kind: K) -> Self {
-		Self {
-			generic_params: GenericParams::empty(),
-			kind: kind.into(),
-		}
-	}
-}
-
-impl TypeDef {
-	pub fn builtin() -> Self {
-		Self {
-			generic_params: GenericParams::empty(),
-			kind: TypeDefKind::Builtin,
-		}
-	}
-
-	pub fn kind(&self) -> &TypeDefKind {
-		&self.kind
-	}
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
-pub struct GenericParams<F: Form = MetaForm> {
-	params: Vec<GenericArg<F>>,
-}
-
-impl IntoCompact for GenericParams {
-	type Output = GenericParams<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		GenericParams {
-			params: self
-				.params
-				.into_iter()
-				.map(|param| param.into_compact(registry))
-				.collect::<Vec<_>>(),
-		}
-	}
-}
-
-impl GenericParams {
-	pub fn empty() -> Self {
-		Self { params: vec![] }
-	}
-}
-
-#[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct GenericArg<F: Form = MetaForm> {
-	name: F::String,
-}
-
-impl IntoCompact for GenericArg {
-	type Output = GenericArg<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		GenericArg {
-			name: registry.register_string(self.name),
-		}
-	}
-}
-
-impl From<<MetaForm as Form>::String> for GenericArg {
-	fn from(name: <MetaForm as Form>::String) -> Self {
-		Self { name }
-	}
-}
-
-#[derive(PartialEq, Eq, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub enum TypeDefKind<F: Form = MetaForm> {
-	Builtin,
+#[serde(untagged)]
+pub enum TypeDef<F: Form = MetaForm> {
+	Builtin(Builtin),
 	Struct(TypeDefStruct<F>),
 	TupleStruct(TypeDefTupleStruct<F>),
 	ClikeEnum(TypeDefClikeEnum<F>),
@@ -155,17 +44,30 @@ pub enum TypeDefKind<F: Form = MetaForm> {
 	Union(TypeDefUnion<F>),
 }
 
-impl IntoCompact for TypeDefKind {
-	type Output = TypeDefKind<CompactForm>;
+impl TypeDef {
+	pub fn builtin() -> Self {
+		TypeDef::Builtin(Builtin::Builtin)
+	}
+}
+
+/// This struct just exists for the purpose of better JSON output.
+#[derive(PartialEq, Eq, Debug, Serialize)]
+pub enum Builtin {
+	#[serde(rename = "builtin")]
+	Builtin,
+}
+
+impl IntoCompact for TypeDef {
+	type Output = TypeDef<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeDefKind::Builtin => TypeDefKind::Builtin,
-			TypeDefKind::Struct(r#struct) => r#struct.into_compact(registry).into(),
-			TypeDefKind::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
-			TypeDefKind::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
-			TypeDefKind::Enum(r#enum) => r#enum.into_compact(registry).into(),
-			TypeDefKind::Union(union) => union.into_compact(registry).into(),
+			TypeDef::Builtin(builtin) => TypeDef::Builtin(builtin),
+			TypeDef::Struct(r#struct) => r#struct.into_compact(registry).into(),
+			TypeDef::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
+			TypeDef::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
+			TypeDef::Enum(r#enum) => r#enum.into_compact(registry).into(),
+			TypeDef::Union(union) => union.into_compact(registry).into(),
 		}
 	}
 }
@@ -173,6 +75,7 @@ impl IntoCompact for TypeDefKind {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeDefStruct<F: Form = MetaForm> {
+	#[serde(rename = "struct.fields")]
 	fields: Vec<NamedField<F>>,
 }
 
@@ -236,6 +139,7 @@ impl NamedField {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeDefTupleStruct<F: Form = MetaForm> {
+	#[serde(rename = "tuple_struct.types")]
 	fields: Vec<UnnamedField<F>>,
 }
 
@@ -270,6 +174,7 @@ impl TypeDefTupleStruct {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct UnnamedField<F: Form = MetaForm> {
 	#[serde(rename = "type")]
 	ty: F::TypeId,
@@ -300,7 +205,9 @@ impl UnnamedField {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct TypeDefClikeEnum<F: Form = MetaForm> {
+	#[serde(rename = "clike_enum.variants")]
 	variants: Vec<ClikeEnumVariant<F>>,
 }
 
@@ -360,7 +267,9 @@ impl ClikeEnumVariant {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct TypeDefEnum<F: Form = MetaForm> {
+	#[serde(rename = "enum.variants")]
 	variants: Vec<EnumVariant<F>>,
 }
 
@@ -391,6 +300,7 @@ impl TypeDefEnum {
 
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(untagged)]
 pub enum EnumVariant<F: Form = MetaForm> {
 	Unit(EnumVariantUnit<F>),
 	Struct(EnumVariantStruct<F>),
@@ -410,7 +320,9 @@ impl IntoCompact for EnumVariant {
 }
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
+#[serde(transparent)]
 pub struct EnumVariantUnit<F: Form = MetaForm> {
+	#[serde(rename = "unit_variant.name")]
 	name: F::String,
 }
 
@@ -433,7 +345,10 @@ impl EnumVariantUnit {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantStruct<F: Form = MetaForm> {
+	#[serde(rename = "struct_variant.name")]
 	name: F::String,
+	#[serde(rename = "struct_variant.fields")]
+	#[serde(flatten)]
 	fields: Vec<NamedField<F>>,
 }
 
@@ -467,7 +382,10 @@ impl EnumVariantStruct {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantTupleStruct<F: Form = MetaForm> {
+	#[serde(rename = "tuple_struct_variant.name")]
 	name: F::String,
+	#[serde(rename = "tuple_struct.types")]
+	#[serde(flatten)]
 	fields: Vec<UnnamedField<F>>,
 }
 
@@ -500,7 +418,9 @@ impl EnumVariantTupleStruct {
 
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(transparent)]
 pub struct TypeDefUnion<F: Form = MetaForm> {
+	#[serde(rename = "union.fields")]
 	fields: Vec<NamedField<F>>,
 }
 

@@ -37,6 +37,7 @@ pub struct TypeIdDef {
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Registry {
+	#[serde(rename = "strings")]
 	string_table: Interner<&'static str>,
 	#[serde(skip)]
 	type_table: Interner<AnyTypeId>,

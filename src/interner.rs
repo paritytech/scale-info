@@ -22,8 +22,10 @@ use serde::Serialize;
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[serde(transparent)]
 pub struct UntrackedSymbol<T> {
 	id: NonZeroU32,
+	#[serde(skip)]
 	marker: PhantomData<fn() -> T>,
 }
 
@@ -31,8 +33,10 @@ pub struct UntrackedSymbol<T> {
 ///
 /// Can be used to resolve to the associated instance.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[serde(transparent)]
 pub struct Symbol<'a, T> {
 	id: NonZeroU32,
+	#[serde(skip)]
 	marker: PhantomData<fn() -> &'a T>,
 }
 
@@ -61,9 +65,11 @@ impl<T> Symbol<'_, T> {
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize)]
+#[serde(transparent)]
 pub struct Interner<T> {
 	#[serde(skip)]
 	map: BTreeMap<T, usize>,
+	#[serde(flatten)]
 	vec: Vec<T>,
 }
 
