@@ -49,7 +49,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let has_type_def_impl = quote! {
 		impl #impl_generics _type_metadata::HasTypeDef for #ident #ty_generics #where_clause {
 			fn type_def() -> _type_metadata::TypeDef {
-				#def
+				#def.into()
 			}
 		}
 	};
