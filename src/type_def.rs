@@ -32,129 +32,22 @@ pub trait HasTypeDef {
 	fn type_def() -> TypeDef;
 }
 
-#[derive(PartialEq, Eq, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct TypeDef<F: Form = MetaForm> {
-	/// Stores count and names of all generic parameters.
-	///
-	/// This can be used to verify that type id's refer to
-	/// correct instantiations of a generic type.
-	generic_params: GenericParams<F>,
-	/// The underlying structure of the type definition.
-	kind: TypeDefKind<F>,
-}
-
-impl IntoCompact for TypeDef {
-	type Output = TypeDef<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDef {
-			generic_params: self.generic_params.into_compact(registry),
-			kind: self.kind.into_compact(registry),
-		}
-	}
-}
-
-impl TypeDef {
-	pub fn new<G, K>(generic_params: G, kind: K) -> Self
-	where
-		G: IntoIterator<Item = <MetaForm as Form>::String>,
-		K: Into<TypeDefKind>,
-	{
-		Self {
-			generic_params: generic_params
-				.into_iter()
-				.map(|name| GenericArg::from(name))
-				.collect::<Vec<_>>()
-				.into(),
-			kind: kind.into(),
-		}
-	}
-}
-
-impl<K> From<K> for TypeDef
-where
-	K: Into<TypeDefKind>,
-{
-	fn from(kind: K) -> Self {
-		Self {
-			generic_params: GenericParams::empty(),
-			kind: kind.into(),
-		}
-	}
-}
-
-impl TypeDef {
-	pub fn builtin() -> Self {
-		Self {
-			generic_params: GenericParams::empty(),
-			kind: TypeDefKind::Builtin(Builtin::Builtin),
-		}
-	}
-
-	pub fn kind(&self) -> &TypeDefKind {
-		&self.kind
-	}
-}
-
-#[derive(PartialEq, Eq, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
-#[serde(transparent)]
-pub struct GenericParams<F: Form = MetaForm> {
-	params: Vec<GenericArg<F>>,
-}
-
-impl IntoCompact for GenericParams {
-	type Output = GenericParams<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		GenericParams {
-			params: self
-				.params
-				.into_iter()
-				.map(|param| param.into_compact(registry))
-				.collect::<Vec<_>>(),
-		}
-	}
-}
-
-impl GenericParams {
-	pub fn empty() -> Self {
-		Self { params: vec![] }
-	}
-}
-
-#[derive(PartialEq, Eq, Debug, Serialize)]
-pub struct GenericArg<F: Form = MetaForm> {
-	name: F::String,
-}
-
-impl IntoCompact for GenericArg {
-	type Output = GenericArg<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		GenericArg {
-			name: registry.register_string(self.name),
-		}
-	}
-}
-
-impl From<<MetaForm as Form>::String> for GenericArg {
-	fn from(name: <MetaForm as Form>::String) -> Self {
-		Self { name }
-	}
-}
-
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(untagged)]
-pub enum TypeDefKind<F: Form = MetaForm> {
+pub enum TypeDef<F: Form = MetaForm> {
 	Builtin(Builtin),
 	Struct(TypeDefStruct<F>),
 	TupleStruct(TypeDefTupleStruct<F>),
 	ClikeEnum(TypeDefClikeEnum<F>),
 	Enum(TypeDefEnum<F>),
 	Union(TypeDefUnion<F>),
+}
+
+impl TypeDef {
+	pub fn builtin() -> Self {
+		TypeDef::Builtin(Builtin::Builtin)
+	}
 }
 
 /// This struct just exists for the purpose of better JSON output.
@@ -164,17 +57,17 @@ pub enum Builtin {
 	Builtin,
 }
 
-impl IntoCompact for TypeDefKind {
-	type Output = TypeDefKind<CompactForm>;
+impl IntoCompact for TypeDef {
+	type Output = TypeDef<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeDefKind::Builtin(builtin) => TypeDefKind::Builtin(builtin),
-			TypeDefKind::Struct(r#struct) => r#struct.into_compact(registry).into(),
-			TypeDefKind::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
-			TypeDefKind::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
-			TypeDefKind::Enum(r#enum) => r#enum.into_compact(registry).into(),
-			TypeDefKind::Union(union) => union.into_compact(registry).into(),
+			TypeDef::Builtin(builtin) => TypeDef::Builtin(builtin),
+			TypeDef::Struct(r#struct) => r#struct.into_compact(registry).into(),
+			TypeDef::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
+			TypeDef::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
+			TypeDef::Enum(r#enum) => r#enum.into_compact(registry).into(),
+			TypeDef::Union(union) => union.into_compact(registry).into(),
 		}
 	}
 }
