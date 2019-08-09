@@ -348,7 +348,6 @@ pub struct EnumVariantStruct<F: Form = MetaForm> {
 	#[serde(rename = "struct_variant.name")]
 	name: F::String,
 	#[serde(rename = "struct_variant.fields")]
-	#[serde(flatten)]
 	fields: Vec<NamedField<F>>,
 }
 
@@ -385,7 +384,6 @@ pub struct EnumVariantTupleStruct<F: Form = MetaForm> {
 	#[serde(rename = "tuple_struct_variant.name")]
 	name: F::String,
 	#[serde(rename = "tuple_struct.types")]
-	#[serde(flatten)]
 	fields: Vec<UnnamedField<F>>,
 }
 
