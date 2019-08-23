@@ -41,7 +41,21 @@ pub struct Registry {
 	string_table: Interner<&'static str>,
 	#[serde(skip)]
 	type_table: Interner<AnyTypeId>,
-	types: Vec<TypeIdDef>,
+    #[serde(serialize_with = "serialize_registry_types")]
+	types: BTreeMap<UntrackedSymbol<std::any::TypeId>, TypeIdDef>,
+}
+
+/// Serializes the types of the registry by removing their unique IDs
+/// and instead serialize them in order of their removed unique ID.
+fn serialize_registry_types<S>(
+    types: &BTreeMap<UntrackedSymbol<std::any::TypeId>, TypeIdDef>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer
+{
+    let types = types.iter().collect::<Vec<_>>();
+    types.serialize(serializer)
 }
 
 impl Registry {
@@ -50,7 +64,7 @@ impl Registry {
 		Self {
 			string_table: Interner::new(),
 			type_table: Interner::new(),
-			types: vec![],
+			types: BTreeMap::new(),
 		}
 	}
 
@@ -88,7 +102,7 @@ impl Registry {
 		if inserted {
 			let compact_id = ty.type_id().into_compact(self);
 			let compact_def = ty.type_def().into_compact(self);
-			self.types.push(TypeIdDef {
+			self.types.insert(symbol, TypeIdDef {
 				id: compact_id,
 				def: compact_def,
 			});
