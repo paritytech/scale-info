@@ -54,7 +54,7 @@ fn serialize_registry_types<S>(
 where
     S: serde::Serializer
 {
-    let types = types.iter().collect::<Vec<_>>();
+    let types = types.values().collect::<Vec<_>>();
     types.serialize(serializer)
 }
 
