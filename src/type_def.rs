@@ -435,6 +435,17 @@ impl IntoCompact for EnumVariant {
 /// An unit struct enum variant.
 ///
 /// These are similar to the variants in C-like enums.
+///
+/// # Example
+///
+/// ```
+/// enum Operation {
+///     Zero,
+/// //  ^^^^ this is a unit struct enum variant
+///     Add(i32, i32),
+///     Minus { source: i32 }
+/// }
+/// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(transparent)]
 pub struct EnumVariantUnit<F: Form = MetaForm> {
@@ -461,6 +472,17 @@ impl EnumVariantUnit {
 }
 
 /// A struct enum variant with named fields.
+///
+/// # Example
+///
+/// ```
+/// enum Operation {
+///     Zero,
+///     Add(i32, i32),
+///     Minus { source: i32 }
+/// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
+/// }
+/// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantStruct<F: Form = MetaForm> {
@@ -501,6 +523,19 @@ impl EnumVariantStruct {
 }
 
 /// A tuple struct enum variant.
+///
+/// # Example
+///
+/// ```
+/// enum Operation {
+///     Zero,
+///     Add(i32, i32),
+/// //  ^^^^^^^^^^^^^ this is a tuple-struct enum variant
+///     Minus {
+///         source: i32,
+///     }
+/// }
+/// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantTupleStruct<F: Form = MetaForm> {
