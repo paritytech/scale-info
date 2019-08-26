@@ -42,13 +42,13 @@ pub struct Registry {
 	#[serde(skip)]
 	type_table: Interner<AnyTypeId>,
 	#[serde(serialize_with = "serialize_registry_types")]
-	types: BTreeMap<UntrackedSymbol<std::any::TypeId>, TypeIdDef>,
+	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeIdDef>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs
 /// and instead serialize them in order of their removed unique ID.
 fn serialize_registry_types<S>(
-	types: &BTreeMap<UntrackedSymbol<std::any::TypeId>, TypeIdDef>,
+	types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeIdDef>,
 	serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
