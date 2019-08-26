@@ -16,8 +16,12 @@ derive_more = { version = "0.15", features = ["no_std"] }
 
 [features]
 default = ["std"]
-std = []
-derive = ["type-metadata-derive"]
+std = [
+    "serde/std",
+]
+derive = [
+    "type-metadata-derive"
+]
 
 [workspace]
 members = [
