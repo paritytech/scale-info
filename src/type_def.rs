@@ -582,7 +582,7 @@ impl EnumVariantTupleStruct {
 /// ```
 /// union SmallVecI32 {
 ///     inl: [i32; 8],
-///     ext: Vec<i32>,
+///     ext: *mut i32,
 /// }
 /// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
