@@ -103,3 +103,28 @@ fn test_struct() {
         },
     }));
 }
+
+#[test]
+fn test_clike_enum() {
+    #[derive(Metadata)]
+    enum ClikeEnum {
+        A,
+        B = 42,
+        C,
+    }
+
+    assert_json_for_type::<ClikeEnum>(json!({
+        "id": {
+            "custom.name": 1,
+            "custom.namespace": [2],
+            "custom.params": [],
+        },
+        "def": {
+            "clike_enum.variants": [
+                { "name": 3, "discriminant": 0, },
+                { "name": 4, "discriminant": 42, },
+                { "name": 5, "discriminant": 2, },
+            ]
+        },
+    }));
+}
