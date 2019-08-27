@@ -86,7 +86,15 @@ pub use self::{
 #[cfg(feature = "derive")]
 pub use type_metadata_derive::{Metadata, TypeDef, TypeId};
 
+/// A super trait that shall be implemented by all types implementing
+/// `HasTypeId` and `HasTypedef` in order to more easily manage them.
+///
+/// This trait is automatically implemented for all `'static` type that
+/// also implement `HasTypeId` and `HasTypeDef`. Users of this library should
+/// use this trait directly instead of using the more fine grained
+/// `HasTypeId` and `HasTypeDef` traits.
 pub trait Metadata: HasTypeId + HasTypeDef {
+	/// Returns the runtime bridge to the types compile-time type information.
 	fn meta_type() -> MetaType;
 }
 
