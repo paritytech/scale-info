@@ -78,3 +78,28 @@ fn test_tuple_struct() {
         },
     }));
 }
+
+#[test]
+fn test_struct() {
+    #[derive(Metadata)]
+    struct Struct {
+        a: i32,
+        b: [u8; 32],
+        c: bool,
+    }
+
+    assert_json_for_type::<Struct>(json!({
+        "id": {
+            "custom.name": 1,
+            "custom.namespace": [2],
+            "custom.params": [],
+        },
+        "def": {
+            "struct.fields": [
+                { "name": 3, "type": 1, },
+                { "name": 4, "type": 2, },
+                { "name": 5, "type": 4, },
+            ]
+        },
+    }));
+}
