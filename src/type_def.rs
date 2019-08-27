@@ -314,6 +314,19 @@ impl TypeDefClikeEnum {
 }
 
 /// A C-like enum variant.
+///
+/// # Example
+///
+/// ```
+/// enum Food {
+///     Pizza,
+/// //  ^^^^^ this is a C-like enum variant
+///     Salad = 1337,
+/// //  ^^^^^ this as well
+///     Apple,
+/// //  ^^^^^ and this
+/// }
+/// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct ClikeEnumVariant<F: Form = MetaForm> {
 	/// The name of the variant.
