@@ -19,10 +19,33 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 
+/// Takes a number of types and returns a vector that contains their respective `MetaType` instances.
+///
+/// This is useful for places that require inputs of iterators over `MetaType` instances
+/// and provide a way out of code bloat in these scenarious.
+///
+/// # Example
+///
+/// ```
+/// use type_metadata::{
+/// 	tuple_meta_type,
+/// 	MetaType,
+/// };
+/// assert_eq!(
+/// 	tuple_meta_type!(i32, [u8; 32], String),
+/// 	{
+/// 		let mut vec = Vec::new();
+/// 		vec.push(MetaType::new::<i32>());
+/// 		vec.push(MetaType::new::<[u8; 32]>());
+/// 		vec.push(MetaType::new::<String>());
+/// 		vec
+/// 	}
+/// );
+/// ```
 #[macro_export]
 macro_rules! tuple_meta_type {
-    ( $($ty:ty),* ) => {
-        {
+	( $($ty:ty),* ) => {
+		{
 			#[cfg(not(feature = "std"))]
 			extern crate alloc as _alloc;
 			#[cfg(not(feature = "std"))]
@@ -33,12 +56,12 @@ macro_rules! tuple_meta_type {
 			#[allow(unused_mut)]
 			let mut v = std::vec![];
 
-            $(
+			$(
 				v.push(MetaType::new::<$ty>());
-            )*
-            v
-        }
-    }
+			)*
+			v
+		}
+	}
 }
 
 mod tm_std;
