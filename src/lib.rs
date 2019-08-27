@@ -27,13 +27,11 @@ extern crate alloc;
 /// # Example
 ///
 /// ```
-/// use type_metadata::{
-/// 	tuple_meta_type,
-/// 	MetaType,
-/// };
+/// # use type_metadata::tuple_meta_type;
 /// assert_eq!(
 /// 	tuple_meta_type!(i32, [u8; 32], String),
 /// 	{
+/// 		use type_metadata::MetaType;
 /// 		let mut vec = Vec::new();
 /// 		vec.push(MetaType::new::<i32>());
 /// 		vec.push(MetaType::new::<[u8; 32]>());
@@ -57,7 +55,7 @@ macro_rules! tuple_meta_type {
 			let mut v = std::vec![];
 
 			$(
-				v.push(MetaType::new::<$ty>());
+				v.push($crate::MetaType::new::<$ty>());
 			)*
 			v
 		}
