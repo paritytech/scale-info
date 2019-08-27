@@ -382,7 +382,6 @@ impl ClikeEnumVariant {
 /// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
-#[serde(transparent)]
 pub struct TypeDefEnum<F: Form = MetaForm> {
 	/// The variants of the enum.
 	#[serde(rename = "enum.variants")]
@@ -459,10 +458,9 @@ impl IntoCompact for EnumVariant {
 /// }
 /// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
-#[serde(transparent)]
 pub struct EnumVariantUnit<F: Form = MetaForm> {
 	/// The name of the variant.
-	#[serde(rename = "unit_struct_variant.name")]
+	#[serde(rename = "unit_variant.name")]
 	name: F::String,
 }
 
