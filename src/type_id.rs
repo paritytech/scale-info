@@ -101,6 +101,9 @@ impl Namespace {
 	}
 }
 
+/// A type identifier.
+///
+/// This uniquely identifies types and can be used to refer to type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "
 	F::TypeId: Serialize,
@@ -108,10 +111,15 @@ impl Namespace {
 ")]
 #[serde(untagged)]
 pub enum TypeId<F: Form = MetaForm> {
+	/// A custom type defined by the user.
 	Custom(TypeIdCustom<F>),
+	/// A slice type with runtime known length.
 	Slice(TypeIdSlice<F>),
+	/// An array type with compile-time known lengh.
 	Array(TypeIdArray<F>),
+	/// A tuple type.
 	Tuple(TypeIdTuple<F>),
+	/// A Rust primitive type.
 	Primitive(TypeIdPrimitive),
 }
 
@@ -129,31 +137,53 @@ impl IntoCompact for TypeId {
 	}
 }
 
+/// Identifies a primitive Rust type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum TypeIdPrimitive {
+	/// `bool` type
 	Bool,
+	/// `char` type
 	Char,
+	/// `str` type
 	Str,
+	/// `u8`
 	U8,
+	/// `u16`
 	U16,
+	/// `u32`
 	U32,
+	/// `u64`
 	U64,
+	/// `u128`
 	U128,
+	/// `i8`
 	I8,
+	/// `i16`
 	I16,
+	/// `i32`
 	I32,
+	/// `i64`
 	I64,
+	/// `i128`
 	I128,
 }
 
+/// A type identifier for custom type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeIdCustom<F: Form = MetaForm> {
+	/// The name of the custom type.
 	#[serde(rename = "custom.name")]
 	name: F::String,
+	/// The namespace in which the custom type has been defined.
+	///
+	/// # Note
+	///
+	/// For Rust prelude types the root (empty) namespace is used.
 	#[serde(rename = "custom.namespace")]
 	namespace: Namespace<F>,
+	/// The generic type parameters of the custom type in use.
 	#[serde(rename = "custom.params")]
 	type_params: Vec<F::TypeId>,
 }
@@ -175,6 +205,7 @@ impl IntoCompact for TypeIdCustom {
 }
 
 impl TypeIdCustom {
+	/// Creates a new type identifier to refer to a custom type definition.
 	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
 	where
 		T: IntoIterator<Item = MetaType>,
@@ -187,11 +218,14 @@ impl TypeIdCustom {
 	}
 }
 
+/// An array type identifier.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::IndirectTypeId: Serialize")]
 pub struct TypeIdArray<F: Form = MetaForm> {
+	/// The length of the array type definition.
 	#[serde(rename = "array.len")]
 	pub len: u16,
+	/// The element type of the array type definition.
 	#[serde(rename = "array.type")]
 	pub type_param: F::IndirectTypeId,
 }
@@ -208,15 +242,18 @@ impl IntoCompact for TypeIdArray {
 }
 
 impl TypeIdArray {
+	/// Creates a new identifier to refer to array type definition.
 	pub fn new(len: u16, type_param: MetaType) -> Self {
 		Self { len, type_param }
 	}
 }
 
+/// A type identifier to refer to tuple types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(transparent)]
 pub struct TypeIdTuple<F: Form = MetaForm> {
+	/// The types in the tuple type definition.
 	pub type_params: Vec<F::TypeId>,
 }
 
@@ -235,6 +272,7 @@ impl IntoCompact for TypeIdTuple {
 }
 
 impl TypeIdTuple {
+	/// Creates a new tuple type definition from the given types.
 	pub fn new<T>(type_params: T) -> Self
 	where
 		T: IntoIterator<Item = MetaType>,
@@ -244,14 +282,17 @@ impl TypeIdTuple {
 		}
 	}
 
+	/// Creates a new unit tuple to represent the unit type, `()`.
 	pub fn unit() -> Self {
 		Self::new(vec![])
 	}
 }
 
+/// A type identifier to refer to slice type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::IndirectTypeId: Serialize")]
 pub struct TypeIdSlice<F: Form = MetaForm> {
+	/// The element type of the slice type definition.
 	#[serde(rename = "slice.type")]
 	type_param: F::IndirectTypeId,
 }
@@ -267,10 +308,16 @@ impl IntoCompact for TypeIdSlice {
 }
 
 impl TypeIdSlice {
+	/// Creates a new type identifier to refer to slice type definitions.
+	///
+	/// Use this constructor if you want to instantiate from a given meta type.
 	pub fn new(type_param: MetaType) -> Self {
 		Self { type_param }
 	}
 
+	/// Creates a new type identifier to refer to slice type definitions.
+	///
+	/// Use this constructor if you want to instantiate from a given compile-time type.
 	pub fn of<T>() -> Self
 	where
 		T: Metadata + 'static,

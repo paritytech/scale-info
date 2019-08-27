@@ -14,6 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Interning data structure and associated symbol definitions.
+//!
+//! The interner is used by the registry in order to compact strings and type definitions.
+//! Strings are uniquely identified by their contents while types are uniquely identified
+//! by their respective type identifiers.
+//!
+//! The interners provide a strict ordered sequence of cached (aka interned) elements
+//! and is later used for compact serialization within the registry.
+
 use crate::tm_std::*;
 use serde::Serialize;
 
@@ -64,11 +73,27 @@ impl<T> Symbol<'_, T> {
 	}
 }
 
+/// Interning data structure generic over the element type.
+///
+/// For the sake of simplicity and correctness we are using a rather naive implementation.
+///
+/// # Usage
+///
+/// This is used in order to quite efficiently cache strings and type
+/// definitions uniquely identified by their associated type identifiers.
 #[derive(Debug, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
 pub struct Interner<T> {
+	/// A mapping from the interned elements to their respective compact identifiers.
+	///
+	/// The idenfitiers can be used to retrieve information about the original element from the interner.
 	#[serde(skip)]
 	map: BTreeMap<T, usize>,
+	/// The ordered sequence of cached elements.
+	///
+	/// This is used to efficiently provide access to the cached elements and
+	/// to establish a strict ordering upon them since each is uniquely idenfitied
+	/// later by its position in the vector.
 	vec: Vec<T>,
 }
 
@@ -89,6 +114,7 @@ impl<T> Interner<T>
 where
 	T: Ord + Clone,
 {
+	/// Interns the given element or returns its associated symbol if it has already been interned.
 	pub fn intern_or_get(&mut self, s: T) -> (bool, Symbol<T>) {
 		let next_id = self.vec.len();
 		let (inserted, sym_id) = match self.map.entry(s.clone()) {
@@ -108,6 +134,7 @@ where
 		)
 	}
 
+	/// Returns the symbol of the given element or `None` if it hasn't been interned already.
 	pub fn get(&self, s: &T) -> Option<Symbol<T>> {
 		self.map.get(s).map(|&id| Symbol {
 			id: NonZeroU32::new(id as u32).unwrap(),
@@ -115,6 +142,8 @@ where
 		})
 	}
 
+	/// Resolves the original element given its associated symbol or
+	/// returns `None` if it has not been interned yet.
 	pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
 		let idx = (sym.id.get() - 1) as usize;
 		if idx >= self.vec.len() {

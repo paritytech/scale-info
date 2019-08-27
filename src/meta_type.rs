@@ -72,6 +72,7 @@ impl Debug for MetaType {
 }
 
 impl MetaType {
+	/// Creates a new meta type from the given compile-time known type.
 	pub fn new<T>() -> Self
 	where
 		T: Metadata + ?Sized + 'static,
@@ -83,6 +84,7 @@ impl MetaType {
 		}
 	}
 
+	/// Creates a new meta types from the type of the given reference.
 	pub fn of<T>(_elem: &T) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
@@ -90,14 +92,17 @@ impl MetaType {
 		Self::new::<T>()
 	}
 
+	/// Returns the meta type identifier.
 	pub fn type_id(&self) -> TypeId<MetaForm> {
 		(self.fn_type_id)()
 	}
 
+	/// Returns the meta type definition.
 	pub fn type_def(&self) -> TypeDef<MetaForm> {
 		(self.fn_type_def)()
 	}
 
+	/// Returns the type identifier provided by `core::any`.
 	pub fn any_id(&self) -> AnyTypeId {
 		self.any_id
 	}

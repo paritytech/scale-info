@@ -14,6 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Provides some form definitions.
+//!
+//! The forms provided here are used to generically communicate the
+//! compaction mode a type identifier, type definition or structures
+//! that are using these.
+//!
+//! The default form is the `MetaForm`.
+//! It uses `MetaType` for communicating type identifiers and thus acts as
+//! a bridge from runtime to compile time type information.
+//!
+//! The compact form is `CompactForm` and represents a compact form
+//! that no longer has any connections to the interning registry and thus
+//! can no longer be used in order to retrieve information from the
+//! original registry easily. Its sole purpose is for compact serialization.
+//!
+//! Other forms, such as a compact form that is still bound to the registry
+//! (also via lifetime tracking) are possible but current not needed.
+
 use crate::tm_std::*;
 use crate::{interner::UntrackedSymbol, meta_type::MetaType};
 use serde::Serialize;
