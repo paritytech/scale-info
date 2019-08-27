@@ -24,9 +24,7 @@ use alloc::{vec, vec::Vec};
 
 use serde::Serialize;
 use serde_json::json;
-use type_metadata::{
-	form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId,
-};
+use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
 
 #[derive(Serialize)]
 struct TypeIdDef {
@@ -176,7 +174,7 @@ fn test_union() {
 	#[derive(Metadata)]
 	union Union {
 		inl: [u8; 32],
-        ext: u128,
+		ext: u128,
 	}
 
 	assert_json_for_type::<Union>(json!({
@@ -198,227 +196,222 @@ fn test_union() {
 fn test_registry() {
 	let mut registry = Registry::new();
 
-    #[derive(Metadata)]
-    struct UnitStruct;
-    #[derive(Metadata)]
-    struct TupleStruct(u8, u32);
-    #[derive(Metadata)]
-    struct Struct {
-        a: u8,
-        b: u32,
-        c: [u8; 32],
-    }
-    #[derive(Metadata)]
-    struct RecursiveStruct {
-        rec: Vec<RecursiveStruct>,
-    }
-    #[derive(Metadata)]
-    enum ClikeEnum {
-        A, B, C,
-    }
-    #[derive(Metadata)]
-    enum RustEnum {
-        A,
-        B(u8, u32),
-        C {
-            a: u8,
-            b: u32,
-            c: [u8; 32],
-        }
-    }
+	#[derive(Metadata)]
+	struct UnitStruct;
+	#[derive(Metadata)]
+	struct TupleStruct(u8, u32);
+	#[derive(Metadata)]
+	struct Struct {
+		a: u8,
+		b: u32,
+		c: [u8; 32],
+	}
+	#[derive(Metadata)]
+	struct RecursiveStruct {
+		rec: Vec<RecursiveStruct>,
+	}
+	#[derive(Metadata)]
+	enum ClikeEnum {
+		A,
+		B,
+		C,
+	}
+	#[derive(Metadata)]
+	enum RustEnum {
+		A,
+		B(u8, u32),
+		C { a: u8, b: u32, c: [u8; 32] },
+	}
 
-    registry.register_type(&UnitStruct::meta_type());
-    registry.register_type(&TupleStruct::meta_type());
-    registry.register_type(&Struct::meta_type());
-    registry.register_type(&RecursiveStruct::meta_type());
-    registry.register_type(&ClikeEnum::meta_type());
-    registry.register_type(&RustEnum::meta_type());
+	registry.register_type(&UnitStruct::meta_type());
+	registry.register_type(&TupleStruct::meta_type());
+	registry.register_type(&Struct::meta_type());
+	registry.register_type(&RecursiveStruct::meta_type());
+	registry.register_type(&ClikeEnum::meta_type());
+	registry.register_type(&RustEnum::meta_type());
 
-    let expected_json = json!({
-        "strings": [
-            "UnitStruct",      //  1
-            "json",            //  2
-            "TupleStruct",     //  3
-            "Struct",          //  4
-            "a",               //  5
-            "b",               //  6
-            "c",               //  7
-            "RecursiveStruct", //  8
-            "rec",             //  9
-            "Vec",             // 10
-            "elems",           // 11
-            "ClikeEnum",       // 12
-            "A",               // 13
-            "B",               // 14
-            "C",               // 15
-            "RustEnum",        // 16
-        ],
-        "types": [
-            { // type 1
-                "id": {
-                    "custom.name": 1, // UnitStruct
-                    "custom.namespace": [2], // json
-                    "custom.params": [],
-                },
-                "def": {
-                    "tuple_struct.types": [],
-                }
-            },
-            { // type 2
-                "id": {
-                    "custom.name": 3, // TupleStruct
-                    "custom.namespace": [2], // json
-                    "custom.params": [],
-                },
-                "def": {
-                    "tuple_struct.types": [
-                        3, // u8
-                        4, // u32
-                    ]
-                }
-            },
-            { // type 3
-                "id": "u8",
-                "def": "builtin",
-            },
-            { // type 4
-                "id": "u32",
-                "def": "builtin",
-            },
-            { // type 5
-                "id": {
-                    "custom.name": 4, // Struct
-                    "custom.namespace": [2], // json
-                    "custom.params": [],
-                },
-                "def": {
-                    "struct.fields": [
-                        {
-                            "name": 5, // a
-                            "type": 3, // u8
-                        },
-                        {
-                            "name": 6, // b
-                            "type": 4, // u32
-                        },
-                        {
-                            "name": 7, // c
-                            "type": 6, // [u8; 32]
-                        }
-                    ]
-                }
-            },
-            { // type 6
-                "id": {
-                    "array.len": 32,
-                    "array.type": 3, // u8
-                },
-                "def": "builtin",
-            },
-            { // type 7
-                "id": {
-                    "custom.name": 8, // RecursiveStruct
-                    "custom.namespace": [2], // json
-                    "custom.params": [],
-                },
-                "def": {
-                    "struct.fields": [
-                        {
-                            "name": 9, // rec
-                            "type": 8, // Vec<RecursiveStruct>
-                        }
-                    ]
-                }
-            },
-            { // type 8
-                "id": {
-                    "custom.name": 10, // Vec
-                    "custom.namespace": [], // empty represents prelude (root) namespace
-                    "custom.params": [
-                        7, // RecursiveStruct
-                    ],
-                },
-                "def": {
-                    "struct.fields": [
-                        {
-                            "name": 11, // elems
-                            "type": 9, // RecursiveStruct
-                        }
-                    ]
-                }
-            },
-            { // type 9
-                "id": {
-                    "slice.type": 7, // RecursiveStruct
-                },
-                "def": "builtin",
-            },
-            { // type 10
-                "id": {
-                    "custom.name": 12, // ClikeEnum
-                    "custom.namespace": [2], // json
-                    "custom.params": [],
-                },
-                "def": {
-                    "clike_enum.variants": [
-                        {
-                            "name": 13, // A
-                            "discriminant": 0,
-                        },
-                        {
-                            "name": 14, // B
-                            "discriminant": 1,
-                        },
-                        {
-                            "name": 15, // C
-                            "discriminant": 2,
-                        },
-                    ]
-                }
-            },
-            { // type 11
-                "id": {
-                    "custom.name": 16, // RustEnum
-                    "custom.namespace": [2], // json
-                    "custom.params": [],
-                },
-                "def": {
-                    "enum.variants": [
-                        {
-                            "unit_variant.name": 13, // A
-                        },
-                        {
-                            "tuple_struct_variant.name": 14, // B
-                            "tuple_struct_variant.types": [
-                                3, // u8
-                                4, // u32
-                            ],
-                        },
-                        {
-                            "struct_variant.name": 15, // C
-                            "struct_variant.fields": [
-                                {
-                                    "name": 5, // a
-                                    "type": 3, // u8
-                                },
-                                {
-                                    "name": 6, // b
-                                    "type": 4, // u32
-                                },
-                                {
-                                    "name": 7, // c
-                                    "type": 6, // [u8; 32]
-                                }
-                            ]
-                        }
-                    ]
-                }
-            },
-        ]
-    });
+	let expected_json = json!({
+		"strings": [
+			"UnitStruct",      //  1
+			"json",            //  2
+			"TupleStruct",     //  3
+			"Struct",          //  4
+			"a",               //  5
+			"b",               //  6
+			"c",               //  7
+			"RecursiveStruct", //  8
+			"rec",             //  9
+			"Vec",             // 10
+			"elems",           // 11
+			"ClikeEnum",       // 12
+			"A",               // 13
+			"B",               // 14
+			"C",               // 15
+			"RustEnum",        // 16
+		],
+		"types": [
+			{ // type 1
+				"id": {
+					"custom.name": 1, // UnitStruct
+					"custom.namespace": [2], // json
+					"custom.params": [],
+				},
+				"def": {
+					"tuple_struct.types": [],
+				}
+			},
+			{ // type 2
+				"id": {
+					"custom.name": 3, // TupleStruct
+					"custom.namespace": [2], // json
+					"custom.params": [],
+				},
+				"def": {
+					"tuple_struct.types": [
+						3, // u8
+						4, // u32
+					]
+				}
+			},
+			{ // type 3
+				"id": "u8",
+				"def": "builtin",
+			},
+			{ // type 4
+				"id": "u32",
+				"def": "builtin",
+			},
+			{ // type 5
+				"id": {
+					"custom.name": 4, // Struct
+					"custom.namespace": [2], // json
+					"custom.params": [],
+				},
+				"def": {
+					"struct.fields": [
+						{
+							"name": 5, // a
+							"type": 3, // u8
+						},
+						{
+							"name": 6, // b
+							"type": 4, // u32
+						},
+						{
+							"name": 7, // c
+							"type": 6, // [u8; 32]
+						}
+					]
+				}
+			},
+			{ // type 6
+				"id": {
+					"array.len": 32,
+					"array.type": 3, // u8
+				},
+				"def": "builtin",
+			},
+			{ // type 7
+				"id": {
+					"custom.name": 8, // RecursiveStruct
+					"custom.namespace": [2], // json
+					"custom.params": [],
+				},
+				"def": {
+					"struct.fields": [
+						{
+							"name": 9, // rec
+							"type": 8, // Vec<RecursiveStruct>
+						}
+					]
+				}
+			},
+			{ // type 8
+				"id": {
+					"custom.name": 10, // Vec
+					"custom.namespace": [], // empty represents prelude (root) namespace
+					"custom.params": [
+						7, // RecursiveStruct
+					],
+				},
+				"def": {
+					"struct.fields": [
+						{
+							"name": 11, // elems
+							"type": 9, // RecursiveStruct
+						}
+					]
+				}
+			},
+			{ // type 9
+				"id": {
+					"slice.type": 7, // RecursiveStruct
+				},
+				"def": "builtin",
+			},
+			{ // type 10
+				"id": {
+					"custom.name": 12, // ClikeEnum
+					"custom.namespace": [2], // json
+					"custom.params": [],
+				},
+				"def": {
+					"clike_enum.variants": [
+						{
+							"name": 13, // A
+							"discriminant": 0,
+						},
+						{
+							"name": 14, // B
+							"discriminant": 1,
+						},
+						{
+							"name": 15, // C
+							"discriminant": 2,
+						},
+					]
+				}
+			},
+			{ // type 11
+				"id": {
+					"custom.name": 16, // RustEnum
+					"custom.namespace": [2], // json
+					"custom.params": [],
+				},
+				"def": {
+					"enum.variants": [
+						{
+							"unit_variant.name": 13, // A
+						},
+						{
+							"tuple_struct_variant.name": 14, // B
+							"tuple_struct_variant.types": [
+								3, // u8
+								4, // u32
+							],
+						},
+						{
+							"struct_variant.name": 15, // C
+							"struct_variant.fields": [
+								{
+									"name": 5, // a
+									"type": 3, // u8
+								},
+								{
+									"name": 6, // b
+									"type": 4, // u32
+								},
+								{
+									"name": 7, // c
+									"type": 6, // [u8; 32]
+								}
+							]
+						}
+					]
+				}
+			},
+		]
+	});
 
-	assert_eq!(
-        serde_json::to_value(registry).unwrap(),
-        expected_json,
-    );
+	assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }
