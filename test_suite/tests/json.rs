@@ -128,3 +128,44 @@ fn test_clike_enum() {
         },
     }));
 }
+
+#[test]
+fn test_enum() {
+    #[derive(Metadata)]
+    enum Enum {
+        ClikeVariant,
+        TupleStructVariant(u32, bool),
+        StructVariant {
+            a: u32,
+            b: [u8; 32],
+            c: char,
+        },
+    }
+
+    assert_json_for_type::<Enum>(json!({
+        "id": {
+            "custom.name": 1,
+            "custom.namespace": [2],
+            "custom.params": [],
+        },
+        "def": {
+            "enum.variants": [
+                {
+                    "unit_variant.name": 3,
+                },
+                {
+                    "tuple_struct_variant.name": 4,
+                    "tuple_struct_variant.types": [1, 2],
+                },
+                {
+                    "struct_variant.name": 5,
+                    "struct_variant.fields": [
+                        { "name": 6, "type": 1, },
+                        { "name": 7, "type": 3, },
+                        { "name": 8, "type": 5, },
+                    ],
+                }
+            ]
+        },
+    }));
+}
