@@ -14,6 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//! Interning data structure and associated symbol definitions.
+//!
+//! The interner is used by the registry in order to compact strings and type definitions.
+//! Strings are uniquely identified by their contents while types are uniquely identified
+//! by their respective type identifiers.
+//!
+//! The interners provide a strict ordered sequence of cached (aka interned) elements
+//! and is later used for compact serialization within the registry.
+
 use crate::tm_std::*;
 use serde::Serialize;
 
