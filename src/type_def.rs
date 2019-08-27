@@ -597,7 +597,6 @@ impl EnumVariantTupleStruct {
 /// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
-#[serde(transparent)]
 pub struct TypeDefUnion<F: Form = MetaForm> {
 	/// The fields of the union.
 	#[serde(rename = "union.fields")]
