@@ -280,7 +280,6 @@ impl UnnamedField {
 /// ```
 #[derive(PartialEq, Eq, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
-#[serde(transparent)]
 pub struct TypeDefClikeEnum<F: Form = MetaForm> {
 	/// The variants of the C-like enum.
 	#[serde(rename = "clike_enum.variants")]
