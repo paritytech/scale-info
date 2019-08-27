@@ -16,6 +16,53 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+//! Efficient and compact serialization of Rust types.
+//!
+//! This library provides structures to easily retrieve compile-time type information
+//! at runtime and also to serialize this information in a compact form.
+//!
+//! # Registry
+//!
+//! At the heart of its functionality is the `Registry` that acts as cache for
+//! known strings and types in order to efficiently deduplicate them and thus compactify
+//! the overall serialization.
+//!
+//! # Type Information
+//!
+//! Information about types is split into two halfs.
+//!
+//! 1. The type identifier or `TypeId` is accessed through the `HasTypeId` trait.
+//! 2. The type definition or `TypeDef` is accessed throught the `HasTypeDef` trait.
+//!
+//! Both traits shall be implemented for all types that are serializable.
+//! For this the library provides implementations for all commonly used Rust standard
+//! types and provides derive macros for simpler implementation of user provided
+//! custom types.
+//!
+//! # Compaction Forms
+//!
+//! There is an uncompact form, called `MetaForm` that acts as a bridge from compile-time
+//! type information at runtime in order to easily retrieve all information needed to
+//! uniquely identify types.
+//! The compact form is retrieved by the `IntoCompact` trait and internally used by the
+//! `Registry` in order to convert the uncompact strings and types into their compact form.
+//!
+//! # Symbols and Namespaces
+//!
+//! Since symbol names are often shared across type boundaries the `Registry` also deduplicates
+//! them. To differentiate two types sharing the same name namespaces are used. Commonly
+//! the namespace is equal to the one where the type has been defined in. For Rust prelude
+//! types such as `Option` and `Result` the root namespace (empty namespace) is used.
+//!
+//! To use this library simply use the `MetaForm` initially with your own data structures
+//! and at best make them generic over the `Form` trait just as has been done in this crate
+//! with `TypeId` and `TypeDef` in order to go for a simple implementation of `IntoCompact`.
+//! Use a single instance of the `Registry` for compaction and provide this registry instance
+//! upon serialization. Done.
+//!
+//! A usage example can be found in ink! here:
+//! https://github.com/paritytech/ink/blob/master/abi/src/specs.rs
+
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 
