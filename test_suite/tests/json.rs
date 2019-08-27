@@ -170,3 +170,26 @@ fn test_enum() {
 		},
 	}));
 }
+
+#[test]
+fn test_union() {
+	#[derive(Metadata)]
+	union Union {
+		inl: [u8; 32],
+        ext: u128,
+	}
+
+	assert_json_for_type::<Union>(json!({
+		"id": {
+			"custom.name": 1,
+			"custom.namespace": [2],
+			"custom.params": [],
+		},
+		"def": {
+			"union.fields": [
+				{ "name": 3, "type": 1, },
+				{ "name": 4, "type": 3, },
+			]
+		},
+	}));
+}
