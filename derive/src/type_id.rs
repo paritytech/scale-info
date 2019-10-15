@@ -14,15 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::impl_wrapper::wrap;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{self, parse::Result, parse_quote, DeriveInput};
+use syn::{parse::Result, parse_quote, DeriveInput};
+
+use crate::impl_wrapper::wrap;
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
-	match generate_impl(input.into()) {
-		Ok(output) => output.into(),
-		Err(err) => err.to_compile_error().into(),
+	match generate_impl(input) {
+		Ok(output) => output,
+		Err(err) => err.to_compile_error(),
 	}
 }
 
@@ -36,7 +37,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-	let generic_type_ids = ast.generics.type_params().into_iter().map(|ty| {
+	let generic_type_ids = ast.generics.type_params().map(|ty| {
 		let ty_ident = &ty.ident;
 		quote! {
 			<#ty_ident as _type_metadata::Metadata>::meta_type()
@@ -47,7 +48,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 			fn type_id() -> _type_metadata::TypeId {
 				_type_metadata::TypeIdCustom::new(
 					stringify!(#ident),
-					_type_metadata::Namespace::from_str(module_path!())
+					_type_metadata::Namespace::from_module_path(module_path!())
 						.expect("namespace from module path cannot fail"),
 					__core::vec![ #( #generic_type_ids ),* ],
 				).into()
@@ -55,5 +56,5 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 		}
 	};
 
-	Ok(wrap(ident, "HAS_TYPE_ID", has_type_id_impl).into())
+	Ok(wrap(ident, "HAS_TYPE_ID", has_type_id_impl))
 }

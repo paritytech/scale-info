@@ -106,7 +106,7 @@ fn struct_with_generics() {
 		fn type_id() -> TypeId {
 			TypeIdCustom::new(
 				"MyStruct",
-				Namespace::from_str(module_path!()).unwrap(),
+				Namespace::from_module_path(module_path!()).unwrap(),
 				tuple_meta_type!(T),
 			)
 			.into()

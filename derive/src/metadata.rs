@@ -14,21 +14,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{type_def, type_id};
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{self, parse::Result};
+use syn::parse::Result;
+
+use crate::{type_def, type_id};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
-	match generate_impl(input.into()) {
-		Ok(output) => output.into(),
-		Err(err) => err.to_compile_error().into(),
+	match generate_impl(input) {
+		Ok(output) => output,
+		Err(err) => err.to_compile_error(),
 	}
 }
 
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut tokens = quote! {};
-	tokens.extend(type_id::generate_impl(input.clone().into())?);
-	tokens.extend(type_def::generate_impl(input.into())?);
+	tokens.extend(type_id::generate_impl(input.clone())?);
+	tokens.extend(type_def::generate_impl(input)?);
 	Ok(tokens)
 }

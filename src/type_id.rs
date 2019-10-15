@@ -77,7 +77,7 @@ impl Namespace {
 		S: IntoIterator<Item = <MetaForm as Form>::String>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
-		if segments.len() == 0 {
+		if segments.is_empty() {
 			return Err(NamespaceError::MissingSegments);
 		}
 		if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
@@ -91,7 +91,7 @@ impl Namespace {
 	/// # Note
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn from_str(module_path: <MetaForm as Form>::String) -> Result<Self, NamespaceError> {
+	pub fn from_module_path(module_path: <MetaForm as Form>::String) -> Result<Self, NamespaceError> {
 		Self::new(module_path.split("::"))
 	}
 
@@ -365,15 +365,15 @@ mod tests {
 	}
 
 	#[test]
-	fn namespace_from_str() {
+	fn namespace_from_module_path() {
 		assert_eq!(
-			Namespace::from_str("hello::world"),
+			Namespace::from_module_path("hello::world"),
 			Ok(Namespace {
 				segments: vec!["hello", "world"]
 			})
 		);
 		assert_eq!(
-			Namespace::from_str("::world"),
+			Namespace::from_module_path("::world"),
 			Err(NamespaceError::InvalidIdentifier { segment: 0 })
 		);
 	}

@@ -12,12 +12,19 @@ jobs:
           command: |
             rustup install nightly
             rustup component add rustfmt --toolchain nightly
+            rustup component add clippy --toolchain nightly
 
       - run:
           name: fmt
           command: |
             cargo +nightly fmt --version
             cargo +nightly fmt --all -- --check
+
+      - run:
+          name: clippy
+          command: |
+            cargo +nightly clippy --version
+            cargo +nightly clippy --all -- -D warnings
 
       - run:
           name: build

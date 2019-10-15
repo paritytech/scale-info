@@ -104,6 +104,12 @@ where
 	types.serialize(serializer)
 }
 
+impl Default for Registry {
+	fn default() -> Self {
+		Self::new()
+	}
+}
+
 impl Registry {
 	/// Creates a new empty registry.
 	pub fn new() -> Self {

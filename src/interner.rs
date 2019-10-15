@@ -110,6 +110,12 @@ where
 	}
 }
 
+impl<T: Ord> Default for Interner<T> {
+	fn default() -> Self {
+		Self::new()
+	}
+}
+
 impl<T> Interner<T>
 where
 	T: Ord + Clone,
