@@ -44,7 +44,6 @@ fn primitives() {
 	assert_type_id!(Box<String>, TypeIdPrimitive::Str);
 	assert_type_id!(&String, TypeIdPrimitive::Str);
 	assert_type_id!([bool], TypeIdSlice::new(bool::meta_type()));
-	assert_type_id!(PhantomData<bool>, TypeIdPrimitive::Bool);
 }
 
 #[test]
@@ -57,6 +56,10 @@ fn prelude_items() {
 		Result<bool, String>,
 		TypeIdCustom::new("Result", Namespace::prelude(), tuple_meta_type!(bool, String))
 	);
+	assert_type_id!(
+		PhantomData<i32>,
+		TypeIdCustom::new("PhantomData", Namespace::prelude(), tuple_meta_type!(i32))
+	)
 }
 
 #[test]

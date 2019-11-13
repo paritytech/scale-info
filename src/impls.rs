@@ -275,10 +275,10 @@ impl HasTypeDef for String {
 
 impl<T> HasTypeId for PhantomData<T>
 where
-	T: HasTypeId + ?Sized,
+	T: Metadata + ?Sized,
 {
 	fn type_id() -> TypeId {
-		<T>::type_id()
+		TypeIdCustom::new("PhantomData", Namespace::prelude(), vec![T::meta_type()]).into()
 	}
 }
 
@@ -287,6 +287,6 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_def() -> TypeDef {
-		TypeDef::builtin()
+		TypeDefTupleStruct::new(vec![]).into()
 	}
 }
