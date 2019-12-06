@@ -109,7 +109,7 @@ impl Namespace {
 	F::TypeId: Serialize,
 	F::IndirectTypeId: Serialize
 ")]
-#[serde(untagged)]
+#[serde(rename_all = "lowercase")]
 pub enum TypeId<F: Form = MetaForm> {
 	/// A custom type defined by the user.
 	Custom(TypeIdCustom<F>),
@@ -174,17 +174,15 @@ pub enum TypeIdPrimitive {
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeIdCustom<F: Form = MetaForm> {
 	/// The name of the custom type.
-	#[serde(rename = "custom.name")]
 	name: F::String,
 	/// The namespace in which the custom type has been defined.
 	///
 	/// # Note
 	///
 	/// For Rust prelude types the root (empty) namespace is used.
-	#[serde(rename = "custom.namespace")]
 	namespace: Namespace<F>,
 	/// The generic type parameters of the custom type in use.
-	#[serde(rename = "custom.params")]
+	#[serde(rename = "params")]
 	type_params: Vec<F::TypeId>,
 }
 
@@ -223,10 +221,9 @@ impl TypeIdCustom {
 #[serde(bound = "F::IndirectTypeId: Serialize")]
 pub struct TypeIdArray<F: Form = MetaForm> {
 	/// The length of the array type definition.
-	#[serde(rename = "array.len")]
 	pub len: u16,
 	/// The element type of the array type definition.
-	#[serde(rename = "array.type")]
+	#[serde(rename = "type")]
 	pub type_param: F::IndirectTypeId,
 }
 
@@ -293,7 +290,7 @@ impl TypeIdTuple {
 #[serde(bound = "F::IndirectTypeId: Serialize")]
 pub struct TypeIdSlice<F: Form = MetaForm> {
 	/// The element type of the slice type definition.
-	#[serde(rename = "slice.type")]
+	#[serde(rename = "type")]
 	type_param: F::IndirectTypeId,
 }
 
