@@ -109,7 +109,7 @@ impl Namespace {
 	F::TypeId: Serialize,
 	F::IndirectTypeId: Serialize
 ")]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 pub enum TypeId<F: Form = MetaForm> {
 	/// A custom type defined by the user.
 	Custom(TypeIdCustom<F>),

@@ -63,13 +63,15 @@ fn test_unit_struct() {
 			}
 		},
 		"def": {
-			"tuple_struct.types": []
+			"tuplestruct": {
+				"types": []
+			}
 		},
 	}));
 }
 
 #[test]
-fn test_tuple_struct() {
+fn test_tuplestruct() {
 	#[derive(Metadata)]
 	struct TupleStruct(i32, [u8; 32], bool);
 
@@ -82,7 +84,9 @@ fn test_tuple_struct() {
 			}
 		},
 		"def": {
-			"tuple_struct.types": [1, 2, 4]
+			"tuplestruct": {
+				"types": [1, 2, 4]
+			}
 		},
 	}));
 }
@@ -105,11 +109,13 @@ fn test_struct() {
 			}
 		},
 		"def": {
-			"struct.fields": [
-				{ "name": 3, "type": 1, },
-				{ "name": 4, "type": 2, },
-				{ "name": 5, "type": 4, },
-			]
+			"struct": {
+				"fields": [
+					{ "name": 3, "type": 1, },
+					{ "name": 4, "type": 2, },
+					{ "name": 5, "type": 4, },
+				]
+			}
 		},
 	}));
 }
@@ -132,11 +138,13 @@ fn test_clike_enum() {
 			}
 		},
 		"def": {
-			"clike_enum.variants": [
-				{ "name": 3, "discriminant": 0, },
-				{ "name": 4, "discriminant": 42, },
-				{ "name": 5, "discriminant": 2, },
-			]
+			"clike_enum": {
+				"variants": [
+					{ "name": 3, "discriminant": 0, },
+					{ "name": 4, "discriminant": 42, },
+					{ "name": 5, "discriminant": 2, },
+				]
+			}
 		},
 	}));
 }
@@ -159,23 +167,31 @@ fn test_enum() {
 			}
 		},
 		"def": {
-			"enum.variants": [
-				{
-					"unit_variant.name": 3,
-				},
-				{
-					"tuple_struct_variant.name": 4,
-					"tuple_struct_variant.types": [1, 2],
-				},
-				{
-					"struct_variant.name": 5,
-					"struct_variant.fields": [
-						{ "name": 6, "type": 1, },
-						{ "name": 7, "type": 3, },
-						{ "name": 8, "type": 5, },
-					],
-				}
-			]
+			"enum": {
+				"variants": [
+					{
+						"unit_variant": {
+							"name": 3,
+						}
+					},
+					{
+						"tuplestruct_variant": {
+							"name": 4,
+							"types": [1, 2],
+						}
+					},
+					{
+						"struct_variant": {
+							"name": 5,
+							"fields": [
+								{ "name": 6, "type": 1, },
+								{ "name": 7, "type": 3, },
+								{ "name": 8, "type": 5, },
+							],
+						}
+					}
+				]
+			}
 		},
 	}));
 }
@@ -197,10 +213,12 @@ fn test_union() {
 			}
 		},
 		"def": {
-			"union.fields": [
-				{ "name": 3, "type": 1, },
-				{ "name": 4, "type": 3, },
-			]
+			"union": {
+				"fields": [
+					{ "name": 3, "type": 1, },
+					{ "name": 4, "type": 3, },
+				]
+			}
 		},
 	}));
 }
@@ -272,7 +290,9 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"tuple_struct.types": [],
+					"tuplestruct": {
+						"types": [],
+					}
 				}
 			},
 			{ // type 2
@@ -284,10 +304,12 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"tuple_struct.types": [
-						3, // u8
-						4, // u32
-					]
+					"tuplestruct": {
+						"types": [
+							3, // u8
+							4, // u32
+						]
+					}
 				}
 			},
 			{ // type 3
@@ -311,20 +333,22 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"struct.fields": [
-						{
-							"name": 5, // a
-							"type": 3, // u8
-						},
-						{
-							"name": 6, // b
-							"type": 4, // u32
-						},
-						{
-							"name": 7, // c
-							"type": 6, // [u8; 32]
-						}
-					]
+					"struct": {
+						"fields": [
+							{
+								"name": 5, // a
+								"type": 3, // u8
+							},
+							{
+								"name": 6, // b
+								"type": 4, // u32
+							},
+							{
+								"name": 7, // c
+								"type": 6, // [u8; 32]
+							}
+						]
+					}
 				}
 			},
 			{ // type 6
@@ -345,12 +369,14 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"struct.fields": [
-						{
-							"name": 9, // rec
-							"type": 8, // Vec<RecursiveStruct>
-						}
-					]
+					"struct": {
+						"fields": [
+							{
+								"name": 9, // rec
+								"type": 8, // Vec<RecursiveStruct>
+							}
+						]
+					}
 				}
 			},
 			{ // type 8
@@ -364,12 +390,14 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"struct.fields": [
-						{
-							"name": 11, // elems
-							"type": 9, // RecursiveStruct
-						}
-					]
+					"struct": {
+						"fields": [
+							{
+								"name": 11, // elems
+								"type": 9, // RecursiveStruct
+							}
+						]
+					}
 				}
 			},
 			{ // type 9
@@ -389,20 +417,22 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"clike_enum.variants": [
-						{
-							"name": 13, // A
-							"discriminant": 0,
-						},
-						{
-							"name": 14, // B
-							"discriminant": 1,
-						},
-						{
-							"name": 15, // C
-							"discriminant": 2,
-						},
-					]
+					"clike_enum": {
+						"variants": [
+							{
+								"name": 13, // A
+								"discriminant": 0,
+							},
+							{
+								"name": 14, // B
+								"discriminant": 1,
+							},
+							{
+								"name": 15, // C
+								"discriminant": 2,
+							},
+						]
+					}
 				}
 			},
 			{ // type 11
@@ -414,35 +444,44 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"enum.variants": [
-						{
-							"unit_variant.name": 13, // A
-						},
-						{
-							"tuple_struct_variant.name": 14, // B
-							"tuple_struct_variant.types": [
-								3, // u8
-								4, // u32
-							],
-						},
-						{
-							"struct_variant.name": 15, // C
-							"struct_variant.fields": [
-								{
-									"name": 5, // a
-									"type": 3, // u8
+					"enum": {
+						"variants": [
+							{
+								"unit_variant": {
+									"name": 13,
+								} // A
+							},
+							{
+								"tuplestruct_variant": {
+									"name": 14, // B
+									"types": [
+										3, // u8
+										4, // u32
+									]
 								},
-								{
-									"name": 6, // b
-									"type": 4, // u32
-								},
-								{
-									"name": 7, // c
-									"type": 6, // [u8; 32]
+
+							},
+							{
+								"struct_variant": {
+									"name": 15, // C
+									"fields": [
+										{
+											"name": 5, // a
+											"type": 3, // u8
+										},
+										{
+											"name": 6, // b
+											"type": 4, // u32
+										},
+										{
+											"name": 7, // c
+											"type": 6, // [u8; 32]
+										}
+									]
 								}
-							]
-						}
-					]
+							}
+						]
+					}
 				}
 			},
 		]
