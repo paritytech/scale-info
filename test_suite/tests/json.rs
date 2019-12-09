@@ -63,7 +63,7 @@ fn test_unit_struct() {
 			}
 		},
 		"def": {
-			"tuplestruct": {
+			"tupleStruct": {
 				"types": []
 			}
 		},
@@ -84,7 +84,7 @@ fn test_tuplestruct() {
 			}
 		},
 		"def": {
-			"tuplestruct": {
+			"tupleStruct": {
 				"types": [1, 2, 4]
 			}
 		},
@@ -138,7 +138,7 @@ fn test_clike_enum() {
 			}
 		},
 		"def": {
-			"clike_enum": {
+			"clikeEnum": {
 				"variants": [
 					{ "name": 3, "discriminant": 0, },
 					{ "name": 4, "discriminant": 42, },
@@ -170,18 +170,18 @@ fn test_enum() {
 			"enum": {
 				"variants": [
 					{
-						"unit_variant": {
+						"unit": {
 							"name": 3,
 						}
 					},
 					{
-						"tuplestruct_variant": {
+						"tupleStruct": {
 							"name": 4,
 							"types": [1, 2],
 						}
 					},
 					{
-						"struct_variant": {
+						"struct": {
 							"name": 5,
 							"fields": [
 								{ "name": 6, "type": 1, },
@@ -290,7 +290,7 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"tuplestruct": {
+					"tupleStruct": {
 						"types": [],
 					}
 				}
@@ -304,7 +304,7 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"tuplestruct": {
+					"tupleStruct": {
 						"types": [
 							3, // u8
 							4, // u32
@@ -417,7 +417,7 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"clike_enum": {
+					"clikeEnum": {
 						"variants": [
 							{
 								"name": 13, // A
@@ -447,12 +447,12 @@ fn test_registry() {
 					"enum": {
 						"variants": [
 							{
-								"unit_variant": {
+								"unit": {
 									"name": 13,
 								} // A
 							},
 							{
-								"tuplestruct_variant": {
+								"tupleStruct": {
 									"name": 14, // B
 									"types": [
 										3, // u8
@@ -462,7 +462,7 @@ fn test_registry() {
 
 							},
 							{
-								"struct_variant": {
+								"struct": {
 									"name": 15, // C
 									"fields": [
 										{

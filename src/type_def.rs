@@ -39,12 +39,14 @@ pub trait HasTypeDef {
 #[serde(rename_all = "lowercase")]
 pub enum TypeDef<F: Form = MetaForm> {
 	/// A builtin type that has an implied and known internal structure.
-	Builtin(Builtin),
+	Builtin,
 	/// A struct with named fields.
 	Struct(TypeDefStruct<F>),
 	/// A tuple-struct with unnamed fields.
+	#[serde(rename = "tupleStruct")]
 	TupleStruct(TypeDefTupleStruct<F>),
 	/// A C-like enum with simple named variants.
+	#[serde(rename = "clikeEnum")]
 	ClikeEnum(TypeDefClikeEnum<F>),
 	/// A Rust enum with different kinds of variants.
 	Enum(TypeDefEnum<F>),
@@ -55,16 +57,8 @@ pub enum TypeDef<F: Form = MetaForm> {
 impl TypeDef {
 	/// Preferred way to create a builtin type definition.
 	pub fn builtin() -> Self {
-		TypeDef::Builtin(Builtin::Builtin)
+		TypeDef::Builtin
 	}
-}
-
-/// This struct just exists for the purpose of better JSON output.
-#[derive(PartialEq, Eq, Debug, Serialize)]
-pub enum Builtin {
-	/// This enum variant just exists for the purpose of special JSON output.
-	#[serde(rename = "builtin")]
-	Builtin,
 }
 
 impl IntoCompact for TypeDef {
@@ -72,7 +66,7 @@ impl IntoCompact for TypeDef {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeDef::Builtin(builtin) => TypeDef::Builtin(builtin),
+			TypeDef::Builtin => TypeDef::Builtin,
 			TypeDef::Struct(r#struct) => r#struct.into_compact(registry).into(),
 			TypeDef::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
 			TypeDef::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
@@ -419,12 +413,14 @@ impl TypeDefEnum {
 /// or a struct with named fields.
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
+#[serde(rename_all = "lowercase")]
 pub enum EnumVariant<F: Form = MetaForm> {
 	/// A unit struct variant.
 	Unit(EnumVariantUnit<F>),
 	/// A struct variant with named fields.
 	Struct(EnumVariantStruct<F>),
 	/// A tuple-struct variant with unnamed fields.
+	#[serde(rename = "tupleStruct")]
 	TupleStruct(EnumVariantTupleStruct<F>),
 }
 
