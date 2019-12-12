@@ -43,10 +43,8 @@ pub enum TypeDef<F: Form = MetaForm> {
 	/// A struct with named fields.
 	Struct(TypeDefStruct<F>),
 	/// A tuple-struct with unnamed fields.
-	#[serde(rename = "tupleStruct")]
 	TupleStruct(TypeDefTupleStruct<F>),
 	/// A C-like enum with simple named variants.
-	#[serde(rename = "clikeEnum")]
 	ClikeEnum(TypeDefClikeEnum<F>),
 	/// A Rust enum with different kinds of variants.
 	Enum(TypeDefEnum<F>),
@@ -420,7 +418,6 @@ pub enum EnumVariant<F: Form = MetaForm> {
 	/// A struct variant with named fields.
 	Struct(EnumVariantStruct<F>),
 	/// A tuple-struct variant with unnamed fields.
-	#[serde(rename = "tupleStruct")]
 	TupleStruct(EnumVariantTupleStruct<F>),
 }
 
@@ -453,7 +450,6 @@ impl IntoCompact for EnumVariant {
 #[derive(PartialEq, Eq, Debug, Serialize)]
 pub struct EnumVariantUnit<F: Form = MetaForm> {
 	/// The name of the variant.
-	#[serde(rename = "name")]
 	name: F::String,
 }
 
