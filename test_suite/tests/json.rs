@@ -63,7 +63,7 @@ fn test_unit_struct() {
 			}
 		},
 		"def": {
-			"tupleStruct": {
+			"tuplestruct": {
 				"types": []
 			}
 		},
@@ -84,7 +84,7 @@ fn test_tuplestruct() {
 			}
 		},
 		"def": {
-			"tupleStruct": {
+			"tuplestruct": {
 				"types": [1, 2, 4]
 			}
 		},
@@ -138,7 +138,7 @@ fn test_clike_enum() {
 			}
 		},
 		"def": {
-			"clikeEnum": {
+			"clikeenum": {
 				"variants": [
 					{ "name": 3, "discriminant": 0, },
 					{ "name": 4, "discriminant": 42, },
@@ -175,7 +175,7 @@ fn test_enum() {
 						}
 					},
 					{
-						"tupleStruct": {
+						"tuplestruct": {
 							"name": 4,
 							"types": [1, 2],
 						}
@@ -290,7 +290,7 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"tupleStruct": {
+					"tuplestruct": {
 						"types": [],
 					}
 				}
@@ -304,7 +304,7 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"tupleStruct": {
+					"tuplestruct": {
 						"types": [
 							3, // u8
 							4, // u32
@@ -417,7 +417,7 @@ fn test_registry() {
 					}
 				},
 				"def": {
-					"clikeEnum": {
+					"clikeenum": {
 						"variants": [
 							{
 								"name": 13, // A
@@ -452,7 +452,7 @@ fn test_registry() {
 								} // A
 							},
 							{
-								"tupleStruct": {
+								"tuplestruct": {
 									"name": 14, // B
 									"types": [
 										3, // u8
