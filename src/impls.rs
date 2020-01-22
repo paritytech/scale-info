@@ -118,7 +118,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Vec", Namespace::prelude(), tuple_meta_type![T]).into()
+		TypeIdCollection::new("Vec", tuple_meta_type![T]).into()
 	}
 }
 
@@ -127,7 +127,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_def() -> TypeDef {
-		TypeDefStruct::new(vec![NamedField::new("elems", MetaType::new::<[T]>())]).into()
+		TypeDef::builtin()
 	}
 }
 
@@ -183,7 +183,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("BTreeMap", Namespace::prelude(), tuple_meta_type!(K, V)).into()
+		TypeIdCollection::new("BTreeMap", tuple_meta_type!(K, V)).into()
 	}
 }
 
@@ -193,7 +193,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_def() -> TypeDef {
-		TypeDefStruct::new(vec![NamedField::new("elems", MetaType::new::<[(K, V)]>())]).into()
+		TypeDef::builtin()
 	}
 }
 

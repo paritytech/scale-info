@@ -115,8 +115,10 @@ pub enum TypeId<F: Form = MetaForm> {
 	Custom(TypeIdCustom<F>),
 	/// A slice type with runtime known length.
 	Slice(TypeIdSlice<F>),
-	/// An array type with compile-time known lengh.
+	/// An array type with compile-time known length.
 	Array(TypeIdArray<F>),
+	/// A dynamic collection e.g. Vec<T>, BTreeMap<K, V>
+	Collection(TypeIdCollection<F>),
 	/// A tuple type.
 	Tuple(TypeIdTuple<F>),
 	/// A Rust primitive type.
@@ -131,6 +133,7 @@ impl IntoCompact for TypeId {
 			TypeId::Custom(custom) => custom.into_compact(registry).into(),
 			TypeId::Slice(slice) => slice.into_compact(registry).into(),
 			TypeId::Array(array) => array.into_compact(registry).into(),
+			TypeId::Collection(collection) => collection.into_compact(registry).into(),
 			TypeId::Tuple(tuple) => tuple.into_compact(registry).into(),
 			TypeId::Primitive(primitive) => primitive.into(),
 		}
@@ -242,6 +245,45 @@ impl TypeIdArray {
 	/// Creates a new identifier to refer to array type definition.
 	pub fn new(len: u16, type_param: MetaType) -> Self {
 		Self { len, type_param }
+	}
+}
+
+/// A type identifier for collection type definitions.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct TypeIdCollection<F: Form = MetaForm> {
+	/// The name of the custom type.
+	name: F::String,
+	/// The generic type parameters of the custom type in use.
+	#[serde(rename = "params")]
+	type_params: Vec<F::TypeId>,
+}
+
+impl IntoCompact for TypeIdCollection {
+	type Output = TypeIdCollection<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeIdCollection {
+			name: registry.register_string(self.name),
+			type_params: self
+				.type_params
+				.into_iter()
+				.map(|param| registry.register_type(&param))
+				.collect::<Vec<_>>(),
+		}
+	}
+}
+
+impl TypeIdCollection {
+	/// Creates a new type identifier to refer to a custom type definition.
+	pub fn new<T>(name: &'static str, type_params: T) -> Self
+		where
+			T: IntoIterator<Item = MetaType>,
+	{
+		Self {
+			name,
+			type_params: type_params.into_iter().collect(),
+		}
 	}
 }
 
