@@ -187,6 +187,8 @@ pub struct TypeIdCustom<F: Form = MetaForm> {
 	/// The generic type parameters of the custom type in use.
 	#[serde(rename = "params")]
 	type_params: Vec<F::TypeId>,
+	/// The definition of the custom type
+	type_def: TypeDef<F>,
 }
 
 impl IntoCompact for TypeIdCustom {
@@ -201,13 +203,14 @@ impl IntoCompact for TypeIdCustom {
 				.into_iter()
 				.map(|param| registry.register_type(&param))
 				.collect::<Vec<_>>(),
+			type_def: self.type_def.into_compact(),
 		}
 	}
 }
 
 impl TypeIdCustom {
 	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
+	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T, type_def: TypeDef) -> Self
 	where
 		T: IntoIterator<Item = MetaType>,
 	{
@@ -215,6 +218,7 @@ impl TypeIdCustom {
 			name,
 			namespace,
 			type_params: type_params.into_iter().collect(),
+			type_def,
 		}
 	}
 }

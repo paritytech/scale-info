@@ -23,23 +23,11 @@ use crate::{
 use derive_more::From;
 use serde::Serialize;
 
-/// Types implementing this trait can communicate their type structure.
-///
-/// If the current type contains any other types, `type_def` would register their metadata into the given
-/// `registry`. For instance, `<Option<MyStruct>>::type_def()` would register `MyStruct` metadata. All
-/// implementation must register these contained types' metadata.
-pub trait HasTypeDef {
-	/// Returns the type definition for `Self` type.
-	fn type_def() -> TypeDef;
-}
-
 /// A type definition represents the internal structure of a concrete type.
 #[derive(PartialEq, Eq, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum TypeDef<F: Form = MetaForm> {
-	/// A builtin type that has an implied and known internal structure.
-	Builtin,
 	/// A struct with named fields.
 	Struct(TypeDefStruct<F>),
 	/// A tuple-struct with unnamed fields.
@@ -52,19 +40,11 @@ pub enum TypeDef<F: Form = MetaForm> {
 	Union(TypeDefUnion<F>),
 }
 
-impl TypeDef {
-	/// Preferred way to create a builtin type definition.
-	pub fn builtin() -> Self {
-		TypeDef::Builtin
-	}
-}
-
 impl IntoCompact for TypeDef {
 	type Output = TypeDef<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeDef::Builtin => TypeDef::Builtin,
 			TypeDef::Struct(r#struct) => r#struct.into_compact(registry).into(),
 			TypeDef::TupleStruct(tuple_struct) => tuple_struct.into_compact(registry).into(),
 			TypeDef::ClikeEnum(clike_enum) => clike_enum.into_compact(registry).into(),
@@ -321,7 +301,7 @@ impl TypeDefClikeEnum {
 pub struct ClikeEnumVariant<F: Form = MetaForm> {
 	/// The name of the variant.
 	name: F::String,
-	/// The disciminant of the variant.
+	/// The discriminant of the variant.
 	///
 	/// # Note
 	///
