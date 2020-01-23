@@ -51,15 +51,16 @@ fn struct_derive() {
 		pub u: U,
 	}
 
-	let type_id = TypeIdCustom::new("S", Namespace::new(vec!["derive"]).unwrap(), tuple_meta_type!(bool, u8));
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["derive"]).unwrap(),
+		tuple_meta_type!(bool, u8),
+		TypeDefStruct::new(vec![
+			NamedField::new("t", bool::meta_type()),
+			NamedField::new("u", u8::meta_type()),
+		]).into(),
+	);
 	assert_type_id!(S<bool, u8>, type_id.clone());
-
-	let type_def = TypeDefStruct::new(vec![
-		NamedField::new("t", bool::meta_type()),
-		NamedField::new("u", u8::meta_type()),
-	])
-	.into();
-	assert_eq!(<S<bool, u8>>::type_def(), type_def);
 
 	// With "`Self` typed" fields
 
@@ -69,17 +70,12 @@ fn struct_derive() {
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(Box<S<bool, u8>>, bool),
-	);
-	assert_type_id!(SelfTyped, self_typed_id);
-
-	assert_eq!(
-		SelfTyped::type_def(),
 		TypeDefStruct::new(vec![
 			NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
 			NamedField::new("u", bool::meta_type()),
-		])
-		.into(),
+		]).into()
 	);
+	assert_type_id!(SelfTyped, self_typed_id);
 }
 
 #[test]
@@ -88,11 +84,13 @@ fn tuple_struct_derive() {
 	#[derive(Metadata)]
 	struct S<T>(T);
 
-	let type_id = TypeIdCustom::new("S", Namespace::new(vec!["derive"]).unwrap(), tuple_meta_type!(bool));
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["derive"]).unwrap(),
+		tuple_meta_type!(bool),
+		TypeDefTupleStruct::new(vec![UnnamedField::of::<bool>()]).into()
+	);
 	assert_type_id!(S<bool>, type_id);
-
-	let type_def = TypeDefTupleStruct::new(vec![UnnamedField::of::<bool>()]).into();
-	assert_eq!(<S<bool>>::type_def(), type_def);
 }
 
 #[test]
@@ -101,11 +99,13 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let type_id = TypeIdCustom::new("S", Namespace::new(vec!["derive"]).unwrap(), vec![]);
+	let type_id = TypeIdCustom::new(
+		"S",
+		Namespace::new(vec!["derive"]).unwrap(),
+		vec![],
+		TypeDefTupleStruct::unit().into(),
+	);
 	assert_type_id!(S, type_id);
-
-	let type_def = TypeDefTupleStruct::unit().into();
-	assert_eq!(S::type_def(), type_def);
 }
 
 #[test]
@@ -117,15 +117,16 @@ fn c_like_enum_derive() {
 		B = 10,
 	}
 
-	let type_id = TypeIdCustom::new("E", Namespace::new(vec!["derive"]).unwrap(), vec![]);
+	let type_id = TypeIdCustom::new(
+		"E",
+		Namespace::new(vec!["derive"]).unwrap(),
+		vec![],
+		TypeDefClikeEnum::new(vec![
+			ClikeEnumVariant::new("A", 0u64),
+			ClikeEnumVariant::new("B", 10u64),
+		]).into()
+	);
 	assert_type_id!(E, type_id);
-
-	let type_def = TypeDefClikeEnum::new(vec![
-		ClikeEnumVariant::new("A", 0u64),
-		ClikeEnumVariant::new("B", 10u64),
-	])
-	.into();
-	assert_eq!(E::type_def(), type_def);
 }
 
 #[test]
@@ -138,16 +139,16 @@ fn enum_derive() {
 		C,
 	}
 
-	let type_id = TypeIdCustom::new("E", Namespace::new(vec!["derive"]).unwrap(), tuple_meta_type!(bool));
+	let type_id = TypeIdCustom::new(
+		"E", Namespace::new(vec!["derive"]).unwrap(),
+		tuple_meta_type!(bool),
+		TypeDefEnum::new(vec![
+			EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
+			EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
+			EnumVariantUnit::new("C").into(),
+		]).into()
+	);
 	assert_type_id!(E<bool>, type_id);
-
-	let type_def = TypeDefEnum::new(vec![
-		EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
-		EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
-		EnumVariantUnit::new("C").into(),
-	])
-	.into();
-	assert_eq!(<E<bool>>::type_def(), type_def);
 }
 
 #[test]
@@ -159,9 +160,11 @@ fn union_derive() {
 		u: T,
 	}
 
-	let type_id = TypeIdCustom::new("U", Namespace::new(vec!["derive"]).unwrap(), tuple_meta_type!(bool));
+	let type_id = TypeIdCustom::new(
+		"U",
+		Namespace::new(vec!["derive"]).unwrap(),
+		tuple_meta_type!(bool),
+		TypeDefUnion::new(vec![NamedField::new("u", bool::meta_type())]).into(),
+	);
 	assert_type_id!(U<bool>, type_id);
-
-	let type_def = TypeDefUnion::new(vec![NamedField::new("u", bool::meta_type())]).into();
-	assert_eq!(<U<bool>>::type_def(), type_def);
 }
