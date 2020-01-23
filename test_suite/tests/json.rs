@@ -27,12 +27,6 @@ use serde::Serialize;
 use serde_json::json;
 use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
 
-#[derive(Serialize)]
-struct TypeIdDef {
-	id: TypeId<CompactForm>,
-	def: TypeDef<CompactForm>,
-}
-
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where
 	T: Metadata,
@@ -40,13 +34,8 @@ where
 	let mut registry = Registry::new();
 
 	let type_id = T::type_id().into_compact(&mut registry);
-	let type_def = T::type_def().into_compact(&mut registry);
-	let id_def = TypeIdDef {
-		id: type_id,
-		def: type_def,
-	};
 
-	assert_json_eq!(serde_json::to_value(id_def).unwrap(), expected_json,);
+	assert_json_eq!(serde_json::to_value(type_id).unwrap(), expected_json,);
 }
 
 #[test]

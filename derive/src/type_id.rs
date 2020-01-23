@@ -18,7 +18,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{parse::Result, parse_quote, DeriveInput};
 
-use crate::impl_wrapper::wrap;
+use crate::{impl_wrapper::wrap, type_def};
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input) {
@@ -28,7 +28,7 @@ pub fn generate(input: TokenStream2) -> TokenStream2 {
 }
 
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
-	let mut ast: DeriveInput = syn::parse2(input)?;
+	let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
 	ast.generics.type_params_mut().for_each(|p| {
 		p.bounds.push(parse_quote!(_type_metadata::Metadata));
@@ -43,6 +43,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 			<#ty_ident as _type_metadata::Metadata>::meta_type()
 		}
 	});
+	let type_def = type_def::generate_impl(input)?;
 	let has_type_id_impl = quote! {
 		impl #impl_generics _type_metadata::HasTypeId for #ident #ty_generics #where_clause {
 			fn type_id() -> _type_metadata::TypeId {
@@ -51,6 +52,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 					_type_metadata::Namespace::from_module_path(module_path!())
 						.expect("namespace from module path cannot fail"),
 					__core::vec![ #( #generic_type_ids ),* ],
+					#type_def.into(),
 				).into()
 			}
 		}

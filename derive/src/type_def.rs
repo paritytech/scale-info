@@ -17,11 +17,9 @@
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
-	parse::Result, parse_quote, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DataUnion,
+	parse::Result, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DataUnion,
 	DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
 };
-
-use crate::impl_wrapper::wrap;
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input) {
@@ -31,15 +29,7 @@ pub fn generate(input: TokenStream2) -> TokenStream2 {
 }
 
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
-	let mut ast: DeriveInput = syn::parse2(input)?;
-
-	ast.generics.type_params_mut().for_each(|p| {
-		p.bounds.push(parse_quote!(_type_metadata::Metadata));
-		p.bounds.push(parse_quote!('static));
-	});
-
-	let ident = &ast.ident;
-	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
+	let ast: DeriveInput = syn::parse2(input)?;
 
 	let def = match &ast.data {
 		Data::Struct(ref s) => generate_struct_def(s),
@@ -47,15 +37,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 		Data::Union(ref u) => generate_union_def(u),
 	};
 
-	let has_type_def_impl = quote! {
-		impl #impl_generics _type_metadata::HasTypeDef for #ident #ty_generics #where_clause {
-			fn type_def() -> _type_metadata::TypeDef {
-				#def.into()
-			}
-		}
-	};
-
-	Ok(wrap(ident, "HAS_TYPE_DEF", has_type_def_impl))
+//	Ok(quote!(#def))
+	Ok(def)
 }
 
 type FieldsList = Punctuated<Field, Comma>;
