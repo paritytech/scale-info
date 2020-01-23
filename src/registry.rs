@@ -36,7 +36,7 @@ use crate::{
 	form::CompactForm,
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
-	TypeId,
+	Type,
 };
 use serde::Serialize;
 
@@ -77,13 +77,13 @@ pub struct Registry {
 	///
 	/// This is going to be serialized upon serlialization.
 	#[serde(serialize_with = "serialize_registry_types")]
-	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeId<CompactForm>>,
+	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs
 /// and instead serialize them in order of their removed unique ID.
 fn serialize_registry_types<S>(
-	types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeId<CompactForm>>,
+	types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
 	serializer: S,
 ) -> Result<S::Ok, S::Error>
 where

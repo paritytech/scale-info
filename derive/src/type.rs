@@ -45,9 +45,9 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	});
 	let type_def = type_def::generate_impl(input)?;
 	let has_type_id_impl = quote! {
-		impl #impl_generics _type_metadata::HasTypeId for #ident #ty_generics #where_clause {
-			fn type_id() -> _type_metadata::TypeId {
-				_type_metadata::TypeIdCustom::new(
+		impl #impl_generics _type_metadata::HasType for #ident #ty_generics #where_clause {
+			fn type_id() -> _type_metadata::Type {
+				_type_metadata::TypeCustom::new(
 					stringify!(#ident),
 					_type_metadata::Namespace::from_module_path(module_path!())
 						.expect("namespace from module path cannot fail"),

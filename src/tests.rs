@@ -22,8 +22,8 @@ use alloc::{boxed::Box, string::String, vec};
 
 fn assert_type_id<T, E>(expected: E)
 where
-	T: HasTypeId + ?Sized,
-	E: Into<TypeId>,
+	T: HasType + ?Sized,
+	E: Into<Type>,
 {
 	assert_eq!(T::type_id(), expected.into());
 }
@@ -36,18 +36,18 @@ macro_rules! assert_type_id {
 
 #[test]
 fn primitives() {
-	assert_type_id!(bool, TypeIdPrimitive::Bool);
-	assert_type_id!(&str, TypeIdPrimitive::Str);
-	assert_type_id!(i8, TypeIdPrimitive::I8);
+	assert_type_id!(bool, TypePrimitive::Bool);
+	assert_type_id!(&str, TypePrimitive::Str);
+	assert_type_id!(i8, TypePrimitive::I8);
 
-	assert_type_id!([bool], TypeIdSlice::new(bool::meta_type()));
+	assert_type_id!([bool], TypeSlice::new(bool::meta_type()));
 }
 
 #[test]
 fn prelude_items() {
 	assert_type_id!(
 		String,
-		TypeIdCustom::new(
+		TypeCustom::new(
 			"String",
 			Namespace::prelude(),
 			Vec::new(),
@@ -57,7 +57,7 @@ fn prelude_items() {
 
 	assert_type_id!(
 		Option<u128>,
-		TypeIdCustom::new(
+		TypeCustom::new(
 			"Option",
 			Namespace::prelude(),
 			tuple_meta_type!(u128),
@@ -70,7 +70,7 @@ fn prelude_items() {
 	);
 	assert_type_id!(
 		Result<bool, String>,
-		TypeIdCustom::new(
+		TypeCustom::new(
 			"Result",
 			Namespace::prelude(),
 			tuple_meta_type!(bool, String),
@@ -82,7 +82,7 @@ fn prelude_items() {
 	);
 	assert_type_id!(
 		PhantomData<i32>,
-		TypeIdCustom::new(
+		TypeCustom::new(
 			"PhantomData",
 			Namespace::prelude(),
 			tuple_meta_type!(i32),
@@ -94,31 +94,31 @@ fn prelude_items() {
 #[test]
 fn tuple_primitives() {
 	// unit
-	assert_type_id!((), TypeIdTuple::new(tuple_meta_type!()));
+	assert_type_id!((), TypeTuple::new(tuple_meta_type!()));
 
 	// tuple with one element
-	assert_type_id!((bool,), TypeIdTuple::new(tuple_meta_type!(bool)));
+	assert_type_id!((bool,), TypeTuple::new(tuple_meta_type!(bool)));
 
 	// tuple with multiple elements
-	assert_type_id!((bool, String), TypeIdTuple::new(tuple_meta_type!(bool, String)));
+	assert_type_id!((bool, String), TypeTuple::new(tuple_meta_type!(bool, String)));
 
 	// nested tuple
 	assert_type_id!(
 		((i8, i16), (u32, u64)),
-		TypeIdTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),])
+		TypeTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),])
 	);
 }
 
 #[test]
 fn array_primitives() {
 	// array
-	assert_type_id!([bool; 3], TypeIdArray::new(3, bool::meta_type()));
+	assert_type_id!([bool; 3], TypeArray::new(3, bool::meta_type()));
 	// nested
-	assert_type_id!([[i32; 5]; 5], TypeIdArray::new(5, <[i32; 5]>::meta_type()));
+	assert_type_id!([[i32; 5]; 5], TypeArray::new(5, <[i32; 5]>::meta_type()));
 	// slice
-	assert_type_id!([bool], TypeIdSlice::new(bool::meta_type()));
+	assert_type_id!([bool], TypeSlice::new(bool::meta_type()));
 	// vec
-	assert_type_id!(Vec<bool>, TypeIdCollection::of::<bool>("Vec"));
+	assert_type_id!(Vec<bool>, TypeCollection::of::<bool>("Vec"));
 }
 
 #[test]
@@ -128,12 +128,12 @@ fn struct_with_generics() {
 		data: T,
 	}
 
-	impl<T> HasTypeId for MyStruct<T>
+	impl<T> HasType for MyStruct<T>
 	where
 		T: Metadata + 'static,
 	{
-		fn type_id() -> TypeId {
-			TypeIdCustom::new(
+		fn type_id() -> Type {
+			TypeCustom::new(
 				"MyStruct",
 				Namespace::from_module_path(module_path!()).unwrap(),
 				tuple_meta_type!(T),
@@ -144,7 +144,7 @@ fn struct_with_generics() {
 	}
 
 	// Normal struct
-	let struct_bool_id = TypeIdCustom::new(
+	let struct_bool_id = TypeCustom::new(
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		tuple_meta_type!(bool),
@@ -154,7 +154,7 @@ fn struct_with_generics() {
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type_id = TypeIdCustom::new(
+	let expected_type_id = TypeCustom::new(
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		vec![<Box<MyStruct<bool>>>::meta_type()],

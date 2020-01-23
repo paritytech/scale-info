@@ -25,7 +25,7 @@ use alloc::{vec, vec::Vec};
 use assert_json_diff::assert_json_eq;
 use serde::Serialize;
 use serde_json::json;
-use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
+use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, Type};
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where

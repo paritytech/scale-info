@@ -19,35 +19,35 @@ use crate::*;
 
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
-		impl HasTypeId for $t {
-			fn type_id() -> TypeId {
-				TypeId::Primitive($ident_kind)
+		impl HasType for $t {
+			fn type_id() -> Type {
+				Type::Primitive($ident_kind)
 			}
 		}
 	)* }
 }
 
 impl_metadata_for_primitives!(
-	bool => TypeIdPrimitive::Bool,
-	char => TypeIdPrimitive::Char,
-	u8 => TypeIdPrimitive::U8,
-	u16 => TypeIdPrimitive::U16,
-	u32 => TypeIdPrimitive::U32,
-	u64 => TypeIdPrimitive::U64,
-	u128 => TypeIdPrimitive::U128,
-	i8 => TypeIdPrimitive::I8,
-	i16 => TypeIdPrimitive::I16,
-	i32 => TypeIdPrimitive::I32,
-	i64 => TypeIdPrimitive::I64,
-	i128 => TypeIdPrimitive::I128,
+	bool => TypePrimitive::Bool,
+	char => TypePrimitive::Char,
+	u8 => TypePrimitive::U8,
+	u16 => TypePrimitive::U16,
+	u32 => TypePrimitive::U32,
+	u64 => TypePrimitive::U64,
+	u128 => TypePrimitive::U128,
+	i8 => TypePrimitive::I8,
+	i16 => TypePrimitive::I16,
+	i32 => TypePrimitive::I32,
+	i64 => TypePrimitive::I64,
+	i128 => TypePrimitive::I128,
 );
 
 macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
 		$(
-			impl<T: Metadata + 'static> HasTypeId for [T; $n] {
-				fn type_id() -> TypeId {
-					TypeIdArray::new($n, MetaType::new::<T>()).into()
+			impl<T: Metadata + 'static> HasType for [T; $n] {
+				fn type_id() -> Type {
+					TypeArray::new($n, MetaType::new::<T>()).into()
 				}
 			}
 		)*
@@ -65,14 +65,14 @@ impl_metadata_for_array!(
 
 macro_rules! impl_metadata_for_tuple {
     ( $($ty:ident),* ) => {
-		impl<$($ty),*> HasTypeId for ($($ty,)*)
+		impl<$($ty),*> HasType for ($($ty,)*)
 		where
 			$(
 				$ty: Metadata + 'static,
 			)*
 		{
-			fn type_id() -> TypeId {
-				TypeIdTuple::new(tuple_meta_type!($($ty),*)).into()
+			fn type_id() -> Type {
+				TypeTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
 		}
     }
@@ -90,21 +90,21 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
 
-impl<T> HasTypeId for Vec<T>
+impl<T> HasType for Vec<T>
 where
 	T: Metadata + 'static,
 {
-	fn type_id() -> TypeId {
-		TypeIdCollection::of::<T>("Vec").into()
+	fn type_id() -> Type {
+		TypeCollection::of::<T>("Vec").into()
 	}
 }
 
-impl<T> HasTypeId for Option<T>
+impl<T> HasType for Option<T>
 where
 	T: Metadata + 'static,
 {
-	fn type_id() -> TypeId {
-		TypeIdCustom::new(
+	fn type_id() -> Type {
+		TypeCustom::new(
 			"Option",
 			Namespace::prelude(),
 			tuple_meta_type![T],
@@ -118,13 +118,13 @@ where
 	}
 }
 
-impl<T, E> HasTypeId for Result<T, E>
+impl<T, E> HasType for Result<T, E>
 where
 	T: Metadata + 'static,
 	E: Metadata + 'static,
 {
-	fn type_id() -> TypeId {
-		TypeIdCustom::new(
+	fn type_id() -> Type {
+		TypeCustom::new(
 			"Result",
 			Namespace::prelude(),
 			tuple_meta_type!(T, E),
@@ -138,61 +138,61 @@ where
 	}
 }
 
-impl<K, V> HasTypeId for BTreeMap<K, V>
+impl<K, V> HasType for BTreeMap<K, V>
 where
 	K: Metadata + 'static,
 	V: Metadata + 'static,
 {
-	fn type_id() -> TypeId {
-		TypeIdCollection::of::<(K, V)>("BTreeMap").into()
+	fn type_id() -> Type {
+		TypeCollection::of::<(K, V)>("BTreeMap").into()
 	}
 }
 
-impl<T> HasTypeId for Box<T>
+impl<T> HasType for Box<T>
 where
-	T: HasTypeId + ?Sized,
+	T: HasType + ?Sized,
 {
-	fn type_id() -> TypeId {
+	fn type_id() -> Type {
 		T::type_id()
 	}
 }
 
-impl<T> HasTypeId for &T
+impl<T> HasType for &T
 where
-	T: HasTypeId + ?Sized,
+	T: HasType + ?Sized,
 {
-	fn type_id() -> TypeId {
+	fn type_id() -> Type {
 		T::type_id()
 	}
 }
 
-impl<T> HasTypeId for &mut T
+impl<T> HasType for &mut T
 where
-	T: HasTypeId + ?Sized,
+	T: HasType + ?Sized,
 {
-	fn type_id() -> TypeId {
+	fn type_id() -> Type {
 		T::type_id()
 	}
 }
 
-impl<T> HasTypeId for [T]
+impl<T> HasType for [T]
 where
 	T: Metadata + 'static,
 {
-	fn type_id() -> TypeId {
-		TypeIdSlice::of::<T>().into()
+	fn type_id() -> Type {
+		TypeSlice::of::<T>().into()
 	}
 }
 
-impl HasTypeId for str {
-	fn type_id() -> TypeId {
-		TypeIdPrimitive::Str.into()
+impl HasType for str {
+	fn type_id() -> Type {
+		TypePrimitive::Str.into()
 	}
 }
 
-impl HasTypeId for String {
-	fn type_id() -> TypeId {
-		TypeIdCustom::new(
+impl HasType for String {
+	fn type_id() -> Type {
+		TypeCustom::new(
 			"String",
 			Namespace::prelude(),
 			Vec::new(),
@@ -202,12 +202,12 @@ impl HasTypeId for String {
 	}
 }
 
-impl<T> HasTypeId for PhantomData<T>
+impl<T> HasType for PhantomData<T>
 where
 	T: Metadata + ?Sized,
 {
-	fn type_id() -> TypeId {
-		TypeIdCustom::new(
+	fn type_id() -> Type {
+		TypeCustom::new(
 			"PhantomData",
 			Namespace::prelude(),
 			vec![T::meta_type()],

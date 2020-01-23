@@ -18,7 +18,7 @@ use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::parse::Result;
 
-use crate::type_id;
+use crate::r#type;
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
 	match generate_impl(input) {
@@ -29,6 +29,6 @@ pub fn generate(input: TokenStream2) -> TokenStream2 {
 
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut tokens = quote! {};
-	tokens.extend(type_id::generate_impl(input)?);
+	tokens.extend(r#type::generate_impl(input)?);
 	Ok(tokens)
 }

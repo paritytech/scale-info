@@ -25,9 +25,9 @@ use derive_more::From;
 use serde::Serialize;
 
 /// Implementors return their meta type identifiers.
-pub trait HasTypeId {
+pub trait HasType {
 	/// Returns the static type identifier for `Self`.
-	fn type_id() -> TypeId;
+	fn type_id() -> Type;
 }
 
 /// Represents the namespace of a type definition.
@@ -106,36 +106,36 @@ impl Namespace {
 /// This uniquely identifies types and can be used to refer to type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "
-	F::TypeId: Serialize,
-	F::IndirectTypeId: Serialize
+	F::Type: Serialize,
+	F::IndirectType: Serialize
 ")]
 #[serde(rename_all = "camelCase")]
-pub enum TypeId<F: Form = MetaForm> {
+pub enum Type<F: Form = MetaForm> {
 	/// A custom type defined by the user.
-	Custom(TypeIdCustom<F>),
+	Custom(TypeCustom<F>),
 	/// A slice type with runtime known length.
-	Slice(TypeIdSlice<F>),
+	Slice(TypeSlice<F>),
 	/// An array type with compile-time known length.
-	Array(TypeIdArray<F>),
+	Array(TypeArray<F>),
 	/// A dynamic collection e.g. Vec<T>, BTreeMap<K, V>
-	Collection(TypeIdCollection<F>),
+	Collection(TypeCollection<F>),
 	/// A tuple type.
-	Tuple(TypeIdTuple<F>),
+	Tuple(TypeTuple<F>),
 	/// A Rust primitive type.
-	Primitive(TypeIdPrimitive),
+	Primitive(TypePrimitive),
 }
 
-impl IntoCompact for TypeId {
-	type Output = TypeId<CompactForm>;
+impl IntoCompact for Type {
+	type Output = Type<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeId::Custom(custom) => custom.into_compact(registry).into(),
-			TypeId::Slice(slice) => slice.into_compact(registry).into(),
-			TypeId::Array(array) => array.into_compact(registry).into(),
-			TypeId::Collection(collection) => collection.into_compact(registry).into(),
-			TypeId::Tuple(tuple) => tuple.into_compact(registry).into(),
-			TypeId::Primitive(primitive) => primitive.into(),
+			Type::Custom(custom) => custom.into_compact(registry).into(),
+			Type::Slice(slice) => slice.into_compact(registry).into(),
+			Type::Array(array) => array.into_compact(registry).into(),
+			Type::Collection(collection) => collection.into_compact(registry).into(),
+			Type::Tuple(tuple) => tuple.into_compact(registry).into(),
+			Type::Primitive(primitive) => primitive.into(),
 		}
 	}
 }
@@ -143,7 +143,7 @@ impl IntoCompact for TypeId {
 /// Identifies a primitive Rust type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
-pub enum TypeIdPrimitive {
+pub enum TypePrimitive {
 	/// `bool` type
 	Bool,
 	/// `char` type
@@ -174,8 +174,8 @@ pub enum TypeIdPrimitive {
 
 /// A type identifier for custom type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct TypeIdCustom<F: Form = MetaForm> {
+#[serde(bound = "F::Type: Serialize")]
+pub struct TypeCustom<F: Form = MetaForm> {
 	/// The name of the custom type.
 	name: F::String,
 	/// The namespace in which the custom type has been defined.
@@ -186,17 +186,17 @@ pub struct TypeIdCustom<F: Form = MetaForm> {
 	namespace: Namespace<F>,
 	/// The generic type parameters of the custom type in use.
 	#[serde(rename = "params")]
-	type_params: Vec<F::TypeId>,
+	type_params: Vec<F::Type>,
 	/// The definition of the custom type
 	#[serde(rename = "def")]
 	type_def: TypeDef<F>,
 }
 
-impl IntoCompact for TypeIdCustom {
-	type Output = TypeIdCustom<CompactForm>;
+impl IntoCompact for TypeCustom {
+	type Output = TypeCustom<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeIdCustom {
+		TypeCustom {
 			name: registry.register_string(self.name),
 			namespace: self.namespace.into_compact(registry),
 			type_params: self
@@ -209,7 +209,7 @@ impl IntoCompact for TypeIdCustom {
 	}
 }
 
-impl TypeIdCustom {
+impl TypeCustom {
 	/// Creates a new type identifier to refer to a custom type definition.
 	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T, type_def: TypeDef) -> Self
 	where
@@ -226,27 +226,27 @@ impl TypeIdCustom {
 
 /// An array type identifier.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::IndirectTypeId: Serialize")]
-pub struct TypeIdArray<F: Form = MetaForm> {
+#[serde(bound = "F::IndirectType: Serialize")]
+pub struct TypeArray<F: Form = MetaForm> {
 	/// The length of the array type definition.
 	pub len: u16,
 	/// The element type of the array type definition.
 	#[serde(rename = "type")]
-	pub type_param: F::IndirectTypeId,
+	pub type_param: F::IndirectType,
 }
 
-impl IntoCompact for TypeIdArray {
-	type Output = TypeIdArray<CompactForm>;
+impl IntoCompact for TypeArray {
+	type Output = TypeArray<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeIdArray {
+		TypeArray {
 			len: self.len,
 			type_param: registry.register_type(&self.type_param),
 		}
 	}
 }
 
-impl TypeIdArray {
+impl TypeArray {
 	/// Creates a new identifier to refer to array type definition.
 	pub fn new(len: u16, type_param: MetaType) -> Self {
 		Self { len, type_param }
@@ -255,27 +255,27 @@ impl TypeIdArray {
 
 /// A type identifier for collection type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::IndirectTypeId: Serialize")]
-pub struct TypeIdCollection<F: Form = MetaForm> {
+#[serde(bound = "F::IndirectType: Serialize")]
+pub struct TypeCollection<F: Form = MetaForm> {
 	/// The name of the collection type.
 	name: F::String,
 	/// The element type of the collection.
 	#[serde(rename = "type")]
-	element_type: F::IndirectTypeId,
+	element_type: F::IndirectType,
 }
 
-impl IntoCompact for TypeIdCollection {
-	type Output = TypeIdCollection<CompactForm>;
+impl IntoCompact for TypeCollection {
+	type Output = TypeCollection<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeIdCollection {
+		TypeCollection {
 			name: registry.register_string(self.name),
 			element_type: registry.register_type(&self.element_type),
 		}
 	}
 }
 
-impl TypeIdCollection {
+impl TypeCollection {
 	/// Creates a new type identifier to refer to a custom type definition.
 	pub fn new(name: &'static str, type_param: MetaType) -> Self {
 		Self {
@@ -297,18 +297,18 @@ impl TypeIdCollection {
 
 /// A type identifier to refer to tuple types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 #[serde(transparent)]
-pub struct TypeIdTuple<F: Form = MetaForm> {
+pub struct TypeTuple<F: Form = MetaForm> {
 	/// The types in the tuple type definition.
-	pub type_params: Vec<F::TypeId>,
+	pub type_params: Vec<F::Type>,
 }
 
-impl IntoCompact for TypeIdTuple {
-	type Output = TypeIdTuple<CompactForm>;
+impl IntoCompact for TypeTuple {
+	type Output = TypeTuple<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeIdTuple {
+		TypeTuple {
 			type_params: self
 				.type_params
 				.into_iter()
@@ -318,7 +318,7 @@ impl IntoCompact for TypeIdTuple {
 	}
 }
 
-impl TypeIdTuple {
+impl TypeTuple {
 	/// Creates a new tuple type definition from the given types.
 	pub fn new<T>(type_params: T) -> Self
 	where
@@ -337,24 +337,24 @@ impl TypeIdTuple {
 
 /// A type identifier to refer to slice type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::IndirectTypeId: Serialize")]
-pub struct TypeIdSlice<F: Form = MetaForm> {
+#[serde(bound = "F::IndirectType: Serialize")]
+pub struct TypeSlice<F: Form = MetaForm> {
 	/// The element type of the slice type definition.
 	#[serde(rename = "type")]
-	type_param: F::IndirectTypeId,
+	type_param: F::IndirectType,
 }
 
-impl IntoCompact for TypeIdSlice {
-	type Output = TypeIdSlice<CompactForm>;
+impl IntoCompact for TypeSlice {
+	type Output = TypeSlice<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeIdSlice {
+		TypeSlice {
 			type_param: registry.register_type(&self.type_param),
 		}
 	}
 }
 
-impl TypeIdSlice {
+impl TypeSlice {
 	/// Creates a new type identifier to refer to slice type definitions.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.

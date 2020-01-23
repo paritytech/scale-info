@@ -31,7 +31,7 @@
 //!
 //! Information about types is split into two halfs.
 //!
-//! 1. The type identifier or `TypeId` is accessed through the `HasTypeId` trait.
+//! 1. The type identifier or `Type` is accessed through the `HasType` trait.
 //! 2. The type definition or `TypeDef` is accessed throught the `HasTypeDef` trait.
 //!
 //! Both traits shall be implemented for all types that are serializable.
@@ -56,7 +56,7 @@
 //!
 //! To use this library simply use the `MetaForm` initially with your own data structures
 //! and at best make them generic over the `Form` trait just as has been done in this crate
-//! with `TypeId` and `TypeDef` in order to go for a simple implementation of `IntoCompact`.
+//! with `Type` and `TypeDef` in order to go for a simple implementation of `IntoCompact`.
 //! Use a single instance of the `Registry` for compaction and provide this registry instance
 //! upon serialization. Done.
 //!
@@ -117,7 +117,7 @@ pub mod interner;
 mod meta_type;
 mod registry;
 mod type_def;
-mod type_id;
+mod r#type;
 mod utils;
 
 #[cfg(test)]
@@ -127,27 +127,27 @@ pub use self::{
 	meta_type::MetaType,
 	registry::{IntoCompact, Registry},
 	type_def::*,
-	type_id::*,
+	r#type::*,
 };
 
 #[cfg(feature = "derive")]
-pub use type_metadata_derive::{Metadata, TypeDef, TypeId};
+pub use type_metadata_derive::{Metadata, TypeDef, Type};
 
 /// A super trait that shall be implemented by all types implementing
-/// `HasTypeId` and `HasTypedef` in order to more easily manage them.
+/// `HasType` and `HasTypedef` in order to more easily manage them.
 ///
 /// This trait is automatically implemented for all `'static` type that
-/// also implement `HasTypeId` and `HasTypeDef`. Users of this library should
+/// also implement `HasType` and `HasTypeDef`. Users of this library should
 /// use this trait directly instead of using the more fine grained
-/// `HasTypeId` and `HasTypeDef` traits.
-pub trait Metadata: HasTypeId {
+/// `HasType` and `HasTypeDef` traits.
+pub trait Metadata: HasType {
 	/// Returns the runtime bridge to the types compile-time type information.
 	fn meta_type() -> MetaType;
 }
 
 impl<T> Metadata for T
 where
-	T: ?Sized + HasTypeId + 'static,
+	T: ?Sized + HasType + 'static,
 {
 	fn meta_type() -> MetaType {
 		MetaType::new::<T>()

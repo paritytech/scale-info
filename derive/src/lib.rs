@@ -22,13 +22,13 @@ extern crate proc_macro;
 mod impl_wrapper;
 mod metadata;
 mod type_def;
-mod type_id;
+mod r#type;
 
 use proc_macro::TokenStream;
 
-#[proc_macro_derive(TypeId)]
+#[proc_macro_derive(Type)]
 pub fn type_id(input: TokenStream) -> TokenStream {
-	type_id::generate(input.into()).into()
+	r#type::generate(input.into()).into()
 }
 
 #[proc_macro_derive(TypeDef)]

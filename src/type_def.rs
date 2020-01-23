@@ -25,7 +25,7 @@ use serde::Serialize;
 
 /// A type definition represents the internal structure of a concrete type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum TypeDef<F: Form = MetaForm> {
 	/// A struct with named fields.
@@ -66,7 +66,7 @@ impl IntoCompact for TypeDef {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct TypeDefStruct<F: Form = MetaForm> {
 	/// The named fields of the struct.
 	fields: Vec<NamedField<F>>,
@@ -102,13 +102,13 @@ impl TypeDefStruct {
 ///
 /// This can be a named field of a struct type or a struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct NamedField<F: Form = MetaForm> {
 	/// The name of the field.
 	name: F::String,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	ty: F::TypeId,
+	ty: F::Type,
 }
 
 impl IntoCompact for NamedField {
@@ -153,7 +153,7 @@ impl NamedField {
 /// struct JustAMarker;
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct TypeDefTupleStruct<F: Form = MetaForm> {
 	/// The unnamed fields.
 	#[serde(rename = "types")]
@@ -193,12 +193,12 @@ impl TypeDefTupleStruct {
 
 /// An unnamed field from either a tuple-struct type or a tuple-struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 #[serde(transparent)]
 pub struct UnnamedField<F: Form = MetaForm> {
 	/// The type of the unnamed field.
 	#[serde(rename = "type")]
-	ty: F::TypeId,
+	ty: F::Type,
 }
 
 impl IntoCompact for UnnamedField {
@@ -250,7 +250,7 @@ impl UnnamedField {
 /// enum JustAMarker {}
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct TypeDefClikeEnum<F: Form = MetaForm> {
 	/// The variants of the C-like enum.
 	#[serde(rename = "variants")]
@@ -352,7 +352,7 @@ impl ClikeEnumVariant {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct TypeDefEnum<F: Form = MetaForm> {
 	/// The variants of the enum.
 	variants: Vec<EnumVariant<F>>,
@@ -390,7 +390,7 @@ impl TypeDefEnum {
 /// a tuple-struct with unnamed fields,
 /// or a struct with named fields.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum EnumVariant<F: Form = MetaForm> {
 	/// A unit struct variant.
@@ -463,7 +463,7 @@ impl EnumVariantUnit {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct EnumVariantStruct<F: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: F::String,
@@ -514,7 +514,7 @@ impl EnumVariantStruct {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct EnumVariantTupleStruct<F: Form = MetaForm> {
 	/// The name of the variant.
 	name: F::String,
@@ -562,7 +562,7 @@ impl EnumVariantTupleStruct {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct TypeDefUnion<F: Form = MetaForm> {
 	/// The fields of the union.
 	fields: Vec<NamedField<F>>,
