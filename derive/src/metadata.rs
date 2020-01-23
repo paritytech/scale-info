@@ -29,6 +29,6 @@ pub fn generate(input: TokenStream2) -> TokenStream2 {
 
 pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut tokens = quote! {};
-	tokens.extend(type_id::generate_impl(input.clone())?);
+	tokens.extend(type_id::generate_impl(input)?);
 	Ok(tokens)
 }
