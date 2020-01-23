@@ -19,7 +19,7 @@ use crate::tm_std::*;
 use crate::{
 	form::{CompactForm, Form, MetaForm},
 	utils::is_rust_identifier,
-	IntoCompact, MetaType, Metadata, Registry,
+	IntoCompact, MetaType, Metadata, Registry, TypeDef,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -203,7 +203,7 @@ impl IntoCompact for TypeIdCustom {
 				.into_iter()
 				.map(|param| registry.register_type(&param))
 				.collect::<Vec<_>>(),
-			type_def: self.type_def.into_compact(),
+			type_def: self.type_def.into_compact(registry),
 		}
 	}
 }

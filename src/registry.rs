@@ -36,7 +36,7 @@ use crate::{
 	form::CompactForm,
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
-	TypeDef, TypeId,
+	TypeId,
 };
 use serde::Serialize;
 
@@ -47,17 +47,6 @@ pub trait IntoCompact {
 
 	/// Compacts `self` by using the registry for caching and compaction.
 	fn into_compact(self, registry: &mut Registry) -> Self::Output;
-}
-
-/// The pair of associated type identifier and structure.
-///
-/// This exists only as compactified version and is part of the registry.
-#[derive(Debug, PartialEq, Eq, Serialize)]
-pub struct TypeIdDef {
-	/// The identifier of the type.
-	id: TypeId<CompactForm>,
-	/// The definition (aka internal structure) of the type.
-	def: TypeDef<CompactForm>,
 }
 
 /// The registry for compaction of type identifiers and definitions.
@@ -88,13 +77,13 @@ pub struct Registry {
 	///
 	/// This is going to be serialized upon serlialization.
 	#[serde(serialize_with = "serialize_registry_types")]
-	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeIdDef>,
+	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeId<CompactForm>>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs
 /// and instead serialize them in order of their removed unique ID.
 fn serialize_registry_types<S>(
-	types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeIdDef>,
+	types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeId<CompactForm>>,
 	serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -153,13 +142,9 @@ impl Registry {
 		let (inserted, symbol) = self.intern_type_id(ty.any_id());
 		if inserted {
 			let compact_id = ty.type_id().into_compact(self);
-			let compact_def = ty.type_def().into_compact(self);
 			self.types.insert(
 				symbol,
-				TypeIdDef {
-					id: compact_id,
-					def: compact_def,
-				},
+				compact_id,
 			);
 		}
 		symbol

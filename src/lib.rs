@@ -140,14 +140,14 @@ pub use type_metadata_derive::{Metadata, TypeDef, TypeId};
 /// also implement `HasTypeId` and `HasTypeDef`. Users of this library should
 /// use this trait directly instead of using the more fine grained
 /// `HasTypeId` and `HasTypeDef` traits.
-pub trait Metadata: HasTypeId + HasTypeDef {
+pub trait Metadata: HasTypeId {
 	/// Returns the runtime bridge to the types compile-time type information.
 	fn meta_type() -> MetaType;
 }
 
 impl<T> Metadata for T
 where
-	T: ?Sized + HasTypeId + HasTypeDef + 'static,
+	T: ?Sized + HasTypeId + 'static,
 {
 	fn meta_type() -> MetaType {
 		MetaType::new::<T>()

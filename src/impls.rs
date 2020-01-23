@@ -24,12 +24,6 @@ macro_rules! impl_metadata_for_primitives {
 				TypeId::Primitive($ident_kind)
 			}
 		}
-
-		impl HasTypeDef for $t {
-			fn type_def() -> TypeDef {
-				TypeDef::builtin()
-			}
-		}
 	)* }
 }
 
@@ -54,12 +48,6 @@ macro_rules! impl_metadata_for_array {
 			impl<T: Metadata + 'static> HasTypeId for [T; $n] {
 				fn type_id() -> TypeId {
 					TypeIdArray::new($n, MetaType::new::<T>()).into()
-				}
-			}
-
-			impl<T: Metadata> HasTypeDef for [T; $n] {
-				fn type_def() -> TypeDef {
-					TypeDef::builtin()
 				}
 			}
 		)*
@@ -87,17 +75,6 @@ macro_rules! impl_metadata_for_tuple {
 				TypeIdTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
 		}
-
-		impl<$($ty),*> HasTypeDef for ($($ty,)*)
-		where
-			$(
-				$ty: Metadata,
-			)*
-		{
-			fn type_def() -> TypeDef {
-				TypeDef::builtin()
-			}
-		}
     }
 }
 
@@ -122,34 +99,20 @@ where
 	}
 }
 
-impl<T> HasTypeDef for Vec<T>
-where
-	T: Metadata + 'static,
-{
-	fn type_def() -> TypeDef {
-		TypeDef::builtin()
-	}
-}
-
 impl<T> HasTypeId for Option<T>
 where
 	T: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Option", Namespace::prelude(), tuple_meta_type![T]).into()
-	}
-}
-
-impl<T> HasTypeDef for Option<T>
-where
-	T: Metadata + 'static,
-{
-	fn type_def() -> TypeDef {
-		TypeDefEnum::new(vec![
-			EnumVariantUnit::new("None").into(),
-			EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
-		])
-		.into()
+		TypeIdCustom::new(
+			"Option",
+			Namespace::prelude(),
+			tuple_meta_type![T],
+			TypeDefEnum::new(vec![
+				EnumVariantUnit::new("None").into(),
+				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
+			]).into()
+		).into()
 	}
 }
 
@@ -159,21 +122,15 @@ where
 	E: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("Result", Namespace::prelude(), tuple_meta_type!(T, E)).into()
-	}
-}
-
-impl<T, E> HasTypeDef for Result<T, E>
-where
-	T: Metadata + 'static,
-	E: Metadata + 'static,
-{
-	fn type_def() -> TypeDef {
-		TypeDefEnum::new(vec![
-			EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
-			EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
-		])
-		.into()
+		TypeIdCustom::new(
+			"Result",
+			Namespace::prelude(),
+			tuple_meta_type!(T, E),
+			TypeDefEnum::new(vec![
+				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
+				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
+			]).into()
+		).into()
 	}
 }
 
@@ -187,31 +144,12 @@ where
 	}
 }
 
-impl<K, V> HasTypeDef for BTreeMap<K, V>
-where
-	K: Metadata + 'static,
-	V: Metadata + 'static,
-{
-	fn type_def() -> TypeDef {
-		TypeDef::builtin()
-	}
-}
-
 impl<T> HasTypeId for Box<T>
 where
 	T: HasTypeId + ?Sized,
 {
 	fn type_id() -> TypeId {
 		T::type_id()
-	}
-}
-
-impl<T> HasTypeDef for Box<T>
-where
-	T: Metadata + ?Sized,
-{
-	fn type_def() -> TypeDef {
-		T::type_def()
 	}
 }
 
@@ -224,30 +162,12 @@ where
 	}
 }
 
-impl<T> HasTypeDef for &T
-where
-	T: Metadata + ?Sized,
-{
-	fn type_def() -> TypeDef {
-		T::type_def()
-	}
-}
-
 impl<T> HasTypeId for &mut T
 where
 	T: HasTypeId + ?Sized,
 {
 	fn type_id() -> TypeId {
 		T::type_id()
-	}
-}
-
-impl<T> HasTypeDef for &mut T
-where
-	T: Metadata + ?Sized,
-{
-	fn type_def() -> TypeDef {
-		T::type_def()
 	}
 }
 
@@ -260,36 +180,22 @@ where
 	}
 }
 
-impl<T> HasTypeDef for [T]
-where
-	T: Metadata,
-{
-	fn type_def() -> TypeDef {
-		TypeDef::builtin()
-	}
-}
-
 impl HasTypeId for str {
 	fn type_id() -> TypeId {
 		TypeIdPrimitive::Str.into()
 	}
 }
 
-impl HasTypeDef for str {
-	fn type_def() -> TypeDef {
-		TypeDef::builtin()
-	}
-}
-
 impl HasTypeId for String {
 	fn type_id() -> TypeId {
-		<str>::type_id()
-	}
-}
-
-impl HasTypeDef for String {
-	fn type_def() -> TypeDef {
-		TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into()
+		TypeIdCustom::new(
+			"String",
+			Namespace::prelude(),
+			Vec::new(),
+			TypeDefStruct::new(
+				vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]
+			).into()
+		).into()
 	}
 }
 
@@ -298,15 +204,11 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_id() -> TypeId {
-		TypeIdCustom::new("PhantomData", Namespace::prelude(), vec![T::meta_type()]).into()
-	}
-}
-
-impl<T> HasTypeDef for PhantomData<T>
-where
-	T: Metadata + ?Sized,
-{
-	fn type_def() -> TypeDef {
-		TypeDefTupleStruct::new(vec![]).into()
+		TypeIdCustom::new(
+			"PhantomData",
+			Namespace::prelude(),
+			vec![T::meta_type()],
+			TypeDefTupleStruct::new(vec![]).into()
+		).into()
 	}
 }
