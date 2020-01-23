@@ -91,7 +91,7 @@ fn array_primitives() {
 	// vec
 	assert_type_id!(
 		Vec<bool>,
-		TypeIdCollection::new("Vec", tuple_meta_type![bool])
+		TypeIdCollection::of::<bool>("Vec")
 	);
 }
 

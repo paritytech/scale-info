@@ -118,7 +118,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCollection::new("Vec", tuple_meta_type![T]).into()
+		TypeIdCollection::of::<T>("Vec").into()
 	}
 }
 
@@ -183,7 +183,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_id() -> TypeId {
-		TypeIdCollection::new("BTreeMap", tuple_meta_type!(K, V)).into()
+		TypeIdCollection::of::<(K, V)>("BTreeMap").into()
 	}
 }
 

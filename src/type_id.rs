@@ -250,13 +250,13 @@ impl TypeIdArray {
 
 /// A type identifier for collection type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::IndirectTypeId: Serialize")]
 pub struct TypeIdCollection<F: Form = MetaForm> {
-	/// The name of the custom type.
+	/// The name of the collection type.
 	name: F::String,
-	/// The generic type parameters of the custom type in use.
-	#[serde(rename = "params")]
-	type_params: Vec<F::TypeId>,
+	/// The element type of the collection.
+	#[serde(rename = "type")]
+	element_type: F::IndirectTypeId,
 }
 
 impl IntoCompact for TypeIdCollection {
@@ -265,25 +265,29 @@ impl IntoCompact for TypeIdCollection {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeIdCollection {
 			name: registry.register_string(self.name),
-			type_params: self
-				.type_params
-				.into_iter()
-				.map(|param| registry.register_type(&param))
-				.collect::<Vec<_>>(),
+			element_type: registry.register_type(&self.element_type),
 		}
 	}
 }
 
 impl TypeIdCollection {
 	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<T>(name: &'static str, type_params: T) -> Self
-		where
-			T: IntoIterator<Item = MetaType>,
+	pub fn new(name: &'static str, type_param: MetaType) -> Self
 	{
 		Self {
 			name,
-			type_params: type_params.into_iter().collect(),
+			element_type: type_param,
 		}
+	}
+
+	/// Creates a new type identifier to refer to collection type definitions.
+	///
+	/// Use this constructor if you want to instantiate from a given compile-time type.
+	pub fn of<T>(name: &'static str) -> Self
+		where
+			T: Metadata + 'static,
+	{
+		Self::new(name,MetaType::new::<T>())
 	}
 }
 

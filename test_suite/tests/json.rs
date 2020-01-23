@@ -382,9 +382,7 @@ fn test_registry() {
 				"id": {
 					"collection": {
 						"name": 10, // Vec
-						"params": [
-							7, // RecursiveStruct
-						],
+						"type": 7,
 					}
 				},
 				"def": "builtin",
