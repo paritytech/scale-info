@@ -37,17 +37,24 @@ macro_rules! assert_type_id {
 #[test]
 fn primitives() {
 	assert_type_id!(bool, TypeIdPrimitive::Bool);
-	assert_type_id!(String, TypeIdPrimitive::Str);
 	assert_type_id!(&str, TypeIdPrimitive::Str);
 	assert_type_id!(i8, TypeIdPrimitive::I8);
 
-	assert_type_id!(Box<String>, TypeIdPrimitive::Str);
-	assert_type_id!(&String, TypeIdPrimitive::Str);
 	assert_type_id!([bool], TypeIdSlice::new(bool::meta_type()));
 }
 
 #[test]
 fn prelude_items() {
+	assert_type_id!(
+		String,
+		TypeIdCustom::new(
+			"String",
+			Namespace::prelude(),
+			Vec::new(),
+			TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into(),
+		)
+	);
+
 	assert_type_id!(
 		Option<u128>,
 		TypeIdCustom::new(
