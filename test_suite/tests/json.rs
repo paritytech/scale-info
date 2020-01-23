@@ -44,17 +44,15 @@ fn test_unit_struct() {
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
-		"id": {
-			"custom": {
-				"name": 1,
-				"namespace": [2],
-				"params": [],
-			}
-		},
-		"def": {
-			"tuplestruct": {
-				"types": []
-			}
+		"custom": {
+			"name": 1,
+			"namespace": [2],
+			"params": [],
+			"def": {
+				"tuplestruct": {
+					"types": []
+				}
+			},
 		},
 	}));
 }
@@ -65,17 +63,15 @@ fn test_tuplestruct() {
 	struct TupleStruct(i32, [u8; 32], bool);
 
 	assert_json_for_type::<TupleStruct>(json!({
-		"id": {
-			"custom": {
-				"name": 1,
-				"namespace": [2],
-				"params": [],
-			}
-		},
-		"def": {
-			"tuplestruct": {
-				"types": [1, 2, 4]
-			}
+		"custom": {
+			"name": 1,
+			"namespace": [2],
+			"params": [],
+			"def": {
+				"tuplestruct": {
+					"types": [1, 2, 4]
+				}
+			},
 		},
 	}));
 }
@@ -90,21 +86,19 @@ fn test_struct() {
 	}
 
 	assert_json_for_type::<Struct>(json!({
-		"id": {
-			"custom": {
-				"name": 1,
-				"namespace": [2],
-				"params": [],
-			}
-		},
-		"def": {
-			"struct": {
-				"fields": [
-					{ "name": 3, "type": 1, },
-					{ "name": 4, "type": 2, },
-					{ "name": 5, "type": 4, },
-				]
-			}
+		"custom": {
+			"name": 1,
+			"namespace": [2],
+			"params": [],
+			"def": {
+				"struct": {
+					"fields": [
+						{ "name": 3, "type": 1, },
+						{ "name": 4, "type": 2, },
+						{ "name": 5, "type": 4, },
+					]
+				}
+			},
 		},
 	}));
 }
@@ -119,21 +113,19 @@ fn test_clike_enum() {
 	}
 
 	assert_json_for_type::<ClikeEnum>(json!({
-		"id": {
-			"custom": {
-				"name": 1,
-				"namespace": [2],
-				"params": [],
-			}
-		},
-		"def": {
-			"clikeenum": {
-				"variants": [
-					{ "name": 3, "discriminant": 0, },
-					{ "name": 4, "discriminant": 42, },
-					{ "name": 5, "discriminant": 2, },
-				]
-			}
+		"custom": {
+			"name": 1,
+			"namespace": [2],
+			"params": [],
+			"def": {
+				"clikeenum": {
+					"variants": [
+						{ "name": 3, "discriminant": 0, },
+						{ "name": 4, "discriminant": 42, },
+						{ "name": 5, "discriminant": 2, },
+					]
+				}
+			},
 		},
 	}));
 }
@@ -148,39 +140,37 @@ fn test_enum() {
 	}
 
 	assert_json_for_type::<Enum>(json!({
-		"id": {
-			"custom": {
-				"name": 1,
-				"namespace": [2],
-				"params": [],
-			}
-		},
-		"def": {
-			"enum": {
-				"variants": [
-					{
-						"unit": {
-							"name": 3,
+		"custom": {
+			"name": 1,
+			"namespace": [2],
+			"params": [],
+			"def": {
+				"enum": {
+					"variants": [
+						{
+							"unit": {
+								"name": 3,
+							}
+						},
+						{
+							"tuplestruct": {
+								"name": 4,
+								"types": [1, 2],
+							}
+						},
+						{
+							"struct": {
+								"name": 5,
+								"fields": [
+									{ "name": 6, "type": 1, },
+									{ "name": 7, "type": 3, },
+									{ "name": 8, "type": 5, },
+								],
+							}
 						}
-					},
-					{
-						"tuplestruct": {
-							"name": 4,
-							"types": [1, 2],
-						}
-					},
-					{
-						"struct": {
-							"name": 5,
-							"fields": [
-								{ "name": 6, "type": 1, },
-								{ "name": 7, "type": 3, },
-								{ "name": 8, "type": 5, },
-							],
-						}
-					}
-				]
-			}
+					]
+				}
+			},
 		},
 	}));
 }
@@ -194,20 +184,18 @@ fn test_union() {
 	}
 
 	assert_json_for_type::<Union>(json!({
-		"id": {
-			"custom": {
-				"name": 1,
-				"namespace": [2],
-				"params": [],
-			}
-		},
-		"def": {
-			"union": {
-				"fields": [
-					{ "name": 3, "type": 1, },
-					{ "name": 4, "type": 3, },
-				]
-			}
+		"custom": {
+			"name": 1,
+			"namespace": [2],
+			"params": [],
+			"def": {
+				"union": {
+					"fields": [
+						{ "name": 3, "type": 1, },
+						{ "name": 4, "type": 3, },
+					]
+				}
+			},
 		},
 	}));
 }
@@ -270,187 +258,163 @@ fn test_registry() {
 		],
 		"types": [
 			{ // type 1
-				"id": {
-					"custom": {
-						"name": 1, // UnitStruct
-						"namespace": [2], // json
-						"params": [],
-					}
+				"custom": {
+					"name": 1, // UnitStruct
+					"namespace": [2], // json
+					"params": [],
+					"def": {
+						"tuplestruct": {
+							"types": [],
+						}
+					},
 				},
-				"def": {
-					"tuplestruct": {
-						"types": [],
-					}
-				}
 			},
 			{ // type 2
-				"id": {
-					"custom": {
-						"name": 3, // TupleStruct
-						"namespace": [2], // json
-						"params": [],
+				"custom": {
+					"name": 3, // TupleStruct
+					"namespace": [2], // json
+					"params": [],
+					"def": {
+						"tuplestruct": {
+							"types": [
+								3, // u8
+								4, // u32
+							]
+						}
 					}
 				},
-				"def": {
-					"tuplestruct": {
-						"types": [
-							3, // u8
-							4, // u32
-						]
-					}
-				}
 			},
 			{ // type 3
-				"id": {
-					"primitive": "u8"
-				},
-				"def": "builtin",
+				"primitive": "u8",
 			},
 			{ // type 4
-				"id": {
-					"primitive": "u32"
-				},
-				"def": "builtin",
+				"primitive": "u32",
 			},
 			{ // type 5
-				"id": {
-					"custom": {
-						"name": 4, // Struct
-						"namespace": [2], // json
-						"params": [],
+				"custom": {
+					"name": 4, // Struct
+					"namespace": [2], // json
+					"params": [],
+					"def": {
+						"struct": {
+							"fields": [
+								{
+									"name": 5, // a
+									"type": 3, // u8
+								},
+								{
+									"name": 6, // b
+									"type": 4, // u32
+								},
+								{
+									"name": 7, // c
+									"type": 6, // [u8; 32]
+								}
+							]
+						}
 					}
 				},
-				"def": {
-					"struct": {
-						"fields": [
-							{
-								"name": 5, // a
-								"type": 3, // u8
-							},
-							{
-								"name": 6, // b
-								"type": 4, // u32
-							},
-							{
-								"name": 7, // c
-								"type": 6, // [u8; 32]
-							}
-						]
-					}
-				}
 			},
 			{ // type 6
-				"id": {
-					"array": {
-						"len": 32,
-						"type": 3, // u8
-					}
+				"array": {
+					"len": 32,
+					"type": 3, // u8
 				},
-				"def": "builtin",
 			},
 			{ // type 7
-				"id": {
-					"custom": {
-						"name": 8, // RecursiveStruct
-						"namespace": [2], // json
-						"params": [],
+				"custom": {
+					"name": 8, // RecursiveStruct
+					"namespace": [2], // json
+					"params": [],
+					"def": {
+						"struct": {
+							"fields": [
+								{
+									"name": 9, // rec
+									"type": 8, // Vec<RecursiveStruct>
+								}
+							]
+						}
 					}
 				},
-				"def": {
-					"struct": {
-						"fields": [
-							{
-								"name": 9, // rec
-								"type": 8, // Vec<RecursiveStruct>
-							}
-						]
-					}
-				}
 			},
 			{ // type 8
-				"id": {
-					"collection": {
-						"name": 10, // Vec
-						"type": 7,
-					}
+				"collection": {
+					"name": 10, // Vec
+					"type": 7,
 				},
-				"def": "builtin",
 			},
 			{ // type 9
-				"id": {
-					"custom": {
-						"name": 11, // ClikeEnum
-						"namespace": [2], // json
-						"params": [],
+				"custom": {
+					"name": 11, // ClikeEnum
+					"namespace": [2], // json
+					"params": [],
+					"def": {
+						"clikeenum": {
+							"variants": [
+								{
+									"name": 12, // A
+									"discriminant": 0,
+								},
+								{
+									"name": 13, // B
+									"discriminant": 1,
+								},
+								{
+									"name": 14, // C
+									"discriminant": 2,
+								},
+							]
+						}
 					}
 				},
-				"def": {
-					"clikeenum": {
-						"variants": [
-							{
-								"name": 12, // A
-								"discriminant": 0,
-							},
-							{
-								"name": 13, // B
-								"discriminant": 1,
-							},
-							{
-								"name": 14, // C
-								"discriminant": 2,
-							},
-						]
-					}
-				}
 			},
 			{ // type 10
-				"id": {
-					"custom": {
-						"name": 15, // RustEnum
-						"namespace": [2], // json
-						"params": [],
+				"custom": {
+					"name": 15, // RustEnum
+					"namespace": [2], // json
+					"params": [],
+					"def": {
+						"enum": {
+							"variants": [
+								{
+									"unit": {
+										"name": 12,
+									} // A
+								},
+								{
+									"tuplestruct": {
+										"name": 13, // B
+										"types": [
+											3, // u8
+											4, // u32
+										]
+									},
+
+								},
+								{
+									"struct": {
+										"name": 14, // C
+										"fields": [
+											{
+												"name": 5, // a
+												"type": 3, // u8
+											},
+											{
+												"name": 6, // b
+												"type": 4, // u32
+											},
+											{
+												"name": 7, // c
+												"type": 6, // [u8; 32]
+											}
+										]
+									}
+								}
+							]
+						}
 					}
 				},
-				"def": {
-					"enum": {
-						"variants": [
-							{
-								"unit": {
-									"name": 12,
-								} // A
-							},
-							{
-								"tuplestruct": {
-									"name": 13, // B
-									"types": [
-										3, // u8
-										4, // u32
-									]
-								},
-
-							},
-							{
-								"struct": {
-									"name": 14, // C
-									"fields": [
-										{
-											"name": 5, // a
-											"type": 3, // u8
-										},
-										{
-											"name": 6, // b
-											"type": 4, // u32
-										},
-										{
-											"name": 7, // c
-											"type": 6, // [u8; 32]
-										}
-									]
-								}
-							}
-						]
-					}
-				}
 			},
 		]
 	});

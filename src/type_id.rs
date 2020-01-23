@@ -188,6 +188,7 @@ pub struct TypeIdCustom<F: Form = MetaForm> {
 	#[serde(rename = "params")]
 	type_params: Vec<F::TypeId>,
 	/// The definition of the custom type
+	#[serde(rename = "def")]
 	type_def: TypeDef<F>,
 }
 
