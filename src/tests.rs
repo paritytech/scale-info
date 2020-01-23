@@ -133,7 +133,7 @@ fn struct_with_generics() {
 		T: Metadata + 'static,
 	{
 		fn type_id() -> Type {
-			TypeCustom::new(
+			TypePath::new(
 				"MyStruct",
 				Namespace::from_module_path(module_path!()).unwrap(),
 				tuple_meta_type!(T),
@@ -144,7 +144,7 @@ fn struct_with_generics() {
 	}
 
 	// Normal struct
-	let struct_bool_id = TypeCustom::new(
+	let struct_bool_id = TypePath::new(
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		tuple_meta_type!(bool),
@@ -154,7 +154,7 @@ fn struct_with_generics() {
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type_id = TypeCustom::new(
+	let expected_type_id = TypePath::new(
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		vec![<Box<MyStruct<bool>>>::meta_type()],

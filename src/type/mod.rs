@@ -24,81 +24,22 @@ use crate::{
 use derive_more::From;
 use serde::Serialize;
 
+mod product;
+mod sum;
+mod fields;
+mod path;
+
+pub use self::{
+	path::*,
+	fields::*,
+	product::*,
+	sum::*,
+};
+
 /// Implementors return their meta type identifiers.
 pub trait HasType {
 	/// Returns the static type identifier for `Self`.
 	fn type_id() -> Type;
-}
-
-/// Represents the namespace of a type definition.
-///
-/// This consists of several segments that each have to be a valid Rust identifier.
-/// The first segment represents the crate name in which the type has been defined.
-///
-/// Rust prelude type may have an empty namespace definition.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(transparent)]
-pub struct Namespace<F: Form = MetaForm> {
-	/// The segments of the namespace.
-	segments: Vec<F::String>,
-}
-
-/// An error that may be encountered upon constructing namespaces.
-#[derive(PartialEq, Eq, Debug)]
-pub enum NamespaceError {
-	/// If the module path does not at least have one segment.
-	MissingSegments,
-	/// If a segment within a module path is not a proper Rust identifier.
-	InvalidIdentifier {
-		/// The index of the errorneous segment.
-		segment: usize,
-	},
-}
-
-impl IntoCompact for Namespace {
-	type Output = Namespace<CompactForm>;
-
-	/// Compacts this namespace using the given registry.
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		Namespace {
-			segments: self
-				.segments
-				.into_iter()
-				.map(|seg| registry.register_string(seg))
-				.collect::<Vec<_>>(),
-		}
-	}
-}
-
-impl Namespace {
-	/// Creates a new namespace from the given segments.
-	pub fn new<S>(segments: S) -> Result<Self, NamespaceError>
-	where
-		S: IntoIterator<Item = <MetaForm as Form>::String>,
-	{
-		let segments = segments.into_iter().collect::<Vec<_>>();
-		if segments.is_empty() {
-			return Err(NamespaceError::MissingSegments);
-		}
-		if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
-			return Err(NamespaceError::InvalidIdentifier { segment: err_at });
-		}
-		Ok(Self { segments })
-	}
-
-	/// Creates a new namespace from the given module path.
-	///
-	/// # Note
-	///
-	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn from_module_path(module_path: <MetaForm as Form>::String) -> Result<Self, NamespaceError> {
-		Self::new(module_path.split("::"))
-	}
-
-	/// Creates the prelude namespace.
-	pub fn prelude() -> Self {
-		Self { segments: vec![] }
-	}
 }
 
 /// A type identifier.
@@ -112,7 +53,11 @@ impl Namespace {
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
 	/// A custom type defined by the user.
-	Custom(TypeCustom<F>),
+	Custom(TypePath<F>),
+
+	/// todo: Aggregate (Product?) (merge of Struct and TupleStruct
+	/// todo: Variant (Sum?) (merge of Enum and Clike enum)
+
 	/// A slice type with runtime known length.
 	Slice(TypeSlice<F>),
 	/// An array type with compile-time known length.
@@ -170,58 +115,6 @@ pub enum TypePrimitive {
 	I64,
 	/// `i128`
 	I128,
-}
-
-/// A type identifier for custom type definitions.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::Type: Serialize")]
-pub struct TypeCustom<F: Form = MetaForm> {
-	/// The name of the custom type.
-	name: F::String,
-	/// The namespace in which the custom type has been defined.
-	///
-	/// # Note
-	///
-	/// For Rust prelude types the root (empty) namespace is used.
-	namespace: Namespace<F>,
-	/// The generic type parameters of the custom type in use.
-	#[serde(rename = "params")]
-	type_params: Vec<F::Type>,
-	/// The definition of the custom type
-	#[serde(rename = "def")]
-	type_def: TypeDef<F>,
-}
-
-impl IntoCompact for TypeCustom {
-	type Output = TypeCustom<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeCustom {
-			name: registry.register_string(self.name),
-			namespace: self.namespace.into_compact(registry),
-			type_params: self
-				.type_params
-				.into_iter()
-				.map(|param| registry.register_type(&param))
-				.collect::<Vec<_>>(),
-			type_def: self.type_def.into_compact(registry),
-		}
-	}
-}
-
-impl TypeCustom {
-	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T, type_def: TypeDef) -> Self
-	where
-		T: IntoIterator<Item = MetaType>,
-	{
-		Self {
-			name,
-			namespace,
-			type_params: type_params.into_iter().collect(),
-			type_def,
-		}
-	}
 }
 
 /// An array type identifier.

@@ -25,7 +25,7 @@ use alloc::{boxed::Box, vec};
 use type_metadata::{
 	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasType, Metadata,
 	NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct, TypeDefTupleStruct, TypeDefUnion, Type,
-	TypeCustom, UnnamedField,
+	TypePath, UnnamedField,
 };
 
 fn assert_type_id<T, E>(expected: E)
@@ -51,7 +51,7 @@ fn struct_derive() {
 		pub u: U,
 	}
 
-	let type_id = TypeCustom::new(
+	let type_id = TypePath::new(
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool, u8),
@@ -67,7 +67,7 @@ fn struct_derive() {
 
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
-	let self_typed_id = TypeCustom::new(
+	let self_typed_id = TypePath::new(
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(Box<S<bool, u8>>, bool),
@@ -86,7 +86,7 @@ fn tuple_struct_derive() {
 	#[derive(Metadata)]
 	struct S<T>(T);
 
-	let type_id = TypeCustom::new(
+	let type_id = TypePath::new(
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool),
@@ -101,7 +101,7 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let type_id = TypeCustom::new(
+	let type_id = TypePath::new(
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		vec![],
@@ -119,7 +119,7 @@ fn c_like_enum_derive() {
 		B = 10,
 	}
 
-	let type_id = TypeCustom::new(
+	let type_id = TypePath::new(
 		"E",
 		Namespace::new(vec!["derive"]).unwrap(),
 		vec![],
@@ -142,7 +142,7 @@ fn enum_derive() {
 		C,
 	}
 
-	let type_id = TypeCustom::new(
+	let type_id = TypePath::new(
 		"E",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool),
@@ -165,7 +165,7 @@ fn union_derive() {
 		u: T,
 	}
 
-	let type_id = TypeCustom::new(
+	let type_id = TypePath::new(
 		"U",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool),

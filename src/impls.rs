@@ -104,7 +104,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_id() -> Type {
-		TypeCustom::new(
+		TypePath::new(
 			"Option",
 			Namespace::prelude(),
 			tuple_meta_type![T],
@@ -124,7 +124,7 @@ where
 	E: Metadata + 'static,
 {
 	fn type_id() -> Type {
-		TypeCustom::new(
+		TypePath::new(
 			"Result",
 			Namespace::prelude(),
 			tuple_meta_type!(T, E),
@@ -192,7 +192,7 @@ impl HasType for str {
 
 impl HasType for String {
 	fn type_id() -> Type {
-		TypeCustom::new(
+		TypePath::new(
 			"String",
 			Namespace::prelude(),
 			Vec::new(),
@@ -207,7 +207,7 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_id() -> Type {
-		TypeCustom::new(
+		TypePath::new(
 			"PhantomData",
 			Namespace::prelude(),
 			vec![T::meta_type()],
