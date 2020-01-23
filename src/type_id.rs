@@ -277,8 +277,7 @@ impl IntoCompact for TypeIdCollection {
 
 impl TypeIdCollection {
 	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new(name: &'static str, type_param: MetaType) -> Self
-	{
+	pub fn new(name: &'static str, type_param: MetaType) -> Self {
 		Self {
 			name,
 			element_type: type_param,
@@ -289,10 +288,10 @@ impl TypeIdCollection {
 	///
 	/// Use this constructor if you want to instantiate from a given compile-time type.
 	pub fn of<T>(name: &'static str) -> Self
-		where
-			T: Metadata + 'static,
+	where
+		T: Metadata + 'static,
 	{
-		Self::new(name,MetaType::new::<T>())
+		Self::new(name, MetaType::new::<T>())
 	}
 }
 

@@ -64,7 +64,8 @@ fn prelude_items() {
 			TypeDefEnum::new(vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<u128>()]).into(),
-			]).into(),
+			])
+			.into(),
 		)
 	);
 	assert_type_id!(
@@ -117,10 +118,7 @@ fn array_primitives() {
 	// slice
 	assert_type_id!([bool], TypeIdSlice::new(bool::meta_type()));
 	// vec
-	assert_type_id!(
-		Vec<bool>,
-		TypeIdCollection::of::<bool>("Vec")
-	);
+	assert_type_id!(Vec<bool>, TypeIdCollection::of::<bool>("Vec"));
 }
 
 #[test]
@@ -139,7 +137,7 @@ fn struct_with_generics() {
 				"MyStruct",
 				Namespace::from_module_path(module_path!()).unwrap(),
 				tuple_meta_type!(T),
-				TypeDefStruct::new(vec![NamedField::new("data", T::meta_type())]).into()
+				TypeDefStruct::new(vec![NamedField::new("data", T::meta_type())]).into(),
 			)
 			.into()
 		}
@@ -150,7 +148,7 @@ fn struct_with_generics() {
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		tuple_meta_type!(bool),
-		TypeDefStruct::new(vec![NamedField::new("data", bool::meta_type())]).into()
+		TypeDefStruct::new(vec![NamedField::new("data", bool::meta_type())]).into(),
 	);
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
 
@@ -160,7 +158,7 @@ fn struct_with_generics() {
 		"MyStruct",
 		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 		vec![<Box<MyStruct<bool>>>::meta_type()],
-		TypeDefStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type()),]).into()
+		TypeDefStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())]).into(),
 	);
 	assert_type_id!(SelfTyped, expected_type_id);
 }

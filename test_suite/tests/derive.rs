@@ -23,9 +23,9 @@ extern crate alloc;
 use alloc::{boxed::Box, vec};
 
 use type_metadata::{
-	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit,
-	HasTypeId, Metadata, NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct,
-	TypeDefTupleStruct, TypeDefUnion, TypeId, TypeIdCustom, UnnamedField,
+	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasTypeId, Metadata,
+	NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct, TypeDefTupleStruct, TypeDefUnion, TypeId,
+	TypeIdCustom, UnnamedField,
 };
 
 fn assert_type_id<T, E>(expected: E)
@@ -58,7 +58,8 @@ fn struct_derive() {
 		TypeDefStruct::new(vec![
 			NamedField::new("t", bool::meta_type()),
 			NamedField::new("u", u8::meta_type()),
-		]).into(),
+		])
+		.into(),
 	);
 	assert_type_id!(S<bool, u8>, type_id.clone());
 
@@ -73,7 +74,8 @@ fn struct_derive() {
 		TypeDefStruct::new(vec![
 			NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
 			NamedField::new("u", bool::meta_type()),
-		]).into()
+		])
+		.into(),
 	);
 	assert_type_id!(SelfTyped, self_typed_id);
 }
@@ -88,7 +90,7 @@ fn tuple_struct_derive() {
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool),
-		TypeDefTupleStruct::new(vec![UnnamedField::of::<bool>()]).into()
+		TypeDefTupleStruct::new(vec![UnnamedField::of::<bool>()]).into(),
 	);
 	assert_type_id!(S<bool>, type_id);
 }
@@ -124,7 +126,8 @@ fn c_like_enum_derive() {
 		TypeDefClikeEnum::new(vec![
 			ClikeEnumVariant::new("A", 0u64),
 			ClikeEnumVariant::new("B", 10u64),
-		]).into()
+		])
+		.into(),
 	);
 	assert_type_id!(E, type_id);
 }
@@ -140,13 +143,15 @@ fn enum_derive() {
 	}
 
 	let type_id = TypeIdCustom::new(
-		"E", Namespace::new(vec!["derive"]).unwrap(),
+		"E",
+		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool),
 		TypeDefEnum::new(vec![
 			EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
 			EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
 			EnumVariantUnit::new("C").into(),
-		]).into()
+		])
+		.into(),
 	);
 	assert_type_id!(E<bool>, type_id);
 }

@@ -17,8 +17,8 @@
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
-	parse::Result, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DataUnion,
-	DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
+	parse::Result, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DataUnion, DeriveInput, Expr,
+	ExprLit, Field, Fields, Lit, Variant,
 };
 
 pub fn generate(input: TokenStream2) -> TokenStream2 {
@@ -37,7 +37,6 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 		Data::Union(ref u) => generate_union_def(u),
 	};
 
-//	Ok(quote!(#def))
 	Ok(def)
 }
 

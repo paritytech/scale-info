@@ -111,8 +111,10 @@ where
 			TypeDefEnum::new(vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
-			]).into()
-		).into()
+			])
+			.into(),
+		)
+		.into()
 	}
 }
 
@@ -129,8 +131,10 @@ where
 			TypeDefEnum::new(vec![
 				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
 				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
-			]).into()
-		).into()
+			])
+			.into(),
+		)
+		.into()
 	}
 }
 
@@ -192,10 +196,9 @@ impl HasTypeId for String {
 			"String",
 			Namespace::prelude(),
 			Vec::new(),
-			TypeDefStruct::new(
-				vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]
-			).into()
-		).into()
+			TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into(),
+		)
+		.into()
 	}
 }
 
@@ -208,7 +211,8 @@ where
 			"PhantomData",
 			Namespace::prelude(),
 			vec![T::meta_type()],
-			TypeDefTupleStruct::new(vec![]).into()
-		).into()
+			TypeDefTupleStruct::new(vec![]).into(),
+		)
+		.into()
 	}
 }

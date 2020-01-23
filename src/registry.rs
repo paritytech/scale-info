@@ -142,10 +142,7 @@ impl Registry {
 		let (inserted, symbol) = self.intern_type_id(ty.any_id());
 		if inserted {
 			let compact_id = ty.type_id().into_compact(self);
-			self.types.insert(
-				symbol,
-				compact_id,
-			);
+			self.types.insert(symbol, compact_id);
 		}
 		symbol
 	}
