@@ -52,11 +52,10 @@ pub trait HasType {
 ")]
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
-	/// A product type (e.g. a struct) defined by the user.
+	/// A product type (e.g. a struct)
 	Product(TypeProduct<F>),
-
-	/// todo: Variant (Sum?) (merge of Enum and Clike enum)
-
+	/// A sum type (e.g. an enum)
+	Sum(TypeSum<F>),
 	/// A slice type with runtime known length.
 	Slice(TypeSlice<F>),
 	/// An array type with compile-time known length.
@@ -74,7 +73,8 @@ impl IntoCompact for Type {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			Type::Custom(custom) => custom.into_compact(registry).into(),
+			Type::Product(product) => product.into_compact(registry).into(),
+			Type::Sum(sum) => sum.into_compact(registry).into(),
 			Type::Slice(slice) => slice.into_compact(registry).into(),
 			Type::Array(array) => array.into_compact(registry).into(),
 			Type::Collection(collection) => collection.into_compact(registry).into(),

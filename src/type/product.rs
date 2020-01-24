@@ -20,14 +20,15 @@ use crate::{NamedField, UnnamedField, form::{CompactForm, Form, MetaForm}, IntoC
 use derive_more::From;
 use serde::Serialize;
 
+/// A Product type (consisting of fields) e.g. a struct
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
 #[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum TypeProduct<F: Form = MetaForm> {
 	/// A struct with named fields
-	Struct(TypeStruct<F>),
+	Struct(TypeProductStruct<F>),
 	/// A tuple struct with unnamed fields
-	TupleStruct(TypeStruct<F>),
+	TupleStruct(TypeProductTupleStruct<F>),
 }
 
 impl IntoCompact for TypeProduct {
@@ -58,18 +59,18 @@ impl IntoCompact for TypeProduct {
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct TypeStruct<F: Form = MetaForm> {
+pub struct TypeProductStruct<F: Form = MetaForm> {
 	/// The path of the struct
 	path: TypePath<F>,
 	/// The named fields of the struct.
 	fields: Vec<NamedField<F>>,
 }
 
-impl IntoCompact for TypeStruct {
-	type Output = TypeStruct<CompactForm>;
+impl IntoCompact for TypeProductStruct {
+	type Output = TypeProductStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeStruct {
+		TypeProductStruct {
 //			fields: self
 //				.fields
 //				.into_iter()
@@ -81,7 +82,7 @@ impl IntoCompact for TypeStruct {
 	}
 }
 
-impl TypeStruct {
+impl TypeProductStruct {
 	/// Creates a new struct definition with named fields.
 	pub fn new<F>(path: TypePath, fields: F) -> Self
 		where
@@ -107,7 +108,7 @@ impl TypeStruct {
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct TypeTupleStruct<F: Form = MetaForm> {
+pub struct TypeProductTupleStruct<F: Form = MetaForm> {
 	/// The path of the struct
 	path: TypePath<F>,
 	/// The unnamed fields.
@@ -115,12 +116,12 @@ pub struct TypeTupleStruct<F: Form = MetaForm> {
 	fields: Vec<UnnamedField<F>>,
 }
 
-impl IntoCompact for TypeTupleStruct {
-	type Output = TypeTupleStruct<CompactForm>;
+impl IntoCompact for TypeProductTupleStruct {
+	type Output = TypeProductTupleStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeTupleStruct {
-			path: path.into_compact(registry),
+		TypeProductTupleStruct {
+			path: self.path.into_compact(registry),
 			fields: registry.register_types(self.fields),
 //			fields: self
 //				.fields
@@ -131,7 +132,7 @@ impl IntoCompact for TypeTupleStruct {
 	}
 }
 
-impl TypeTupleStruct {
+impl TypeProductTupleStruct {
 	/// Creates a new tuple-struct.
 	pub fn new<F>(path: TypePath, fields: F) -> Self
 		where

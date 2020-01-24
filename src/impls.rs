@@ -108,7 +108,7 @@ where
 			"Option",
 			Namespace::prelude(),
 			tuple_meta_type![T],
-			TypeDefEnum::new(vec![
+			TypeSumEnum::new(vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
 			])
@@ -128,7 +128,7 @@ where
 			"Result",
 			Namespace::prelude(),
 			tuple_meta_type!(T, E),
-			TypeDefEnum::new(vec![
+			TypeSumEnum::new(vec![
 				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
 				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
 			])
@@ -196,7 +196,7 @@ impl HasType for String {
 			"String",
 			Namespace::prelude(),
 			Vec::new(),
-			TypeStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into(),
+			TypeProductStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into(),
 		)
 		.into()
 	}
@@ -211,7 +211,7 @@ where
 			"PhantomData",
 			Namespace::prelude(),
 			vec![T::meta_type()],
-			TypeTupleStruct::new(vec![]).into(),
+			TypeProductTupleStruct::new(vec![]).into(),
 		)
 		.into()
 	}

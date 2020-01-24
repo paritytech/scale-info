@@ -16,12 +16,21 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
-};
+use crate::{NamedField, form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, UnnamedField};
 use derive_more::From;
 use serde::Serialize;
+
+/// A Sum type (consisting of variants) e.g an enum
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
+#[serde(bound = "F::Type: Serialize")]
+#[serde(rename_all = "lowercase")]
+pub enum TypeSum<F: Form = MetaForm> {
+	// todo: [AJ] potentially extract struct TypeSumVariants<Variant>
+	/// A C-like enum type.
+	ClikeEnum(TypeSumClikeEnum<F>),
+	/// A Rust enum, aka tagged union.
+	Enum(TypeSumEnum<F>),
+}
 
 /// A C-like enum type.
 ///
@@ -38,23 +47,23 @@ use serde::Serialize;
 ///     Sunday,
 /// }
 /// ```
-/// or an empty enum (for marker purposes)
+/// or an empty enum (for marker purposes)TypeStruct
 /// ```
 /// enum JustAMarker {}
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct TypeDefClikeEnum<F: Form = MetaForm> {
+pub struct TypeSumClikeEnum<F: Form = MetaForm> {
 	/// The variants of the C-like enum.
 	#[serde(rename = "variants")]
 	variants: Vec<ClikeEnumVariant<F>>,
 }
 
-impl IntoCompact for TypeDefClikeEnum {
-	type Output = TypeDefClikeEnum<CompactForm>;
+impl IntoCompact for TypeSumClikeEnum {
+	type Output = TypeSumClikeEnum<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDefClikeEnum {
+		TypeSumClikeEnum {
 			variants: self
 				.variants
 				.into_iter()
@@ -64,7 +73,7 @@ impl IntoCompact for TypeDefClikeEnum {
 	}
 }
 
-impl TypeDefClikeEnum {
+impl TypeSumClikeEnum {
 	/// Creates a new C-like enum from the given variants.
 	pub fn new<V>(variants: V) -> Self
 		where
@@ -146,16 +155,16 @@ impl ClikeEnumVariant {
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct TypeDefEnum<F: Form = MetaForm> {
+pub struct TypeSumEnum<F: Form = MetaForm> {
 	/// The variants of the enum.
 	variants: Vec<EnumVariant<F>>,
 }
 
-impl IntoCompact for TypeDefEnum {
-	type Output = TypeDefEnum<CompactForm>;
+impl IntoCompact for TypeSumEnum {
+	type Output = TypeSumEnum<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDefEnum {
+		TypeSumEnum {
 			variants: self
 				.variants
 				.into_iter()
@@ -165,7 +174,7 @@ impl IntoCompact for TypeDefEnum {
 	}
 }
 
-impl TypeDefEnum {
+impl TypeSumEnum {
 	/// Creates a new Rust enum from the given variants.
 	pub fn new<V>(variants: V) -> Self
 		where
