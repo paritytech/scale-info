@@ -139,7 +139,7 @@ fn struct_with_generics() {
 	let struct_bool_id = TypeProductStruct::new(
 		TypePath::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap(), tuple_meta_type!(bool)),
 		vec![NamedField::new("data", bool::meta_type())]
-	).into();
+	);
 	assert_type!(MyStruct<bool>, struct_bool_id.clone());
 
 	// With "`Self` typed" fields
@@ -151,6 +151,6 @@ fn struct_with_generics() {
 			vec![<Box<MyStruct<bool>>>::meta_type()],
 		),
 		vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())]
-	).into();
+	);
 	assert_type!(SelfTyped, expected_type_id);
 }

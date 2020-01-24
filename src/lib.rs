@@ -129,7 +129,7 @@ pub use self::{
 };
 
 #[cfg(feature = "derive")]
-pub use type_metadata_derive::{Metadata, TypeDef, Type};
+pub use type_metadata_derive::Metadata;
 
 /// A super trait that shall be implemented by all types implementing
 /// `HasType` and `HasTypedef` in order to more easily manage them.
