@@ -20,7 +20,7 @@ use crate::*;
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
 		impl HasType for $t {
-			fn type_id() -> Type {
+			fn get_type() -> Type {
 				Type::Primitive($ident_kind)
 			}
 		}
@@ -46,7 +46,7 @@ macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
 		$(
 			impl<T: Metadata + 'static> HasType for [T; $n] {
-				fn type_id() -> Type {
+				fn get_type() -> Type {
 					TypeArray::new($n, MetaType::new::<T>()).into()
 				}
 			}
@@ -71,7 +71,7 @@ macro_rules! impl_metadata_for_tuple {
 				$ty: Metadata + 'static,
 			)*
 		{
-			fn type_id() -> Type {
+			fn get_type() -> Type {
 				TypeTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
 		}
@@ -94,7 +94,7 @@ impl<T> HasType for Vec<T>
 where
 	T: Metadata + 'static,
 {
-	fn type_id() -> Type {
+	fn get_type() -> Type {
 		TypeCollection::of::<T>("Vec").into()
 	}
 }
@@ -103,18 +103,14 @@ impl<T> HasType for Option<T>
 where
 	T: Metadata + 'static,
 {
-	fn type_id() -> Type {
-		TypePath::new(
-			"Option",
-			Namespace::prelude(),
-			tuple_meta_type![T],
-			TypeSumEnum::new(vec![
+	fn get_type() -> Type {
+		TypeSumEnum::new(
+			TypePath::new("Option", Namespace::prelude(), tuple_meta_type![T]),
+			vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
-			])
-			.into(),
-		)
-		.into()
+			]
+		).into()
 	}
 }
 
@@ -123,18 +119,14 @@ where
 	T: Metadata + 'static,
 	E: Metadata + 'static,
 {
-	fn type_id() -> Type {
-		TypePath::new(
-			"Result",
-			Namespace::prelude(),
-			tuple_meta_type!(T, E),
-			TypeSumEnum::new(vec![
+	fn get_type() -> Type {
+		TypeSumEnum::new(
+			TypePath::new("Result", Namespace::prelude(), tuple_meta_type!(T, E)),
+			vec![
 				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
 				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
-			])
-			.into(),
-		)
-		.into()
+			]
+		).into()
 	}
 }
 
@@ -143,7 +135,7 @@ where
 	K: Metadata + 'static,
 	V: Metadata + 'static,
 {
-	fn type_id() -> Type {
+	fn get_type() -> Type {
 		TypeCollection::of::<(K, V)>("BTreeMap").into()
 	}
 }
@@ -152,8 +144,8 @@ impl<T> HasType for Box<T>
 where
 	T: HasType + ?Sized,
 {
-	fn type_id() -> Type {
-		T::type_id()
+	fn get_type() -> Type {
+		T::get_type()
 	}
 }
 
@@ -161,8 +153,8 @@ impl<T> HasType for &T
 where
 	T: HasType + ?Sized,
 {
-	fn type_id() -> Type {
-		T::type_id()
+	fn get_type() -> Type {
+		T::get_type()
 	}
 }
 
@@ -170,8 +162,8 @@ impl<T> HasType for &mut T
 where
 	T: HasType + ?Sized,
 {
-	fn type_id() -> Type {
-		T::type_id()
+	fn get_type() -> Type {
+		T::get_type()
 	}
 }
 
@@ -179,26 +171,23 @@ impl<T> HasType for [T]
 where
 	T: Metadata + 'static,
 {
-	fn type_id() -> Type {
+	fn get_type() -> Type {
 		TypeSlice::of::<T>().into()
 	}
 }
 
 impl HasType for str {
-	fn type_id() -> Type {
+	fn get_type() -> Type {
 		TypePrimitive::Str.into()
 	}
 }
 
 impl HasType for String {
-	fn type_id() -> Type {
-		TypePath::new(
-			"String",
-			Namespace::prelude(),
-			Vec::new(),
-			TypeProductStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into(),
-		)
-		.into()
+	fn get_type() -> Type {
+		TypeProductStruct::new(
+			TypePath::new("String", Namespace::prelude(), Vec::new()),
+			vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]
+		).into()
 	}
 }
 
@@ -206,13 +195,14 @@ impl<T> HasType for PhantomData<T>
 where
 	T: Metadata + ?Sized,
 {
-	fn type_id() -> Type {
-		TypePath::new(
-			"PhantomData",
-			Namespace::prelude(),
-			vec![T::meta_type()],
-			TypeProductTupleStruct::new(vec![]).into(),
-		)
-		.into()
+	fn get_type() -> Type {
+		TypeProductTupleStruct::new(
+			TypePath::new(
+				"PhantomData",
+				Namespace::prelude(),
+				vec![T::meta_type()],
+			),
+			vec![]
+		).into()
 	}
 }

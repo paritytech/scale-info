@@ -19,9 +19,8 @@ use crate::tm_std::*;
 use crate::{
 	form::{CompactForm, Form, MetaForm},
 	utils::is_rust_identifier,
-	IntoCompact, MetaType, Metadata, Registry, TypeDef,
+	IntoCompact, MetaType, Registry,
 };
-use derive_more::From;
 use serde::Serialize;
 
 /// Represents the namespace of a type definition.
@@ -124,7 +123,6 @@ impl IntoCompact for TypePath {
 				.into_iter()
 				.map(|param| registry.register_type(&param))
 				.collect::<Vec<_>>(),
-			type_def: self.type_def.into_compact(registry),
 		}
 	}
 }

@@ -26,8 +26,8 @@ use crate::{form::MetaForm, HasType, Metadata, Type};
 /// in order to be serializable.
 #[derive(Clone, Copy)]
 pub struct MetaType {
-	/// Function pointer to type ID.
-	fn_type_id: fn() -> Type<MetaForm>,
+	/// Function pointer to get type information.
+	fn_get_type: fn() -> Type<MetaForm>,
 	// The standard type ID (ab)used in order to provide
 	// cheap implementations of the standard traits
 	// such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
@@ -76,7 +76,7 @@ impl MetaType {
 		T: Metadata + ?Sized + 'static,
 	{
 		Self {
-			fn_type_id: <T as HasType>::type_id,
+			fn_get_type: <T as HasType>::get_type,
 			any_id: AnyTypeId::of::<T>(),
 		}
 	}
@@ -91,7 +91,7 @@ impl MetaType {
 
 	/// Returns the meta type identifier.
 	pub fn type_id(&self) -> Type<MetaForm> {
-		(self.fn_type_id)()
+		(self.fn_get_type)()
 	}
 
 	/// Returns the type identifier provided by `core::any`.

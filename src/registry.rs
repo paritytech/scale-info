@@ -33,7 +33,7 @@
 
 use crate::tm_std::*;
 use crate::{
-	form::{CompactForm, Form, MetaForm},
+	form::CompactForm,
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
 	Type,

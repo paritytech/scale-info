@@ -16,7 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{NamedField, UnnamedField, form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, TypePath};
+use crate::{NamedField, UnnamedField, form::{CompactForm, Form, MetaForm}, IntoCompact, Registry, TypePath};
 use derive_more::From;
 use serde::Serialize;
 

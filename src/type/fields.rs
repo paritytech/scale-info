@@ -18,10 +18,8 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	utils::is_rust_identifier,
-	IntoCompact, MetaType, Metadata, Registry, TypeDef,
+	IntoCompact, MetaType, Metadata, Registry,
 };
-use derive_more::From;
 use serde::Serialize;
 
 /// A named field.

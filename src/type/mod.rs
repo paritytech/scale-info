@@ -18,8 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	utils::is_rust_identifier,
-	IntoCompact, MetaType, Metadata, Registry, TypeDef,
+	IntoCompact, MetaType, Metadata, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -39,7 +38,8 @@ pub use self::{
 /// Implementors return their meta type identifiers.
 pub trait HasType {
 	/// Returns the static type identifier for `Self`.
-	fn type_id() -> Type;
+	// todo: [AJ] good name for this? r#type() perhaps?
+	fn get_type() -> Type;
 }
 
 /// A type identifier.
@@ -81,6 +81,30 @@ impl IntoCompact for Type {
 			Type::Tuple(tuple) => tuple.into_compact(registry).into(),
 			Type::Primitive(primitive) => primitive.into(),
 		}
+	}
+}
+
+impl From<TypeProductStruct> for Type {
+	fn from(ty: TypeProductStruct) -> Type {
+		ty.into()
+	}
+}
+
+impl From<TypeProductTupleStruct> for Type {
+	fn from(ty: TypeProductTupleStruct) -> Type {
+		ty.into()
+	}
+}
+
+impl From<TypeSumEnum> for Type {
+	fn from(ty: TypeSumEnum) -> Type {
+		ty.into()
+	}
+}
+
+impl From<TypeSumClikeEnum> for Type {
+	fn from(ty: TypeSumClikeEnum) -> Type {
+		ty.into()
 	}
 }
 

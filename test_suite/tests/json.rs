@@ -33,7 +33,7 @@ where
 {
 	let mut registry = Registry::new();
 
-	let type_id = T::type_id().into_compact(&mut registry);
+	let type_id = T::get_type().into_compact(&mut registry);
 
 	assert_json_eq!(serde_json::to_value(type_id).unwrap(), expected_json,);
 }

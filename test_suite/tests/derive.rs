@@ -33,7 +33,7 @@ where
 	T: HasType + ?Sized,
 	E: Into<Type>,
 {
-	assert_eq!(T::type_id(), expected.into());
+	assert_eq!(T::get_type(), expected.into());
 }
 
 macro_rules! assert_type_id {
