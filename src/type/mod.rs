@@ -52,10 +52,9 @@ pub trait HasType {
 ")]
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
-	/// A custom type defined by the user.
-	Custom(TypePath<F>),
+	/// A product type (e.g. a struct) defined by the user.
+	Product(TypeProduct<F>),
 
-	/// todo: Aggregate (Product?) (merge of Struct and TupleStruct
 	/// todo: Variant (Sum?) (merge of Enum and Clike enum)
 
 	/// A slice type with runtime known length.

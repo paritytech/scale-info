@@ -24,7 +24,7 @@ use alloc::{boxed::Box, vec};
 
 use type_metadata::{
 	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasType, Metadata,
-	NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct, TypeDefTupleStruct, TypeDefUnion, Type,
+	NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeStruct, TypeTupleStruct, TypeDefUnion, Type,
 	TypePath, UnnamedField,
 };
 
@@ -55,7 +55,7 @@ fn struct_derive() {
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool, u8),
-		TypeDefStruct::new(vec![
+		TypeStruct::new(vec![
 			NamedField::new("t", bool::meta_type()),
 			NamedField::new("u", u8::meta_type()),
 		])
@@ -71,7 +71,7 @@ fn struct_derive() {
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(Box<S<bool, u8>>, bool),
-		TypeDefStruct::new(vec![
+		TypeStruct::new(vec![
 			NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
 			NamedField::new("u", bool::meta_type()),
 		])
@@ -90,7 +90,7 @@ fn tuple_struct_derive() {
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		tuple_meta_type!(bool),
-		TypeDefTupleStruct::new(vec![UnnamedField::of::<bool>()]).into(),
+		TypeTupleStruct::new(vec![UnnamedField::of::<bool>()]).into(),
 	);
 	assert_type_id!(S<bool>, type_id);
 }
@@ -105,7 +105,7 @@ fn unit_struct_derive() {
 		"S",
 		Namespace::new(vec!["derive"]).unwrap(),
 		vec![],
-		TypeDefTupleStruct::unit().into(),
+		TypeTupleStruct::unit().into(),
 	);
 	assert_type_id!(S, type_id);
 }

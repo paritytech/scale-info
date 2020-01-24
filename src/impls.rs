@@ -196,7 +196,7 @@ impl HasType for String {
 			"String",
 			Namespace::prelude(),
 			Vec::new(),
-			TypeDefStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into(),
+			TypeStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]).into(),
 		)
 		.into()
 	}
@@ -211,7 +211,7 @@ where
 			"PhantomData",
 			Namespace::prelude(),
 			vec![T::meta_type()],
-			TypeDefTupleStruct::new(vec![]).into(),
+			TypeTupleStruct::new(vec![]).into(),
 		)
 		.into()
 	}

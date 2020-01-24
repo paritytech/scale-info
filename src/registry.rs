@@ -33,7 +33,7 @@
 
 use crate::tm_std::*;
 use crate::{
-	form::CompactForm,
+	form::{CompactForm, Form, MetaForm},
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
 	Type,
@@ -145,5 +145,16 @@ impl Registry {
 			self.types.insert(symbol, compact_id);
 		}
 		symbol
+	}
+
+	pub fn register_types<I, T>(&mut self, types: I) -> Vec<T::Output>
+	where
+		I: IntoIterator<Item = T>,
+		T: IntoCompact,
+	{
+		types
+			.into_iter()
+			.map(|field| field.into_compact(self))
+			.collect::<Vec<_>>()
 	}
 }

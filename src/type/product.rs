@@ -16,13 +16,34 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	NamedField, UnnamedField,
-	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
-};
+use crate::{NamedField, UnnamedField, form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, TypePath};
 use derive_more::From;
 use serde::Serialize;
+
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
+#[serde(bound = "F::Type: Serialize")]
+#[serde(rename_all = "lowercase")]
+pub enum TypeProduct<F: Form = MetaForm> {
+	/// A struct with named fields
+	Struct(TypeStruct<F>),
+	/// A tuple struct with unnamed fields
+	TupleStruct(TypeStruct<F>),
+}
+
+impl IntoCompact for TypeProduct {
+	type Output = TypeProduct<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		match self {
+			TypeProduct::Struct(s) => {
+				TypeProduct::Struct(s.into_compact(registry))
+			},
+			TypeProduct::TupleStruct(ts) => {
+				TypeProduct::TupleStruct(ts.into_compact(registry))
+			},
+		}
+	}
+}
 
 /// A Rust struct with named fields.
 ///
@@ -37,38 +58,41 @@ use serde::Serialize;
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct TypeDefStruct<F: Form = MetaForm> {
+pub struct TypeStruct<F: Form = MetaForm> {
+	/// The path of the struct
+	path: TypePath<F>,
 	/// The named fields of the struct.
 	fields: Vec<NamedField<F>>,
 }
 
-impl IntoCompact for TypeDefStruct {
-	type Output = TypeDefStruct<CompactForm>;
+impl IntoCompact for TypeStruct {
+	type Output = TypeStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDefStruct {
-			fields: self
-				.fields
-				.into_iter()
-				.map(|field| field.into_compact(registry))
-				.collect::<Vec<_>>(),
+		TypeStruct {
+//			fields: self
+//				.fields
+//				.into_iter()
+//				.map(|field| field.into_compact(registry))
+//				.collect::<Vec<_>>(),
+			path: self.path.into_compact(registry),
+			fields: registry.register_types(self.fields),
 		}
 	}
 }
 
-impl TypeDefStruct {
+impl TypeStruct {
 	/// Creates a new struct definition with named fields.
-	pub fn new<F>(fields: F) -> Self
+	pub fn new<F>(path: TypePath, fields: F) -> Self
 		where
 			F: IntoIterator<Item = NamedField>,
 	{
 		Self {
+			path,
 			fields: fields.into_iter().collect(),
 		}
 	}
 }
-
-
 
 /// A tuple struct with unnamed fields.
 ///
@@ -83,49 +107,46 @@ impl TypeDefStruct {
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct TypeDefTupleStruct<F: Form = MetaForm> {
+pub struct TypeTupleStruct<F: Form = MetaForm> {
+	/// The path of the struct
+	path: TypePath<F>,
 	/// The unnamed fields.
 	#[serde(rename = "types")]
 	fields: Vec<UnnamedField<F>>,
 }
 
-impl IntoCompact for TypeDefTupleStruct {
-	type Output = TypeDefTupleStruct<CompactForm>;
+impl IntoCompact for TypeTupleStruct {
+	type Output = TypeTupleStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDefTupleStruct {
-			fields: self
-				.fields
-				.into_iter()
-				.map(|field| field.into_compact(registry))
-				.collect::<Vec<_>>(),
+		TypeTupleStruct {
+			path: path.into_compact(registry),
+			fields: registry.register_types(self.fields),
+//			fields: self
+//				.fields
+//				.into_iter()
+//				.map(|field| field.into_compact(registry))
+//				.collect::<Vec<_>>(),
 		}
 	}
 }
 
-impl TypeDefTupleStruct {
+impl TypeTupleStruct {
 	/// Creates a new tuple-struct.
-	pub fn new<F>(fields: F) -> Self
+	pub fn new<F>(path: TypePath, fields: F) -> Self
 		where
 			F: IntoIterator<Item = UnnamedField>,
 	{
 		Self {
+			path,
 			fields: fields.into_iter().collect(),
 		}
 	}
 
 	/// Creates the unit tuple-struct that has no fields.
-	pub fn unit() -> Self {
-		Self { fields: vec![] }
+	pub fn unit(path: TypePath) -> Self {
+		Self { path, fields: vec![] }
 	}
-}
-
-
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
-pub enum TypeProduct<F: Form = MetaForm> {
-	Struct(Vec<NamedField<F>>),
-	TupleStruct()
 }
 
 
