@@ -28,7 +28,7 @@ use type_metadata::{
 	TypePath, UnnamedField,
 };
 
-fn assert_type_id<T, E>(expected: E)
+fn assert_type<T, E>(expected: E)
 where
 	T: HasType + ?Sized,
 	E: Into<Type>,
@@ -36,9 +36,9 @@ where
 	assert_eq!(T::get_type(), expected.into());
 }
 
-macro_rules! assert_type_id {
+macro_rules! assert_type {
 	( $ty:ty, $expected:expr ) => {{
-		assert_type_id::<$ty, _>($expected)
+		assert_type::<$ty, _>($expected)
 		}};
 }
 
@@ -51,33 +51,35 @@ fn struct_derive() {
 		pub u: U,
 	}
 
-	let type_id = TypePath::new(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(bool, u8),
-		TypeProductStruct::new(vec![
+	let type_id = TypeProductStruct::new(
+		TypePath::new(
+			"S",
+			Namespace::new(vec!["derive"]).unwrap(),
+			tuple_meta_type!(bool, u8)
+		),
+		vec![
 			NamedField::new("t", bool::meta_type()),
 			NamedField::new("u", u8::meta_type()),
-		])
-		.into(),
+		]
 	);
-	assert_type_id!(S<bool, u8>, type_id.clone());
+	assert_type!(S<bool, u8>, type_id.clone());
 
 	// With "`Self` typed" fields
 
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
-	let self_typed_id = TypePath::new(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(Box<S<bool, u8>>, bool),
-		TypeProductStruct::new(vec![
-			NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
-			NamedField::new("u", bool::meta_type()),
-		])
-		.into(),
+	let self_typed_id = TypeProductStruct::new(
+		TypePath::new(
+			"S",
+			Namespace::new(vec!["derive"]).unwrap(),
+			tuple_meta_type!(Box<S<bool, u8>>, bool)
+		),
+		vec![
+				NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
+				NamedField::new("u", bool::meta_type()),
+			]
 	);
-	assert_type_id!(SelfTyped, self_typed_id);
+	assert_type!(SelfTyped, self_typed_id);
 }
 
 #[test]
@@ -86,13 +88,15 @@ fn tuple_struct_derive() {
 	#[derive(Metadata)]
 	struct S<T>(T);
 
-	let type_id = TypePath::new(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(bool),
-		TypeProductTupleStruct::new(vec![UnnamedField::of::<bool>()]).into(),
+	let ty = TypeProductTupleStruct::new(
+		TypePath::new(
+			"S",
+			Namespace::new(vec!["derive"]).unwrap(),
+			tuple_meta_type!(bool),
+		),
+		vec![UnnamedField::of::<bool>()]
 	);
-	assert_type_id!(S<bool>, type_id);
+	assert_type!(S<bool>, ty);
 }
 
 #[test]
@@ -101,13 +105,15 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let type_id = TypePath::new(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		vec![],
-		TypeProductTupleStruct::unit().into(),
+	let ty = TypeProductTupleStruct::unit(
+		TypePath::new(
+			"S",
+			Namespace::new(vec!["derive"]).unwrap(),
+			vec![],
+		)
 	);
-	assert_type_id!(S, type_id);
+
+	assert_type!(S, ty);
 }
 
 #[test]
@@ -119,17 +125,17 @@ fn c_like_enum_derive() {
 		B = 10,
 	}
 
-	let type_id = TypePath::new(
-		"E",
-		Namespace::new(vec!["derive"]).unwrap(),
-		vec![],
-		TypeSumClikeEnum::new(vec![
-			ClikeEnumVariant::new("A", 0u64),
-			ClikeEnumVariant::new("B", 10u64),
-		])
-		.into(),
-	);
-	assert_type_id!(E, type_id);
+	let ty = TypeSumClikeEnum::new(
+		TypePath::new(
+			"E",
+			Namespace::new(vec!["derive"]).unwrap(),
+			vec![]),
+		vec![
+		ClikeEnumVariant::new("A", 0u64),
+		ClikeEnumVariant::new("B", 10u64),
+	]);
+
+	assert_type!(E, ty);
 }
 
 #[test]
@@ -142,34 +148,16 @@ fn enum_derive() {
 		C,
 	}
 
-	let type_id = TypePath::new(
-		"E",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(bool),
-		TypeSumEnum::new(vec![
-			EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
-			EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
-			EnumVariantUnit::new("C").into(),
-		])
-		.into(),
-	);
-	assert_type_id!(E<bool>, type_id);
-}
+	let ty = TypeSumEnum::new(
+		TypePath::new(
+			"E",
+			Namespace::new(vec!["derive"]).unwrap(),
+			tuple_meta_type!(bool)),
+		vec![
+		EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
+		EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
+		EnumVariantUnit::new("C").into(),
+	]);
 
-#[test]
-// #[should_panic] // TODO: remove #[should_panic]
-fn union_derive() {
-	#[allow(unused)]
-	#[derive(Metadata)]
-	union U<T: Copy> {
-		u: T,
-	}
-
-	let type_id = TypePath::new(
-		"U",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(bool),
-		TypeDefUnion::new(vec![NamedField::new("u", bool::meta_type())]).into(),
-	);
-	assert_type_id!(U<bool>, type_id);
+	assert_type!(E<bool>, ty);
 }
