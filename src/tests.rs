@@ -124,32 +124,33 @@ fn struct_with_generics() {
 		T: Metadata + 'static,
 	{
 		fn get_type() -> Type {
-			TypePath::new(
-				"MyStruct",
-				Namespace::from_module_path(module_path!()).unwrap(),
-				tuple_meta_type!(T),
-				TypeProductStruct::new(vec![NamedField::new("data", T::meta_type())]).into(),
-			)
-			.into()
+			TypeProductStruct::new(
+				TypePath::new(
+					"MyStruct",
+					Namespace::from_module_path(module_path!()).unwrap(),
+					tuple_meta_type!(T),
+				),
+				vec![NamedField::new("data", T::meta_type())],
+			).into()
 		}
 	}
 
 	// Normal struct
-	let struct_bool_id = TypePath::new(
-		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
-		tuple_meta_type!(bool),
-		TypeProductStruct::new(vec![NamedField::new("data", bool::meta_type())]).into(),
-	);
+	let struct_bool_id = TypeProductStruct::new(
+		TypePath::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap(), tuple_meta_type!(bool)),
+		vec![NamedField::new("data", bool::meta_type())]
+	).into();
 	assert_type!(MyStruct<bool>, struct_bool_id.clone());
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type_id = TypePath::new(
-		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
-		vec![<Box<MyStruct<bool>>>::meta_type()],
-		TypeProductStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())]).into(),
-	);
+	let expected_type_id = TypeProductStruct::new(
+		TypePath::new(
+			"MyStruct",
+			Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+			vec![<Box<MyStruct<bool>>>::meta_type()],
+		),
+		vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())]
+	).into();
 	assert_type!(SelfTyped, expected_type_id);
 }
