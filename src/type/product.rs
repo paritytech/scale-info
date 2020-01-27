@@ -71,11 +71,6 @@ impl IntoCompact for TypeProductStruct {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeProductStruct {
-//			fields: self
-//				.fields
-//				.into_iter()
-//				.map(|field| field.into_compact(registry))
-//				.collect::<Vec<_>>(),
 			path: self.path.into_compact(registry),
 			fields: registry.register_types(self.fields),
 		}
@@ -123,11 +118,6 @@ impl IntoCompact for TypeProductTupleStruct {
 		TypeProductTupleStruct {
 			path: self.path.into_compact(registry),
 			fields: registry.register_types(self.fields),
-//			fields: self
-//				.fields
-//				.into_iter()
-//				.map(|field| field.into_compact(registry))
-//				.collect::<Vec<_>>(),
 		}
 	}
 }
