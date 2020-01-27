@@ -24,7 +24,7 @@ use alloc::{boxed::Box, vec};
 
 use type_metadata::{
 	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasType, Metadata,
-	NamedField, Namespace, TypeSumClikeEnum, TypeSumEnum, TypeProductStruct, TypeProductTupleStruct, TypeDefUnion, Type,
+	NamedField, Namespace, TypeSumClikeEnum, TypeSumEnum, TypeProductStruct, TypeProductTupleStruct, Type,
 	TypePath, UnnamedField,
 };
 

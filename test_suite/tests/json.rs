@@ -23,9 +23,8 @@ extern crate alloc;
 use alloc::{vec, vec::Vec};
 
 use assert_json_diff::assert_json_eq;
-use serde::Serialize;
 use serde_json::json;
-use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, Type};
+use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry};
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where
@@ -168,31 +167,6 @@ fn test_enum() {
 								],
 							}
 						}
-					]
-				}
-			},
-		},
-	}));
-}
-
-#[test]
-fn test_union() {
-	#[derive(Metadata)]
-	union Union {
-		inl: [u8; 32],
-		ext: u128,
-	}
-
-	assert_json_for_type::<Union>(json!({
-		"custom": {
-			"name": 1,
-			"namespace": [2],
-			"params": [],
-			"def": {
-				"union": {
-					"fields": [
-						{ "name": 3, "type": 1, },
-						{ "name": 4, "type": 3, },
 					]
 				}
 			},
