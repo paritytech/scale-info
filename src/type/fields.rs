@@ -58,8 +58,8 @@ impl NamedField {
 	///
 	/// Use this constructor if you want to instantiate from a given compile-time type.
 	pub fn of<T>(name: <MetaForm as Form>::String) -> Self
-		where
-			T: Metadata + ?Sized + 'static,
+	where
+		T: Metadata + ?Sized + 'static,
 	{
 		Self::new(name, MetaType::new::<T>())
 	}
@@ -97,8 +97,8 @@ impl UnnamedField {
 	///
 	/// Use this constructor if you want to instantiate from a given compile-time type.
 	pub fn of<T>() -> Self
-		where
-			T: Metadata + ?Sized + 'static,
+	where
+		T: Metadata + ?Sized + 'static,
 	{
 		Self::new(MetaType::new::<T>())
 	}

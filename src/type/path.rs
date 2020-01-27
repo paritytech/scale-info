@@ -66,8 +66,8 @@ impl IntoCompact for Namespace {
 impl Namespace {
 	/// Creates a new namespace from the given segments.
 	pub fn new<S>(segments: S) -> Result<Self, NamespaceError>
-		where
-			S: IntoIterator<Item = <MetaForm as Form>::String>,
+	where
+		S: IntoIterator<Item = <MetaForm as Form>::String>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
 		if segments.is_empty() {
@@ -130,8 +130,8 @@ impl IntoCompact for TypePath {
 impl TypePath {
 	/// Creates a new type identifier to refer to a custom type definition.
 	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
-		where
-			T: IntoIterator<Item = MetaType>,
+	where
+		T: IntoIterator<Item = MetaType>,
 	{
 		Self {
 			name,

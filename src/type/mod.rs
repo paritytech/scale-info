@@ -23,17 +23,12 @@ use crate::{
 use derive_more::From;
 use serde::Serialize;
 
-mod product;
-mod sum;
 mod fields;
 mod path;
+mod product;
+mod sum;
 
-pub use self::{
-	path::*,
-	fields::*,
-	product::*,
-	sum::*,
-};
+pub use self::{fields::*, path::*, product::*, sum::*};
 
 /// Implementors return their meta type identifiers.
 pub trait HasType {

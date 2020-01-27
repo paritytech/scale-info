@@ -25,9 +25,11 @@ use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
+	parse::{Error, Result},
 	parse_quote,
-	parse::{Result, Error}, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DeriveInput, Expr,
-	ExprLit, Field, Fields, Lit, Variant,
+	punctuated::Punctuated,
+	token::Comma,
+	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
 };
 
 #[proc_macro_derive(Metadata)]
@@ -140,11 +142,11 @@ fn generate_c_like_enum_def(variants: &VariantList, type_path: TokenStream2) -> 
 	let variants_def = variants.into_iter().enumerate().map(|(i, v)| {
 		let name = &v.ident;
 		let discriminant = if let Some((
-										   _,
-										   Expr::Lit(ExprLit {
-														 lit: Lit::Int(lit_int), ..
-													 }),
-									   )) = &v.discriminant
+			_,
+			Expr::Lit(ExprLit {
+				lit: Lit::Int(lit_int), ..
+			}),
+		)) = &v.discriminant
 		{
 			match lit_int.base10_parse::<u64>() {
 				Ok(i) => i,
@@ -204,4 +206,3 @@ fn generate_enum_def(data_enum: &DataEnum, type_path: TokenStream2) -> TokenStre
 		_type_metadata::TypeSumEnum::new(#type_path, __core::vec![#( #variants_def, )*])
 	}
 }
-

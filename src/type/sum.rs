@@ -16,7 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{NamedField, form::{CompactForm, Form, MetaForm}, IntoCompact, Registry, UnnamedField, TypePath};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	IntoCompact, NamedField, Registry, TypePath, UnnamedField,
+};
 use derive_more::From;
 use serde::Serialize;
 
@@ -37,10 +40,8 @@ impl IntoCompact for TypeSum {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeSum::ClikeEnum(clike_enum) =>
-				TypeSum::ClikeEnum(clike_enum.into_compact(registry)),
-			TypeSum::Enum(r#enum) =>
-				TypeSum::Enum(r#enum.into_compact(registry)),
+			TypeSum::ClikeEnum(clike_enum) => TypeSum::ClikeEnum(clike_enum.into_compact(registry)),
+			TypeSum::Enum(r#enum) => TypeSum::Enum(r#enum.into_compact(registry)),
 		}
 	}
 }
@@ -91,8 +92,8 @@ impl IntoCompact for TypeSumClikeEnum {
 impl TypeSumClikeEnum {
 	/// Creates a new C-like enum from the given variants.
 	pub fn new<V>(path: TypePath, variants: V) -> Self
-		where
-			V: IntoIterator<Item = ClikeEnumVariant>,
+	where
+		V: IntoIterator<Item = ClikeEnumVariant>,
 	{
 		Self {
 			path,
@@ -143,8 +144,8 @@ impl IntoCompact for ClikeEnumVariant {
 impl ClikeEnumVariant {
 	/// Creates a new C-like enum variant.
 	pub fn new<D>(name: <MetaForm as Form>::String, discriminant: D) -> Self
-		where
-			D: Into<u64>,
+	where
+		D: Into<u64>,
 	{
 		Self {
 			name,
@@ -196,8 +197,8 @@ impl IntoCompact for TypeSumEnum {
 impl TypeSumEnum {
 	/// Creates a new Rust enum from the given variants.
 	pub fn new<V>(path: TypePath, variants: V) -> Self
-		where
-			V: IntoIterator<Item = EnumVariant>,
+	where
+		V: IntoIterator<Item = EnumVariant>,
 	{
 		Self {
 			path,
@@ -311,8 +312,8 @@ impl IntoCompact for EnumVariantStruct {
 impl EnumVariantStruct {
 	/// Creates a new struct variant from the given fields.
 	pub fn new<F>(name: <MetaForm as Form>::String, fields: F) -> Self
-		where
-			F: IntoIterator<Item = NamedField>,
+	where
+		F: IntoIterator<Item = NamedField>,
 	{
 		Self {
 			name,
@@ -363,8 +364,8 @@ impl IntoCompact for EnumVariantTupleStruct {
 impl EnumVariantTupleStruct {
 	/// Creates a new tuple struct enum variant from the given fields.
 	pub fn new<F>(name: <MetaForm as Form>::String, fields: F) -> Self
-		where
-			F: IntoIterator<Item = UnnamedField>,
+	where
+		F: IntoIterator<Item = UnnamedField>,
 	{
 		Self {
 			name,

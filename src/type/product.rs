@@ -16,7 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{NamedField, UnnamedField, form::{CompactForm, Form, MetaForm}, IntoCompact, Registry, TypePath};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	IntoCompact, NamedField, Registry, TypePath, UnnamedField,
+};
 use derive_more::From;
 use serde::Serialize;
 
@@ -36,12 +39,8 @@ impl IntoCompact for TypeProduct {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			TypeProduct::Struct(s) => {
-				TypeProduct::Struct(s.into_compact(registry))
-			},
-			TypeProduct::TupleStruct(ts) => {
-				TypeProduct::TupleStruct(ts.into_compact(registry))
-			},
+			TypeProduct::Struct(s) => TypeProduct::Struct(s.into_compact(registry)),
+			TypeProduct::TupleStruct(ts) => TypeProduct::TupleStruct(ts.into_compact(registry)),
 		}
 	}
 }
@@ -80,8 +79,8 @@ impl IntoCompact for TypeProductStruct {
 impl TypeProductStruct {
 	/// Creates a new struct definition with named fields.
 	pub fn new<F>(path: TypePath, fields: F) -> Self
-		where
-			F: IntoIterator<Item = NamedField>,
+	where
+		F: IntoIterator<Item = NamedField>,
 	{
 		Self {
 			path,
@@ -125,8 +124,8 @@ impl IntoCompact for TypeProductTupleStruct {
 impl TypeProductTupleStruct {
 	/// Creates a new tuple-struct.
 	pub fn new<F>(path: TypePath, fields: F) -> Self
-		where
-			F: IntoIterator<Item = UnnamedField>,
+	where
+		F: IntoIterator<Item = UnnamedField>,
 	{
 		Self {
 			path,
@@ -139,5 +138,3 @@ impl TypeProductTupleStruct {
 		Self { path, fields: vec![] }
 	}
 }
-
-

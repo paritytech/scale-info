@@ -24,8 +24,8 @@ use alloc::{boxed::Box, vec};
 
 use type_metadata::{
 	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasType, Metadata,
-	NamedField, Namespace, TypeSumClikeEnum, TypeSumEnum, TypeProductStruct, TypeProductTupleStruct, Type,
-	TypePath, UnnamedField,
+	NamedField, Namespace, Type, TypePath, TypeProductStruct, TypeProductTupleStruct, TypeSumClikeEnum, TypeSumEnum,
+	UnnamedField,
 };
 
 fn assert_type<T, E>(expected: E)
@@ -52,15 +52,11 @@ fn struct_derive() {
 	}
 
 	let type_id = TypeProductStruct::new(
-		TypePath::new(
-			"S",
-			Namespace::new(vec!["derive"]).unwrap(),
-			tuple_meta_type!(bool, u8)
-		),
+		TypePath::new("S", Namespace::new(vec!["derive"]).unwrap(), tuple_meta_type!(bool, u8)),
 		vec![
 			NamedField::new("t", bool::meta_type()),
 			NamedField::new("u", u8::meta_type()),
-		]
+		],
 	);
 	assert_type!(S<bool, u8>, type_id.clone());
 
@@ -72,12 +68,12 @@ fn struct_derive() {
 		TypePath::new(
 			"S",
 			Namespace::new(vec!["derive"]).unwrap(),
-			tuple_meta_type!(Box<S<bool, u8>>, bool)
+			tuple_meta_type!(Box<S<bool, u8>>, bool),
 		),
 		vec![
-				NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
-				NamedField::new("u", bool::meta_type()),
-			]
+			NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
+			NamedField::new("u", bool::meta_type()),
+		],
 	);
 	assert_type!(SelfTyped, self_typed_id);
 }
@@ -89,12 +85,8 @@ fn tuple_struct_derive() {
 	struct S<T>(T);
 
 	let ty = TypeProductTupleStruct::new(
-		TypePath::new(
-			"S",
-			Namespace::new(vec!["derive"]).unwrap(),
-			tuple_meta_type!(bool),
-		),
-		vec![UnnamedField::of::<bool>()]
+		TypePath::new("S", Namespace::new(vec!["derive"]).unwrap(), tuple_meta_type!(bool)),
+		vec![UnnamedField::of::<bool>()],
 	);
 	assert_type!(S<bool>, ty);
 }
@@ -105,13 +97,7 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let ty = TypeProductTupleStruct::unit(
-		TypePath::new(
-			"S",
-			Namespace::new(vec!["derive"]).unwrap(),
-			vec![],
-		)
-	);
+	let ty = TypeProductTupleStruct::unit(TypePath::new("S", Namespace::new(vec!["derive"]).unwrap(), vec![]));
 
 	assert_type!(S, ty);
 }
@@ -126,14 +112,9 @@ fn c_like_enum_derive() {
 	}
 
 	let ty = TypeSumClikeEnum::new(
-		TypePath::new(
-			"E",
-			Namespace::new(vec!["derive"]).unwrap(),
-			vec![]),
-		vec![
-		ClikeEnumVariant::new("A", 0u64),
-		ClikeEnumVariant::new("B", 10u64),
-	]);
+		TypePath::new("E", Namespace::new(vec!["derive"]).unwrap(), vec![]),
+		vec![ClikeEnumVariant::new("A", 0u64), ClikeEnumVariant::new("B", 10u64)],
+	);
 
 	assert_type!(E, ty);
 }
@@ -149,15 +130,13 @@ fn enum_derive() {
 	}
 
 	let ty = TypeSumEnum::new(
-		TypePath::new(
-			"E",
-			Namespace::new(vec!["derive"]).unwrap(),
-			tuple_meta_type!(bool)),
+		TypePath::new("E", Namespace::new(vec!["derive"]).unwrap(), tuple_meta_type!(bool)),
 		vec![
-		EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
-		EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
-		EnumVariantUnit::new("C").into(),
-	]);
+			EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
+			EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
+			EnumVariantUnit::new("C").into(),
+		],
+	);
 
 	assert_type!(E<bool>, ty);
 }

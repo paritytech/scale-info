@@ -131,14 +131,19 @@ fn struct_with_generics() {
 					tuple_meta_type!(T),
 				),
 				vec![NamedField::new("data", T::meta_type())],
-			).into()
+			)
+			.into()
 		}
 	}
 
 	// Normal struct
 	let struct_bool_id = TypeProductStruct::new(
-		TypePath::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap(), tuple_meta_type!(bool)),
-		vec![NamedField::new("data", bool::meta_type())]
+		TypePath::new(
+			"MyStruct",
+			Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+			tuple_meta_type!(bool),
+		),
+		vec![NamedField::new("data", bool::meta_type())],
 	);
 	assert_type!(MyStruct<bool>, struct_bool_id.clone());
 
@@ -150,7 +155,7 @@ fn struct_with_generics() {
 			Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 			vec![<Box<MyStruct<bool>>>::meta_type()],
 		),
-		vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())]
+		vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())],
 	);
 	assert_type!(SelfTyped, expected_type_id);
 }
