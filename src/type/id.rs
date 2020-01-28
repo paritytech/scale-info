@@ -23,6 +23,49 @@ use crate::{
 };
 use serde::Serialize;
 
+/// A type identifier for custom type definitions.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+#[serde(bound = "F::Type: Serialize")]
+pub struct TypeId<F: Form = MetaForm> {
+	/// The name of the custom type.
+	name: F::String,
+	/// The namespace in which the custom type has been defined.
+	namespace: Namespace<F>,
+	/// The generic type parameters of the custom type in use.
+	#[serde(rename = "params")]
+	type_params: Vec<F::Type>,
+}
+
+impl IntoCompact for TypeId {
+	type Output = TypeId<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		TypeId {
+			name: registry.register_string(self.name),
+			namespace: self.namespace.into_compact(registry),
+			type_params: self
+				.type_params
+				.into_iter()
+				.map(|param| registry.register_type(&param))
+				.collect::<Vec<_>>(),
+		}
+	}
+}
+
+impl TypeId {
+	/// Creates a new type identifier to refer to a custom type definition.
+	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
+		where
+			T: IntoIterator<Item = MetaType>,
+	{
+		Self {
+			name,
+			namespace,
+			type_params: type_params.into_iter().collect(),
+		}
+	}
+}
+
 /// Represents the namespace of a type definition.
 ///
 /// This consists of several segments that each have to be a valid Rust identifier.
@@ -91,53 +134,6 @@ impl Namespace {
 	/// Creates the prelude namespace.
 	pub fn prelude() -> Self {
 		Self { segments: vec![] }
-	}
-}
-
-/// A type identifier for custom type definitions.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::Type: Serialize")]
-pub struct TypePath<F: Form = MetaForm> {
-	/// The name of the custom type.
-	name: F::String,
-	/// The namespace in which the custom type has been defined.
-	///
-	/// # Note
-	///
-	/// For Rust prelude types the root (empty) namespace is used.
-	namespace: Namespace<F>,
-	/// The generic type parameters of the custom type in use.
-	#[serde(rename = "params")]
-	type_params: Vec<F::Type>,
-}
-
-impl IntoCompact for TypePath {
-	type Output = TypePath<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypePath {
-			name: registry.register_string(self.name),
-			namespace: self.namespace.into_compact(registry),
-			type_params: self
-				.type_params
-				.into_iter()
-				.map(|param| registry.register_type(&param))
-				.collect::<Vec<_>>(),
-		}
-	}
-}
-
-impl TypePath {
-	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
-	where
-		T: IntoIterator<Item = MetaType>,
-	{
-		Self {
-			name,
-			namespace,
-			type_params: type_params.into_iter().collect(),
-		}
 	}
 }
 

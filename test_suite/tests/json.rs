@@ -112,10 +112,12 @@ fn test_clike_enum() {
 	}
 
 	assert_json_for_type::<ClikeEnum>(json!({
-		"custom": {
-			"name": 1,
-			"namespace": [2],
-			"params": [],
+		"sum": {
+			"id": {
+				"name": 1,
+				"namespace": [2],
+				"params": [],
+			},
 			"def": {
 				"clikeenum": {
 					"variants": [

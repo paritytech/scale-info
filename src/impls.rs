@@ -105,7 +105,7 @@ where
 {
 	fn get_type() -> Type {
 		TypeSumEnum::new(
-			TypePath::new("Option", Namespace::prelude(), tuple_meta_type![T]),
+			TypeId::new("Option", Namespace::prelude(), tuple_meta_type![T]),
 			vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
@@ -122,7 +122,7 @@ where
 {
 	fn get_type() -> Type {
 		TypeSumEnum::new(
-			TypePath::new("Result", Namespace::prelude(), tuple_meta_type!(T, E)),
+			TypeId::new("Result", Namespace::prelude(), tuple_meta_type!(T, E)),
 			vec![
 				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
 				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
@@ -187,7 +187,7 @@ impl HasType for str {
 impl HasType for String {
 	fn get_type() -> Type {
 		TypeProductStruct::new(
-			TypePath::new("String", Namespace::prelude(), Vec::new()),
+			TypeId::new("String", Namespace::prelude(), Vec::new()),
 			vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())],
 		)
 		.into()
@@ -200,7 +200,7 @@ where
 {
 	fn get_type() -> Type {
 		TypeProductTupleStruct::new(
-			TypePath::new("PhantomData", Namespace::prelude(), vec![T::meta_type()]),
+			TypeId::new("PhantomData", Namespace::prelude(), vec![T::meta_type()]),
 			vec![],
 		)
 		.into()

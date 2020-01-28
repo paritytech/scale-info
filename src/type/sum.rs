@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, NamedField, Registry, TypePath, UnnamedField,
+	IntoCompact, NamedField, Registry, TypeId, UnnamedField,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -68,7 +68,7 @@ impl IntoCompact for TypeSum {
 #[serde(bound = "F::Type: Serialize")]
 pub struct TypeSumClikeEnum<F: Form = MetaForm> {
 	/// The path of the C-like enum
-	path: TypePath<F>,
+	path: TypeId<F>,
 	/// The variants of the C-like enum.
 	#[serde(rename = "variants")]
 	variants: Vec<ClikeEnumVariant<F>>,
@@ -91,7 +91,7 @@ impl IntoCompact for TypeSumClikeEnum {
 
 impl TypeSumClikeEnum {
 	/// Creates a new C-like enum from the given variants.
-	pub fn new<V>(path: TypePath, variants: V) -> Self
+	pub fn new<V>(path: TypeId, variants: V) -> Self
 	where
 		V: IntoIterator<Item = ClikeEnumVariant>,
 	{
@@ -174,7 +174,7 @@ impl ClikeEnumVariant {
 #[serde(bound = "F::Type: Serialize")]
 pub struct TypeSumEnum<F: Form = MetaForm> {
 	/// The path of the enum
-	path: TypePath<F>,
+	path: TypeId<F>,
 	/// The variants of the enum.
 	variants: Vec<EnumVariant<F>>,
 }
@@ -196,7 +196,7 @@ impl IntoCompact for TypeSumEnum {
 
 impl TypeSumEnum {
 	/// Creates a new Rust enum from the given variants.
-	pub fn new<V>(path: TypePath, variants: V) -> Self
+	pub fn new<V>(path: TypeId, variants: V) -> Self
 	where
 		V: IntoIterator<Item = EnumVariant>,
 	{

@@ -24,11 +24,11 @@ use derive_more::From;
 use serde::Serialize;
 
 mod fields;
-mod path;
+mod id;
 mod product;
 mod sum;
 
-pub use self::{fields::*, path::*, product::*, sum::*};
+pub use self::{fields::*, id::*, product::*, sum::*};
 
 /// Implementors return their meta type identifiers.
 pub trait HasType {

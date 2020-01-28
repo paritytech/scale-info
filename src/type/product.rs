@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, NamedField, Registry, TypePath, UnnamedField,
+	IntoCompact, NamedField, Registry, TypeId, UnnamedField,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -60,7 +60,7 @@ impl IntoCompact for TypeProduct {
 #[serde(bound = "F::Type: Serialize")]
 pub struct TypeProductStruct<F: Form = MetaForm> {
 	/// The path of the struct
-	path: TypePath<F>,
+	path: TypeId<F>,
 	/// The named fields of the struct.
 	fields: Vec<NamedField<F>>,
 }
@@ -78,7 +78,7 @@ impl IntoCompact for TypeProductStruct {
 
 impl TypeProductStruct {
 	/// Creates a new struct definition with named fields.
-	pub fn new<F>(path: TypePath, fields: F) -> Self
+	pub fn new<F>(path: TypeId, fields: F) -> Self
 	where
 		F: IntoIterator<Item = NamedField>,
 	{
@@ -104,7 +104,7 @@ impl TypeProductStruct {
 #[serde(bound = "F::Type: Serialize")]
 pub struct TypeProductTupleStruct<F: Form = MetaForm> {
 	/// The path of the struct
-	path: TypePath<F>,
+	path: TypeId<F>,
 	/// The unnamed fields.
 	#[serde(rename = "types")]
 	fields: Vec<UnnamedField<F>>,
@@ -123,7 +123,7 @@ impl IntoCompact for TypeProductTupleStruct {
 
 impl TypeProductTupleStruct {
 	/// Creates a new tuple-struct.
-	pub fn new<F>(path: TypePath, fields: F) -> Self
+	pub fn new<F>(path: TypeId, fields: F) -> Self
 	where
 		F: IntoIterator<Item = UnnamedField>,
 	{
@@ -134,7 +134,7 @@ impl TypeProductTupleStruct {
 	}
 
 	/// Creates the unit tuple-struct that has no fields.
-	pub fn unit(path: TypePath) -> Self {
+	pub fn unit(path: TypeId) -> Self {
 		Self { path, fields: vec![] }
 	}
 }

@@ -63,7 +63,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		}
 	});
 	let type_path = quote! {
-		_type_metadata::TypePath::new(
+		_type_metadata::TypeId::new(
 			stringify!(#ident),
 			_type_metadata::Namespace::from_module_path(module_path!())
 				.expect("namespace from module path cannot fail"),

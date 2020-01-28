@@ -48,7 +48,7 @@ fn prelude_items() {
 	assert_type!(
 		String,
 		TypeProductStruct::new(
-			TypePath::new("String", Namespace::prelude(), Vec::new()),
+			TypeId::new("String", Namespace::prelude(), Vec::new()),
 			vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]
 		)
 	);
@@ -56,7 +56,7 @@ fn prelude_items() {
 	assert_type!(
 		Option<u128>,
 		TypeSumEnum::new(
-			TypePath::new("Option", Namespace::prelude(), tuple_meta_type!(u128)),
+			TypeId::new("Option", Namespace::prelude(), tuple_meta_type!(u128)),
 			vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<u128>()]).into(),
@@ -66,7 +66,7 @@ fn prelude_items() {
 	assert_type!(
 		Result<bool, String>,
 		TypeSumEnum::new(
-			TypePath::new("Result", Namespace::prelude(), tuple_meta_type!(bool, String)),
+			TypeId::new("Result", Namespace::prelude(), tuple_meta_type!(bool, String)),
 			vec![
 				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<bool>()]).into(),
 				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<String>()]).into(),
@@ -76,7 +76,7 @@ fn prelude_items() {
 	assert_type!(
 		PhantomData<i32>,
 		TypeProductTupleStruct::new(
-			TypePath::new("PhantomData", Namespace::prelude(), tuple_meta_type!(i32)),
+			TypeId::new("PhantomData", Namespace::prelude(), tuple_meta_type!(i32)),
 			vec![],
 		)
 	)
@@ -125,7 +125,7 @@ fn struct_with_generics() {
 	{
 		fn get_type() -> Type {
 			TypeProductStruct::new(
-				TypePath::new(
+				TypeId::new(
 					"MyStruct",
 					Namespace::from_module_path(module_path!()).unwrap(),
 					tuple_meta_type!(T),
@@ -138,7 +138,7 @@ fn struct_with_generics() {
 
 	// Normal struct
 	let struct_bool_id = TypeProductStruct::new(
-		TypePath::new(
+		TypeId::new(
 			"MyStruct",
 			Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 			tuple_meta_type!(bool),
@@ -150,7 +150,7 @@ fn struct_with_generics() {
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
 	let expected_type_id = TypeProductStruct::new(
-		TypePath::new(
+		TypeId::new(
 			"MyStruct",
 			Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
 			vec![<Box<MyStruct<bool>>>::meta_type()],
