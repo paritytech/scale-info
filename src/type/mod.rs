@@ -81,25 +81,25 @@ impl IntoCompact for Type {
 
 impl From<TypeProductStruct> for Type {
 	fn from(ty: TypeProductStruct) -> Type {
-		ty.into()
+		Type::Product(ty.into())
 	}
 }
 
 impl From<TypeProductTupleStruct> for Type {
 	fn from(ty: TypeProductTupleStruct) -> Type {
-		ty.into()
+		Type::Product(ty.into())
 	}
 }
 
 impl From<TypeSumEnum> for Type {
 	fn from(ty: TypeSumEnum) -> Type {
-		ty.into()
+		Type::Sum(ty.into())
 	}
 }
 
 impl From<TypeSumClikeEnum> for Type {
 	fn from(ty: TypeSumClikeEnum) -> Type {
-		ty.into()
+		Type::Sum(ty.into())
 	}
 }
 
