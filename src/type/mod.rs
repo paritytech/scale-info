@@ -23,12 +23,12 @@ use crate::{
 use derive_more::From;
 use serde::Serialize;
 
+mod composite;
 mod fields;
-mod id;
 mod product;
 mod sum;
 
-pub use self::{fields::*, id::*, product::*, sum::*};
+pub use self::{composite::*, fields::*, product::*, sum::*};
 
 /// Implementors return their meta type identifiers.
 pub trait HasType {
@@ -48,9 +48,9 @@ pub trait HasType {
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
 	/// A product type (e.g. a struct)
-	Product(TypeProduct<F>),
+	Product(TypeComposite<TypeProduct<F>, F>),
 	/// A sum type (e.g. an enum)
-	Sum(TypeSum<F>),
+	Sum(TypeComposite<TypeSum<F>, F>),
 	/// A slice type with runtime known length.
 	Slice(TypeSlice<F>),
 	/// An array type with compile-time known length.
@@ -79,28 +79,20 @@ impl IntoCompact for Type {
 	}
 }
 
-impl From<TypeProductStruct> for Type {
-	fn from(ty: TypeProductStruct) -> Type {
-		Type::Product(ty.into())
-	}
+pub fn product_type<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
+where
+	T: Into<TypeProduct>,
+	P: IntoIterator<Item = MetaType>,
+{
+	Type::Product(TypeComposite::new(name, namespace, type_params, def.into()))
 }
 
-impl From<TypeProductTupleStruct> for Type {
-	fn from(ty: TypeProductTupleStruct) -> Type {
-		Type::Product(ty.into())
-	}
-}
-
-impl From<TypeSumEnum> for Type {
-	fn from(ty: TypeSumEnum) -> Type {
-		Type::Sum(ty.into())
-	}
-}
-
-impl From<TypeSumClikeEnum> for Type {
-	fn from(ty: TypeSumClikeEnum) -> Type {
-		Type::Sum(ty.into())
-	}
+pub fn sum_type<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
+where
+	T: Into<TypeSum>,
+	P: IntoIterator<Item = MetaType>,
+{
+	Type::Sum(TypeComposite::new(name, namespace, type_params, def.into()))
 }
 
 /// Identifies a primitive Rust type.

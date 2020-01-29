@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, NamedField, Registry, TypeId, UnnamedField,
+	IntoCompact, NamedField, Registry, UnnamedField,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -59,8 +59,6 @@ impl IntoCompact for TypeProduct {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 pub struct TypeProductStruct<F: Form = MetaForm> {
-	/// The path of the struct
-	path: TypeId<F>,
 	/// The named fields of the struct.
 	fields: Vec<NamedField<F>>,
 }
@@ -70,7 +68,6 @@ impl IntoCompact for TypeProductStruct {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeProductStruct {
-			path: self.path.into_compact(registry),
 			fields: registry.register_types(self.fields),
 		}
 	}
@@ -78,12 +75,11 @@ impl IntoCompact for TypeProductStruct {
 
 impl TypeProductStruct {
 	/// Creates a new struct definition with named fields.
-	pub fn new<F>(path: TypeId, fields: F) -> Self
+	pub fn new<F>(fields: F) -> Self
 	where
 		F: IntoIterator<Item = NamedField>,
 	{
 		Self {
-			path,
 			fields: fields.into_iter().collect(),
 		}
 	}
@@ -103,8 +99,6 @@ impl TypeProductStruct {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 pub struct TypeProductTupleStruct<F: Form = MetaForm> {
-	/// The path of the struct
-	path: TypeId<F>,
 	/// The unnamed fields.
 	#[serde(rename = "types")]
 	fields: Vec<UnnamedField<F>>,
@@ -115,7 +109,6 @@ impl IntoCompact for TypeProductTupleStruct {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeProductTupleStruct {
-			path: self.path.into_compact(registry),
 			fields: registry.register_types(self.fields),
 		}
 	}
@@ -123,18 +116,17 @@ impl IntoCompact for TypeProductTupleStruct {
 
 impl TypeProductTupleStruct {
 	/// Creates a new tuple-struct.
-	pub fn new<F>(path: TypeId, fields: F) -> Self
+	pub fn new<F>(fields: F) -> Self
 	where
 		F: IntoIterator<Item = UnnamedField>,
 	{
 		Self {
-			path,
 			fields: fields.into_iter().collect(),
 		}
 	}
 
 	/// Creates the unit tuple-struct that has no fields.
-	pub fn unit(path: TypeId) -> Self {
-		Self { path, fields: vec![] }
+	pub fn unit() -> Self {
+		Self { fields: vec![] }
 	}
 }

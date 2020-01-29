@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(unused)]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 #[cfg(not(feature = "std"))]
@@ -43,7 +44,7 @@ fn test_unit_struct() {
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
-		"custom": {
+		"product": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
@@ -62,7 +63,7 @@ fn test_tuplestruct() {
 	struct TupleStruct(i32, [u8; 32], bool);
 
 	assert_json_for_type::<TupleStruct>(json!({
-		"custom": {
+		"product": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
@@ -85,7 +86,7 @@ fn test_struct() {
 	}
 
 	assert_json_for_type::<Struct>(json!({
-		"custom": {
+		"product": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
@@ -113,11 +114,9 @@ fn test_clike_enum() {
 
 	assert_json_for_type::<ClikeEnum>(json!({
 		"sum": {
-			"id": {
-				"name": 1,
-				"namespace": [2],
-				"params": [],
-			},
+			"name": 1,
+			"namespace": [2],
+			"params": [],
 			"def": {
 				"clikeenum": {
 					"variants": [
@@ -141,7 +140,7 @@ fn test_enum() {
 	}
 
 	assert_json_for_type::<Enum>(json!({
-		"custom": {
+		"sum": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
@@ -234,7 +233,7 @@ fn test_registry() {
 		],
 		"types": [
 			{ // type 1
-				"custom": {
+				"product": {
 					"name": 1, // UnitStruct
 					"namespace": [2], // json
 					"params": [],
@@ -246,7 +245,7 @@ fn test_registry() {
 				},
 			},
 			{ // type 2
-				"custom": {
+				"product": {
 					"name": 3, // TupleStruct
 					"namespace": [2], // json
 					"params": [],
@@ -267,7 +266,7 @@ fn test_registry() {
 				"primitive": "u32",
 			},
 			{ // type 5
-				"custom": {
+				"product": {
 					"name": 4, // Struct
 					"namespace": [2], // json
 					"params": [],
@@ -298,7 +297,7 @@ fn test_registry() {
 				},
 			},
 			{ // type 7
-				"custom": {
+				"product": {
 					"name": 8, // RecursiveStruct
 					"namespace": [2], // json
 					"params": [],
@@ -321,7 +320,7 @@ fn test_registry() {
 				},
 			},
 			{ // type 9
-				"custom": {
+				"sum": {
 					"name": 11, // ClikeEnum
 					"namespace": [2], // json
 					"params": [],
@@ -346,7 +345,7 @@ fn test_registry() {
 				},
 			},
 			{ // type 10
-				"custom": {
+				"sum": {
 					"name": 15, // RustEnum
 					"namespace": [2], // json
 					"params": [],

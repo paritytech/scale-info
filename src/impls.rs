@@ -104,12 +104,14 @@ where
 	T: Metadata + 'static,
 {
 	fn get_type() -> Type {
-		TypeSumEnum::new(
-			TypeId::new("Option", Namespace::prelude(), tuple_meta_type![T]),
-			vec![
+		sum_type(
+			"Option",
+			Namespace::prelude(),
+			tuple_meta_type![T],
+			TypeSumEnum::new(vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
-			],
+			]),
 		)
 		.into()
 	}
@@ -121,12 +123,14 @@ where
 	E: Metadata + 'static,
 {
 	fn get_type() -> Type {
-		TypeSumEnum::new(
-			TypeId::new("Result", Namespace::prelude(), tuple_meta_type!(T, E)),
-			vec![
+		sum_type(
+			"Result",
+			Namespace::prelude(),
+			tuple_meta_type!(T, E),
+			TypeSumEnum::new(vec![
 				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
 				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
-			],
+			]),
 		)
 		.into()
 	}
@@ -186,9 +190,11 @@ impl HasType for str {
 
 impl HasType for String {
 	fn get_type() -> Type {
-		TypeProductStruct::new(
-			TypeId::new("String", Namespace::prelude(), Vec::new()),
-			vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())],
+		product_type(
+			"String",
+			Namespace::prelude(),
+			Vec::new(),
+			TypeProductStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]),
 		)
 		.into()
 	}
@@ -199,9 +205,11 @@ where
 	T: Metadata + ?Sized,
 {
 	fn get_type() -> Type {
-		TypeProductTupleStruct::new(
-			TypeId::new("PhantomData", Namespace::prelude(), vec![T::meta_type()]),
-			vec![],
+		product_type(
+			"PhantomData",
+			Namespace::prelude(),
+			vec![T::meta_type()],
+			TypeProductTupleStruct::new(vec![]),
 		)
 		.into()
 	}

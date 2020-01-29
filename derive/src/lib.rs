@@ -62,37 +62,31 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 			<#ty_ident as _type_metadata::Metadata>::meta_type()
 		}
 	});
-	let type_path = quote! {
-		_type_metadata::TypeId::new(
-			stringify!(#ident),
-			_type_metadata::Namespace::from_module_path(module_path!())
-				.expect("namespace from module path cannot fail"),
-			__core::vec![ #( #generic_type_ids ),* ],
-		)
-	};
-	let type_def = generate_impl(input, type_path)?;
 
-	let has_type_id_impl = quote! {
+	let ast: DeriveInput = syn::parse2(input.clone())?;
+	let (type_variant, type_def) = match &ast.data {
+		Data::Struct(ref s) => (quote!(Product), generate_struct_def(s)),
+		Data::Enum(ref e) => (quote!(Sum), generate_enum_def(e)),
+		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
+	};
+
+	let has_type_impl = quote! {
 		impl #impl_generics _type_metadata::HasType for #ident #ty_generics #where_clause {
 			fn get_type() -> _type_metadata::Type {
-				#type_def.into()
+				_type_metadata::Type::#type_variant(
+					_type_metadata::TypeComposite::new(
+						stringify!(#ident),
+						_type_metadata::Namespace::from_module_path(module_path!())
+							.expect("namespace from module path cannot fail"),
+						__core::vec![ #( #generic_type_ids ),* ],
+						#type_def.into(),
+					)
+				)
 			}
 		}
 	};
 
-	Ok(impl_wrapper::wrap(ident, "HAS_TYPE", has_type_id_impl))
-}
-
-fn generate_impl(input: TokenStream2, type_path: TokenStream2) -> Result<TokenStream2> {
-	let ast: DeriveInput = syn::parse2(input.clone())?;
-
-	let def = match &ast.data {
-		Data::Struct(ref s) => generate_struct_def(s, type_path),
-		Data::Enum(ref e) => generate_enum_def(e, type_path),
-		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
-	};
-
-	Ok(def)
+	Ok(impl_wrapper::wrap(ident, "HAS_TYPE", has_type_impl))
 }
 
 type FieldsList = Punctuated<Field, Comma>;
@@ -116,29 +110,29 @@ fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
 	quote! { __core::vec![#( #fields_def, )*] }
 }
 
-fn generate_struct_def(data_struct: &DataStruct, type_path: TokenStream2) -> TokenStream2 {
+fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
 			let fields = generate_fields_def(&fs.named);
 			quote! {
-				_type_metadata::TypeProductStruct::new(#type_path, #fields)
+				_type_metadata::TypeProductStruct::new(#fields)
 			}
 		}
 		Fields::Unnamed(ref fs) => {
 			let fields = generate_fields_def(&fs.unnamed);
 			quote! {
-				_type_metadata::TypeProductTupleStruct::new(#type_path, #fields)
+				_type_metadata::TypeProductTupleStruct::new(#fields)
 			}
 		}
 		Fields::Unit => quote! {
-			_type_metadata::TypeProductTupleStruct::unit(#type_path)
+			_type_metadata::TypeProductTupleStruct::unit()
 		},
 	}
 }
 
 type VariantList = Punctuated<Variant, Comma>;
 
-fn generate_c_like_enum_def(variants: &VariantList, type_path: TokenStream2) -> TokenStream2 {
+fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 	let variants_def = variants.into_iter().enumerate().map(|(i, v)| {
 		let name = &v.ident;
 		let discriminant = if let Some((
@@ -160,7 +154,7 @@ fn generate_c_like_enum_def(variants: &VariantList, type_path: TokenStream2) -> 
 		}
 	});
 	quote! {
-		_type_metadata::TypeSumClikeEnum::new(#type_path, __core::vec![#( #variants_def, )*])
+		_type_metadata::TypeSumClikeEnum::new(__core::vec![#( #variants_def, )*])
 	}
 }
 
@@ -174,11 +168,11 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 		})
 }
 
-fn generate_enum_def(data_enum: &DataEnum, type_path: TokenStream2) -> TokenStream2 {
+fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 	let variants = &data_enum.variants;
 
 	if is_c_like_enum(&variants) {
-		return generate_c_like_enum_def(variants, type_path);
+		return generate_c_like_enum_def(variants);
 	}
 
 	let variants_def = variants.into_iter().map(|v| {
@@ -203,6 +197,6 @@ fn generate_enum_def(data_enum: &DataEnum, type_path: TokenStream2) -> TokenStre
 		}
 	});
 	quote! {
-		_type_metadata::TypeSumEnum::new(#type_path, __core::vec![#( #variants_def, )*])
+		_type_metadata::TypeSumEnum::new(__core::vec![#( #variants_def, )*])
 	}
 }

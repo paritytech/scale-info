@@ -23,24 +23,26 @@ use crate::{
 };
 use serde::Serialize;
 
-/// A type identifier for custom type definitions.
+/// Represents a type composed from other types e.g. structs, enums
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::Type: Serialize")]
-pub struct TypeId<F: Form = MetaForm> {
-	/// The name of the custom type.
+#[serde(bound = "T: Serialize, F::Type: Serialize")]
+pub struct TypeComposite<T, F: Form = MetaForm> {
+	/// The name of the composite type.
 	name: F::String,
-	/// The namespace in which the custom type has been defined.
+	/// The namespace in which the composite type has been defined.
 	namespace: Namespace<F>,
-	/// The generic type parameters of the custom type in use.
+	/// The generic type parameters of the composite type in use.
 	#[serde(rename = "params")]
 	type_params: Vec<F::Type>,
+	/// The definition of the composite type
+	def: T,
 }
 
-impl IntoCompact for TypeId {
-	type Output = TypeId<CompactForm>;
+impl<T: IntoCompact> IntoCompact for TypeComposite<T> {
+	type Output = TypeComposite<T::Output, CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeId {
+		TypeComposite {
 			name: registry.register_string(self.name),
 			namespace: self.namespace.into_compact(registry),
 			type_params: self
@@ -48,20 +50,22 @@ impl IntoCompact for TypeId {
 				.into_iter()
 				.map(|param| registry.register_type(&param))
 				.collect::<Vec<_>>(),
+			def: self.def.into_compact(registry),
 		}
 	}
 }
 
-impl TypeId {
+impl<T> TypeComposite<T> {
 	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<T>(name: &'static str, namespace: Namespace, type_params: T) -> Self
-		where
-			T: IntoIterator<Item = MetaType>,
+	pub fn new<P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Self
+	where
+		P: IntoIterator<Item = MetaType>,
 	{
 		Self {
 			name,
 			namespace,
 			type_params: type_params.into_iter().collect(),
+			def,
 		}
 	}
 }

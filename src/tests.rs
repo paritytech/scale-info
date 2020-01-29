@@ -47,39 +47,46 @@ fn primitives() {
 fn prelude_items() {
 	assert_type!(
 		String,
-		TypeProductStruct::new(
-			TypeId::new("String", Namespace::prelude(), Vec::new()),
-			vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]
+		product_type(
+			"String",
+			Namespace::prelude(),
+			Vec::new(),
+			TypeProductStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]),
 		)
 	);
 
 	assert_type!(
 		Option<u128>,
-		TypeSumEnum::new(
-			TypeId::new("Option", Namespace::prelude(), tuple_meta_type!(u128)),
-			vec![
+		sum_type(
+			"Option",
+			Namespace::prelude(),
+			tuple_meta_type!(u128),
+			TypeSumEnum::new(vec![
 				EnumVariantUnit::new("None").into(),
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<u128>()]).into(),
-			],
+			],),
 		)
 	);
 	assert_type!(
 		Result<bool, String>,
-		TypeSumEnum::new(
-			TypeId::new("Result", Namespace::prelude(), tuple_meta_type!(bool, String)),
-			vec![
-				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<bool>()]).into(),
-				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<String>()]).into(),
-			]
+		sum_type("Result", Namespace::prelude(), tuple_meta_type!(bool, String),
+			TypeSumEnum::new(
+				vec![
+					EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<bool>()]).into(),
+					EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<String>()]).into(),
+				]
+			),
 		)
 	);
 	assert_type!(
 		PhantomData<i32>,
-		TypeProductTupleStruct::new(
-			TypeId::new("PhantomData", Namespace::prelude(), tuple_meta_type!(i32)),
-			vec![],
+		product_type(
+			"PhantomData",
+			Namespace::prelude(),
+			tuple_meta_type!(i32),
+			TypeProductTupleStruct::new(vec![],),
 		)
-	)
+	);
 }
 
 #[test]
@@ -124,38 +131,31 @@ fn struct_with_generics() {
 		T: Metadata + 'static,
 	{
 		fn get_type() -> Type {
-			TypeProductStruct::new(
-				TypeId::new(
-					"MyStruct",
-					Namespace::from_module_path(module_path!()).unwrap(),
-					tuple_meta_type!(T),
-				),
-				vec![NamedField::new("data", T::meta_type())],
+			product_type(
+				"MyStruct",
+				Namespace::from_module_path(module_path!()).unwrap(),
+				tuple_meta_type!(T),
+				TypeProductStruct::new(vec![NamedField::new("data", T::meta_type())]),
 			)
-			.into()
 		}
 	}
 
 	// Normal struct
-	let struct_bool_id = TypeProductStruct::new(
-		TypeId::new(
-			"MyStruct",
-			Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
-			tuple_meta_type!(bool),
-		),
-		vec![NamedField::new("data", bool::meta_type())],
+	let struct_bool_id = product_type(
+		"MyStruct",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		tuple_meta_type!(bool),
+		TypeProductStruct::new(vec![NamedField::new("data", bool::meta_type())]),
 	);
 	assert_type!(MyStruct<bool>, struct_bool_id.clone());
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type_id = TypeProductStruct::new(
-		TypeId::new(
-			"MyStruct",
-			Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
-			vec![<Box<MyStruct<bool>>>::meta_type()],
-		),
-		vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())],
+	let expected_type = product_type(
+		"MyStruct",
+		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		vec![<Box<MyStruct<bool>>>::meta_type()],
+		TypeProductStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())]),
 	);
-	assert_type!(SelfTyped, expected_type_id);
+	assert_type!(SelfTyped, expected_type);
 }
