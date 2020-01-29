@@ -113,7 +113,6 @@ where
 				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
 			]),
 		)
-		.into()
 	}
 }
 
@@ -132,7 +131,6 @@ where
 				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
 			]),
 		)
-		.into()
 	}
 }
 
@@ -196,7 +194,6 @@ impl HasType for String {
 			Vec::new(),
 			TypeProductStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]),
 		)
-		.into()
 	}
 }
 
@@ -211,6 +208,5 @@ where
 			vec![T::meta_type()],
 			TypeProductTupleStruct::new(vec![]),
 		)
-		.into()
 	}
 }
