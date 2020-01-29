@@ -89,9 +89,3 @@ enum E<T> {
 	B { b: T },
 	C,
 }
-
-#[allow(unused)]
-#[derive(Metadata)]
-union U<T: Copy> {
-	u: T,
-}
