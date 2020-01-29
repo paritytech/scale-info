@@ -95,7 +95,12 @@ where
 	T: Metadata + 'static,
 {
 	fn get_type() -> Type {
-		TypeCollection::of::<T>("Vec").into()
+		product_type(
+			"Vec",
+			Namespace::prelude(),
+			tuple_meta_type![T],
+			TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[T]>())]),
+		)
 	}
 }
 
@@ -140,7 +145,12 @@ where
 	V: Metadata + 'static,
 {
 	fn get_type() -> Type {
-		TypeCollection::of::<(K, V)>("BTreeMap").into()
+		product_type(
+			"BTreeMap",
+			Namespace::prelude(),
+			tuple_meta_type![(K, V)],
+			TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[(K, V)]>())]),
+		)
 	}
 }
 

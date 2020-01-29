@@ -55,8 +55,6 @@ pub enum Type<F: Form = MetaForm> {
 	Slice(TypeSlice<F>),
 	/// An array type with compile-time known length.
 	Array(TypeArray<F>),
-	/// A dynamic collection e.g. Vec<T>, BTreeMap<K, V>
-	Collection(TypeCollection<F>),
 	/// A tuple type.
 	Tuple(TypeTuple<F>),
 	/// A Rust primitive type.
@@ -72,7 +70,6 @@ impl IntoCompact for Type {
 			Type::Sum(sum) => sum.into_compact(registry).into(),
 			Type::Slice(slice) => slice.into_compact(registry).into(),
 			Type::Array(array) => array.into_compact(registry).into(),
-			Type::Collection(collection) => collection.into_compact(registry).into(),
 			Type::Tuple(tuple) => tuple.into_compact(registry).into(),
 			Type::Primitive(primitive) => primitive.into(),
 		}
@@ -153,48 +150,6 @@ impl TypeArray {
 	/// Creates a new identifier to refer to array type definition.
 	pub fn new(len: u16, type_param: MetaType) -> Self {
 		Self { len, type_param }
-	}
-}
-
-/// A type identifier for collection type definitions.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::IndirectType: Serialize")]
-pub struct TypeCollection<F: Form = MetaForm> {
-	/// The name of the collection type.
-	name: F::String,
-	/// The element type of the collection.
-	#[serde(rename = "type")]
-	element_type: F::IndirectType,
-}
-
-impl IntoCompact for TypeCollection {
-	type Output = TypeCollection<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeCollection {
-			name: registry.register_string(self.name),
-			element_type: registry.register_type(&self.element_type),
-		}
-	}
-}
-
-impl TypeCollection {
-	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new(name: &'static str, type_param: MetaType) -> Self {
-		Self {
-			name,
-			element_type: type_param,
-		}
-	}
-
-	/// Creates a new type identifier to refer to collection type definitions.
-	///
-	/// Use this constructor if you want to instantiate from a given compile-time type.
-	pub fn of<T>(name: &'static str) -> Self
-	where
-		T: Metadata + 'static,
-	{
-		Self::new(name, MetaType::new::<T>())
 	}
 }
 

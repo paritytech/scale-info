@@ -225,11 +225,12 @@ fn test_registry() {
 			"RecursiveStruct", //  8
 			"rec",             //  9
 			"Vec",             // 10
-			"ClikeEnum",       // 11
-			"A",               // 12
-			"B",               // 13
-			"C",               // 14
-			"RustEnum",        // 15
+			"elems",           // 11
+			"ClikeEnum",       // 12
+			"A",               // 13
+			"B",               // 14
+			"C",               // 15
+			"RustEnum",        // 16
 		],
 		"types": [
 			{ // type 1
@@ -314,39 +315,57 @@ fn test_registry() {
 				},
 			},
 			{ // type 8
-				"collection": {
+				"product": {
 					"name": 10, // Vec
-					"type": 7,
+					"namespace": [], // empty represents prelude (root) namespace
+					"params": [
+						7, // RecursiveStruct
+					],
+					"def": {
+						"struct": {
+							"fields": [
+								{
+									"name": 11, // elems
+									"type": 9, // RecursiveStruct
+								}
+							]
+						}
+					}
 				},
 			},
 			{ // type 9
+				"slice": {
+					"type": 7, // RecursiveStruct
+				},
+			},
+			{ // type 10
 				"sum": {
-					"name": 11, // ClikeEnum
+					"name": 12, // ClikeEnum
 					"namespace": [2], // json
 					"params": [],
 					"def": {
 						"clikeenum": {
 							"variants": [
 								{
-									"name": 12, // A
+									"name": 13, // A
 									"discriminant": 0,
 								},
 								{
-									"name": 13, // B
+									"name": 14, // B
 									"discriminant": 1,
 								},
 								{
-									"name": 14, // C
+									"name": 15, // C
 									"discriminant": 2,
 								},
 							]
 						}
 					}
-				},
+				}
 			},
-			{ // type 10
+			{ // type 11
 				"sum": {
-					"name": 15, // RustEnum
+					"name": 16, // RustEnum
 					"namespace": [2], // json
 					"params": [],
 					"def": {
@@ -354,12 +373,12 @@ fn test_registry() {
 							"variants": [
 								{
 									"unit": {
-										"name": 12,
+										"name": 13,
 									} // A
 								},
 								{
 									"tuplestruct": {
-										"name": 13, // B
+										"name": 14, // B
 										"types": [
 											3, // u8
 											4, // u32
@@ -369,7 +388,7 @@ fn test_registry() {
 								},
 								{
 									"struct": {
-										"name": 14, // C
+										"name": 15, // C
 										"fields": [
 											{
 												"name": 5, // a

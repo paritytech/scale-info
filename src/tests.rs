@@ -116,7 +116,15 @@ fn array_primitives() {
 	// slice
 	assert_type!([bool], TypeSlice::new(bool::meta_type()));
 	// vec
-	assert_type!(Vec<bool>, TypeCollection::of::<bool>("Vec"));
+	assert_type!(
+		Vec<bool>,
+		product_type(
+			"Vec",
+			Namespace::prelude(),
+			tuple_meta_type![bool],
+			TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[bool]>())])
+		)
+	);
 }
 
 #[test]
