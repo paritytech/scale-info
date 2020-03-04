@@ -45,12 +45,6 @@ pub trait Form {
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type identifier type.
 	type Type: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
-	/// A type identifier with indirection.
-	///
-	/// # Note
-	///
-	/// This is an optimization for the compact forms.
-	type IndirectType: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
 
 /// A meta meta-type.
@@ -63,7 +57,6 @@ pub enum MetaForm {}
 impl Form for MetaForm {
 	type String = &'static str;
 	type Type = MetaType;
-	type IndirectType = MetaType;
 }
 
 /// Compact form that has its lifetime untracked in association to its interner.
@@ -79,5 +72,4 @@ pub enum CompactForm {}
 impl Form for CompactForm {
 	type String = UntrackedSymbol<&'static str>;
 	type Type = UntrackedSymbol<AnyTypeId>;
-	type IndirectType = Self::Type;
 }

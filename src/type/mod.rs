@@ -41,10 +41,7 @@ pub trait HasType {
 ///
 /// This uniquely identifies types and can be used to refer to type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
-#[serde(bound = "
-	F::Type: Serialize,
-	F::IndirectType: Serialize
-")]
+#[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
 	/// A product type (e.g. a struct)
@@ -126,13 +123,13 @@ pub enum TypePrimitive {
 
 /// An array type identifier.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::IndirectType: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct TypeArray<F: Form = MetaForm> {
 	/// The length of the array type definition.
 	pub len: u16,
 	/// The element type of the array type definition.
 	#[serde(rename = "type")]
-	pub type_param: F::IndirectType,
+	pub type_param: F::Type,
 }
 
 impl IntoCompact for TypeArray {
@@ -195,11 +192,11 @@ impl TypeTuple {
 
 /// A type identifier to refer to slice type definitions.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::IndirectType: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct TypeSlice<F: Form = MetaForm> {
 	/// The element type of the slice type definition.
 	#[serde(rename = "type")]
-	type_param: F::IndirectType,
+	type_param: F::Type,
 }
 
 impl IntoCompact for TypeSlice {
