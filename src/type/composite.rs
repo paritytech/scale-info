@@ -25,7 +25,7 @@ use serde::Serialize;
 
 /// Represents a type composed from other types e.g. structs, enums
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "T: Serialize, F::Type: Serialize")]
+#[serde(bound = "T: Serialize, F::TypeId: Serialize")]
 pub struct TypeComposite<T, F: Form = MetaForm> {
 	/// The name of the composite type.
 	name: F::String,
@@ -33,7 +33,7 @@ pub struct TypeComposite<T, F: Form = MetaForm> {
 	namespace: Namespace<F>,
 	/// The generic type parameters of the composite type in use.
 	#[serde(rename = "params")]
-	type_params: Vec<F::Type>,
+	type_params: Vec<F::TypeId>,
 	/// The definition of the composite type
 	def: T,
 }

@@ -25,7 +25,7 @@ use serde::Serialize;
 
 /// A Sum type (consisting of variants) e.g an enum
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum TypeSum<F: Form = MetaForm> {
 	// todo: [AJ] potentially extract struct TypeSumVariants<Variant>
@@ -65,7 +65,7 @@ impl IntoCompact for TypeSum {
 /// enum JustAMarker {}
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeSumClikeEnum<F: Form = MetaForm> {
 	/// The variants of the C-like enum.
 	#[serde(rename = "variants")]
@@ -167,7 +167,7 @@ impl ClikeEnumVariant {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeSumEnum<F: Form = MetaForm> {
 	/// The variants of the enum.
 	variants: Vec<EnumVariant<F>>,
@@ -205,7 +205,7 @@ impl TypeSumEnum {
 /// a tuple-struct with unnamed fields,
 /// or a struct with named fields.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum EnumVariant<F: Form = MetaForm> {
 	/// A unit struct variant.
@@ -278,7 +278,7 @@ impl EnumVariantUnit {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantStruct<F: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: F::String,
@@ -329,7 +329,7 @@ impl EnumVariantStruct {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 pub struct EnumVariantTupleStruct<F: Form = MetaForm> {
 	/// The name of the variant.
 	name: F::String,

@@ -26,13 +26,13 @@ use serde::Serialize;
 ///
 /// This can be a named field of a struct type or a struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 pub struct NamedField<F: Form = MetaForm> {
 	/// The name of the field.
 	name: F::String,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	ty: F::Type,
+	ty: F::TypeId,
 }
 
 impl IntoCompact for NamedField {
@@ -67,12 +67,12 @@ impl NamedField {
 
 /// An unnamed field from either a tuple-struct type or a tuple-struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 #[serde(transparent)]
 pub struct UnnamedField<F: Form = MetaForm> {
 	/// The type of the unnamed field.
 	#[serde(rename = "type")]
-	ty: F::Type,
+	ty: F::TypeId,
 }
 
 impl IntoCompact for UnnamedField {

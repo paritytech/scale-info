@@ -25,7 +25,7 @@ use serde::Serialize;
 
 /// A Product type (consisting of fields) e.g. a struct
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum TypeProduct<F: Form = MetaForm> {
 	/// A struct with named fields
@@ -57,7 +57,7 @@ impl IntoCompact for TypeProduct {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeProductStruct<F: Form = MetaForm> {
 	/// The named fields of the struct.
 	fields: Vec<NamedField<F>>,
@@ -97,7 +97,7 @@ impl TypeProductStruct {
 /// struct JustAMarker;
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeProductTupleStruct<F: Form = MetaForm> {
 	/// The unnamed fields.
 	#[serde(rename = "types")]
