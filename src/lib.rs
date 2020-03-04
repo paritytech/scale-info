@@ -29,10 +29,12 @@
 //!
 //! # Type Information
 //!
+//! TODO: [AJ] update these docs
+//!
 //! Information about types is split into two halfs.
 //!
-//! 1. The type identifier or `Type` is accessed through the `HasType` trait.
-//! 2. The type definition or `TypeDef` is accessed throught the `HasTypeDef` trait.
+//! 1. The type identifier or `Type` is accessed through the `TypeInfo` trait.
+//! 2. The type definition or `TypeDef` is accessed throught the `TypeInfoDef` trait.
 //!
 //! Both traits shall be implemented for all types that are serializable.
 //! For this the library provides implementations for all commonly used Rust standard
@@ -132,20 +134,20 @@ pub use self::{
 pub use type_metadata_derive::Metadata;
 
 /// A super trait that shall be implemented by all types implementing
-/// `HasType` and `HasTypedef` in order to more easily manage them.
+/// `TypeInfo` and `TypeInfodef` in order to more easily manage them.
 ///
 /// This trait is automatically implemented for all `'static` type that
-/// also implement `HasType` and `HasTypeDef`. Users of this library should
+/// also implement `TypeInfo` and `TypeInfoDef`. Users of this library should
 /// use this trait directly instead of using the more fine grained
-/// `HasType` and `HasTypeDef` traits.
-pub trait Metadata: HasType {
+/// `TypeInfo` and `TypeInfoDef` traits.
+pub trait Metadata: TypeInfo {
 	/// Returns the runtime bridge to the types compile-time type information.
 	fn meta_type() -> MetaType;
 }
 
 impl<T> Metadata for T
 where
-	T: ?Sized + HasType + 'static,
+	T: ?Sized + TypeInfo + 'static,
 {
 	fn meta_type() -> MetaType {
 		MetaType::new::<T>()

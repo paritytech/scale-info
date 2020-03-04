@@ -24,7 +24,7 @@ Information about types is provided within the so-called type registry (`Registr
 Type identifiers and associated definitions are registered there and are associated with unique IDs that the outside
 can use to refer to them providing a lightweight way to decrease overhead of using type identifiers instead.
 
-For the purpose of communicating type ID and definition there exists the `HasTypeId` and `HasTypeDef` respectively
+For the purpose of communicating type ID and definition there exists the `TypeInfoId` and `TypeInfoDef` respectively
 that is to be implemented by all supported types.
 
 All concrete `TypeId` and `TypeDef` structures have two forms:

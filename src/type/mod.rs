@@ -30,11 +30,11 @@ mod sum;
 
 pub use self::{composite::*, fields::*, product::*, sum::*};
 
-/// Implementors return their meta type identifiers.
-pub trait HasType {
+/// Implementors return their meta type information.
+pub trait TypeInfo {
 	/// Returns the static type identifier for `Self`.
 	// todo: [AJ] good name for this? r#type() perhaps?
-	fn get_type() -> Type;
+	fn type_info() -> Type;
 }
 
 /// A type identifier.

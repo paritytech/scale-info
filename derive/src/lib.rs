@@ -71,8 +71,8 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	};
 
 	let has_type_impl = quote! {
-		impl #impl_generics _type_metadata::HasType for #ident #ty_generics #where_clause {
-			fn get_type() -> _type_metadata::Type {
+		impl #impl_generics _type_metadata::TypeInfo for #ident #ty_generics #where_clause {
+			fn type_info() -> _type_metadata::Type {
 				_type_metadata::Type::#type_variant(
 					_type_metadata::TypeComposite::new(
 						stringify!(#ident),

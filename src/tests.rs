@@ -22,10 +22,10 @@ use alloc::{boxed::Box, string::String, vec};
 
 fn assert_type<T, E>(expected: E)
 where
-	T: HasType + ?Sized,
+	T: TypeInfo + ?Sized,
 	E: Into<Type>,
 {
-	assert_eq!(T::get_type(), expected.into());
+	assert_eq!(T::type_info(), expected.into());
 }
 
 macro_rules! assert_type {
@@ -134,11 +134,11 @@ fn struct_with_generics() {
 		data: T,
 	}
 
-	impl<T> HasType for MyStruct<T>
+	impl<T> TypeInfo for MyStruct<T>
 	where
 		T: Metadata + 'static,
 	{
-		fn get_type() -> Type {
+		fn type_info() -> Type {
 			product_type(
 				"MyStruct",
 				Namespace::from_module_path(module_path!()).unwrap(),

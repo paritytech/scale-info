@@ -19,8 +19,8 @@ use crate::*;
 
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
-		impl HasType for $t {
-			fn get_type() -> Type {
+		impl TypeInfo for $t {
+			fn type_info() -> Type {
 				Type::Primitive($ident_kind)
 			}
 		}
@@ -45,8 +45,8 @@ impl_metadata_for_primitives!(
 macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
 		$(
-			impl<T: Metadata + 'static> HasType for [T; $n] {
-				fn get_type() -> Type {
+			impl<T: Metadata + 'static> TypeInfo for [T; $n] {
+				fn type_info() -> Type {
 					TypeArray::new($n, MetaType::new::<T>()).into()
 				}
 			}
@@ -65,13 +65,13 @@ impl_metadata_for_array!(
 
 macro_rules! impl_metadata_for_tuple {
     ( $($ty:ident),* ) => {
-		impl<$($ty),*> HasType for ($($ty,)*)
+		impl<$($ty),*> TypeInfo for ($($ty,)*)
 		where
 			$(
 				$ty: Metadata + 'static,
 			)*
 		{
-			fn get_type() -> Type {
+			fn type_info() -> Type {
 				TypeTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
 		}
@@ -90,11 +90,11 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
 
-impl<T> HasType for Vec<T>
+impl<T> TypeInfo for Vec<T>
 where
 	T: Metadata + 'static,
 {
-	fn get_type() -> Type {
+	fn type_info() -> Type {
 		product_type(
 			"Vec",
 			Namespace::prelude(),
@@ -104,11 +104,11 @@ where
 	}
 }
 
-impl<T> HasType for Option<T>
+impl<T> TypeInfo for Option<T>
 where
 	T: Metadata + 'static,
 {
-	fn get_type() -> Type {
+	fn type_info() -> Type {
 		sum_type(
 			"Option",
 			Namespace::prelude(),
@@ -121,12 +121,12 @@ where
 	}
 }
 
-impl<T, E> HasType for Result<T, E>
+impl<T, E> TypeInfo for Result<T, E>
 where
 	T: Metadata + 'static,
 	E: Metadata + 'static,
 {
-	fn get_type() -> Type {
+	fn type_info() -> Type {
 		sum_type(
 			"Result",
 			Namespace::prelude(),
@@ -139,12 +139,12 @@ where
 	}
 }
 
-impl<K, V> HasType for BTreeMap<K, V>
+impl<K, V> TypeInfo for BTreeMap<K, V>
 where
 	K: Metadata + 'static,
 	V: Metadata + 'static,
 {
-	fn get_type() -> Type {
+	fn type_info() -> Type {
 		product_type(
 			"BTreeMap",
 			Namespace::prelude(),
@@ -154,50 +154,50 @@ where
 	}
 }
 
-impl<T> HasType for Box<T>
+impl<T> TypeInfo for Box<T>
 where
-	T: HasType + ?Sized,
+	T: TypeInfo + ?Sized,
 {
-	fn get_type() -> Type {
-		T::get_type()
+	fn type_info() -> Type {
+		T::type_info()
 	}
 }
 
-impl<T> HasType for &T
+impl<T> TypeInfo for &T
 where
-	T: HasType + ?Sized,
+	T: TypeInfo + ?Sized,
 {
-	fn get_type() -> Type {
-		T::get_type()
+	fn type_info() -> Type {
+		T::type_info()
 	}
 }
 
-impl<T> HasType for &mut T
+impl<T> TypeInfo for &mut T
 where
-	T: HasType + ?Sized,
+	T: TypeInfo + ?Sized,
 {
-	fn get_type() -> Type {
-		T::get_type()
+	fn type_info() -> Type {
+		T::type_info()
 	}
 }
 
-impl<T> HasType for [T]
+impl<T> TypeInfo for [T]
 where
 	T: Metadata + 'static,
 {
-	fn get_type() -> Type {
+	fn type_info() -> Type {
 		TypeSlice::of::<T>().into()
 	}
 }
 
-impl HasType for str {
-	fn get_type() -> Type {
+impl TypeInfo for str {
+	fn type_info() -> Type {
 		TypePrimitive::Str.into()
 	}
 }
 
-impl HasType for String {
-	fn get_type() -> Type {
+impl TypeInfo for String {
+	fn type_info() -> Type {
 		product_type(
 			"String",
 			Namespace::prelude(),
@@ -207,11 +207,11 @@ impl HasType for String {
 	}
 }
 
-impl<T> HasType for PhantomData<T>
+impl<T> TypeInfo for PhantomData<T>
 where
 	T: Metadata + ?Sized,
 {
-	fn get_type() -> Type {
+	fn type_info() -> Type {
 		product_type(
 			"PhantomData",
 			Namespace::prelude(),

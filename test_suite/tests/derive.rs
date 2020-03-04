@@ -24,16 +24,16 @@ use alloc::{boxed::Box, vec};
 
 use type_metadata::{
 	product_type, sum_type, tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct,
-	EnumVariantUnit, HasType, Metadata, NamedField, Namespace, Type, TypeProductStruct, TypeProductTupleStruct,
+	EnumVariantUnit, TypeInfo, Metadata, NamedField, Namespace, Type, TypeProductStruct, TypeProductTupleStruct,
 	TypeSumClikeEnum, TypeSumEnum, UnnamedField,
 };
 
 fn assert_type<T, E>(expected: E)
 where
-	T: HasType + ?Sized,
+	T: TypeInfo + ?Sized,
 	E: Into<Type>,
 {
-	assert_eq!(T::get_type(), expected.into());
+	assert_eq!(T::type_info(), expected.into());
 }
 
 macro_rules! assert_type {

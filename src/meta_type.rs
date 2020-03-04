@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{form::MetaForm, HasType, Metadata, Type};
+use crate::{form::MetaForm, TypeInfo, Metadata, Type};
 
 /// A metatype abstraction.
 ///
@@ -76,7 +76,7 @@ impl MetaType {
 		T: Metadata + ?Sized + 'static,
 	{
 		Self {
-			fn_get_type: <T as HasType>::get_type,
+			fn_get_type: <T as TypeInfo>::type_info,
 			any_id: AnyTypeId::of::<T>(),
 		}
 	}
