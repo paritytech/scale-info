@@ -22,84 +22,71 @@ use crate::{
 };
 use serde::Serialize;
 
-/// A named field.
+/// A field of a struct like data type.
+///
+/// Name is optional so it can represent both named and unnamed fields.
 ///
 /// This can be a named field of a struct type or a struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
-pub struct NamedField<F: Form = MetaForm> {
-	/// The name of the field.
-	name: F::String,
+pub struct Field<F: Form = MetaForm> {
+	/// The name of the field. None for unnamed fields.
+	#[serde(skip_serializing_if = "Option::is_none")]
+	name: Option<F::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
 	ty: F::TypeId,
 }
 
-impl IntoCompact for NamedField {
+impl IntoCompact for Field {
 	type Output = NamedField<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		NamedField {
-			name: registry.register_string(self.name),
+			name: self.name.map(|name| registry.register_string(name)),
 			ty: registry.register_type(&self.ty),
 		}
 	}
 }
 
-impl NamedField {
-	/// Creates a new named field.
+impl Field {
+	/// Creates a new field.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
-	pub fn new(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
+	pub fn new(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
 		Self { name, ty }
 	}
 
+	/// Creates a new named field
+	pub fn named(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
+		Self::new(Some(name), ty)
+	}
+
 	/// Creates a new named field.
 	///
 	/// Use this constructor if you want to instantiate from a given compile-time type.
-	pub fn of<T>(name: <MetaForm as Form>::String) -> Self
+	pub fn named_of<T>(name: <MetaForm as Form>::String) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
-		Self::new(name, MetaType::new::<T>())
-	}
-}
-
-/// An unnamed field from either a tuple-struct type or a tuple-struct variant.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
-#[serde(transparent)]
-pub struct UnnamedField<F: Form = MetaForm> {
-	/// The type of the unnamed field.
-	#[serde(rename = "type")]
-	ty: F::TypeId,
-}
-
-impl IntoCompact for UnnamedField {
-	type Output = UnnamedField<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		UnnamedField {
-			ty: registry.register_type(&self.ty),
-		}
-	}
-}
-
-impl UnnamedField {
-	/// Creates a new unnamed field.
-	///
-	/// Use this constructor if you want to instantiate from a given meta type.
-	pub fn new(meta_type: MetaType) -> Self {
-		Self { ty: meta_type }
+		Self::new(Some(name), MetaType::new::<T>())
 	}
 
 	/// Creates a new unnamed field.
 	///
-	/// Use this constructor if you want to instantiate from a given compile-time type.
-	pub fn of<T>() -> Self
-	where
-		T: Metadata + ?Sized + 'static,
+	/// Use this constructor if you want to instantiate an unnamed field from a given meta type.
+	pub fn unnamed(meta_type: MetaType) -> Self {
+		Self::new(None, meta_type)
+	}
+
+	/// Creates a new unnamed field.
+	///
+	/// Use this constructor if you want to instantiate an unnamed field from a given compile-time
+	/// type.
+	pub fn unnamed_of<T>() -> Self
+		where
+			T: Metadata + ?Sized + 'static,
 	{
-		Self::new(MetaType::new::<T>())
+		Self::new(None, MetaType::new::<T>())
 	}
 }

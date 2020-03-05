@@ -95,12 +95,17 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		product_type(
-			"Vec",
-			Namespace::prelude(),
-			tuple_meta_type![T],
-			TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[T]>())]),
-		)
+		Type::r#struct("Result", Namespace::prelude())
+			.type_params(tuple_meta_type![T])
+			.with_named_fields()
+			.named_field_of::<[T]>("elems")
+
+		// product_type(
+		// 	"Vec",
+		// 	Namespace::prelude(),
+		// 	tuple_meta_type![T],
+		// 	TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[T]>())]),
+		// )
 	}
 }
 

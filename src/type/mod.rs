@@ -25,10 +25,10 @@ use serde::Serialize;
 
 mod composite;
 mod fields;
-mod product;
+mod r#struct;
 mod sum;
 
-pub use self::{composite::*, fields::*, product::*, sum::*};
+pub use self::{composite::*, fields::*, r#struct::*, sum::*};
 
 /// Implementors return their meta type information.
 pub trait TypeInfo {
@@ -44,8 +44,8 @@ pub trait TypeInfo {
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
-	/// A product type (e.g. a struct)
-	Product(TypeComposite<TypeProduct<F>, F>),
+	/// A struct type
+	Product(TypeComposite<TypeStruct<F>, F>),
 	/// A sum type (e.g. an enum)
 	Sum(TypeComposite<TypeSum<F>, F>),
 	/// A slice type with runtime known length.
@@ -73,20 +73,22 @@ impl IntoCompact for Type {
 	}
 }
 
-pub fn product_type<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
-where
-	T: Into<TypeProduct>,
-	P: IntoIterator<Item = MetaType>,
-{
-	Type::Product(TypeComposite::new(name, namespace, type_params, def.into()))
-}
+impl Type {
+	pub fn r#struct<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
+		where
+			T: Into<TypeProduct>,
+			P: IntoIterator<Item = MetaType>,
+	{
+		Type::Product(TypeComposite::new(name, namespace, type_params, def.into()))
+	}
 
-pub fn sum_type<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
-where
-	T: Into<TypeSum>,
-	P: IntoIterator<Item = MetaType>,
-{
-	Type::Sum(TypeComposite::new(name, namespace, type_params, def.into()))
+	pub fn r#enum<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
+		where
+			T: Into<TypeSum>,
+			P: IntoIterator<Item = MetaType>,
+	{
+		Type::Sum(TypeComposite::new(name, namespace, type_params, def.into()))
+	}
 }
 
 /// Identifies a primitive Rust type.

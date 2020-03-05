@@ -109,13 +109,13 @@ impl Registry {
 		}
 	}
 
-	/// Registeres the given string into the registry and returns
+	/// Registers the given string into the registry and returns
 	/// its respective associated string symbol.
 	pub fn register_string(&mut self, string: &'static str) -> UntrackedSymbol<&'static str> {
 		self.string_table.intern_or_get(string).1.into_untracked()
 	}
 
-	/// Registeres the given type ID into the registry.
+	/// Registers the given type ID into the registry.
 	///
 	/// Returns `false` as the first return value if the type ID has already
 	/// been registered into this registry.
