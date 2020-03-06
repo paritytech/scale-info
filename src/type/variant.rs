@@ -64,15 +64,19 @@ use serde::Serialize;
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
-pub struct TypeEnum<F: Form = MetaForm> {
+pub struct TypeVariant<F: Form = MetaForm> {
+	path: Path,
 	variants: EnumVariant<F>,
 }
 
-impl IntoCompact for TypeEnum {
+impl IntoCompact for TypeVariant {
 	type Output = TypeSum<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		registry.register_types(self.variants)
+		TypeVariant {
+			variants: registry.map_into_compact(self.variants)
+
+		}
 	}
 }
 
@@ -177,7 +181,7 @@ impl IntoCompact for EnumVariantStruct {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		EnumVariantStruct {
 			name: registry.register_string(self.name),
-			fields: registry.register_types(self.fields),
+			fields: registry.map_into_compact(self.fields),
 		}
 	}
 }

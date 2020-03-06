@@ -147,14 +147,15 @@ impl Registry {
 		symbol
 	}
 
-	pub fn register_types<I, T>(&mut self, types: I) -> Vec<T::Output>
+	/// todo [AJ] comment
+	pub fn map_into_compact<I, T>(&mut self, iter: I) -> Vec<T::Output>
 	where
 		I: IntoIterator<Item = T>,
 		T: IntoCompact,
 	{
-		types
+		iter
 			.into_iter()
-			.map(|field| field.into_compact(self))
+			.map(|i| i.into_compact(self))
 			.collect::<Vec<_>>()
 	}
 }

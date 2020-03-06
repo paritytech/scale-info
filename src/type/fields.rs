@@ -90,3 +90,10 @@ impl Field {
 		Self::new(None, MetaType::new::<T>())
 	}
 }
+
+/// A composite type builder has no fields (e.g. a unit struct)
+pub enum NoFields {}
+/// A composite type builder only allows named fields (e.g. a struct)
+pub enum NamedFields {}
+/// A composite type builder only allows unnamed fields (e.g. a tuple)
+pub enum UnnamedFields {}

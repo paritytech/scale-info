@@ -16,24 +16,20 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
-};
+use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, TypeCompositeBuilder};
 use derive_more::From;
 use serde::Serialize;
 
-mod composite;
+mod path;
 mod fields;
-mod r#struct;
-mod sum;
+mod composite;
+mod variant;
 
-pub use self::{composite::*, fields::*, r#struct::*, sum::*};
+pub use self::{path::*, composite::*, variant::*};
 
 /// Implementors return their meta type information.
 pub trait TypeInfo {
 	/// Returns the static type identifier for `Self`.
-	// todo: [AJ] good name for this? r#type() perhaps?
 	fn type_info() -> Type;
 }
 
@@ -45,9 +41,9 @@ pub trait TypeInfo {
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
 	/// A struct type
-	Product(TypeComposite<TypeStruct<F>, F>),
+	Composite(TypeComposite<F>),
 	/// A sum type (e.g. an enum)
-	Sum(TypeComposite<TypeSum<F>, F>),
+	Variant(TypeVariant<F>),
 	/// A slice type with runtime known length.
 	Slice(TypeSlice<F>),
 	/// An array type with compile-time known length.
@@ -63,8 +59,8 @@ impl IntoCompact for Type {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			Type::Product(product) => product.into_compact(registry).into(),
-			Type::Sum(sum) => sum.into_compact(registry).into(),
+			Type::Composite(r#struct) => product.into_compact(registry).into(),
+			Type::Variant(r#enum) => sum.into_compact(registry).into(),
 			Type::Slice(slice) => slice.into_compact(registry).into(),
 			Type::Array(array) => array.into_compact(registry).into(),
 			Type::Tuple(tuple) => tuple.into_compact(registry).into(),
@@ -74,18 +70,12 @@ impl IntoCompact for Type {
 }
 
 impl Type {
-	pub fn r#struct<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
-		where
-			T: Into<TypeProduct>,
-			P: IntoIterator<Item = MetaType>,
+	pub fn composite<T>(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder<T>
 	{
-		Type::Product(TypeComposite::new(name, namespace, type_params, def.into()))
+		TypeComposite::new(name, namespace)
 	}
 
-	pub fn r#enum<T, P>(name: &'static str, namespace: Namespace, type_params: P, def: T) -> Type
-		where
-			T: Into<TypeSum>,
-			P: IntoIterator<Item = MetaType>,
+	pub fn variant(name: &'static str, namespace: Namespace) -> VariantBuilder
 	{
 		Type::Sum(TypeComposite::new(name, namespace, type_params, def.into()))
 	}
@@ -166,11 +156,7 @@ impl IntoCompact for TypeTuple {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeTuple {
-			type_params: self
-				.type_params
-				.into_iter()
-				.map(|param| registry.register_type(&param))
-				.collect::<Vec<_>>(),
+			type_params: registry.map_into_compact(self.type_params)
 		}
 	}
 }
