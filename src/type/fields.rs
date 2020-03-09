@@ -84,16 +84,80 @@ impl Field {
 	/// Use this constructor if you want to instantiate an unnamed field from a given compile-time
 	/// type.
 	pub fn unnamed_of<T>() -> Self
-		where
-			T: Metadata + ?Sized + 'static,
+	where
+		T: Metadata + ?Sized + 'static,
 	{
 		Self::new(None, MetaType::new::<T>())
 	}
 }
 
-/// A composite type builder has no fields (e.g. a unit struct)
-pub enum NoFields {}
-/// A composite type builder only allows named fields (e.g. a struct)
+pub struct Fields {
+	fields: Vec<Field<MetaForm>>,
+}
+
+impl<F> Fields {
+	pub fn unit() -> Fields {
+		FieldsBuilder::new().done()
+	}
+
+	pub fn named() -> FieldsBuilder<NamedFields> {
+		FieldsBuilder::new()
+	}
+
+	pub fn unnamed() -> FieldsBuilder<UnnamedFields> {
+		FieldsBuilder::new()
+	}
+}
+
+/// A fields builder has no fields (e.g. a unit struct)
+enum NoFields {}
+/// A fields builder only allows named fields (e.g. a struct)
 pub enum NamedFields {}
-/// A composite type builder only allows unnamed fields (e.g. a tuple)
+/// A fields builder only allows unnamed fields (e.g. a tuple)
 pub enum UnnamedFields {}
+
+pub struct FieldsBuilder<T = NoFields> {
+	fields: Vec<Field<MetaForm>>,
+	marker: PhantomData<fn() -> T>,
+}
+
+impl<T> FieldsBuilder<T> {
+	pub fn new<F>() -> FieldsBuilder<F> {
+		Self {
+			fields: Vec::new(),
+			marker: Default::default(),
+		}
+	}
+
+	pub fn done(self) -> Fields {
+		Fields { fields: self.fields }
+	}
+}
+
+impl FieldsBuilder<NamedFields> {
+	pub fn named_field(self, name: &'static str, ty: MetaType) -> Self {
+		let mut this = self;
+		this.fields.push(Field::named(name, ty));
+		this
+	}
+
+	pub fn named_field_of<T>(self, name: &'static str) -> Self {
+		let mut this = self;
+		this.fields.push(Field::named_of::<T>(name));
+		this
+	}
+}
+
+impl FieldsBuilder<UnnamedFields> {
+	pub fn unnamed_field(self, name: &'static str, ty: MetaType) -> Self {
+		let mut this = self;
+		this.fields.push(Field::unnamed(ty));
+		this
+	}
+
+	pub fn unnamed_field_of<T>(self) -> Self {
+		let mut this = self;
+		this.fields.push(Field::unnamed_of::<T>());
+		this
+	}
+}

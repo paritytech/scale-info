@@ -95,17 +95,10 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		Type::composite("Result", Namespace::prelude())
+		TypeComposite::new("Vec", Namespace::prelude())
 			.type_params(tuple_meta_type![T])
-			.with_named_fields()
-			.named_field_of::<[T]>("elems")
-
-		// product_type(
-		// 	"Vec",
-		// 	Namespace::prelude(),
-		// 	tuple_meta_type![T],
-		// 	TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[T]>())]),
-		// )
+			.fields(Fields::named().of::<T>("elems"))
+			.into()
 	}
 }
 
@@ -114,15 +107,13 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		sum_type(
-			"Option",
-			Namespace::prelude(),
-			tuple_meta_type![T],
-			TypeSumEnum::new(vec![
-				EnumVariantUnit::new("None").into(),
-				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<T>()]).into(),
-			]),
-		)
+		TypeVariant::new("Option", Namespace::prelude())
+			.type_params(tuple_meta_type![T])
+			.variants(Variants::with_fields()
+				.unit_variant("None")
+				.composite_variant("Some", Fields::unnamed().of::<T>())
+			)
+			.into()
 	}
 }
 

@@ -25,7 +25,7 @@ mod fields;
 mod composite;
 mod variant;
 
-pub use self::{path::*, composite::*, variant::*};
+pub use self::{path::*, composite::*, variant::*, fields::*};
 
 /// Implementors return their meta type information.
 pub trait TypeInfo {
@@ -69,17 +69,17 @@ impl IntoCompact for Type {
 	}
 }
 
-impl Type {
-	pub fn composite<T>(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder<T>
-	{
-		TypeComposite::new(name, namespace)
-	}
-
-	pub fn variant(name: &'static str, namespace: Namespace) -> VariantBuilder
-	{
-		Type::Sum(TypeComposite::new(name, namespace, type_params, def.into()))
-	}
-}
+// impl Type {
+// 	pub fn composite_struct<T>(name: &'static str, namespace: Namespace, ) -> TypeCompositeBuilder<T>
+// 	{
+// 		TypeComposite::new(name, namespace)
+// 	}
+//
+// 	pub fn variant(name: &'static str, namespace: Namespace) -> VariantBuilder
+// 	{
+// 		TypeVariant::new(name, namespace, type_params, def.into()))
+// 	}
+// }
 
 /// Identifies a primitive Rust type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]

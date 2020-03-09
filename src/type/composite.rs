@@ -16,13 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	fields::{Field, NoFields, NamedFields},
-	form::{CompactForm, Form, MetaForm}, IntoCompact, Field, Path, Namespace, Registry
-};
+use crate::{fields::{Fields}, form::{CompactForm, Form, MetaForm}, IntoCompact, Field, Path, Namespace, Registry, MetaType};
 use derive_more::From;
 use serde::Serialize;
-use crate::fields::UnnamedFields;
+use crate::fields::{UnnamedFields, FieldsBuilder};
 
 /// A composite type, consisting of either named (struct) or unnamed (tuple struct) fields
 ///
@@ -54,7 +51,7 @@ use crate::fields::UnnamedFields;
 #[serde(rename_all = "lowercase")]
 pub struct TypeComposite<F: Form = MetaForm> {
 	path: Path<F>,
-	fields: Vec<T>,
+	fields: Vec<Field<F>>,
 }
 
 impl<T> IntoCompact for TypeComposite<T> {
@@ -70,44 +67,54 @@ impl<T> IntoCompact for TypeComposite<T> {
 
 impl<T> TypeComposite<T> {
 	/// Creates a new struct definition with named fields.
-	pub fn new(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder
-	{
-		TypeCompositeBuilder::new(
-			Self {
-				path: Path::new(name, namespace, Vec::new()),
-				fields: Vec::new(),
-			}
-		)
+	pub fn new(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
+		TypeCompositeBuilder::new(Self {
+			path: Path::new(name, namespace, Vec::new()),
+			fields: Vec::new(),
+		})
 	}
 
 	/// Creates the unit tuple-struct that has no fields.
-	pub fn unit(path: Path) -> Self {
-		Self::new(path).done()
+	pub fn unit(name: &'static str, namespace: Namespace) -> Self {
+		Self::new(name, namespace).done()
 	}
 }
 
-pub struct TypeCompositeBuilder<F = NoFields> {
+pub struct TypeCompositeBuilder {
 	ty: TypeComposite,
-	fields_marker: PhantomData<fn() -> F>,
+	fields: Fields,
 }
 
 impl TypeCompositeBuilder {
-	pub fn new<F>(ty: TypeComposite) -> TypeCompositeBuilder<F> {
+	pub fn new<F>(ty: TypeComposite) -> TypeCompositeBuilder {
 		Self {
 			ty,
-			fields_marker: Default::default()
+			fields: Fields::unit(),
 		}
 	}
 
-	pub fn named_fields(self) -> TypeCompositeBuilder<NamedFields> {
-		Self::new(self.ty)
+	pub fn type_params<I>(self, type_params: I) -> Self
+	where
+		I: IntoIterator<Item = MetaType>
+	{
+		// todo: [AJ] difference between let mut this and "lens" style
+		Self {
+			ty: TypeComposite {
+				path: Path {
+					type_params: type_params.into_iter().collect(),
+					..self.ty.path
+				},
+				..self.ty
+			},
+			..self
+		}
 	}
 
-	pub fn unnamed_fields(self) -> TypeCompositeBuilder<UnnamedFields> {
-		Self::new(self.ty)
+	pub fn fields(self, fields: FieldsBuilder) -> Self {
+		let mut this = self;
+		this.fields = fields.done();
+		this
 	}
-
-	// todo: [AJ] add type params (only allow on types with fields?)
 
 	pub fn done(self) -> TypeComposite {
 		self.ty

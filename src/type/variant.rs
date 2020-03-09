@@ -17,8 +17,9 @@
 use crate::tm_std::*;
 
 use crate::{
+	fields::{Field, NamedFields, UnnamedFields},
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, Field, Registry,
+	IntoCompact, Registry, Namespace, Path,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -65,8 +66,8 @@ use serde::Serialize;
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeVariant<F: Form = MetaForm> {
-	path: Path,
-	variants: EnumVariant<F>,
+	path: Path<F>,
+	variants: Vec<Variant<F>>,
 }
 
 impl IntoCompact for TypeVariant {
@@ -74,41 +75,29 @@ impl IntoCompact for TypeVariant {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeVariant {
-			variants: registry.map_into_compact(self.variants)
-
+			path: self.path.into_compact(),
+			variants: registry.map_into_compact(self.variants),
 		}
 	}
 }
 
-/// A Rust enum variant.
-///
-/// This can either be a unit struct, just like in C-like enums,
-/// a tuple-struct with unnamed fields,
-/// or a struct with named fields.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
-#[serde(rename_all = "lowercase")]
-pub enum EnumVariant<F: Form = MetaForm> {
-	/// A unit struct variant.
-	Unit(EnumVariantUnit<F>),
-	/// A struct variant with fields (either named or unnamed).
-	Struct(EnumVariantStruct<F>),
-}
-
-impl IntoCompact for EnumVariant {
-	type Output = EnumVariant<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		match self {
-			EnumVariant::Unit(unit) => unit.into_compact(registry).into(),
-			EnumVariant::Struct(r#struct) => r#struct.into_compact(registry).into(),
+impl TypeVariant {
+	pub fn new(name: &'static str, namespace: Namespace) -> TypeVariantBuilder {
+		TypeVariantBuilder {
+			ty: Self {
+				path: Path::new(name, namespace, Vec::new()),
+				variants: Vec::new(),
+			},
+			marker: Default::default(),
 		}
 	}
 }
 
-/// An unit struct enum variant.
-///
-/// These are similar to the variants in C-like enums.
+pub struct Variants {
+	variants: Vec<Variant<F>>,
+}
+
+/// A struct enum variant with either named (struct) or unnamed (tuple struct) fields.
 ///
 /// # Example
 ///
@@ -117,13 +106,18 @@ impl IntoCompact for EnumVariant {
 ///     Zero,
 /// //  ^^^^ this is a unit struct enum variant
 ///     Add(i32, i32),
+/// //  ^^^^^^^^^^^^^ this is a tuple-struct enum variant
 ///     Minus { source: i32 }
+/// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct EnumVariantUnit<F: Form = MetaForm> {
-	/// The name of the variant.
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct Variant<F: Form = MetaForm> {
+	/// The name of the struct variant.
 	name: F::String,
+	/// The fields of the struct variant.
+	fields: Vec<Field<F>>,
 	/// The discriminant of the variant.
 	///
 	/// # Note
@@ -135,66 +129,57 @@ pub struct EnumVariantUnit<F: Form = MetaForm> {
 	discriminant: Option<u64>,
 }
 
-impl IntoCompact for EnumVariantUnit {
-	type Output = EnumVariantUnit<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		EnumVariantUnit {
-			name: registry.register_string(self.name),
-			discriminant: self.discriminant,
-		}
-	}
-}
-
-impl EnumVariantUnit {
-	/// Creates a new unit struct variant.
-	pub fn new(name: &'static str, discriminant: Option<u64>) -> Self {
-		Self { name, discriminant }
-	}
-}
-
-/// A struct enum variant with either named (struct) or unnamed (tuple struct) fields.
-///
-/// # Example
-///
-/// ```
-/// enum Operation {
-///     Zero,
-///     Add(i32, i32),
-/// //  ^^^^^^^^^^^^^ this is a tuple-struct enum variant
-///     Minus { source: i32 }
-/// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
-/// }
-/// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct EnumVariantStruct<F: Form = MetaForm> {
-	/// The name of the struct variant.
-	name: F::String,
-	/// The fields of the struct variant.
-	fields: Vec<Field<F>>,
-}
-
-impl IntoCompact for EnumVariantStruct {
+impl IntoCompact for Variant {
 	type Output = EnumVariantStruct<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		EnumVariantStruct {
 			name: registry.register_string(self.name),
 			fields: registry.map_into_compact(self.fields),
+			discriminant: self.discriminant.map(IntoCompact::into_compact),
 		}
 	}
 }
 
-impl EnumVariantStruct {
-	/// Creates a new struct variant from the given fields.
-	pub fn new<F>(name: <MetaForm as Form>::String, fields: F) -> Self
+impl Variant {
+	/// Creates a new variant with the given fields.
+	pub fn with_fields<F>(name: <MetaForm as Form>::String, fields: F) -> Self
 	where
 		F: IntoIterator<Item = NamedField>,
 	{
 		Self {
 			name,
 			fields: fields.into_iter().collect(),
+			discriminant: None,
+		}
+	}
+
+	/// Creates a new variant with the given discriminant.
+	pub fn with_discriminant(name: <MetaForm as Form>::String, discriminant: u64) -> Self {
+		Self {
+			name,
+			fields: Vec::new(),
+			discriminant: Some(discriminant),
 		}
 	}
 }
+
+pub struct TypeVariantBuilder {
+	ty: TypeVariant,
+}
+
+impl TypeVariantBuilder {
+
+}
+
+/// Build a type where *any* variants consist of fields.
+pub enum Fields {}
+/// Build a type where *all* variants have no fields and a discriminator (e.g. a Clike enum)
+pub enum Discriminators {}
+
+pub struct EnumVariantsBuilder<T> {
+	variants: Vec<Variant>,
+	marker: PhantomData<fn() -> T>,
+}
+
+
