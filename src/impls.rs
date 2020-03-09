@@ -97,7 +97,7 @@ where
 	fn type_info() -> Type {
 		TypeComposite::new("Vec", Namespace::prelude())
 			.type_params(tuple_meta_type![T])
-			.fields(Fields::named().of::<T>("elems"))
+			.named_fields(Fields::field_of::<T>("elems"))
 			.into()
 	}
 }
@@ -109,10 +109,11 @@ where
 	fn type_info() -> Type {
 		TypeVariant::new("Option", Namespace::prelude())
 			.type_params(tuple_meta_type![T])
-			.variants(Variants::with_fields()
-				.unit_variant("None")
-				.composite_variant("Some", Fields::unnamed().of::<T>())
-			)
+			.variants_with_fields(|variants| {
+				variants
+					.unit_variant("None")
+					.composite_variant("Some", Fields::unnamed().of::<T>())
+			})
 			.into()
 	}
 }
@@ -123,15 +124,15 @@ where
 	E: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		sum_type(
-			"Result",
-			Namespace::prelude(),
-			tuple_meta_type!(T, E),
-			TypeSumEnum::new(vec![
-				EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<T>()]).into(),
-				EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<E>()]).into(),
-			]),
-		)
+		TypeVariant::new("Result", Namespace::prelude())
+			.type_params(tuple_meta_type!(T, E))
+			.variants_with_fields(|variants| {
+				variants
+					.unit_variant("None")
+					.composite_variant("Ok", Fields::unnamed().field_of::<T>())
+					.composite_variant("Err", Fields::unnamed().field_of::<E>())
+			})
+			.into()
 	}
 }
 
@@ -141,12 +142,10 @@ where
 	V: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		product_type(
-			"BTreeMap",
-			Namespace::prelude(),
-			tuple_meta_type![(K, V)],
-			TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[(K, V)]>())]),
-		)
+		TypeComposite::new("BTreeMap", Namespace::prelude())
+			.type_params(tuple_meta_type![(K, V)])
+			.named_fields(Fields::field_of::<[(K, V)]>("elems"))
+			.into()
 	}
 }
 
@@ -194,12 +193,9 @@ impl TypeInfo for str {
 
 impl TypeInfo for String {
 	fn type_info() -> Type {
-		product_type(
-			"String",
-			Namespace::prelude(),
-			Vec::new(),
-			TypeProductStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]),
-		)
+		TypeComposite::new("String", Namespace::prelude())
+			.named_fields(Fields::field_of::<Vec<u8>>("vec"))
+			.into()
 	}
 }
 
@@ -208,11 +204,8 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_info() -> Type {
-		product_type(
-			"PhantomData",
-			Namespace::prelude(),
-			vec![T::meta_type()],
-			TypeProductTupleStruct::new(vec![]),
-		)
+		TypeComposite::unit("PhantomData", Namespace::prelude())
+			.type_params(vec![T::meta_type()])
+			.into()
 	}
 }

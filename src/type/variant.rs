@@ -17,9 +17,9 @@
 use crate::tm_std::*;
 
 use crate::{
-	fields::{Field, NamedFields, UnnamedFields},
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, Registry, Namespace, Path,
+	IntoCompact, Registry, MetaType, Namespace, Path,
+	Field, NamedFields, UnnamedFields,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -93,10 +93,6 @@ impl TypeVariant {
 	}
 }
 
-pub struct Variants {
-	variants: Vec<Variant<F>>,
-}
-
 /// A struct enum variant with either named (struct) or unnamed (tuple struct) fields.
 ///
 /// # Example
@@ -164,22 +160,82 @@ impl Variant {
 	}
 }
 
-pub struct TypeVariantBuilder {
-	ty: TypeVariant,
-}
-
-impl TypeVariantBuilder {
-
-}
 
 /// Build a type where *any* variants consist of fields.
-pub enum Fields {}
-/// Build a type where *all* variants have no fields and a discriminator (e.g. a Clike enum)
-pub enum Discriminators {}
+pub enum VariantFields {}
+/// Build a type where *all* variants have no fields and a discriminant (e.g. a Clike enum)
+pub enum Discriminant {}
 
-pub struct EnumVariantsBuilder<T> {
-	variants: Vec<Variant>,
+pub struct TypeVariantBuilder<T> {
+	ty: TypeVariant,
 	marker: PhantomData<fn() -> T>,
 }
+
+impl<T> TypeVariantBuilder<T> {
+	pub fn type_params<I>(self, type_params: I) -> Self
+		where
+			I: IntoIterator<Item = MetaType>
+	{
+		// todo: [AJ] difference between let mut this and "lens" style
+		Self {
+			ty: TypeVariant {
+				path: Path {
+					type_params: type_params.into_iter().collect(),
+					..self.ty.path
+				},
+				..self.ty
+			},
+			..self
+		}
+	}
+
+	pub fn variants_with_fields<F>(self, f: F) -> Self
+	where
+		F: FnOnce(Variants<VariantFields>) -> Variants<VariantFields>
+	{
+		let mut this = self;
+		let variants = f();
+		this.variants = variants.done();
+		this
+	}
+
+	pub fn variants_with_discriminants<F>(self, f: F) -> Self
+	where
+		F: FnOnce(Variants<Discriminant>) -> Variants<Discriminant>
+	{
+		let mut this = self;
+		let variants = f(Variants::w);
+		this.variants = variants.done();
+		this
+	}
+}
+
+pub struct Variants<T> {
+	variants: Vec<Variant>
+}
+
+impl<T> Variants<T> {
+	pub fn variants(self) -> Vec<Variant> {
+		self.variants
+	}
+}
+
+impl Variants<Fields> {
+	pub fn variant(self, name: <MetaForm as Form>::String, fields: Fields) -> Self {
+		let mut this = self;
+		this.variants.push(Variant::with_fields(name, fields));
+		this
+	}
+}
+
+impl Variants<Discriminant> {
+	pub fn variant(self, discriminant: u64) -> Self {
+		let mut this = self;
+		this.variants.push(Variant::with_discriminant(name, discriminant));
+		this
+	}
+}
+
+
 
 

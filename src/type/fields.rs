@@ -91,24 +91,6 @@ impl Field {
 	}
 }
 
-pub struct Fields {
-	fields: Vec<Field<MetaForm>>,
-}
-
-impl<F> Fields {
-	pub fn unit() -> Fields {
-		FieldsBuilder::new().done()
-	}
-
-	pub fn named() -> FieldsBuilder<NamedFields> {
-		FieldsBuilder::new()
-	}
-
-	pub fn unnamed() -> FieldsBuilder<UnnamedFields> {
-		FieldsBuilder::new()
-	}
-}
-
 /// A fields builder has no fields (e.g. a unit struct)
 enum NoFields {}
 /// A fields builder only allows named fields (e.g. a struct)
@@ -116,46 +98,46 @@ pub enum NamedFields {}
 /// A fields builder only allows unnamed fields (e.g. a tuple)
 pub enum UnnamedFields {}
 
-pub struct FieldsBuilder<T = NoFields> {
+pub struct Fields<T = NoFields> {
 	fields: Vec<Field<MetaForm>>,
 	marker: PhantomData<fn() -> T>,
 }
 
-impl<T> FieldsBuilder<T> {
-	pub fn new<F>() -> FieldsBuilder<F> {
+impl<T> Fields<T> {
+	pub fn new<F>() -> Fields<F> {
 		Self {
 			fields: Vec::new(),
 			marker: Default::default(),
 		}
 	}
 
-	pub fn done(self) -> Fields {
-		Fields { fields: self.fields }
+	pub fn fields(self) -> Vec<Field<MetaForm>> {
+		self.fields
 	}
 }
 
-impl FieldsBuilder<NamedFields> {
-	pub fn named_field(self, name: &'static str, ty: MetaType) -> Self {
+impl Fields<NamedFields> {
+	pub fn field(self, name: &'static str, ty: MetaType) -> Self {
 		let mut this = self;
 		this.fields.push(Field::named(name, ty));
 		this
 	}
 
-	pub fn named_field_of<T>(self, name: &'static str) -> Self {
+	pub fn field_of<T>(self, name: &'static str) -> Self {
 		let mut this = self;
 		this.fields.push(Field::named_of::<T>(name));
 		this
 	}
 }
 
-impl FieldsBuilder<UnnamedFields> {
-	pub fn unnamed_field(self, name: &'static str, ty: MetaType) -> Self {
+impl Fields<UnnamedFields> {
+	pub fn field(self, name: &'static str, ty: MetaType) -> Self {
 		let mut this = self;
 		this.fields.push(Field::unnamed(ty));
 		this
 	}
 
-	pub fn unnamed_field_of<T>(self) -> Self {
+	pub fn field_of<T>(self) -> Self {
 		let mut this = self;
 		this.fields.push(Field::unnamed_of::<T>());
 		this

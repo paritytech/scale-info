@@ -16,7 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, TypeCompositeBuilder};
+use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry};
 use derive_more::From;
 use serde::Serialize;
 
@@ -40,9 +40,9 @@ pub trait TypeInfo {
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
-	/// A struct type
+	/// A composite type (e.g. a struct or a tuple)
 	Composite(TypeComposite<F>),
-	/// A sum type (e.g. an enum)
+	/// A variant type (e.g. an enum)
 	Variant(TypeVariant<F>),
 	/// A slice type with runtime known length.
 	Slice(TypeSlice<F>),
@@ -69,17 +69,17 @@ impl IntoCompact for Type {
 	}
 }
 
-// impl Type {
-// 	pub fn composite_struct<T>(name: &'static str, namespace: Namespace, ) -> TypeCompositeBuilder<T>
-// 	{
-// 		TypeComposite::new(name, namespace)
-// 	}
-//
-// 	pub fn variant(name: &'static str, namespace: Namespace) -> VariantBuilder
-// 	{
-// 		TypeVariant::new(name, namespace, type_params, def.into()))
-// 	}
-// }
+impl From<TypeCompositeBuilder> for Type {
+	fn from(builder: TypeCompositeBuilder) -> Type {
+		builder.done().into()
+	}
+}
+
+impl From<TypeVariantBuilder> for Type {
+	fn from(builder: TypeVariantBuilder) -> Type {
+		builder.done().into()
+	}
+}
 
 /// Identifies a primitive Rust type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]

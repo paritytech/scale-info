@@ -16,10 +16,12 @@
 
 use crate::tm_std::*;
 
-use crate::{fields::{Fields}, form::{CompactForm, Form, MetaForm}, IntoCompact, Field, Path, Namespace, Registry, MetaType};
+use crate::{
+	form::{CompactForm, Form, MetaForm}, IntoCompact, Path, Namespace, Registry, MetaType,
+	Field, Fields, NamedFields, UnnamedFields,
+};
 use derive_more::From;
 use serde::Serialize;
-use crate::fields::{UnnamedFields, FieldsBuilder};
 
 /// A composite type, consisting of either named (struct) or unnamed (tuple struct) fields
 ///
@@ -75,8 +77,8 @@ impl<T> TypeComposite<T> {
 	}
 
 	/// Creates the unit tuple-struct that has no fields.
-	pub fn unit(name: &'static str, namespace: Namespace) -> Self {
-		Self::new(name, namespace).done()
+	pub fn unit(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
+		Self::new(name, namespace)
 	}
 }
 
@@ -110,8 +112,22 @@ impl TypeCompositeBuilder {
 		}
 	}
 
-	pub fn fields(self, fields: FieldsBuilder) -> Self {
+	pub fn named_fields<F>(self, f: F) -> Self
+	where
+		F: FnOnce(Fields<NamedFields>) -> Fields<NamedFields>
+	{
 		let mut this = self;
+		let fields = f(Fields::new::<NamedFields>());
+		this.fields = fields.done();
+		this
+	}
+
+	pub fn unnamed_fields<F>(self, f: F) -> Self
+	where
+		F: FnOnce(Fields<UnnamedFields>) -> Fields<UnnamedFields>
+	{
+		let mut this = self;
+		let fields = f(Fields::new::<UnnamedFields>());
 		this.fields = fields.done();
 		this
 	}
