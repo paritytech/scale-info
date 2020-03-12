@@ -17,7 +17,7 @@
 use crate::tm_std::*;
 
 use crate::{
-	form::{CompactForm, Form, MetaForm}, IntoCompact, Path, Namespace, Registry, MetaType,
+	form::{CompactForm, Form, MetaForm}, IntoCompact, Path, PathBuilder, Namespace, Registry, MetaType,
 	Field, Fields, NamedFields, UnnamedFields,
 };
 use derive_more::From;
@@ -56,7 +56,7 @@ pub struct TypeComposite<F: Form = MetaForm> {
 	fields: Vec<Field<F>>,
 }
 
-impl<T> IntoCompact for TypeComposite<T> {
+impl IntoCompact for TypeComposite {
 	type Output = TypeComposite<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
@@ -67,72 +67,33 @@ impl<T> IntoCompact for TypeComposite<T> {
 	}
 }
 
-impl<T> TypeComposite<T> {
+impl TypeComposite {
 	/// Creates a new struct definition with named fields.
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
-		TypeCompositeBuilder::new(Self {
-			path: Path::new(name, namespace, Vec::new()),
-			fields: Vec::new(),
-		})
-	}
-
-	/// Creates the unit tuple-struct that has no fields.
-	pub fn unit(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
-		Self::new(name, namespace)
+		TypeCompositeBuilder::new(Path::new(name, namespace))
 	}
 }
 
 pub struct TypeCompositeBuilder {
-	ty: TypeComposite,
-	fields: Fields,
+	path: PathBuilder,
 }
 
 impl TypeCompositeBuilder {
-	pub fn new<F>(ty: TypeComposite) -> TypeCompositeBuilder {
-		Self {
-			ty,
-			fields: Fields::unit(),
-		}
-	}
-
 	pub fn type_params<I>(self, type_params: I) -> Self
 	where
 		I: IntoIterator<Item = MetaType>
 	{
-		// todo: [AJ] difference between let mut this and "lens" style
-		Self {
-			ty: TypeComposite {
-				path: Path {
-					type_params: type_params.into_iter().collect(),
-					..self.ty.path
-				},
-				..self.ty
-			},
-			..self
-		}
-	}
-
-	pub fn named_fields<F>(self, f: F) -> Self
-	where
-		F: FnOnce(Fields<NamedFields>) -> Fields<NamedFields>
-	{
 		let mut this = self;
-		let fields = f(Fields::new::<NamedFields>());
-		this.fields = fields.done();
+		this.path = this.path.type_params(type_params);
 		this
 	}
 
-	pub fn unnamed_fields<F>(self, f: F) -> Self
-	where
-		F: FnOnce(Fields<UnnamedFields>) -> Fields<UnnamedFields>
-	{
-		let mut this = self;
-		let fields = f(Fields::new::<UnnamedFields>());
-		this.fields = fields.done();
-		this
+	pub fn fields<F>(self, fields: Fields<F>) -> TypeComposite {
+		TypeComposite { path: self.path.done(), fields }
 	}
 
-	pub fn done(self) -> TypeComposite {
-		self.ty
+	/// Creates the unit tuple-struct that has no fields.
+	pub fn unit(self) -> TypeComposite {
+		TypeComposite { path: self.path.done(), fields: Vec::new() }
 	}
 }

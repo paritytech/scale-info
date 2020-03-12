@@ -36,11 +36,11 @@ pub struct Path<F: Form = MetaForm> {
 	type_params: Vec<F::TypeId>,
 }
 
-impl<T: IntoCompact> IntoCompact for Path<T> {
+impl IntoCompact for Path {
 	type Output = Path<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeComposite {
+		Path {
 			name: registry.register_string(self.name),
 			namespace: self.namespace.into_compact(registry),
 			type_params: registry.map_into_compact(self.type_params),
@@ -48,17 +48,41 @@ impl<T: IntoCompact> IntoCompact for Path<T> {
 	}
 }
 
-impl<T> Path<T> {
+impl Path {
 	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<P>(name: &'static str, namespace: Namespace, type_params: P) -> Self
+	pub fn new<P>(name: &'static str, namespace: Namespace) -> PathBuilder
 	where
 		P: IntoIterator<Item = MetaType>,
 	{
-		Self {
-			name,
-			namespace,
-			type_params: type_params.into_iter().collect(),
+		PathBuilder {
+			path: Self {
+				name,
+				namespace,
+				type_params: Vec::new(),
+			}
 		}
+	}
+}
+
+pub struct PathBuilder {
+	// name: <MetaForm as Form>::String,
+	// namespace: Namespace<MetadForm>,
+	// type_params: Vec<<MetaForm as Form>::TypeId>,
+	path: Path,
+}
+
+impl PathBuilder {
+	pub fn type_params<P>(self, type_params: P) -> PathBuilder
+	where
+		P: IntoIterator<Item = MetaType>,
+	{
+		let mut this = self;
+		this.path.type_params = type_params.into_iter().collect();
+		this
+	}
+
+	pub fn done(self) -> Path {
+		self.path
 	}
 }
 

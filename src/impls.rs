@@ -97,7 +97,7 @@ where
 	fn type_info() -> Type {
 		TypeComposite::new("Vec", Namespace::prelude())
 			.type_params(tuple_meta_type![T])
-			.named_fields(Fields::field_of::<T>("elems"))
+			.fields(Fields::named().field_of::<T>("elems"))
 			.into()
 	}
 }
@@ -111,8 +111,8 @@ where
 			.type_params(tuple_meta_type![T])
 			.variants_with_fields(|variants| {
 				variants
-					.unit_variant("None")
-					.composite_variant("Some", Fields::unnamed().of::<T>())
+					.variant_no_fields("None")
+					.variant_composite::<UnnamedFields>("Some", Fields::unnamed().field_of::<T>())
 			})
 			.into()
 	}
@@ -128,9 +128,9 @@ where
 			.type_params(tuple_meta_type!(T, E))
 			.variants_with_fields(|variants| {
 				variants
-					.unit_variant("None")
-					.composite_variant("Ok", Fields::unnamed().field_of::<T>())
-					.composite_variant("Err", Fields::unnamed().field_of::<E>())
+					.variant_no_fields("None")
+					.variant_composite("Ok", Fields::unnamed().field_of::<T>())
+					.variant_composite("Err", Fields::unnamed().field_of::<E>())
 			})
 			.into()
 	}
@@ -144,7 +144,7 @@ where
 	fn type_info() -> Type {
 		TypeComposite::new("BTreeMap", Namespace::prelude())
 			.type_params(tuple_meta_type![(K, V)])
-			.named_fields(Fields::field_of::<[(K, V)]>("elems"))
+			.fields(Fields::named().field_of::<[(K, V)]>("elems"))
 			.into()
 	}
 }
@@ -194,7 +194,7 @@ impl TypeInfo for str {
 impl TypeInfo for String {
 	fn type_info() -> Type {
 		TypeComposite::new("String", Namespace::prelude())
-			.named_fields(Fields::field_of::<Vec<u8>>("vec"))
+			.fields(Fields::named().field_of::<Vec<u8>>("vec"))
 			.into()
 	}
 }
@@ -204,8 +204,9 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_info() -> Type {
-		TypeComposite::unit("PhantomData", Namespace::prelude())
+		TypeComposite::new("PhantomData", Namespace::prelude())
 			.type_params(vec![T::meta_type()])
+			.unit()
 			.into()
 	}
 }

@@ -39,10 +39,10 @@ pub struct Field<F: Form = MetaForm> {
 }
 
 impl IntoCompact for Field {
-	type Output = NamedField<CompactForm>;
+	type Output = Field<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		NamedField {
+		Field {
 			name: self.name.map(|name| registry.register_string(name)),
 			ty: registry.register_type(&self.ty),
 		}
@@ -92,7 +92,7 @@ impl Field {
 }
 
 /// A fields builder has no fields (e.g. a unit struct)
-enum NoFields {}
+pub enum NoFields {}
 /// A fields builder only allows named fields (e.g. a struct)
 pub enum NamedFields {}
 /// A fields builder only allows unnamed fields (e.g. a tuple)
@@ -101,6 +101,16 @@ pub enum UnnamedFields {}
 pub struct Fields<T = NoFields> {
 	fields: Vec<Field<MetaForm>>,
 	marker: PhantomData<fn() -> T>,
+}
+
+impl Fields {
+	pub fn named() -> Fields<NamedFields> {
+		Self::new()
+	}
+
+	pub fn unnamed() -> Fields<UnnamedFields> {
+		Self::new()
+	}
 }
 
 impl<T> Fields<T> {
@@ -123,7 +133,10 @@ impl Fields<NamedFields> {
 		this
 	}
 
-	pub fn field_of<T>(self, name: &'static str) -> Self {
+	pub fn field_of<T>(self, name: &'static str) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+	{
 		let mut this = self;
 		this.fields.push(Field::named_of::<T>(name));
 		this
@@ -137,7 +150,10 @@ impl Fields<UnnamedFields> {
 		this
 	}
 
-	pub fn field_of<T>(self) -> Self {
+	pub fn field_of<T>(self) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+	{
 		let mut this = self;
 		this.fields.push(Field::unnamed_of::<T>());
 		this

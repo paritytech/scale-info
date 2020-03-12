@@ -59,25 +59,13 @@ impl IntoCompact for Type {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			Type::Composite(r#struct) => product.into_compact(registry).into(),
-			Type::Variant(r#enum) => sum.into_compact(registry).into(),
+			Type::Composite(composite) => composite.into_compact(registry).into(),
+			Type::Variant(variant) => variant.into_compact(registry).into(),
 			Type::Slice(slice) => slice.into_compact(registry).into(),
 			Type::Array(array) => array.into_compact(registry).into(),
 			Type::Tuple(tuple) => tuple.into_compact(registry).into(),
 			Type::Primitive(primitive) => primitive.into(),
 		}
-	}
-}
-
-impl From<TypeCompositeBuilder> for Type {
-	fn from(builder: TypeCompositeBuilder) -> Type {
-		builder.done().into()
-	}
-}
-
-impl From<TypeVariantBuilder> for Type {
-	fn from(builder: TypeVariantBuilder) -> Type {
-		builder.done().into()
 	}
 }
 
