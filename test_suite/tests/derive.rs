@@ -23,8 +23,7 @@ extern crate alloc;
 use alloc::{boxed::Box, vec};
 
 use type_metadata::{
-	tuple_meta_type, TypeInfo, Metadata, NamedField, Namespace, Type, TypeProductStruct, TypeProductTupleStruct,
-	TypeSumClikeEnum, TypeSumEnum, UnnamedField,
+	tuple_meta_type, TypeInfo, Metadata, Namespace, Type, TypeComposite, TypeVariant, Fields, Variants,
 };
 
 fn assert_type<T, E>(expected: E)
@@ -50,30 +49,27 @@ fn struct_derive() {
 		pub u: U,
 	}
 
-	let struct_type = product_type(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(bool, u8),
-		TypeProductStruct::new(vec![
-			NamedField::new("t", bool::meta_type()),
-			NamedField::new("u", u8::meta_type()),
-		]),
-	);
-	assert_type!(S<bool, u8>, struct_type.clone());
+	let struct_type = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
+		.type_params(tuple_meta_type!(bool, u8))
+		.fields(
+			Fields::named()
+				.field_of::<bool>("t")
+				.field_of::<u8>("u")
+		);
+
+	assert_type!(S<bool, u8>, struct_type);
 
 	// With "`Self` typed" fields
 
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
-	let self_typed_type = product_type(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(Box<S<bool, u8>>, bool),
-		TypeProductStruct::new(vec![
-			NamedField::new("t", <Box<S<bool, u8>>>::meta_type()),
-			NamedField::new("u", bool::meta_type()),
-		]),
-	);
+	let self_typed_type = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
+		.type_params(tuple_meta_type!(S<Box<S<bool, u8>>, bool>))
+		.fields(
+			Fields::named()
+				.field_of::<S<Box<S<bool, u8>>, bool>>("t")
+				.field_of::<u8>("u")
+		);
 	assert_type!(SelfTyped, self_typed_type);
 }
 
@@ -83,12 +79,10 @@ fn tuple_struct_derive() {
 	#[derive(Metadata)]
 	struct S<T>(T);
 
-	let ty = product_type(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(bool),
-		TypeProductTupleStruct::new(vec![UnnamedField::of::<bool>()]),
-	);
+	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
+		.type_params(tuple_meta_type!(bool))
+		.fields(Fields::unnamed().field_of::<bool>());
+
 	assert_type!(S<bool>, ty);
 }
 
@@ -105,6 +99,10 @@ fn unit_struct_derive() {
 		TypeProductTupleStruct::unit(),
 	);
 
+	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
+		.type_params(tuple_meta_type!(bool))
+		.unit();
+
 	assert_type!(S, ty);
 }
 
@@ -117,15 +115,12 @@ fn c_like_enum_derive() {
 		B = 10,
 	}
 
-	let ty = sum_type(
-		"E",
-		Namespace::new(vec!["derive"]).unwrap(),
-		vec![],
-		TypeSumClikeEnum::new(vec![
-			ClikeEnumVariant::new("A", 0u64),
-			ClikeEnumVariant::new("B", 10u64),
-		]),
-	);
+	let ty = TypeVariant::new("E", Namespace::new(vec!["derive"]).unwrap())
+		.variants(
+			Variants::with_discriminants()
+				.variant("A", 0u64)
+				.variant("B", 1u64)
+		);
 
 	assert_type!(E, ty);
 }
@@ -140,16 +135,14 @@ fn enum_derive() {
 		C,
 	}
 
-	let ty = sum_type(
-		"E",
-		Namespace::new(vec!["derive"]).unwrap(),
-		tuple_meta_type!(bool),
-		TypeSumEnum::new(vec![
-			EnumVariantTupleStruct::new("A", vec![UnnamedField::of::<bool>()]).into(),
-			EnumVariantStruct::new("B", vec![NamedField::new("b", bool::meta_type())]).into(),
-			EnumVariantUnit::new("C").into(),
-		]),
-	);
+	let ty = TypeVariant::new("E", Namespace::new(vec!["derive"]).unwrap())
+		.type_params(tuple_meta_type![T])
+		.variants(
+			Variants::with_fields()
+				.variant_composite("A", Fields::unnamed().field_of::<bool>())
+				.variant_composite("B", Fields::named().field_of::<bool>("b"))
+				.variant_no_fields("C")
+		);
 
 	assert_type!(E<bool>, ty);
 }
