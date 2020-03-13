@@ -70,7 +70,7 @@ impl IntoCompact for TypeComposite {
 impl TypeComposite {
 	/// Creates a new struct definition with named fields.
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
-		TypeCompositeBuilder::new(Path::new(name, namespace))
+		TypeCompositeBuilder { path: Path::new(name, namespace) }
 	}
 }
 
@@ -84,12 +84,12 @@ impl TypeCompositeBuilder {
 		I: IntoIterator<Item = MetaType>
 	{
 		let mut this = self;
-		this.path = this.path.type_params(type_params);
+		this.path.type_params(type_params);
 		this
 	}
 
 	pub fn fields<F>(self, fields: Fields<F>) -> TypeComposite {
-		TypeComposite { path: self.path.done(), fields }
+		TypeComposite { path: self.path.done(), fields: fields.fields() }
 	}
 
 	/// Creates the unit tuple-struct that has no fields.

@@ -16,11 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	IntoCompact, Registry, MetaType, Namespace, Path,
-	Field, NoFields, Fields,
-};
+use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, Registry, MetaType, Namespace, Path, Field, NoFields, Fields, PathBuilder};
 use derive_more::From;
 use serde::Serialize;
 
@@ -75,7 +71,7 @@ impl IntoCompact for TypeVariant {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeVariant {
-			path: self.path.into_compact(),
+			path: self.path.into_compact(registry),
 			variants: registry.map_into_compact(self.variants),
 		}
 	}
@@ -90,7 +86,7 @@ impl TypeVariant {
 }
 
 pub struct TypeVariantBuilder {
-	path: Path
+	path: PathBuilder
 }
 
 impl TypeVariantBuilder {
@@ -99,7 +95,7 @@ impl TypeVariantBuilder {
 		I: IntoIterator<Item = MetaType>
 	{
 		let mut this = self;
-		self.path.type_params = type_params.into_iter().collect();
+		this.path.type_params(type_params);
 		this
 	}
 
@@ -108,7 +104,7 @@ impl TypeVariantBuilder {
 		F: FnOnce(Variants<VariantFields>) -> Variants<VariantFields>
 	{
 		let variants = f(Variants::new());
-		TypeVariant { path: self.path, variants }
+		TypeVariant { path: self.path.done(), variants: variants.variants() }
 	}
 
 	pub fn variants_with_discriminants<F>(self, f: F) -> TypeVariant
@@ -116,7 +112,7 @@ impl TypeVariantBuilder {
 		F: FnOnce(Variants<Discriminant>) -> Variants<Discriminant>
 	{
 		let variants = f(Variants::new());
-		TypeVariant { path: self.path, variants }
+		TypeVariant { path: self.path.done(), variants: variants.variants() }
 	}
 }
 
@@ -159,7 +155,7 @@ impl IntoCompact for Variant {
 		Variant {
 			name: registry.register_string(self.name),
 			fields: registry.map_into_compact(self.fields),
-			discriminant: self.discriminant.map(IntoCompact::into_compact),
+			discriminant: self.discriminant,
 		}
 	}
 }

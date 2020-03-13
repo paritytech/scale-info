@@ -50,10 +50,7 @@ impl IntoCompact for Path {
 
 impl Path {
 	/// Creates a new type identifier to refer to a custom type definition.
-	pub fn new<P>(name: &'static str, namespace: Namespace) -> PathBuilder
-	where
-		P: IntoIterator<Item = MetaType>,
-	{
+	pub fn new(name: &'static str, namespace: Namespace) -> PathBuilder {
 		PathBuilder {
 			path: Self {
 				name,
@@ -72,13 +69,12 @@ pub struct PathBuilder {
 }
 
 impl PathBuilder {
-	pub fn type_params<P>(self, type_params: P) -> PathBuilder
+	pub fn type_params<P>(&mut self, type_params: P) -> &mut Self
 	where
 		P: IntoIterator<Item = MetaType>,
 	{
-		let mut this = self;
-		this.path.type_params = type_params.into_iter().collect();
-		this
+		self.path.type_params = type_params.into_iter().collect();
+		self
 	}
 
 	pub fn done(self) -> Path {

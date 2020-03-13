@@ -120,6 +120,15 @@ impl Fields {
 	}
 }
 
+impl<T> IntoIterator for Fields<T> {
+	type Item = Field<MetaForm>;
+	type IntoIter = vec::IntoIter<Self::Item>;
+
+	fn into_iter(self) -> Self::IntoIter {
+		self.fields.into_iter()
+	}
+}
+
 impl<T> Fields<T> {
 	pub fn fields(self) -> Vec<Field<MetaForm>> {
 		self.fields
@@ -144,7 +153,7 @@ impl Fields<NamedFields> {
 }
 
 impl Fields<UnnamedFields> {
-	pub fn field(self, name: &'static str, ty: MetaType) -> Self {
+	pub fn field(self, ty: MetaType) -> Self {
 		let mut this = self;
 		this.fields.push(Field::unnamed(ty));
 		this
