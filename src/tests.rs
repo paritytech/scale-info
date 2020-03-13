@@ -58,7 +58,7 @@ fn prelude_items() {
 			.variants(
 				Variants::with_fields()
 					.variant_no_fields("None")
-					.variant_composite("Some", Fields::unnamed().field_of::<u128>())
+					.variant("Some", Fields::unnamed().field_of::<u128>())
 			)
 	);
 	assert_type!(
@@ -67,10 +67,9 @@ fn prelude_items() {
 			.type_params(tuple_meta_type!(bool, String))
 			.variants(
 				Variants::with_fields()
-					.variant_composite("Ok", Fields::unnamed().field_of::<bool>())
-					.variant_composite("Err", Fields::unnamed().field_of::<String>())
+					.variant("Ok", Fields::unnamed().field_of::<bool>())
+					.variant("Err", Fields::unnamed().field_of::<String>())
 			)
-			.into()
 	);
 	assert_type!(
 		PhantomData<i32>,
@@ -127,31 +126,32 @@ fn struct_with_generics() {
 		T: Metadata + 'static,
 	{
 		fn type_info() -> Type {
-			product_type(
-				"MyStruct",
-				Namespace::from_module_path(module_path!()).unwrap(),
-				tuple_meta_type!(T),
-				TypeProductStruct::new(vec![NamedField::new("data", T::meta_type())]),
-			)
+			TypeComposite::new("MyStruct", Namespace::from_module_path(module_path!()).unwrap())
+				.type_params(tuple_meta_type!(T))
+				.fields(
+					Fields::named().field_of::<T>("data")
+				)
+				.into()
 		}
 	}
 
 	// Normal struct
-	let struct_bool_id = product_type(
-		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
-		tuple_meta_type!(bool),
-		TypeProductStruct::new(vec![NamedField::new("data", bool::meta_type())]),
-	);
-	assert_type!(MyStruct<bool>, struct_bool_id.clone());
+	let struct_bool_type_info =
+		TypeComposite::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap())
+			.type_params(tuple_meta_type!(bool))
+			.fields(
+				Fields::named().field_of::<bool>("data")
+			);
+
+	assert_type!(MyStruct<bool>, struct_bool_type_info);
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type = product_type(
-		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
-		vec![<Box<MyStruct<bool>>>::meta_type()],
-		TypeProductStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type())]),
-	);
+	let expected_type =
+		TypeComposite::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap())
+			.type_params(tuple_meta_type!(Box<MyStruct<bool>>))
+			.fields(
+				Fields::named().field_of::<Box<MyStruct<bool>>>("data")
+			);
 	assert_type!(SelfTyped, expected_type);
 }

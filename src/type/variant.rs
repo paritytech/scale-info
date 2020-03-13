@@ -210,12 +210,8 @@ impl Variants<VariantFields> {
 		this
 	}
 
-	pub fn variant_no_fields(self, name: <MetaForm as Form>::String) -> Self {
+	pub fn variant_unit(self, name: <MetaForm as Form>::String) -> Self {
 		self.variant::<NoFields>(name, Fields::new::<NoFields>())
-	}
-
-	pub fn variant_composite<F>(self, name: <MetaForm as Form>::String, fields: Fields<F>) -> Self {
-		self.variant::<F>(name, fields)
 	}
 }
 

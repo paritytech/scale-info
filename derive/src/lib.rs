@@ -21,6 +21,7 @@ extern crate proc_macro;
 
 mod impl_wrapper;
 
+use alloc::vec::Vec;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
@@ -64,68 +65,68 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	});
 
 	let ast: DeriveInput = syn::parse2(input.clone())?;
-	let (type_variant, type_def) = match &ast.data {
-		Data::Struct(ref s) => (quote!(Product), generate_struct_def(s)),
-		Data::Enum(ref e) => (quote!(Sum), generate_enum_def(e)),
+	let (type_kind, build_type) = match &ast.data {
+		Data::Struct(ref s) => (quote!(TypeComposite), generate_composite_type(s)),
+		Data::Enum(ref e) => (quote!(TypeVariant), generate_variant_type(e)),
 		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
 	};
 
-	let has_type_impl = quote! {
+	let type_info_impl = quote! {
 		impl #impl_generics _type_metadata::TypeInfo for #ident #ty_generics #where_clause {
 			fn type_info() -> _type_metadata::Type {
-				_type_metadata::Type::#type_variant(
-					_type_metadata::TypeComposite::new(
-						stringify!(#ident),
-						_type_metadata::Namespace::from_module_path(module_path!())
-							.expect("namespace from module path cannot fail"),
-						__core::vec![ #( #generic_type_ids ),* ],
-						#type_def.into(),
-					)
+				#type_kind::new(
+					stringify!(#ident),
+					_type_metadata::Namespace::from_module_path(module_path!()),
 				)
+				.type_params(__core::vec![ #( #generic_type_ids ),* ])
+				.#build_type
+				.into()
 			}
 		}
 	};
 
-	Ok(impl_wrapper::wrap(ident, "HAS_TYPE", has_type_impl))
+	Ok(impl_wrapper::wrap(ident, "TYPE_INFO", type_info_impl))
 }
 
 type FieldsList = Punctuated<Field, Comma>;
 
-fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
-	let fields_def = fields.iter().map(|f| {
+fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
+	fields.iter().map(|f| {
 		let (ty, ident) = (&f.ty, &f.ident);
-		let meta_type = quote! {
-			<#ty as _type_metadata::Metadata>::meta_type()
-		};
 		if let Some(i) = ident {
 			quote! {
-				_type_metadata::NamedField::new(stringify!(#i), #meta_type)
+				.field_of::<#ty>(stringify!(#i))
 			}
 		} else {
 			quote! {
-				_type_metadata::UnnamedField::new(#meta_type)
+				.field_of::<#ty>()
 			}
 		}
-	});
-	quote! { __core::vec![#( #fields_def, )*] }
+	}).collect()
 }
 
-fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
+fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
-			let fields = generate_fields_def(&fs.named);
+			let fields = generate_fields(&fs.named);
 			quote! {
-				_type_metadata::TypeProductStruct::new(#fields)
+				fields(
+					Fields::named()
+						#( #fields )*
+				)
 			}
 		}
 		Fields::Unnamed(ref fs) => {
-			let fields = generate_fields_def(&fs.unnamed);
+			let fields = generate_fields(&fs.unnamed);
 			quote! {
-				_type_metadata::TypeProductTupleStruct::new(#fields)
+				fields(
+					Fields::unnamed()
+						#( #fields )*
+				)
 			}
 		}
 		Fields::Unit => quote! {
-			_type_metadata::TypeProductTupleStruct::unit()
+			unit()
 		},
 	}
 }
@@ -133,7 +134,7 @@ fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
 type VariantList = Punctuated<Variant, Comma>;
 
 fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
-	let variants_def = variants.into_iter().enumerate().map(|(i, v)| {
+	let variants = variants.into_iter().enumerate().map(|(i, v)| {
 		let name = &v.ident;
 		let discriminant = if let Some((
 			_,
@@ -150,11 +151,14 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 			i as u64
 		};
 		quote! {
-			_type_metadata::ClikeEnumVariant::new(stringify!(#name), #discriminant)
+			.variant(stringify!(#name), #discriminant)
 		}
 	});
 	quote! {
-		_type_metadata::TypeSumClikeEnum::new(__core::vec![#( #variants_def, )*])
+		variants(
+			Variants::with_discriminants()
+				#( #variants )*
+		)
 	}
 }
 
@@ -168,35 +172,46 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 		})
 }
 
-fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
+fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 	let variants = &data_enum.variants;
 
 	if is_c_like_enum(&variants) {
 		return generate_c_like_enum_def(variants);
 	}
 
-	let variants_def = variants.into_iter().map(|v| {
+	let variants = variants.into_iter().map(|v| {
 		let ident = &v.ident;
 		let v_name = quote! {stringify!(#ident) };
 		match v.fields {
 			Fields::Named(ref fs) => {
-				let fields = generate_fields_def(&fs.named);
+				let fields = generate_fields(&fs.named);
 				quote! {
-					_type_metadata::EnumVariantStruct::new(#v_name, #fields).into()
+					.variant(
+						#v_name,
+						Fields::named()
+							#( #fields)*
+					)
 				}
 			}
 			Fields::Unnamed(ref fs) => {
-				let fields = generate_fields_def(&fs.unnamed);
+				let fields = generate_fields(&fs.unnamed);
 				quote! {
-					_type_metadata::EnumVariantTupleStruct::new(#v_name, #fields).into()
+					.variant(
+						#v_name,
+						Fields::unnamed()
+							#( #fields)*
+					)
 				}
 			}
 			Fields::Unit => quote! {
-				_type_metadata::EnumVariantUnit::new(#v_name).into()
+				.variant_unit(#v_name)
 			},
 		}
 	});
 	quote! {
-		_type_metadata::TypeSumEnum::new(__core::vec![#( #variants_def, )*])
+		variants(
+			Variants::with_fields()
+				#( #variants)*
+		)
 	}
 }

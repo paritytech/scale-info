@@ -139,9 +139,9 @@ fn enum_derive() {
 		.type_params(tuple_meta_type![T])
 		.variants(
 			Variants::with_fields()
-				.variant_composite("A", Fields::unnamed().field_of::<bool>())
-				.variant_composite("B", Fields::named().field_of::<bool>("b"))
-				.variant_no_fields("C")
+				.variant("A", Fields::unnamed().field_of::<bool>())
+				.variant("B", Fields::named().field_of::<bool>("b"))
+				.variant_unit("C")
 		);
 
 	assert_type!(E<bool>, ty);
