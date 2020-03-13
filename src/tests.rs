@@ -47,45 +47,36 @@ fn primitives() {
 fn prelude_items() {
 	assert_type!(
 		String,
-		product_type(
-			"String",
-			Namespace::prelude(),
-			Vec::new(),
-			TypeProductStruct::new(vec![NamedField::new("vec", MetaType::new::<Vec<u8>>())]),
-		)
+		TypeComposite::new("String", Namespace::prelude())
+			.fields(Fields::named().field_of::<Vec<u8>>("vec"))
 	);
 
 	assert_type!(
 		Option<u128>,
-		sum_type(
-			"Option",
-			Namespace::prelude(),
-			tuple_meta_type!(u128),
-			TypeSumEnum::new(vec![
-				EnumVariantUnit::new("None").into(),
-				EnumVariantTupleStruct::new("Some", vec![UnnamedField::of::<u128>()]).into(),
-			],),
-		)
+		TypeVariant::new("Option", Namespace::prelude())
+			.type_params(tuple_meta_type!(u128))
+			.variants(
+				Variants::with_fields()
+					.variant_no_fields("None")
+					.variant_composite("Some", Fields::unnamed().field_of::<u128>())
+			)
 	);
 	assert_type!(
 		Result<bool, String>,
-		sum_type("Result", Namespace::prelude(), tuple_meta_type!(bool, String),
-			TypeSumEnum::new(
-				vec![
-					EnumVariantTupleStruct::new("Ok", vec![UnnamedField::of::<bool>()]).into(),
-					EnumVariantTupleStruct::new("Err", vec![UnnamedField::of::<String>()]).into(),
-				]
-			),
-		)
+		TypeVariant::new("Result", Namespace::prelude())
+			.type_params(tuple_meta_type!(bool, String))
+			.variants(
+				Variants::with_fields()
+					.variant_composite("Ok", Fields::unnamed().field_of::<bool>())
+					.variant_composite("Err", Fields::unnamed().field_of::<String>())
+			)
+			.into()
 	);
 	assert_type!(
 		PhantomData<i32>,
-		product_type(
-			"PhantomData",
-			Namespace::prelude(),
-			tuple_meta_type!(i32),
-			TypeProductTupleStruct::new(vec![],),
-		)
+		TypeComposite::new("PhantomData", Namespace::prelude())
+			.type_params(tuple_meta_type!(i32))
+			.unit()
 	);
 }
 
@@ -118,12 +109,9 @@ fn array_primitives() {
 	// vec
 	assert_type!(
 		Vec<bool>,
-		product_type(
-			"Vec",
-			Namespace::prelude(),
-			tuple_meta_type![bool],
-			TypeProductStruct::new(vec![NamedField::new("elems", MetaType::new::<[bool]>())])
-		)
+		TypeComposite::new("Vec", Namespace::prelude())
+			.type_params(tuple_meta_type!(bool))
+			.fields(Fields::named().field_of::<bool>("elems"))
 	);
 }
 

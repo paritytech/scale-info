@@ -23,8 +23,7 @@ extern crate alloc;
 use alloc::{boxed::Box, vec};
 
 use type_metadata::{
-	product_type, sum_type, tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct,
-	EnumVariantUnit, TypeInfo, Metadata, NamedField, Namespace, Type, TypeProductStruct, TypeProductTupleStruct,
+	tuple_meta_type, TypeInfo, Metadata, NamedField, Namespace, Type, TypeProductStruct, TypeProductTupleStruct,
 	TypeSumClikeEnum, TypeSumEnum, UnnamedField,
 };
 
