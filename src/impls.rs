@@ -109,11 +109,11 @@ where
 	fn type_info() -> Type {
 		TypeVariant::new("Option", Namespace::prelude())
 			.type_params(tuple_meta_type![T])
-			.variants_with_fields(|variants| {
-				variants
+			.variants(
+				Variants::with_fields()
 					.variant_no_fields("None")
 					.variant_composite::<UnnamedFields>("Some", Fields::unnamed().field_of::<T>())
-			})
+			)
 			.into()
 	}
 }
@@ -126,12 +126,11 @@ where
 	fn type_info() -> Type {
 		TypeVariant::new("Result", Namespace::prelude())
 			.type_params(tuple_meta_type!(T, E))
-			.variants_with_fields(|variants| {
-				variants
-					.variant_no_fields("None")
-					.variant_composite("Ok", Fields::unnamed().field_of::<T>())
-					.variant_composite("Err", Fields::unnamed().field_of::<E>())
-			})
+			.variants(Variants::with_fields()
+				.variant_no_fields("None")
+				.variant_composite("Ok", Fields::unnamed().field_of::<T>())
+				.variant_composite("Err", Fields::unnamed().field_of::<E>())
+			)
 			.into()
 	}
 }

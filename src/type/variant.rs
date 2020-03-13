@@ -99,19 +99,7 @@ impl TypeVariantBuilder {
 		this
 	}
 
-	pub fn variants_with_fields<F>(self, f: F) -> TypeVariant
-	where
-		F: FnOnce(Variants<VariantFields>) -> Variants<VariantFields>
-	{
-		let variants = f(Variants::new());
-		TypeVariant { path: self.path.done(), variants: variants.variants() }
-	}
-
-	pub fn variants_with_discriminants<F>(self, f: F) -> TypeVariant
-	where
-		F: FnOnce(Variants<Discriminant>) -> Variants<Discriminant>
-	{
-		let variants = f(Variants::new());
+	pub fn variants<F>(self, variants: Variants<F>) -> TypeVariant {
 		TypeVariant { path: self.path.done(), variants: variants.variants() }
 	}
 }
@@ -183,22 +171,33 @@ impl Variant {
 	}
 }
 
-
+/// Build a type with no variants.
+pub enum NoVariants {}
 /// Build a type where *any* variants consist of fields.
 pub enum VariantFields {}
 /// Build a type where *all* variants have no fields and a discriminant (e.g. a Clike enum)
 pub enum Discriminant {}
 
-pub struct Variants<T> {
+pub struct Variants<T = NoVariants> {
 	variants: Vec<Variant>,
 	marker: PhantomData<fn() -> T>,
 }
 
-impl<T> Variants<T> {
-	pub fn new() -> Self {
-		Variants { variants: Vec::new(), marker: Default::default() }
+impl Variants {
+	pub fn new<T>() -> Variants<T> {
+		Variants::<T> { variants: Vec::new(), marker: Default::default() }
 	}
 
+	pub fn with_fields() -> Variants<VariantFields> {
+		Self::new::<VariantFields>()
+	}
+
+	pub fn with_discriminants() -> Variants<Discriminant> {
+		Self::new::<Discriminant>()
+	}
+}
+
+impl<T> Variants<T> {
 	pub fn variants(self) -> Vec<Variant> {
 		self.variants
 	}
