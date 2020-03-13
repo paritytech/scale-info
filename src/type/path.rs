@@ -43,7 +43,7 @@ impl IntoCompact for Path {
 		Path {
 			name: registry.register_string(self.name),
 			namespace: self.namespace.into_compact(registry),
-			type_params: registry.map_into_compact(self.type_params),
+			type_params: registry.register_types(self.type_params),
 		}
 	}
 }

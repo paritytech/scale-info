@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm}, IntoCompact, Path, PathBuilder, Namespace, Registry, MetaType,
-	Field, Fields, NamedFields, UnnamedFields,
+	Field, Fields
 };
 use derive_more::From;
 use serde::Serialize;
@@ -61,7 +61,7 @@ impl IntoCompact for TypeComposite {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeComposite {
-			path: self.path.into_compact(),
+			path: self.path.into_compact(registry),
 			fields: registry.map_into_compact(self.fields),
 		}
 	}

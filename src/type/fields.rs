@@ -104,23 +104,23 @@ pub struct Fields<T = NoFields> {
 }
 
 impl Fields {
-	pub fn named() -> Fields<NamedFields> {
-		Self::new()
-	}
-
-	pub fn unnamed() -> Fields<UnnamedFields> {
-		Self::new()
-	}
-}
-
-impl<T> Fields<T> {
-	pub fn new<F>() -> Fields<F> {
-		Self {
+	pub fn new<T>() -> Fields<T> {
+		Fields::<T> {
 			fields: Vec::new(),
 			marker: Default::default(),
 		}
 	}
 
+	pub fn named() -> Fields<NamedFields> {
+		Self::new::<NamedFields>()
+	}
+
+	pub fn unnamed() -> Fields<UnnamedFields> {
+		Self::new::<UnnamedFields>()
+	}
+}
+
+impl<T> Fields<T> {
 	pub fn fields(self) -> Vec<Field<MetaForm>> {
 		self.fields
 	}
