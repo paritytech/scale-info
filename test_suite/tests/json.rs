@@ -136,37 +136,28 @@ fn test_enum() {
 	}
 
 	assert_json_for_type::<Enum>(json!({
-		"sum": {
+		"variant": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
-			"def": {
-				"enum": {
-					"variants": [
-						{
-							"unit": {
-								"name": 3,
-							}
-						},
-						{
-							"tuplestruct": {
-								"name": 4,
-								"types": [1, 2],
-							}
-						},
-						{
-							"struct": {
-								"name": 5,
-								"fields": [
-									{ "name": 6, "type": 1, },
-									{ "name": 7, "type": 3, },
-									{ "name": 8, "type": 5, },
-								],
-							}
-						}
-					]
+			"variants": [
+				{ "name": 3 },
+				{
+					"name": 4,
+					"fields": [
+						{ "type": 1 },
+						{ "type": 2 },
+					],
+				},
+				{
+					"name": 5,
+					"fields": [
+						{ "name": 6, "type": 1, },
+						{ "name": 7, "type": 3, },
+						{ "name": 8, "type": 5, },
+					],
 				}
-			},
+			],
 		},
 	}));
 }
