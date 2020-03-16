@@ -64,11 +64,11 @@ fn struct_derive() {
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
 	let self_typed_type = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
-		.type_params(tuple_meta_type!(S<Box<S<bool, u8>>, bool>))
+		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
 		.fields(
 			Fields::named()
-				.field_of::<S<Box<S<bool, u8>>, bool>>("t")
-				.field_of::<u8>("u")
+				.field_of::<Box<S<bool, u8>>>("t")
+				.field_of::<bool>("u")
 		);
 	assert_type!(SelfTyped, self_typed_type);
 }
