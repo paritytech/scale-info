@@ -112,7 +112,7 @@ where
 			.variants(
 				Variants::with_fields()
 					.variant_unit("None")
-					.variant("Some", Fields::unnamed().field_of::<T>())
+					.variant("Some", Fields::unnamed().field_of::<T>()),
 			)
 			.into()
 	}
@@ -129,7 +129,7 @@ where
 			.variants(
 				Variants::with_fields()
 					.variant("Ok", Fields::unnamed().field_of::<T>())
-					.variant("Err", Fields::unnamed().field_of::<E>())
+					.variant("Err", Fields::unnamed().field_of::<E>()),
 			)
 			.into()
 	}

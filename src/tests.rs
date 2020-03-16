@@ -47,8 +47,7 @@ fn primitives() {
 fn prelude_items() {
 	assert_type!(
 		String,
-		TypeComposite::new("String", Namespace::prelude())
-			.fields(Fields::named().field_of::<Vec<u8>>("vec"))
+		TypeComposite::new("String", Namespace::prelude()).fields(Fields::named().field_of::<Vec<u8>>("vec"))
 	);
 
 	assert_type!(
@@ -128,30 +127,22 @@ fn struct_with_generics() {
 		fn type_info() -> Type {
 			TypeComposite::new("MyStruct", Namespace::from_module_path(module_path!()).unwrap())
 				.type_params(tuple_meta_type!(T))
-				.fields(
-					Fields::named().field_of::<T>("data")
-				)
+				.fields(Fields::named().field_of::<T>("data"))
 				.into()
 		}
 	}
 
 	// Normal struct
-	let struct_bool_type_info =
-		TypeComposite::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap())
-			.type_params(tuple_meta_type!(bool))
-			.fields(
-				Fields::named().field_of::<bool>("data")
-			);
+	let struct_bool_type_info = TypeComposite::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap())
+		.type_params(tuple_meta_type!(bool))
+		.fields(Fields::named().field_of::<bool>("data"));
 
 	assert_type!(MyStruct<bool>, struct_bool_type_info);
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type =
-		TypeComposite::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap())
-			.type_params(tuple_meta_type!(Box<MyStruct<bool>>))
-			.fields(
-				Fields::named().field_of::<Box<MyStruct<bool>>>("data")
-			);
+	let expected_type = TypeComposite::new("MyStruct", Namespace::new(vec!["type_metadata", "tests"]).unwrap())
+		.type_params(tuple_meta_type!(Box<MyStruct<bool>>))
+		.fields(Fields::named().field_of::<Box<MyStruct<bool>>>("data"));
 	assert_type!(SelfTyped, expected_type);
 }

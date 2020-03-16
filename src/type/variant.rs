@@ -16,7 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, Registry, MetaType, Namespace, Path, Field, NoFields, Fields, PathBuilder };
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	Field, Fields, IntoCompact, MetaType, Namespace, NoFields, Path, PathBuilder, Registry,
+};
 use derive_more::From;
 use serde::Serialize;
 
@@ -81,19 +84,19 @@ impl IntoCompact for TypeVariant {
 impl TypeVariant {
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeVariantBuilder {
 		TypeVariantBuilder {
-			path: Path::new(name, namespace)
+			path: Path::new(name, namespace),
 		}
 	}
 }
 
 pub struct TypeVariantBuilder {
-	path: PathBuilder
+	path: PathBuilder,
 }
 
 impl TypeVariantBuilder {
 	pub fn type_params<I>(self, type_params: I) -> Self
 	where
-		I: IntoIterator<Item = MetaType>
+		I: IntoIterator<Item = MetaType>,
 	{
 		let mut this = self;
 		this.path.type_params(type_params);
@@ -101,7 +104,10 @@ impl TypeVariantBuilder {
 	}
 
 	pub fn variants<F>(self, variants: Variants<F>) -> TypeVariant {
-		TypeVariant { path: self.path.done(), variants: variants.variants() }
+		TypeVariant {
+			path: self.path.done(),
+			variants: variants.variants(),
+		}
 	}
 }
 
@@ -187,7 +193,10 @@ pub struct Variants<T = NoVariants> {
 
 impl Variants {
 	pub fn new<T>() -> Variants<T> {
-		Variants::<T> { variants: Vec::new(), marker: Default::default() }
+		Variants::<T> {
+			variants: Vec::new(),
+			marker: Default::default(),
+		}
 	}
 
 	pub fn with_fields() -> Variants<VariantFields> {
@@ -224,7 +233,3 @@ impl Variants<Discriminant> {
 		this
 	}
 }
-
-
-
-

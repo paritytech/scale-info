@@ -149,12 +149,9 @@ impl Registry {
 
 	pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<AnyTypeId>>
 	where
-		I: IntoIterator<Item = MetaType>
+		I: IntoIterator<Item = MetaType>,
 	{
-		iter
-			.into_iter()
-			.map(|i| self.register_type(&i))
-			.collect::<Vec<_>>()
+		iter.into_iter().map(|i| self.register_type(&i)).collect::<Vec<_>>()
 	}
 
 	/// todo [AJ] comment
@@ -163,9 +160,6 @@ impl Registry {
 		I: IntoIterator<Item = T>,
 		T: IntoCompact,
 	{
-		iter
-			.into_iter()
-			.map(|i| i.into_compact(self))
-			.collect::<Vec<_>>()
+		iter.into_iter().map(|i| i.into_compact(self)).collect::<Vec<_>>()
 	}
 }

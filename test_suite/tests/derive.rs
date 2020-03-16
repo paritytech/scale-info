@@ -23,7 +23,7 @@ extern crate alloc;
 use alloc::{boxed::Box, vec};
 
 use type_metadata::{
-	tuple_meta_type, TypeInfo, Metadata, Namespace, Type, TypeComposite, TypeVariant, Fields, Variants,
+	tuple_meta_type, Fields, Metadata, Namespace, Type, TypeComposite, TypeInfo, TypeVariant, Variants,
 };
 
 fn assert_type<T, E>(expected: E)
@@ -51,11 +51,7 @@ fn struct_derive() {
 
 	let struct_type = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
 		.type_params(tuple_meta_type!(bool, u8))
-		.fields(
-			Fields::named()
-				.field_of::<bool>("t")
-				.field_of::<u8>("u")
-		);
+		.fields(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
 
 	assert_type!(S<bool, u8>, struct_type);
 
@@ -65,11 +61,7 @@ fn struct_derive() {
 
 	let self_typed_type = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
 		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
-		.fields(
-			Fields::named()
-				.field_of::<Box<S<bool, u8>>>("t")
-				.field_of::<bool>("u")
-		);
+		.fields(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
 	assert_type!(SelfTyped, self_typed_type);
 }
 
@@ -92,8 +84,7 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
-		.unit();
+	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap()).unit();
 
 	assert_type!(S, ty);
 }
@@ -108,11 +99,7 @@ fn c_like_enum_derive() {
 	}
 
 	let ty = TypeVariant::new("E", Namespace::new(vec!["derive"]).unwrap())
-		.variants(
-			Variants::with_discriminants()
-				.variant("A", 0u64)
-				.variant("B", 10u64)
-		);
+		.variants(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
 
 	assert_type!(E, ty);
 }
@@ -133,7 +120,7 @@ fn enum_derive() {
 			Variants::with_fields()
 				.variant("A", Fields::unnamed().field_of::<bool>())
 				.variant("B", Fields::named().field_of::<bool>("b"))
-				.variant_unit("C")
+				.variant_unit("C"),
 		);
 
 	assert_type!(E<bool>, ty);

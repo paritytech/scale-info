@@ -16,16 +16,19 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	IntoCompact, MetaType, Metadata, Registry,
+};
 use derive_more::From;
 use serde::Serialize;
 
-mod path;
-mod fields;
 mod composite;
+mod fields;
+mod path;
 mod variant;
 
-pub use self::{path::*, composite::*, variant::*, fields::*};
+pub use self::{composite::*, fields::*, path::*, variant::*};
 
 /// A type identifier.
 ///
@@ -133,13 +136,12 @@ pub struct TypeTuple<F: Form = MetaForm> {
 	pub type_params: Vec<F::TypeId>,
 }
 
-impl IntoCompact for TypeTuple
-{
+impl IntoCompact for TypeTuple {
 	type Output = TypeTuple<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeTuple {
-			type_params: registry.register_types(self.type_params)
+			type_params: registry.register_types(self.type_params),
 		}
 	}
 }

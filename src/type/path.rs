@@ -56,7 +56,7 @@ impl Path {
 				name,
 				namespace,
 				type_params: Vec::new(),
-			}
+			},
 		}
 	}
 }

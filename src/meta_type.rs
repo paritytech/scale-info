@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{form::MetaForm, TypeInfo, Metadata, Type};
+use crate::{form::MetaForm, Metadata, Type, TypeInfo};
 
 /// A metatype abstraction.
 ///

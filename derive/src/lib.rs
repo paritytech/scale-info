@@ -92,18 +92,21 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 type FieldsList = Punctuated<Field, Comma>;
 
 fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
-	fields.iter().map(|f| {
-		let (ty, ident) = (&f.ty, &f.ident);
-		if let Some(i) = ident {
-			quote! {
-				.field_of::<#ty>(stringify!(#i))
+	fields
+		.iter()
+		.map(|f| {
+			let (ty, ident) = (&f.ty, &f.ident);
+			if let Some(i) = ident {
+				quote! {
+					.field_of::<#ty>(stringify!(#i))
+				}
+			} else {
+				quote! {
+					.field_of::<#ty>()
+				}
 			}
-		} else {
-			quote! {
-				.field_of::<#ty>()
-			}
-		}
-	}).collect()
+		})
+		.collect()
 }
 
 fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {

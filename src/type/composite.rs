@@ -17,8 +17,8 @@
 use crate::tm_std::*;
 
 use crate::{
-	form::{CompactForm, Form, MetaForm}, IntoCompact, Path, PathBuilder, Namespace, Registry, MetaType,
-	Field, Fields
+	form::{CompactForm, Form, MetaForm},
+	Field, Fields, IntoCompact, MetaType, Namespace, Path, PathBuilder, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -71,7 +71,9 @@ impl IntoCompact for TypeComposite {
 impl TypeComposite {
 	/// Creates a new struct definition with named fields.
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
-		TypeCompositeBuilder { path: Path::new(name, namespace) }
+		TypeCompositeBuilder {
+			path: Path::new(name, namespace),
+		}
 	}
 }
 
@@ -82,7 +84,7 @@ pub struct TypeCompositeBuilder {
 impl TypeCompositeBuilder {
 	pub fn type_params<I>(self, type_params: I) -> Self
 	where
-		I: IntoIterator<Item = MetaType>
+		I: IntoIterator<Item = MetaType>,
 	{
 		let mut this = self;
 		this.path.type_params(type_params);
@@ -90,11 +92,17 @@ impl TypeCompositeBuilder {
 	}
 
 	pub fn fields<F>(self, fields: Fields<F>) -> TypeComposite {
-		TypeComposite { path: self.path.done(), fields: fields.fields() }
+		TypeComposite {
+			path: self.path.done(),
+			fields: fields.fields(),
+		}
 	}
 
 	/// Creates the unit tuple-struct that has no fields.
 	pub fn unit(self) -> TypeComposite {
-		TypeComposite { path: self.path.done(), fields: Vec::new() }
+		TypeComposite {
+			path: self.path.done(),
+			fields: Vec::new(),
+		}
 	}
 }
