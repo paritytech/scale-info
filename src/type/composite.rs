@@ -52,6 +52,7 @@ use serde::Serialize;
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeComposite<F: Form = MetaForm> {
+	#[serde(flatten)]
 	path: Path<F>,
 	fields: Vec<Field<F>>,
 }

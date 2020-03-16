@@ -86,19 +86,15 @@ fn test_struct() {
 	}
 
 	assert_json_for_type::<Struct>(json!({
-		"product": {
+		"composite": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
-			"def": {
-				"struct": {
-					"fields": [
-						{ "name": 3, "type": 1, },
-						{ "name": 4, "type": 2, },
-						{ "name": 5, "type": 4, },
-					]
-				}
-			},
+			"fields": [
+				{ "name": 3, "type": 1, },
+				{ "name": 4, "type": 2, },
+				{ "name": 5, "type": 4, },
+			],
 		},
 	}));
 }
