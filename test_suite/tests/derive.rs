@@ -93,7 +93,6 @@ fn unit_struct_derive() {
 	struct S;
 
 	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
-		.type_params(tuple_meta_type!(bool))
 		.unit();
 
 	assert_type!(S, ty);
@@ -112,7 +111,7 @@ fn c_like_enum_derive() {
 		.variants(
 			Variants::with_discriminants()
 				.variant("A", 0u64)
-				.variant("B", 1u64)
+				.variant("B", 10u64)
 		);
 
 	assert_type!(E, ty);
