@@ -63,15 +63,15 @@ fn test_tuplestruct() {
 	struct TupleStruct(i32, [u8; 32], bool);
 
 	assert_json_for_type::<TupleStruct>(json!({
-		"product": {
+		"composite": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
-			"def": {
-				"tuplestruct": {
-					"types": [1, 2, 4]
-				}
-			},
+			"fields": [
+				{ "type": 1 },
+				{ "type": 2 },
+				{ "type": 4 },
+			],
 		},
 	}));
 }
