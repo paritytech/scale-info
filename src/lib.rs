@@ -134,15 +134,20 @@ pub use self::{
 pub use type_metadata_derive::Metadata;
 
 /// A super trait that shall be implemented by all types implementing
-/// `TypeInfo` and `TypeInfodef` in order to more easily manage them.
+/// `TypeInfo`
 ///
 /// This trait is automatically implemented for all `'static` type that
-/// also implement `TypeInfo` and `TypeInfoDef`. Users of this library should
-/// use this trait directly instead of using the more fine grained
-/// `TypeInfo` and `TypeInfoDef` traits.
+/// also implement `TypeInfo`. Users of this library should
+/// use this trait directly instead of using the `TypeInfo` trait.
 pub trait Metadata: TypeInfo {
 	/// Returns the runtime bridge to the types compile-time type information.
 	fn meta_type() -> MetaType;
+}
+
+/// Implementors return their meta type information.
+pub trait TypeInfo {
+	/// Returns the static type identifier for `Self`.
+	fn type_info() -> Type;
 }
 
 impl<T> Metadata for T

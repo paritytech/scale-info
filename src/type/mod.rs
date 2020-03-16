@@ -27,12 +27,6 @@ mod variant;
 
 pub use self::{path::*, composite::*, variant::*, fields::*};
 
-/// Implementors return their meta type information.
-pub trait TypeInfo {
-	/// Returns the static type identifier for `Self`.
-	fn type_info() -> Type;
-}
-
 /// A type identifier.
 ///
 /// This uniquely identifies types and can be used to refer to type definitions.
