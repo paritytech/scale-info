@@ -74,9 +74,10 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	let type_info_impl = quote! {
 		impl #impl_generics _type_metadata::TypeInfo for #ident #ty_generics #where_clause {
 			fn type_info() -> _type_metadata::Type {
-				#type_kind::new(
+				_type_metadata::#type_kind::new(
 					stringify!(#ident),
-					_type_metadata::Namespace::from_module_path(module_path!()),
+					_type_metadata::Namespace::from_module_path(module_path!())
+						.expect("namespace from module path cannot fail"),
 				)
 				.type_params(__core::vec![ #( #generic_type_ids ),* ])
 				.#build_type
@@ -111,7 +112,7 @@ fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
 			let fields = generate_fields(&fs.named);
 			quote! {
 				fields(
-					Fields::named()
+					_type_metadata::Fields::named()
 						#( #fields )*
 				)
 			}
@@ -120,7 +121,7 @@ fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
 			let fields = generate_fields(&fs.unnamed);
 			quote! {
 				fields(
-					Fields::unnamed()
+					_type_metadata::Fields::unnamed()
 						#( #fields )*
 				)
 			}
@@ -156,7 +157,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 	});
 	quote! {
 		variants(
-			Variants::with_discriminants()
+			_type_metadata::Variants::with_discriminants()
 				#( #variants )*
 		)
 	}
@@ -188,7 +189,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				quote! {
 					.variant(
 						#v_name,
-						Fields::named()
+						_type_metadata::Fields::named()
 							#( #fields)*
 					)
 				}
@@ -198,7 +199,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				quote! {
 					.variant(
 						#v_name,
-						Fields::unnamed()
+						_type_metadata::Fields::unnamed()
 							#( #fields)*
 					)
 				}
@@ -210,7 +211,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 	});
 	quote! {
 		variants(
-			Variants::with_fields()
+			_type_metadata::Variants::with_fields()
 				#( #variants)*
 		)
 	}

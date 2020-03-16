@@ -57,7 +57,7 @@ fn prelude_items() {
 			.type_params(tuple_meta_type!(u128))
 			.variants(
 				Variants::with_fields()
-					.variant_no_fields("None")
+					.variant_unit("None")
 					.variant("Some", Fields::unnamed().field_of::<u128>())
 			)
 	);

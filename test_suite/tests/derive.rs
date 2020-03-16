@@ -92,13 +92,6 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let ty = product_type(
-		"S",
-		Namespace::new(vec!["derive"]).unwrap(),
-		vec![],
-		TypeProductTupleStruct::unit(),
-	);
-
 	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
 		.type_params(tuple_meta_type!(bool))
 		.unit();
@@ -136,7 +129,7 @@ fn enum_derive() {
 	}
 
 	let ty = TypeVariant::new("E", Namespace::new(vec!["derive"]).unwrap())
-		.type_params(tuple_meta_type![T])
+		.type_params(tuple_meta_type!(bool))
 		.variants(
 			Variants::with_fields()
 				.variant("A", Fields::unnamed().field_of::<bool>())
