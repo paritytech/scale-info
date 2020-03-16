@@ -44,15 +44,11 @@ fn test_unit_struct() {
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
-		"product": {
+		"composite": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
-			"def": {
-				"tuplestruct": {
-					"types": []
-				}
-			},
+			"fields": [],
 		},
 	}));
 }
