@@ -50,6 +50,7 @@ impl IntoCompact for Path {
 
 impl Path {
 	/// Creates a new type identifier to refer to a custom type definition.
+	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
 	pub fn new(name: &'static str, namespace: Namespace) -> PathBuilder {
 		PathBuilder {
 			path: Self {

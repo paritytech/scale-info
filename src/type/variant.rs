@@ -82,6 +82,7 @@ impl IntoCompact for TypeVariant {
 }
 
 impl TypeVariant {
+	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeVariantBuilder {
 		TypeVariantBuilder {
 			path: Path::new(name, namespace),
@@ -192,19 +193,18 @@ pub struct Variants<T = NoVariants> {
 }
 
 impl Variants {
-	pub fn new<T>() -> Variants<T> {
-		Variants::<T> {
+	pub fn with_fields() -> Variants<VariantFields> {
+		Variants::<VariantFields> {
 			variants: Vec::new(),
 			marker: Default::default(),
 		}
 	}
 
-	pub fn with_fields() -> Variants<VariantFields> {
-		Self::new::<VariantFields>()
-	}
-
 	pub fn with_discriminants() -> Variants<Discriminant> {
-		Self::new::<Discriminant>()
+		Variants::<Discriminant> {
+			variants: Vec::new(),
+			marker: Default::default(),
+		}
 	}
 }
 

@@ -104,6 +104,7 @@ pub struct Fields<T = NoFields> {
 }
 
 impl Fields {
+	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
 	pub fn new<T>() -> Fields<T> {
 		Fields::<T> {
 			fields: Vec::new(),
