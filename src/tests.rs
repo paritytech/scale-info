@@ -110,7 +110,7 @@ fn array_primitives() {
 		Vec<bool>,
 		TypeComposite::new("Vec", Namespace::prelude())
 			.type_params(tuple_meta_type!(bool))
-			.fields(Fields::named().field_of::<bool>("elems"))
+			.fields(Fields::named().field_of::<[bool]>("elems"))
 	);
 }
 

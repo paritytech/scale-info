@@ -97,7 +97,7 @@ where
 	fn type_info() -> Type {
 		TypeComposite::new("Vec", Namespace::prelude())
 			.type_params(tuple_meta_type![T])
-			.fields(Fields::named().field_of::<T>("elems"))
+			.fields(Fields::named().field_of::<[T]>("elems"))
 			.into()
 	}
 }

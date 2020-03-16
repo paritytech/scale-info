@@ -213,30 +213,22 @@ fn test_registry() {
 		],
 		"types": [
 			{ // type 1
-				"product": {
+				"composite": {
 					"name": 1, // UnitStruct
 					"namespace": [2], // json
 					"params": [],
-					"def": {
-						"tuplestruct": {
-							"types": [],
-						}
-					},
+					"fields": [],
 				},
 			},
 			{ // type 2
-				"product": {
+				"composite": {
 					"name": 3, // TupleStruct
 					"namespace": [2], // json
 					"params": [],
-					"def": {
-						"tuplestruct": {
-							"types": [
-								3, // u8
-								4, // u32
-							]
-						}
-					}
+					"fields": [
+						{ "type": 3 },
+						{ "type": 4 },
+					],
 				},
 			},
 			{ // type 3
@@ -246,12 +238,104 @@ fn test_registry() {
 				"primitive": "u32",
 			},
 			{ // type 5
-				"product": {
+				"composite": {
 					"name": 4, // Struct
 					"namespace": [2], // json
 					"params": [],
-					"def": {
-						"struct": {
+					"fields": [
+						{
+							"name": 5, // a
+							"type": 3, // u8
+						},
+						{
+							"name": 6, // b
+							"type": 4, // u32
+						},
+						{
+							"name": 7, // c
+							"type": 6, // [u8; 32]
+						}
+					]
+				},
+			},
+			{ // type 6
+				"array": {
+					"len": 32,
+					"type": 3, // u8
+				},
+			},
+			{ // type 7
+				"composite": {
+					"name": 8, // RecursiveStruct
+					"namespace": [2], // json
+					"params": [],
+					"fields": [
+						{
+							"name": 9, // rec
+							"type": 8, // Vec<RecursiveStruct>
+						}
+					]
+				},
+			},
+			{ // type 8
+				"composite": {
+					"name": 10, // Vec
+					"namespace": [], // empty represents prelude (root) namespace
+					"params": [
+						7, // RecursiveStruct
+					],
+					"fields": [
+						{
+							"name": 11, // elems
+							"type": 9, // [RecursiveStruct]
+						}
+					]
+				},
+			},
+			{ // type 9
+				"slice": {
+					"type": 7, // RecursiveStruct
+				},
+			},
+			{ // type 10
+				"variant": {
+					"name": 12, // ClikeEnum
+					"namespace": [2], // json
+					"params": [],
+					"variants": [
+						{
+							"name": 13, // A
+							"discriminant": 0,
+						},
+						{
+							"name": 14, // B
+							"discriminant": 1,
+						},
+						{
+							"name": 15, // C
+							"discriminant": 2,
+						},
+					]
+				}
+			},
+			{ // type 11
+				"variant": {
+					"name": 16, // RustEnum
+					"namespace": [2], // json
+					"params": [],
+					"variants": [
+						{
+							"name": 13, // A
+						},
+						{
+							"name": 14, // B
+							"fields": [
+								{ "type": 3 }, // u8
+								{ "type": 4 }, // u32
+							]
+						},
+						{
+							"name": 15, // C
 							"fields": [
 								{
 									"name": 5, // a
@@ -267,130 +351,13 @@ fn test_registry() {
 								}
 							]
 						}
-					}
-				},
-			},
-			{ // type 6
-				"array": {
-					"len": 32,
-					"type": 3, // u8
-				},
-			},
-			{ // type 7
-				"product": {
-					"name": 8, // RecursiveStruct
-					"namespace": [2], // json
-					"params": [],
-					"def": {
-						"struct": {
-							"fields": [
-								{
-									"name": 9, // rec
-									"type": 8, // Vec<RecursiveStruct>
-								}
-							]
-						}
-					}
-				},
-			},
-			{ // type 8
-				"product": {
-					"name": 10, // Vec
-					"namespace": [], // empty represents prelude (root) namespace
-					"params": [
-						7, // RecursiveStruct
-					],
-					"def": {
-						"struct": {
-							"fields": [
-								{
-									"name": 11, // elems
-									"type": 9, // RecursiveStruct
-								}
-							]
-						}
-					}
-				},
-			},
-			{ // type 9
-				"slice": {
-					"type": 7, // RecursiveStruct
-				},
-			},
-			{ // type 10
-				"sum": {
-					"name": 12, // ClikeEnum
-					"namespace": [2], // json
-					"params": [],
-					"def": {
-						"clikeenum": {
-							"variants": [
-								{
-									"name": 13, // A
-									"discriminant": 0,
-								},
-								{
-									"name": 14, // B
-									"discriminant": 1,
-								},
-								{
-									"name": 15, // C
-									"discriminant": 2,
-								},
-							]
-						}
-					}
-				}
-			},
-			{ // type 11
-				"sum": {
-					"name": 16, // RustEnum
-					"namespace": [2], // json
-					"params": [],
-					"def": {
-						"enum": {
-							"variants": [
-								{
-									"unit": {
-										"name": 13,
-									} // A
-								},
-								{
-									"tuplestruct": {
-										"name": 14, // B
-										"types": [
-											3, // u8
-											4, // u32
-										]
-									},
-
-								},
-								{
-									"struct": {
-										"name": 15, // C
-										"fields": [
-											{
-												"name": 5, // a
-												"type": 3, // u8
-											},
-											{
-												"name": 6, // b
-												"type": 4, // u32
-											},
-											{
-												"name": 7, // c
-												"type": 6, // [u8; 32]
-											}
-										]
-									}
-								}
-							]
-						}
-					}
+					]
 				},
 			},
 		]
 	});
+
+	// assert_eq!(serde_json::to_string_pretty(&registry).unwrap(), serde_json::to_string_pretty(&expected_json).unwrap());
 
 	assert_json_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }
