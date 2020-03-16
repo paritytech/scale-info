@@ -62,6 +62,7 @@ use serde::Serialize;
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeVariant<F: Form = MetaForm> {
+	#[serde(flatten)]
 	path: Path<F>,
 	variants: Vec<Variant<F>>,
 }
@@ -124,6 +125,7 @@ pub struct Variant<F: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: F::String,
 	/// The fields of the struct variant.
+	#[serde(skip_serializing_if = "Vec::is_empty")]
 	fields: Vec<Field<F>>,
 	/// The discriminant of the variant.
 	///

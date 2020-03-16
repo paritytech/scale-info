@@ -113,19 +113,15 @@ fn test_clike_enum() {
 	}
 
 	assert_json_for_type::<ClikeEnum>(json!({
-		"sum": {
+		"variant": {
 			"name": 1,
 			"namespace": [2],
 			"params": [],
-			"def": {
-				"clikeenum": {
-					"variants": [
-						{ "name": 3, "discriminant": 0, },
-						{ "name": 4, "discriminant": 42, },
-						{ "name": 5, "discriminant": 2, },
-					]
-				}
-			},
+			"variants": [
+				{ "name": 3, "discriminant": 0, },
+				{ "name": 4, "discriminant": 42, },
+				{ "name": 5, "discriminant": 2, },
+			],
 		},
 	}));
 }
