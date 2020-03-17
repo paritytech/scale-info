@@ -30,9 +30,9 @@ mod variant;
 
 pub use self::{composite::*, fields::*, path::*, variant::*};
 
-/// A type identifier.
+/// The possible types a Rust value could have.
 ///
-/// This uniquely identifies types and can be used to refer to type definitions.
+/// Describes the
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "camelCase")]
@@ -66,7 +66,7 @@ impl IntoCompact for Type {
 	}
 }
 
-/// Identifies a primitive Rust type.
+/// A primitive Rust type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
 pub enum TypePrimitive {
@@ -98,13 +98,13 @@ pub enum TypePrimitive {
 	I128,
 }
 
-/// An array type identifier.
+/// An array type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeArray<F: Form = MetaForm> {
-	/// The length of the array type definition.
+	/// The length of the array type.
 	pub len: u16,
-	/// The element type of the array type definition.
+	/// The element type of the array type.
 	#[serde(rename = "type")]
 	pub type_param: F::TypeId,
 }
@@ -121,19 +121,19 @@ impl IntoCompact for TypeArray {
 }
 
 impl TypeArray {
-	/// Creates a new identifier to refer to array type definition.
+	/// Creates a new array type.
 	pub fn new(len: u16, type_param: MetaType) -> Self {
 		Self { len, type_param }
 	}
 }
 
-/// A type identifier to refer to tuple types.
+/// A type to refer to tuple types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(transparent)]
 pub struct TypeTuple<F: Form = MetaForm> {
-	/// The types in the tuple type definition.
-	pub type_params: Vec<F::TypeId>,
+	/// The types of the tuple fields.
+	pub fields: Vec<F::TypeId>,
 }
 
 impl IntoCompact for TypeTuple {
@@ -141,7 +141,7 @@ impl IntoCompact for TypeTuple {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeTuple {
-			type_params: registry.register_types(self.type_params),
+			fields: registry.register_types(self.fields),
 		}
 	}
 }
@@ -153,7 +153,7 @@ impl TypeTuple {
 		T: IntoIterator<Item = MetaType>,
 	{
 		Self {
-			type_params: type_params.into_iter().collect(),
+			fields: type_params.into_iter().collect(),
 		}
 	}
 
@@ -163,11 +163,11 @@ impl TypeTuple {
 	}
 }
 
-/// A type identifier to refer to slice type definitions.
+/// A type to refer to a slice type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeSlice<F: Form = MetaForm> {
-	/// The element type of the slice type definition.
+	/// The element type of the slice type.
 	#[serde(rename = "type")]
 	type_param: F::TypeId,
 }
@@ -183,14 +183,14 @@ impl IntoCompact for TypeSlice {
 }
 
 impl TypeSlice {
-	/// Creates a new type identifier to refer to slice type definitions.
+	/// Creates a new slice type.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
 	pub fn new(type_param: MetaType) -> Self {
 		Self { type_param }
 	}
 
-	/// Creates a new type identifier to refer to slice type definitions.
+	/// Creates a new slice type.
 	///
 	/// Use this constructor if you want to instantiate from a given
 	/// compile-time type.
