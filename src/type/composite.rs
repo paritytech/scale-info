@@ -70,6 +70,7 @@ impl IntoCompact for TypeComposite {
 
 impl TypeComposite {
 	/// Creates a new struct definition with named fields.
+	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
 		TypeCompositeBuilder {
 			path: Path::new(name, namespace),
