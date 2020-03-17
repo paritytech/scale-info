@@ -10,21 +10,21 @@ jobs:
       - run:
           name: setup
           command: |
-            rustup install nightly-2019-11-25
-            rustup component add rustfmt --toolchain nightly-2019-11-25
-            rustup component add clippy --toolchain nightly-2019-11-25
+            rustup install nightly-2020-03-11
+            rustup component add rustfmt --toolchain nightly-2020-03-11
+            rustup component add clippy --toolchain nightly-2020-03-11
 
       - run:
           name: fmt
           command: |
-            cargo +nightly-2019-11-25 fmt --version
-            cargo +nightly-2019-11-25 fmt --all -- --check
+            cargo +nightly-2020-03-11 fmt --version
+            cargo +nightly-2020-03-11 fmt --all -- --check
 
       - run:
           name: clippy
           command: |
-            cargo +nightly-2019-11-25 clippy --version
-            cargo +nightly-2019-11-25 clippy --all -- -D warnings
+            cargo +nightly-2020-03-11 clippy --version
+            cargo +nightly-2020-03-11 clippy --all -- -D warnings
 
       - run:
           name: build
@@ -42,7 +42,7 @@ jobs:
           name: no-std tests
           command: |
             cd ./test_suite/derive_tests_no_std
-            cargo +nightly-2019-11-25 build --no-default-features
+            cargo +nightly-2020-03-11 build --no-default-features
 
 workflows:
   version: 2
