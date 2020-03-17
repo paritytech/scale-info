@@ -23,7 +23,8 @@ use crate::{
 };
 use serde::Serialize;
 
-/// Represents a path to a type, represented by the namespace, name and optional type params.
+/// Represents a path to a type, represented by the namespace, name and optional
+/// type params.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct Path<F: Form = MetaForm> {
@@ -85,8 +86,9 @@ impl PathBuilder {
 
 /// Represents the namespace of a type definition.
 ///
-/// This consists of several segments that each have to be a valid Rust identifier.
-/// The first segment represents the crate name in which the type has been defined.
+/// This consists of several segments that each have to be a valid Rust
+/// identifier. The first segment represents the crate name in which the type
+/// has been defined.
 ///
 /// Rust prelude type may have an empty namespace definition.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]

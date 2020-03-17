@@ -25,11 +25,11 @@
 //! Since symbol names etc. are often shared between different types they are
 //! as well deduplicated.
 //!
-//! Types with the same name are uniquely identifiable by introducing namespaces.
-//! For this the normal Rust namespace of a type is used where it has been defined it.
-//! Rust prelude types live within the so-called root namespace that is just empty.
-//! In general namespaces are ordered sequences of symbols and thus also profit from
-//! string deduplication.
+//! Types with the same name are uniquely identifiable by introducing
+//! namespaces. For this the normal Rust namespace of a type is used where it
+//! has been defined it. Rust prelude types live within the so-called root
+//! namespace that is just empty. In general namespaces are ordered sequences of
+//! symbols and thus also profit from string deduplication.
 
 use crate::tm_std::*;
 use crate::{
@@ -123,7 +123,8 @@ impl Registry {
 	///
 	/// # Note
 	///
-	/// This is an internal API and should not be called directly from the outside.
+	/// This is an internal API and should not be called directly from the
+	/// outside.
 	fn intern_type_id(&mut self, any_type_id: AnyTypeId) -> (bool, UntrackedSymbol<AnyTypeId>) {
 		let (inserted, symbol) = self.type_table.intern_or_get(any_type_id);
 		(inserted, symbol.into_untracked())

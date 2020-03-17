@@ -23,7 +23,8 @@ use crate::{
 use derive_more::From;
 use serde::Serialize;
 
-/// A composite type, consisting of either named (struct) or unnamed (tuple struct) fields
+/// A composite type, consisting of either named (struct) or unnamed (tuple
+/// struct) fields
 ///
 /// # Examples
 ///

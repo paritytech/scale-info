@@ -1,6 +1,9 @@
 # These formatting rules to try conform the Substrate style guidelines:
 # >   https://wiki.parity.io/Substrate-Style-Guide
 
+comment_width = 80
+wrap_comments = true
+
 reorder_imports = true
 hard_tabs = true
 max_width = 120

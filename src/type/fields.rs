@@ -64,7 +64,8 @@ impl Field {
 
 	/// Creates a new named field.
 	///
-	/// Use this constructor if you want to instantiate from a given compile-time type.
+	/// Use this constructor if you want to instantiate from a given
+	/// compile-time type.
 	pub fn named_of<T>(name: <MetaForm as Form>::String) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
@@ -74,15 +75,16 @@ impl Field {
 
 	/// Creates a new unnamed field.
 	///
-	/// Use this constructor if you want to instantiate an unnamed field from a given meta type.
+	/// Use this constructor if you want to instantiate an unnamed field from a
+	/// given meta type.
 	pub fn unnamed(meta_type: MetaType) -> Self {
 		Self::new(None, meta_type)
 	}
 
 	/// Creates a new unnamed field.
 	///
-	/// Use this constructor if you want to instantiate an unnamed field from a given compile-time
-	/// type.
+	/// Use this constructor if you want to instantiate an unnamed field from a
+	/// given compile-time type.
 	pub fn unnamed_of<T>() -> Self
 	where
 		T: Metadata + ?Sized + 'static,

@@ -112,7 +112,8 @@ impl TypeVariantBuilder {
 	}
 }
 
-/// A struct enum variant with either named (struct) or unnamed (tuple struct) fields.
+/// A struct enum variant with either named (struct) or unnamed (tuple struct)
+/// fields.
 ///
 /// # Example
 ///
@@ -184,7 +185,8 @@ impl Variant {
 pub enum NoVariants {}
 /// Build a type where *any* variants consist of fields.
 pub enum VariantFields {}
-/// Build a type where *all* variants have no fields and a discriminant (e.g. a Clike enum)
+/// Build a type where *all* variants have no fields and a discriminant (e.g. a
+/// Clike enum)
 pub enum Discriminant {}
 
 pub struct Variants<T = NoVariants> {

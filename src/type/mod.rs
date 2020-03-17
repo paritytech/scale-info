@@ -192,7 +192,8 @@ impl TypeSlice {
 
 	/// Creates a new type identifier to refer to slice type definitions.
 	///
-	/// Use this constructor if you want to instantiate from a given compile-time type.
+	/// Use this constructor if you want to instantiate from a given
+	/// compile-time type.
 	pub fn of<T>() -> Self
 	where
 		T: Metadata + 'static,
