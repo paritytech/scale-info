@@ -117,7 +117,7 @@ mod impls;
 pub mod interner;
 mod meta_type;
 mod registry;
-mod r#type;
+mod ty;
 mod utils;
 
 #[cfg(test)]
@@ -125,7 +125,7 @@ mod tests;
 
 pub use self::{
 	meta_type::MetaType,
-	r#type::*,
+	ty::*,
 	registry::{IntoCompact, Registry},
 };
 
