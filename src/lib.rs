@@ -125,8 +125,8 @@ mod tests;
 
 pub use self::{
 	meta_type::MetaType,
-	ty::*,
 	registry::{IntoCompact, Registry},
+	ty::*,
 };
 
 #[cfg(feature = "derive")]
