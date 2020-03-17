@@ -14,4 +14,4 @@ type-metadata = { path = "..", features = ["derive"] }
 
 serde = "1.0"
 serde_json = "1.0"
-assert-json-diff = "1.0.1"
+assert-json-diff = "1.0"
