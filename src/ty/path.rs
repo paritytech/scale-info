@@ -33,7 +33,7 @@ pub struct Path<F: Form = MetaForm> {
 	/// The namespace in which the type has been defined.
 	namespace: Namespace<F>,
 	/// The generic type parameters of the type in use.
-	#[serde(rename = "params")]
+	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
 	type_params: Vec<F::TypeId>,
 }
 

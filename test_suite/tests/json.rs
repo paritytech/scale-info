@@ -47,8 +47,6 @@ fn test_unit_struct() {
 		"composite": {
 			"name": 1,
 			"namespace": [2],
-			"params": [],
-			"fields": [],
 		},
 	}));
 }
@@ -62,7 +60,6 @@ fn test_tuplestruct() {
 		"composite": {
 			"name": 1,
 			"namespace": [2],
-			"params": [],
 			"fields": [
 				{ "type": 1 },
 				{ "type": 2 },
@@ -85,7 +82,6 @@ fn test_struct() {
 		"composite": {
 			"name": 1,
 			"namespace": [2],
-			"params": [],
 			"fields": [
 				{ "name": 3, "type": 1, },
 				{ "name": 4, "type": 2, },
@@ -108,7 +104,6 @@ fn test_clike_enum() {
 		"variant": {
 			"name": 1,
 			"namespace": [2],
-			"params": [],
 			"variants": [
 				{ "name": 3, "discriminant": 0, },
 				{ "name": 4, "discriminant": 42, },
@@ -131,7 +126,6 @@ fn test_enum() {
 		"variant": {
 			"name": 1,
 			"namespace": [2],
-			"params": [],
 			"variants": [
 				{ "name": 3 },
 				{
@@ -214,15 +208,12 @@ fn test_registry() {
 				"composite": {
 					"name": 1, // UnitStruct
 					"namespace": [2], // json
-					"params": [],
-					"fields": [],
 				},
 			},
 			{ // type 2
 				"composite": {
 					"name": 3, // TupleStruct
 					"namespace": [2], // json
-					"params": [],
 					"fields": [
 						{ "type": 3 },
 						{ "type": 4 },
@@ -239,7 +230,6 @@ fn test_registry() {
 				"composite": {
 					"name": 4, // Struct
 					"namespace": [2], // json
-					"params": [],
 					"fields": [
 						{
 							"name": 5, // a
@@ -266,7 +256,6 @@ fn test_registry() {
 				"composite": {
 					"name": 8, // RecursiveStruct
 					"namespace": [2], // json
-					"params": [],
 					"fields": [
 						{
 							"name": 9, // rec
@@ -284,7 +273,6 @@ fn test_registry() {
 				"variant": {
 					"name": 10, // ClikeEnum
 					"namespace": [2], // json
-					"params": [],
 					"variants": [
 						{
 							"name": 11, // A
@@ -305,7 +293,6 @@ fn test_registry() {
 				"variant": {
 					"name": 14, // RustEnum
 					"namespace": [2], // json
-					"params": [],
 					"variants": [
 						{
 							"name": 11, // A

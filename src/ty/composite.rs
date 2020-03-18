@@ -55,6 +55,7 @@ use serde::Serialize;
 pub struct TypeComposite<F: Form = MetaForm> {
 	#[serde(flatten)]
 	path: Path<F>,
+	#[serde(skip_serializing_if = "Vec::is_empty")]
 	fields: Vec<Field<F>>,
 }
 
