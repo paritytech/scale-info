@@ -103,7 +103,7 @@ pub enum TypePrimitive {
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct TypeArray<F: Form = MetaForm> {
 	/// The length of the array type.
-	pub len: u16,
+	pub len: u32,
 	/// The element type of the array type.
 	#[serde(rename = "type")]
 	pub type_param: F::TypeId,
@@ -122,7 +122,7 @@ impl IntoCompact for TypeArray {
 
 impl TypeArray {
 	/// Creates a new array type.
-	pub fn new(len: u16, type_param: MetaType) -> Self {
+	pub fn new(len: u32, type_param: MetaType) -> Self {
 		Self { len, type_param }
 	}
 }
