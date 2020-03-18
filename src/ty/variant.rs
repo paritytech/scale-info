@@ -104,10 +104,10 @@ impl TypeVariantBuilder {
 		this
 	}
 
-	pub fn variants<F>(self, variants: Variants<F>) -> TypeVariant {
+	pub fn variants<F>(self, variants: VariantsBuilder<F>) -> TypeVariant {
 		TypeVariant {
 			path: self.path.done(),
-			variants: variants.variants(),
+			variants: variants.done(),
 		}
 	}
 }
@@ -183,40 +183,34 @@ impl Variant {
 
 /// Build a type with no variants.
 pub enum NoVariants {}
-/// Build a type where *any* variants consist of fields.
+/// Build a type where at least one variant has fields.
 pub enum VariantFields {}
 /// Build a type where *all* variants have no fields and a discriminant (e.g. a
 /// Clike enum)
 pub enum Discriminant {}
 
-pub struct Variants<T = NoVariants> {
+/// Empty enum for VariantsBuilder constructors for the type builder DSL.
+pub enum Variants {}
+
+impl Variants {
+	/// Build a set of variants, at least one of which will have fields.
+	pub fn with_fields() -> VariantsBuilder<VariantFields> {
+		VariantsBuilder::new()
+	}
+
+	/// Build a set of variants, none of which will have fields, but all of which will have discriminants.
+	pub fn with_discriminants() -> VariantsBuilder<Discriminant> {
+		VariantsBuilder::new()
+	}
+}
+
+#[derive(Default)]
+pub struct VariantsBuilder<T> {
 	variants: Vec<Variant>,
 	marker: PhantomData<fn() -> T>,
 }
 
-impl Variants {
-	pub fn with_fields() -> Variants<VariantFields> {
-		Variants::<VariantFields> {
-			variants: Vec::new(),
-			marker: Default::default(),
-		}
-	}
-
-	pub fn with_discriminants() -> Variants<Discriminant> {
-		Variants::<Discriminant> {
-			variants: Vec::new(),
-			marker: Default::default(),
-		}
-	}
-}
-
-impl<T> Variants<T> {
-	pub fn variants(self) -> Vec<Variant> {
-		self.variants
-	}
-}
-
-impl Variants<VariantFields> {
+impl VariantsBuilder<VariantFields> {
 	pub fn variant<F>(self, name: <MetaForm as Form>::String, fields: Fields<F>) -> Self {
 		let mut this = self;
 		this.variants.push(Variant::with_fields(name, fields));
@@ -228,10 +222,23 @@ impl Variants<VariantFields> {
 	}
 }
 
-impl Variants<Discriminant> {
+impl VariantsBuilder<Discriminant> {
 	pub fn variant(self, name: <MetaForm as Form>::String, discriminant: u64) -> Self {
 		let mut this = self;
 		this.variants.push(Variant::with_discriminant(name, discriminant));
 		this
+	}
+}
+
+impl<T> VariantsBuilder<T> {
+	pub fn new() -> Self {
+		VariantsBuilder {
+			variants: Vec::new(),
+			marker: Default::default(),
+		}
+	}
+
+	pub fn done(self) -> Vec<Variant> {
+		self.variants
 	}
 }
