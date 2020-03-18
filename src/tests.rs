@@ -105,10 +105,7 @@ fn array_primitives() {
 	// slice
 	assert_type!([bool], TypeSlice::new(bool::meta_type()));
 	// vec
-	assert_type!(
-		Vec<bool>,
-		TypeSlice::new(bool::meta_type())
-	);
+	assert_type!(Vec<bool>, TypeSlice::new(bool::meta_type()));
 }
 
 #[test]

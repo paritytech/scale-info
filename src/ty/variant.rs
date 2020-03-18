@@ -198,7 +198,8 @@ impl Variants {
 		VariantsBuilder::new()
 	}
 
-	/// Build a set of variants, none of which will have fields, but all of which will have discriminants.
+	/// Build a set of variants, none of which will have fields, but all of
+	/// which will have discriminants.
 	pub fn with_discriminants() -> VariantsBuilder<Discriminant> {
 		VariantsBuilder::new()
 	}

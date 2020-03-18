@@ -327,7 +327,5 @@ fn test_registry() {
 		]
 	});
 
-	// assert_eq!(serde_json::to_string_pretty(&registry).unwrap(), serde_json::to_string_pretty(&expected_json).unwrap());
-
 	assert_json_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }
