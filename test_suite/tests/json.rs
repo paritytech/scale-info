@@ -203,13 +203,11 @@ fn test_registry() {
 			"c",               //  7
 			"RecursiveStruct", //  8
 			"rec",             //  9
-			"Vec",             // 10
-			"elems",           // 11
-			"ClikeEnum",       // 12
-			"A",               // 13
-			"B",               // 14
-			"C",               // 15
-			"RustEnum",        // 16
+			"ClikeEnum",       // 10
+			"A",               // 11
+			"B",               // 12
+			"C",               // 13
+			"RustEnum",        // 14
 		],
 		"types": [
 			{ // type 1
@@ -278,64 +276,49 @@ fn test_registry() {
 				},
 			},
 			{ // type 8
-				"composite": {
-					"name": 10, // Vec
-					"namespace": [], // empty represents prelude (root) namespace
-					"params": [
-						7, // RecursiveStruct
-					],
-					"fields": [
-						{
-							"name": 11, // elems
-							"type": 9, // [RecursiveStruct]
-						}
-					]
-				},
-			},
-			{ // type 9
 				"slice": {
 					"type": 7, // RecursiveStruct
 				},
 			},
-			{ // type 10
+			{ // type 9
 				"variant": {
-					"name": 12, // ClikeEnum
+					"name": 10, // ClikeEnum
 					"namespace": [2], // json
 					"params": [],
 					"variants": [
 						{
-							"name": 13, // A
+							"name": 11, // A
 							"discriminant": 0,
 						},
 						{
-							"name": 14, // B
+							"name": 12, // B
 							"discriminant": 1,
 						},
 						{
-							"name": 15, // C
+							"name": 13, // C
 							"discriminant": 2,
 						},
 					]
 				}
 			},
-			{ // type 11
+			{ // type 10
 				"variant": {
-					"name": 16, // RustEnum
+					"name": 14, // RustEnum
 					"namespace": [2], // json
 					"params": [],
 					"variants": [
 						{
-							"name": 13, // A
+							"name": 11, // A
 						},
 						{
-							"name": 14, // B
+							"name": 12, // B
 							"fields": [
 								{ "type": 3 }, // u8
 								{ "type": 4 }, // u32
 							]
 						},
 						{
-							"name": 15, // C
+							"name": 13, // C
 							"fields": [
 								{
 									"name": 5, // a
@@ -356,6 +339,8 @@ fn test_registry() {
 			},
 		]
 	});
+
+	// assert_eq!(serde_json::to_string_pretty(&registry).unwrap(), serde_json::to_string_pretty(&expected_json).unwrap());
 
 	assert_json_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }

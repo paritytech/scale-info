@@ -95,10 +95,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		TypeComposite::new("Vec", Namespace::prelude())
-			.type_params(tuple_meta_type![T])
-			.fields(Fields::named().field_of::<[T]>("elems"))
-			.into()
+		<[T] as TypeInfo>::type_info()
 	}
 }
 
@@ -141,10 +138,7 @@ where
 	V: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		TypeComposite::new("BTreeMap", Namespace::prelude())
-			.type_params(tuple_meta_type![(K, V)])
-			.fields(Fields::named().field_of::<[(K, V)]>("elems"))
-			.into()
+		<[(K, V)] as TypeInfo>::type_info()
 	}
 }
 

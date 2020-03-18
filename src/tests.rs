@@ -107,9 +107,7 @@ fn array_primitives() {
 	// vec
 	assert_type!(
 		Vec<bool>,
-		TypeComposite::new("Vec", Namespace::prelude())
-			.type_params(tuple_meta_type!(bool))
-			.fields(Fields::named().field_of::<[bool]>("elems"))
+		TypeSlice::new(bool::meta_type())
 	);
 }
 
