@@ -138,8 +138,10 @@ where
 	V: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		<[(K, V)] as TypeInfo>::type_info()
-	}
+		TypeComposite::new("BTreeMap", Namespace::prelude())
+			.type_params(tuple_meta_type![(K, V)])
+			.fields(Fields::named().field_of::<[(K, V)]>("elems"))
+			.into()	}
 }
 
 impl<T> TypeInfo for Box<T>
