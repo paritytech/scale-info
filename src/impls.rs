@@ -141,7 +141,8 @@ where
 		TypeComposite::new("BTreeMap", Namespace::prelude())
 			.type_params(tuple_meta_type![(K, V)])
 			.fields(Fields::named().field_of::<[(K, V)]>("elems"))
-			.into()	}
+			.into()
+	}
 }
 
 impl<T> TypeInfo for Box<T>
