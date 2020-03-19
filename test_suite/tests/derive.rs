@@ -22,9 +22,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, vec};
 
-use scale_info::{
-	tuple_meta_type, Fields, Metadata, Namespace, Type, TypeComposite, TypeInfo, TypeVariant, Variants,
-};
+use scale_info::{tuple_meta_type, Fields, Metadata, Namespace, Type, TypeComposite, TypeInfo, TypeVariant, Variants};
 
 fn assert_type<T, E>(expected: E)
 where
