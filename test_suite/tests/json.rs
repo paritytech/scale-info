@@ -15,6 +15,7 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(dead_code)]
 
 #[cfg(not(feature = "std"))]
 extern crate alloc;

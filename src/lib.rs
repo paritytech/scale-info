@@ -78,7 +78,7 @@ extern crate alloc;
 /// assert_eq!(
 ///     tuple_meta_type!(i32, [u8; 32], String),
 ///     {
-///         use type_metadata::MetaType;
+///         use scale_info::MetaType;
 ///         let mut vec = Vec::new();
 ///         vec.push(MetaType::new::<i32>());
 ///         vec.push(MetaType::new::<[u8; 32]>());

@@ -24,8 +24,8 @@ use alloc::{boxed::Box, vec};
 
 use scale_info::{
 	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasTypeDef,
-	HasTypeId, MetaType, Metadata, NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct,
-	TypeDefTupleStruct, TypeDefUnion, TypeId, TypeIdCustom, UnnamedField,
+	HasTypeId, Metadata, NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct, TypeDefTupleStruct,
+	TypeDefUnion, TypeId, TypeIdCustom, UnnamedField,
 };
 
 fn assert_type_id<T, E>(expected: E)
