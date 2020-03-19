@@ -1,6 +1,6 @@
-# type-metadata
+# scale-info
 
-Compactly serialize meta information about types in your crate.
+Info about [SCALE](https://github.com/paritytech/parity-scale-codec) encodable Rust types.
 
 ## Design
 
@@ -10,7 +10,7 @@ Compactly serialize meta information about types in your crate.
 
 ## Overview
 
-Types are describes by their identification (ID) and their structure or definition.
+Types are described by their identification (ID) and their structure or definition.
 The ID stores information about the name of the type, where the type has been defined and generic types communicate their generic arguments.
 The definition communicates the underlying serialization and deserialization structure of the type,
 possibly revealing internal fields etc.

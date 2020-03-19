@@ -31,7 +31,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
 	ast.generics.type_params_mut().for_each(|p| {
-		p.bounds.push(parse_quote!(_type_metadata::Metadata));
+		p.bounds.push(parse_quote!(_scale_info::Metadata));
 		p.bounds.push(parse_quote!('static));
 	});
 
@@ -40,15 +40,15 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let generic_type_ids = ast.generics.type_params().map(|ty| {
 		let ty_ident = &ty.ident;
 		quote! {
-			<#ty_ident as _type_metadata::Metadata>::meta_type()
+			<#ty_ident as _scale_info::Metadata>::meta_type()
 		}
 	});
 	let has_type_id_impl = quote! {
-		impl #impl_generics _type_metadata::HasTypeId for #ident #ty_generics #where_clause {
-			fn type_id() -> _type_metadata::TypeId {
-				_type_metadata::TypeIdCustom::new(
+		impl #impl_generics _scale_info::HasTypeId for #ident #ty_generics #where_clause {
+			fn type_id() -> _scale_info::TypeId {
+				_scale_info::TypeIdCustom::new(
 					stringify!(#ident),
-					_type_metadata::Namespace::from_module_path(module_path!())
+					_scale_info::Namespace::from_module_path(module_path!())
 						.expect("namespace from module path cannot fail"),
 					__core::vec![ #( #generic_type_ids ),* ],
 				).into()

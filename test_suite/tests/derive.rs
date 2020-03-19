@@ -22,7 +22,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, vec};
 
-use type_metadata::{
+use scale_info::{
 	tuple_meta_type, ClikeEnumVariant, EnumVariantStruct, EnumVariantTupleStruct, EnumVariantUnit, HasTypeDef,
 	HasTypeId, MetaType, Metadata, NamedField, Namespace, TypeDefClikeEnum, TypeDefEnum, TypeDefStruct,
 	TypeDefTupleStruct, TypeDefUnion, TypeId, TypeIdCustom, UnnamedField,

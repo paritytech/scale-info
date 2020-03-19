@@ -34,7 +34,7 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input)?;
 
 	ast.generics.type_params_mut().for_each(|p| {
-		p.bounds.push(parse_quote!(_type_metadata::Metadata));
+		p.bounds.push(parse_quote!(_scale_info::Metadata));
 		p.bounds.push(parse_quote!('static));
 	});
 
@@ -48,8 +48,8 @@ pub fn generate_impl(input: TokenStream2) -> Result<TokenStream2> {
 	};
 
 	let has_type_def_impl = quote! {
-		impl #impl_generics _type_metadata::HasTypeDef for #ident #ty_generics #where_clause {
-			fn type_def() -> _type_metadata::TypeDef {
+		impl #impl_generics _scale_info::HasTypeDef for #ident #ty_generics #where_clause {
+			fn type_def() -> _scale_info::TypeDef {
 				#def.into()
 			}
 		}
@@ -64,15 +64,15 @@ fn generate_fields_def(fields: &FieldsList) -> TokenStream2 {
 	let fields_def = fields.iter().map(|f| {
 		let (ty, ident) = (&f.ty, &f.ident);
 		let meta_type = quote! {
-			<#ty as _type_metadata::Metadata>::meta_type()
+			<#ty as _scale_info::Metadata>::meta_type()
 		};
 		if let Some(i) = ident {
 			quote! {
-				_type_metadata::NamedField::new(stringify!(#i), #meta_type)
+				_scale_info::NamedField::new(stringify!(#i), #meta_type)
 			}
 		} else {
 			quote! {
-				_type_metadata::UnnamedField::new(#meta_type)
+				_scale_info::UnnamedField::new(#meta_type)
 			}
 		}
 	});
@@ -84,17 +84,17 @@ fn generate_struct_def(data_struct: &DataStruct) -> TokenStream2 {
 		Fields::Named(ref fs) => {
 			let fields = generate_fields_def(&fs.named);
 			quote! {
-				_type_metadata::TypeDefStruct::new(#fields)
+				_scale_info::TypeDefStruct::new(#fields)
 			}
 		}
 		Fields::Unnamed(ref fs) => {
 			let fields = generate_fields_def(&fs.unnamed);
 			quote! {
-				_type_metadata::TypeDefTupleStruct::new(#fields)
+				_scale_info::TypeDefTupleStruct::new(#fields)
 			}
 		}
 		Fields::Unit => quote! {
-			_type_metadata::TypeDefTupleStruct::unit()
+			_scale_info::TypeDefTupleStruct::unit()
 		},
 	}
 }
@@ -119,11 +119,11 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 			i as u64
 		};
 		quote! {
-			_type_metadata::ClikeEnumVariant::new(stringify!(#name), #discriminant)
+			_scale_info::ClikeEnumVariant::new(stringify!(#name), #discriminant)
 		}
 	});
 	quote! {
-		_type_metadata::TypeDefClikeEnum::new(__core::vec![#( #variants_def, )*])
+		_scale_info::TypeDefClikeEnum::new(__core::vec![#( #variants_def, )*])
 	}
 }
 
@@ -151,28 +151,28 @@ fn generate_enum_def(data_enum: &DataEnum) -> TokenStream2 {
 			Fields::Named(ref fs) => {
 				let fields = generate_fields_def(&fs.named);
 				quote! {
-					_type_metadata::EnumVariantStruct::new(#v_name, #fields).into()
+					_scale_info::EnumVariantStruct::new(#v_name, #fields).into()
 				}
 			}
 			Fields::Unnamed(ref fs) => {
 				let fields = generate_fields_def(&fs.unnamed);
 				quote! {
-					_type_metadata::EnumVariantTupleStruct::new(#v_name, #fields).into()
+					_scale_info::EnumVariantTupleStruct::new(#v_name, #fields).into()
 				}
 			}
 			Fields::Unit => quote! {
-				_type_metadata::EnumVariantUnit::new(#v_name).into()
+				_scale_info::EnumVariantUnit::new(#v_name).into()
 			},
 		}
 	});
 	quote! {
-		_type_metadata::TypeDefEnum::new(__core::vec![#( #variants_def, )*])
+		_scale_info::TypeDefEnum::new(__core::vec![#( #variants_def, )*])
 	}
 }
 
 fn generate_union_def(data_union: &DataUnion) -> TokenStream2 {
 	let fields = generate_fields_def(&data_union.fields.named);
 	quote! {
-		_type_metadata::TypeDefUnion::new(#fields)
+		_scale_info::TypeDefUnion::new(#fields)
 	}
 }
