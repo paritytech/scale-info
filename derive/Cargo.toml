@@ -1,5 +1,5 @@
 [package]
-name = "type-metadata-derive"
+name = "scale-info-derive"
 version = "0.1.0"
 authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
 edition = "2018"

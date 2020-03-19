@@ -74,7 +74,7 @@ extern crate alloc;
 /// # Example
 ///
 /// ```
-/// # use type_metadata::tuple_meta_type;
+/// # use scale_info::tuple_meta_type;
 /// assert_eq!(
 ///     tuple_meta_type!(i32, [u8; 32], String),
 ///     {
@@ -131,7 +131,7 @@ pub use self::{
 };
 
 #[cfg(feature = "derive")]
-pub use type_metadata_derive::{Metadata, TypeDef, TypeId};
+pub use scale_info_derive::{Metadata, TypeDef, TypeId};
 
 /// A super trait that shall be implemented by all types implementing
 /// `HasTypeId` and `HasTypedef` in order to more easily manage them.
