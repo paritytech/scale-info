@@ -128,7 +128,7 @@ fn struct_with_generics() {
 	// Normal struct
 	let struct_bool_id = TypeIdCustom::new(
 		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		Namespace::new(vec!["scale_info", "tests"]).unwrap(),
 		tuple_meta_type!(bool),
 	);
 	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
@@ -140,7 +140,7 @@ fn struct_with_generics() {
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
 	let expected_type_id = TypeIdCustom::new(
 		"MyStruct",
-		Namespace::new(vec!["type_metadata", "tests"]).unwrap(),
+		Namespace::new(vec!["scale_info", "tests"]).unwrap(),
 		vec![<Box<MyStruct<bool>>>::meta_type()],
 	);
 	assert_type_id!(SelfTyped, expected_type_id);

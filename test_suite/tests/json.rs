@@ -24,7 +24,7 @@ use alloc::{vec, vec::Vec};
 
 use serde::Serialize;
 use serde_json::json;
-use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
+use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
 
 #[derive(Serialize)]
 struct TypeIdDef {
