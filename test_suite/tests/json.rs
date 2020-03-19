@@ -15,6 +15,7 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(dead_code)]
 
 #[cfg(not(feature = "std"))]
 extern crate alloc;
@@ -22,9 +23,9 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
 
+use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
 use serde::Serialize;
 use serde_json::json;
-use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
 
 #[derive(Serialize)]
 struct TypeIdDef {

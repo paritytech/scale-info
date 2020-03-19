@@ -1,4 +1,4 @@
-# scale-info
+#scale-info &middot; ![build](https://github.com/paritytech/scale-info/workflows/Rust/badge.svg)
 
 Info about [SCALE](https://github.com/paritytech/parity-scale-codec) encodable Rust types.
 
