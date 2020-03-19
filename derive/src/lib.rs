@@ -50,7 +50,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
 	ast.generics.type_params_mut().for_each(|p| {
-		p.bounds.push(parse_quote!(_type_metadata::Metadata));
+		p.bounds.push(parse_quote!(_scale_info::Metadata));
 		p.bounds.push(parse_quote!('static));
 	});
 
@@ -59,7 +59,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	let generic_type_ids = ast.generics.type_params().map(|ty| {
 		let ty_ident = &ty.ident;
 		quote! {
-			<#ty_ident as _type_metadata::Metadata>::meta_type()
+			<#ty_ident as _scale_info::Metadata>::meta_type()
 		}
 	});
 
@@ -71,11 +71,11 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	};
 
 	let type_info_impl = quote! {
-		impl #impl_generics _type_metadata::TypeInfo for #ident #ty_generics #where_clause {
-			fn type_info() -> _type_metadata::Type {
-				_type_metadata::#type_kind::new(
+		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
+			fn type_info() -> _scale_info::Type {
+				_scale_info::#type_kind::new(
 					stringify!(#ident),
-					_type_metadata::Namespace::from_module_path(module_path!())
+					_scale_info::Namespace::from_module_path(module_path!())
 						.expect("namespace from module path cannot fail"),
 				)
 				.type_params(__core::vec![ #( #generic_type_ids ),* ])
@@ -114,7 +114,7 @@ fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
 			let fields = generate_fields(&fs.named);
 			quote! {
 				fields(
-					_type_metadata::Fields::named()
+					_scale_info::Fields::named()
 						#( #fields )*
 				)
 			}
@@ -123,7 +123,7 @@ fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
 			let fields = generate_fields(&fs.unnamed);
 			quote! {
 				fields(
-					_type_metadata::Fields::unnamed()
+					_scale_info::Fields::unnamed()
 						#( #fields )*
 				)
 			}
@@ -159,7 +159,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 	});
 	quote! {
 		variants(
-			_type_metadata::Variants::with_discriminants()
+			_scale_info::Variants::with_discriminants()
 				#( #variants )*
 		)
 	}
@@ -191,7 +191,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				quote! {
 					.variant(
 						#v_name,
-						_type_metadata::Fields::named()
+						_scale_info::Fields::named()
 							#( #fields)*
 					)
 				}
@@ -201,7 +201,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				quote! {
 					.variant(
 						#v_name,
-						_type_metadata::Fields::unnamed()
+						_scale_info::Fields::unnamed()
 							#( #fields)*
 					)
 				}
@@ -213,7 +213,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 	});
 	quote! {
 		variants(
-			_type_metadata::Variants::with_fields()
+			_scale_info::Variants::with_fields()
 				#( #variants)*
 		)
 	}
