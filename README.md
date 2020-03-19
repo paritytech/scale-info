@@ -1,4 +1,4 @@
-# type-metadata
+# type-metadata &middot; ![build](https://github.com/paritytech/scale-info/workflows/Rust/badge.svg)
 
 Compactly serialize meta information about types in your crate.
 
