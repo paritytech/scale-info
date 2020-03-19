@@ -58,7 +58,7 @@ unsafe impl GlobalAlloc for Allocator {
 	}
 }
 
-use type_metadata::Metadata;
+use scale_info::Metadata;
 
 #[allow(unused)]
 #[derive(Metadata)]

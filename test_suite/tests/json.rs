@@ -16,6 +16,7 @@
 
 #![allow(unused)]
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(dead_code)]
 
 #[cfg(not(feature = "std"))]
 extern crate alloc;
@@ -24,8 +25,8 @@ extern crate alloc;
 use alloc::{vec, vec::Vec};
 
 use assert_json_diff::assert_json_eq;
+use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry};
 use serde_json::json;
-use type_metadata::{form::CompactForm, IntoCompact as _, Metadata, Registry};
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where

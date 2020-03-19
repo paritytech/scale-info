@@ -22,7 +22,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, vec};
 
-use type_metadata::{
+use scale_info::{
 	tuple_meta_type, Fields, Metadata, Namespace, Type, TypeComposite, TypeInfo, TypeVariant, Variants,
 };
 
