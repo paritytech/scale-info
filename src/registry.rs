@@ -148,6 +148,7 @@ impl Registry {
 		symbol
 	}
 
+	/// Calls `register_type` for each `MetaType` in the given `iter`
 	pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeId>>
 	where
 		I: IntoIterator<Item = MetaType>,
@@ -155,7 +156,7 @@ impl Registry {
 		iter.into_iter().map(|i| self.register_type(&i)).collect::<Vec<_>>()
 	}
 
-	/// todo [AJ] comment
+	/// Converts an iterator into a Vec of the equivalent compact representations
 	pub fn map_into_compact<I, T>(&mut self, iter: I) -> Vec<T::Output>
 	where
 		I: IntoIterator<Item = T>,
