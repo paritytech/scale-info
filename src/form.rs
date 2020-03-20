@@ -73,5 +73,5 @@ pub enum CompactForm {}
 
 impl Form for CompactForm {
 	type String = UntrackedSymbol<&'static str>;
-	type TypeId = UntrackedSymbol<AnyTypeId>;
+	type TypeId = UntrackedSymbol<TypeId>;
 }

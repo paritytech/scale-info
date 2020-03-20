@@ -72,7 +72,7 @@ pub struct Registry {
 	/// This is just an accessor to the actual database
 	/// for all types found in the `types` field.
 	#[serde(skip)]
-	type_table: Interner<AnyTypeId>,
+	type_table: Interner<TypeId>,
 	/// The database where registered types actually reside.
 	///
 	/// This is going to be serialized upon serlialization.
@@ -125,8 +125,8 @@ impl Registry {
 	///
 	/// This is an internal API and should not be called directly from the
 	/// outside.
-	fn intern_type_id(&mut self, any_type_id: AnyTypeId) -> (bool, UntrackedSymbol<AnyTypeId>) {
-		let (inserted, symbol) = self.type_table.intern_or_get(any_type_id);
+	fn intern_type_id(&mut self, type_id: TypeId) -> (bool, UntrackedSymbol<TypeId>) {
+		let (inserted, symbol) = self.type_table.intern_or_get(type_id);
 		(inserted, symbol.into_untracked())
 	}
 
@@ -139,16 +139,16 @@ impl Registry {
 	/// be used later to resolve back to the associated type definition.
 	/// However, since this facility is going to be used for serialization
 	/// purposes this functionality isn't needed anyway.
-	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<AnyTypeId> {
-		let (inserted, symbol) = self.intern_type_id(ty.any_id());
+	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
+		let (inserted, symbol) = self.intern_type_id(ty.type_id());
 		if inserted {
-			let compact_id = ty.type_id().into_compact(self);
+			let compact_id = ty.type_info().into_compact(self);
 			self.types.insert(symbol, compact_id);
 		}
 		symbol
 	}
 
-	pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<AnyTypeId>>
+	pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeId>>
 	where
 		I: IntoIterator<Item = MetaType>,
 	{

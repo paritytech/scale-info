@@ -34,7 +34,7 @@ pub use self::core::{
 	option::Option,
 	result::Result,
 
-	any::{TypeId as AnyTypeId},
+	any::TypeId,
 
 	clone::{Clone},
 	cmp::{Eq, PartialEq, Ordering},
