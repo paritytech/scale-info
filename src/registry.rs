@@ -156,7 +156,8 @@ impl Registry {
 		iter.into_iter().map(|i| self.register_type(&i)).collect::<Vec<_>>()
 	}
 
-	/// Converts an iterator into a Vec of the equivalent compact representations
+	/// Converts an iterator into a Vec of the equivalent compact
+	/// representations
 	pub fn map_into_compact<I, T>(&mut self, iter: I) -> Vec<T::Output>
 	where
 		I: IntoIterator<Item = T>,
