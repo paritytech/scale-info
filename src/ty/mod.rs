@@ -30,9 +30,7 @@ mod variant;
 
 pub use self::{composite::*, fields::*, path::*, variant::*};
 
-/// The possible types a Rust value could have.
-///
-/// Describes the
+/// The possible types a SCALE encodable Rust value could have.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "camelCase")]
