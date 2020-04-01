@@ -50,27 +50,59 @@ The following "built-in" types have predefined `TypeInfo` definitions:
 
 ## User-defined Types
 
-There are two kinds of user-defined types: composite and variant.
+There are two kinds of user-defined types: `Composite` and `Variant`.
+
+Both make use of the `Path` and `Field` types in their definition:
+
+#### Fields
+
+A fundamental building block to represent user defined types is the `Field` struct which defines the `Type` of a
+field together with its optional name. Builders for the user defined types enforce the invariant that either all
+fields have a name (e.g. structs) or all fields are unnamed (e.g. tuples).
+
+#### Path
+
+** todo: about paths **
 
 ### Composite
 
-**todo:** about composite types
+[Composite data types](https://en.wikipedia.org/wiki/Composite_data_type) are composed of a set of `Fields`. 
 
-https://en.wikipedia.org/wiki/Composite_data_type
+**Structs** are represented by a set of *named* fields, enforced during construction:
+
+```rust
+struct Foo<T> {
+    bar: T,
+    data: u64,
+}
+
+impl<T> TypeInfo for Foo<T>
+where
+    T: Metadata + 'static,
+{
+    fn type_info() -> Type {
+        TypeComposite::new("Foo", Namespace::from_module_path(module_path!()).unwrap())
+            .type_params(tuple_meta_type!(T))
+            .fields(Fields::named()
+                .field_of::<T>("bar")
+                .field_of::<u64>("data")
+            )
+            .into()
+    }
+}
+```
+
+**Tuples** are represented by a set of *unnamed* fields, enforced during construction:
+
+```rust
+// todo
+```
 
 ### Variant
 
 **todo:** about variant types
 
 https://en.wikipedia.org/wiki/Tagged_union
-
-### Fields
-
-**todo:** about fields
-
-### Builder API
-
-**todo:** about builders and examples
 
 ## The Registry
 
