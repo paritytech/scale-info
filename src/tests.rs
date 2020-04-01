@@ -40,7 +40,7 @@ fn primitives() {
 	assert_type!(&str, TypePrimitive::Str);
 	assert_type!(i8, TypePrimitive::I8);
 
-	assert_type!([bool], TypeSlice::new(bool::meta_type()));
+	assert_type!([bool], TypeSequence::new(bool::meta_type()));
 }
 
 #[test]
@@ -102,10 +102,10 @@ fn array_primitives() {
 	assert_type!([bool; 3], TypeArray::new(3, bool::meta_type()));
 	// nested
 	assert_type!([[i32; 5]; 5], TypeArray::new(5, <[i32; 5]>::meta_type()));
-	// slice
-	assert_type!([bool], TypeSlice::new(bool::meta_type()));
+	// sequence
+	assert_type!([bool], TypeSequence::new(bool::meta_type()));
 	// vec
-	assert_type!(Vec<bool>, TypeSlice::new(bool::meta_type()));
+	assert_type!(Vec<bool>, TypeSequence::new(bool::meta_type()));
 }
 
 #[test]

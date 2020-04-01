@@ -266,7 +266,7 @@ fn test_registry() {
 				},
 			},
 			{ // type 8
-				"slice": {
+				"sequence": {
 					"type": 7, // RecursiveStruct
 				},
 			},

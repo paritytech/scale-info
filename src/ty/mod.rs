@@ -39,8 +39,8 @@ pub enum Type<F: Form = MetaForm> {
 	Composite(TypeComposite<F>),
 	/// A variant type (e.g. an enum)
 	Variant(TypeVariant<F>),
-	/// A slice type with runtime known length.
-	Slice(TypeSlice<F>),
+	/// A sequence type with runtime known length.
+	Sequence(TypeSequence<F>),
 	/// An array type with compile-time known length.
 	Array(TypeArray<F>),
 	/// A tuple type.
@@ -56,7 +56,7 @@ impl IntoCompact for Type {
 		match self {
 			Type::Composite(composite) => composite.into_compact(registry).into(),
 			Type::Variant(variant) => variant.into_compact(registry).into(),
-			Type::Slice(slice) => slice.into_compact(registry).into(),
+			Type::Sequence(sequence) => sequence.into_compact(registry).into(),
 			Type::Array(array) => array.into_compact(registry).into(),
 			Type::Tuple(tuple) => tuple.into_compact(registry).into(),
 			Type::Primitive(primitive) => primitive.into(),
@@ -161,34 +161,34 @@ impl TypeTuple {
 	}
 }
 
-/// A type to refer to a slice type.
+/// A type to refer to a sequence of elements of the same type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(bound = "F::TypeId: Serialize")]
-pub struct TypeSlice<F: Form = MetaForm> {
-	/// The element type of the slice type.
+pub struct TypeSequence<F: Form = MetaForm> {
+	/// The element type of the sequence type.
 	#[serde(rename = "type")]
 	type_param: F::TypeId,
 }
 
-impl IntoCompact for TypeSlice {
-	type Output = TypeSlice<CompactForm>;
+impl IntoCompact for TypeSequence {
+	type Output = TypeSequence<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeSlice {
+		TypeSequence {
 			type_param: registry.register_type(&self.type_param),
 		}
 	}
 }
 
-impl TypeSlice {
-	/// Creates a new slice type.
+impl TypeSequence {
+	/// Creates a new sequence type.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
 	pub fn new(type_param: MetaType) -> Self {
 		Self { type_param }
 	}
 
-	/// Creates a new slice type.
+	/// Creates a new sequence type.
 	///
 	/// Use this constructor if you want to instantiate from a given
 	/// compile-time type.

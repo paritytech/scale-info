@@ -177,7 +177,7 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		TypeSlice::of::<T>().into()
+		TypeSequence::of::<T>().into()
 	}
 }
 

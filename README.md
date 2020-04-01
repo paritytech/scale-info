@@ -23,8 +23,8 @@ pub enum Type<F: Form = MetaForm> {
     Composite(TypeComposite<F>),
     /// A variant type (e.g. an enum)
     Variant(TypeVariant<F>),
-    /// A slice type with runtime known length.
-    Slice(TypeSlice<F>),
+    /// A sequence type with runtime known length.
+    Sequence(TypeSequence<F>),
     /// An array type with compile-time known length.
     Array(TypeArray<F>),
     /// A tuple type.
@@ -41,7 +41,7 @@ The following "built-in" types have predefined `TypeInfo` definitions:
 - **Primitives:** `bool`, `char`, `str`, `u8`, `u16`, `u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64
 `, `i128`.
 
-- **Slice:** Variable size `&[T]` for any `T` which implements `TypeInfo`
+- **Sequence:** Variable size sequence of elements of `T`, where `T` implements `TypeInfo`
 
 - **Array:** Fixed size `[T: $n]` for any `T` which implements `TypeInfo`, where `$n` is one of the
  predefined sizes.
