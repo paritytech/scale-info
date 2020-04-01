@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	Field, FieldsBuilder, IntoCompact, MetaType, Namespace, Path, PathBuilder, Registry,
+	Field, FieldsBuilder, IntoCompact, MetaType, Path, PathBuilder, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -53,7 +53,7 @@ use serde::Serialize;
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeComposite<F: Form = MetaForm> {
-	#[serde(flatten)]
+	#[serde(skip_serializing_if = "Path::is_empty")]
 	path: Path<F>,
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	fields: Vec<Field<F>>,
@@ -73,24 +73,28 @@ impl IntoCompact for TypeComposite {
 impl TypeComposite {
 	/// Creates a new struct definition with named fields.
 	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-	pub fn new(name: &'static str, namespace: Namespace) -> TypeCompositeBuilder {
-		TypeCompositeBuilder {
-			path: Path::new(name, namespace),
-		}
+	pub fn new() -> TypeCompositeBuilder {
+		TypeCompositeBuilder::default()
 	}
 }
 
+#[derive(Default)]
 pub struct TypeCompositeBuilder {
 	path: PathBuilder,
+	type_params: Vec<MetaType>,
 }
 
 impl TypeCompositeBuilder {
+	pub fn path(self, path: PathBuilder) -> Self {
+
+	}
+
 	pub fn type_params<I>(self, type_params: I) -> Self
 	where
 		I: IntoIterator<Item = MetaType>,
 	{
 		let mut this = self;
-		this.path.type_params(type_params);
+		this.type_params = type_params.into_iter().collect();
 		this
 	}
 

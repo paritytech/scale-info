@@ -23,99 +23,26 @@ use crate::{
 };
 use serde::Serialize;
 
-/// Represents a path to a type, represented by the namespace, name and optional
-/// type params.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(bound = "F::TypeId: Serialize")]
+/// Represents the path of a type definition.
+///
+/// This consists of several segments that each have to be a valid Rust
+/// identifier. The first segment represents the crate name in which the type
+/// has been defined. The last
+///
+/// Rust prelude type may have an empty namespace definition.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug, Default)]
+#[serde(transparent)]
 pub struct Path<F: Form = MetaForm> {
-	/// The name of the type.
-	name: F::String,
-	/// The namespace in which the type has been defined.
-	namespace: Namespace<F>,
-	/// The generic type parameters of the type in use.
-	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
-	type_params: Vec<F::TypeId>,
+	/// The segments of the namespace.
+	segments: Vec<F::String>,
 }
 
 impl IntoCompact for Path {
 	type Output = Path<CompactForm>;
 
+	/// Compacts this path using the given registry.
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Path {
-			name: registry.register_string(self.name),
-			namespace: self.namespace.into_compact(registry),
-			type_params: registry.register_types(self.type_params),
-		}
-	}
-}
-
-impl Path {
-	/// Creates a new type identifier to refer to a custom type definition.
-	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-	pub fn new(name: &'static str, namespace: Namespace) -> PathBuilder {
-		PathBuilder {
-			path: Self {
-				name,
-				namespace,
-				type_params: Vec::new(),
-			},
-		}
-	}
-}
-
-pub struct PathBuilder {
-	// name: <MetaForm as Form>::String,
-	// namespace: Namespace<MetadForm>,
-	// type_params: Vec<<MetaForm as Form>::TypeId>,
-	path: Path,
-}
-
-impl PathBuilder {
-	pub fn type_params<P>(&mut self, type_params: P) -> &mut Self
-	where
-		P: IntoIterator<Item = MetaType>,
-	{
-		self.path.type_params = type_params.into_iter().collect();
-		self
-	}
-
-	pub fn done(self) -> Path {
-		self.path
-	}
-}
-
-/// Represents the namespace of a type definition.
-///
-/// This consists of several segments that each have to be a valid Rust
-/// identifier. The first segment represents the crate name in which the type
-/// has been defined.
-///
-/// Rust prelude type may have an empty namespace definition.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
-#[serde(transparent)]
-pub struct Namespace<F: Form = MetaForm> {
-	/// The segments of the namespace.
-	segments: Vec<F::String>,
-}
-
-/// An error that may be encountered upon constructing namespaces.
-#[derive(PartialEq, Eq, Debug)]
-pub enum NamespaceError {
-	/// If the module path does not at least have one segment.
-	MissingSegments,
-	/// If a segment within a module path is not a proper Rust identifier.
-	InvalidIdentifier {
-		/// The index of the errorneous segment.
-		segment: usize,
-	},
-}
-
-impl IntoCompact for Namespace {
-	type Output = Namespace<CompactForm>;
-
-	/// Compacts this namespace using the given registry.
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		Namespace {
 			segments: self
 				.segments
 				.into_iter()
@@ -125,35 +52,105 @@ impl IntoCompact for Namespace {
 	}
 }
 
-impl Namespace {
-	/// Creates a new namespace from the given segments.
-	pub fn new<S>(segments: S) -> Result<Self, NamespaceError>
+impl Path {
+	/// Start building a Path with PathBuilder
+	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
+	pub fn new() -> PathBuilder {
+		PathBuilder::new()
+	}
+
+	/// Creates a new path from the given segments.
+	pub fn from_segments<S>(segments: S) -> Result<Self, PathError>
 	where
 		S: IntoIterator<Item = <MetaForm as Form>::String>,
 	{
-		let segments = segments.into_iter().collect::<Vec<_>>();
-		if segments.is_empty() {
-			return Err(NamespaceError::MissingSegments);
-		}
-		if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
-			return Err(NamespaceError::InvalidIdentifier { segment: err_at });
-		}
-		Ok(Self { segments })
+		Self::new().segments(segments).done()
 	}
 
-	/// Creates a new namespace from the given module path.
+	/// Creates a new empty path
+	pub fn empty() -> Self {
+		Self::new().done()
+	}
+}
+
+impl<F> Path<F>
+where
+	F: Form
+{
+	pub fn is_empty(&self) -> bool {
+		self.segments.is_empty()
+	}
+}
+
+/// Build an empty path, which is valid for so-called Voldermort types
+pub enum EmptyPath {}
+/// The PathBuilder has a module path, not valid until a type identifier is added
+pub enum ModulePath {}
+/// The PathBuilder is ready to attempt to build a Path
+pub enum CompletePath {}
+
+#[derive(Default)]
+pub struct PathBuilder<S = EmptyPath> {
+	segments: Vec<<MetaForm as Form>::String>,
+}
+
+impl PathBuilder<EmptyPath> {
+	/// Create a new PathBuilder
+	pub fn new() -> Self {
+		Self::default()
+	}
+
+	/// Starts to build a path from the given module path
 	///
 	/// # Note
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn from_module_path(module_path: <MetaForm as Form>::String) -> Result<Self, NamespaceError> {
-		Self::new(module_path.split("::"))
+	pub fn module_path(self, module_path: <MetaForm as Form>::String) -> PathBuilder<ModulePath> {
+		PathBuilder { segments: module_path.split("::") }
 	}
 
-	/// Creates the prelude namespace.
-	pub fn prelude() -> Self {
-		Self { segments: vec![] }
+	/// Build a new path from the given segments.
+	pub fn segments<S>(self, segments: S) -> PathBuilder<CompletePath>
+	where
+		S: IntoIterator<Item = <MetaForm as Form>::String>,
+	{
+		PathBuilder { segments }
 	}
+
+	pub fn done(self) -> Path {
+		self.path
+	}
+}
+
+impl<S> PathBuilder<S> {
+	/// Add a type identifier segment to the path
+	pub fn type_ident(self, ident: <MetaForm as Form>::String) -> PathBuilder<CompletePath> {
+		PathBuilder { segments: this.path.segments.chain([ident]) }
+	}
+}
+
+impl PathBuilder<CompletePath> {
+	pub fn done(self) -> Result<Path, PathError> {
+		if self.segments.is_empty() {
+			return Err(PathError::MissingSegments);
+		}
+		if let Some(err_at) = self.segments.iter().position(|seg| !is_rust_identifier(seg)) {
+			return Err(PathError::InvalidIdentifier { segment: err_at });
+		}
+		Ok(Path { segments: self.segments })
+	}
+}
+
+/// An error that may be encountered upon constructing namespaces.
+#[derive(PartialEq, Eq, Debug)]
+pub enum PathError {
+	/// If the module path does not at least have one segment.
+	MissingSegments,
+	/// If a segment within a module path is not a proper Rust identifier.
+	InvalidIdentifier {
+		/// The index of the errorneous segment.
+		segment: usize,
+	},
 }
 
 #[cfg(test)]
@@ -161,50 +158,53 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn namespace_ok() {
+	fn path_ok() {
 		assert_eq!(
-			Namespace::new(vec!["hello"]),
-			Ok(Namespace {
+			Path::from_segments(vec!["hello"]),
+			Ok(Path {
 				segments: vec!["hello"]
 			})
 		);
 		assert_eq!(
-			Namespace::new(vec!["Hello", "World"]),
-			Ok(Namespace {
+			Path::from_segments(vec!["Hello", "World"]),
+			Ok(Path {
 				segments: vec!["Hello", "World"]
 			})
 		);
-		assert_eq!(Namespace::new(vec!["_"]), Ok(Namespace { segments: vec!["_"] }));
+		assert_eq!(Path::from_segments(vec!["_"]), Ok(Path { segments: vec!["_"] }));
 	}
 
 	#[test]
-	fn namespace_err() {
-		assert_eq!(Namespace::new(vec![]), Err(NamespaceError::MissingSegments));
+	fn path_err() {
+		assert_eq!(Path::from_segments(vec![]), Err(PathError::MissingSegments));
 		assert_eq!(
-			Namespace::new(vec![""]),
-			Err(NamespaceError::InvalidIdentifier { segment: 0 })
+			Path::from_segments(vec![""]),
+			Err(PathError::InvalidIdentifier { segment: 0 })
 		);
 		assert_eq!(
-			Namespace::new(vec!["1"]),
-			Err(NamespaceError::InvalidIdentifier { segment: 0 })
+			Path::from_segments(vec!["1"]),
+			Err(PathError::InvalidIdentifier { segment: 0 })
 		);
 		assert_eq!(
-			Namespace::new(vec!["Hello", ", World!"]),
-			Err(NamespaceError::InvalidIdentifier { segment: 1 })
+			Path::from_segments(vec!["Hello", ", World!"]),
+			Err(PathError::InvalidIdentifier { segment: 1 })
 		);
 	}
 
 	#[test]
-	fn namespace_from_module_path() {
+	fn path_from_module_path_and_ident() {
 		assert_eq!(
-			Namespace::from_module_path("hello::world"),
-			Ok(Namespace {
-				segments: vec!["hello", "world"]
+			Path::new()
+				.module_path("hello::world")
+				.type_ident("Planet")
+				.done(),
+			Ok(Path {
+				segments: vec!["hello", "world", "Planet"]
 			})
 		);
 		assert_eq!(
-			Namespace::from_module_path("::world"),
-			Err(NamespaceError::InvalidIdentifier { segment: 0 })
+			Path::new().module_path("::world").type_ident("Earth"),
+			Err(PathError::InvalidIdentifier { segment: 0 })
 		);
 	}
 }

@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	Field, Fields, FieldsBuilder, IntoCompact, MetaType, Namespace, NoFields, Path, PathBuilder, Registry,
+	Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathBuilder, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -67,6 +67,9 @@ use serde::Serialize;
 pub struct TypeVariant<F: Form = MetaForm> {
 	#[serde(flatten)]
 	path: Path<F>,
+	/// The generic type parameters of the type in use.
+	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
+	type_params: Vec<F::TypeId>,
 	variants: Vec<Variant<F>>,
 }
 
@@ -85,7 +88,7 @@ impl TypeVariant {
 	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeVariantBuilder {
 		TypeVariantBuilder {
-			path: Path::new(name, namespace),
+			path: Path::from_segments(name, namespace),
 		}
 	}
 }
