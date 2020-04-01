@@ -82,19 +82,20 @@ where
 	}
 }
 
-/// Build an empty path, which is valid for so-called Voldermort types
-pub enum EmptyPath {}
+/// Begin building a path
+pub enum BeginPath {}
 /// The PathBuilder has a module path, not valid until a type identifier is added
 pub enum ModulePath {}
 /// The PathBuilder is ready to attempt to build a Path
 pub enum CompletePath {}
 
 #[derive(Default)]
-pub struct PathBuilder<S = EmptyPath> {
+pub struct PathBuilder<S = BeginPath> {
 	segments: Vec<<MetaForm as Form>::String>,
+	marker: PhantomData<fn() -> S>,
 }
 
-impl PathBuilder<EmptyPath> {
+impl PathBuilder<BeginPath> {
 	/// Create a new PathBuilder
 	pub fn new() -> Self {
 		Self::default()
@@ -117,8 +118,9 @@ impl PathBuilder<EmptyPath> {
 		PathBuilder { segments }
 	}
 
-	pub fn done(self) -> Path {
-		self.path
+	/// Build an empty path, which is valid for so-called Voldermort types
+	pub fn empty(self) -> PathBuilder<CompletePath> {
+		PathBuilder { segments: Vec::new() }
 	}
 }
 

@@ -79,6 +79,7 @@ impl IntoCompact for TypeVariant {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeVariant {
 			path: self.path.into_compact(registry),
+			type_params: registry.register_types(self.type_params),
 			variants: registry.map_into_compact(self.variants),
 		}
 	}
@@ -87,29 +88,36 @@ impl IntoCompact for TypeVariant {
 impl TypeVariant {
 	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
 	pub fn new(name: &'static str, namespace: Namespace) -> TypeVariantBuilder {
-		TypeVariantBuilder {
-			path: Path::from_segments(name, namespace),
-		}
+		TypeVariantBuilder::default()
 	}
 }
 
+#[derive(Default)]
 pub struct TypeVariantBuilder {
-	path: PathBuilder,
+	path: Path,
+	type_params: Vec<MetaType>,
 }
 
 impl TypeVariantBuilder {
+	pub fn path(self, path: Path) -> Self {
+		let mut this = self;
+		this.path = path;
+		this
+	}
+
 	pub fn type_params<I>(self, type_params: I) -> Self
-	where
-		I: IntoIterator<Item = MetaType>,
+		where
+			I: IntoIterator<Item = MetaType>,
 	{
 		let mut this = self;
-		this.path.type_params(type_params);
+		this.type_params = type_params.into_iter().collect();
 		this
 	}
 
 	pub fn variants<F>(self, variants: VariantsBuilder<F>) -> TypeVariant {
 		TypeVariant {
-			path: self.path.done(),
+			path: self.path,
+			type_params: self.type_params,
 			variants: variants.done(),
 		}
 	}
