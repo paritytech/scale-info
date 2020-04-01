@@ -104,28 +104,34 @@ pub enum UnnamedFields {}
 pub enum Fields {}
 
 impl Fields {
+	pub fn unit() -> FieldsBuilder<NoFields> {
+		FieldsBuilder::<NoFields>::default()
+	}
+
 	pub fn named() -> FieldsBuilder<NamedFields> {
-		FieldsBuilder::<NamedFields>::new()
+		FieldsBuilder::default()
 	}
 
 	pub fn unnamed() -> FieldsBuilder<UnnamedFields> {
-		FieldsBuilder::<UnnamedFields>::new()
+		FieldsBuilder::default()
 	}
 }
 
-pub struct FieldsBuilder<T = NoFields> {
+pub struct FieldsBuilder<T> {
 	fields: Vec<Field<MetaForm>>,
 	marker: PhantomData<fn() -> T>,
 }
 
-impl<T> FieldsBuilder<T> {
-	pub fn new() -> FieldsBuilder<T> {
-		FieldsBuilder {
+impl<T> Default for FieldsBuilder<T> {
+	fn default() -> Self {
+		Self {
 			fields: Vec::new(),
 			marker: Default::default(),
 		}
 	}
+}
 
+impl<T> FieldsBuilder<T> {
 	pub fn done(self) -> Vec<Field<MetaForm>> {
 		self.fields
 	}

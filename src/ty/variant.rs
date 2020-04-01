@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	Field, FieldsBuilder, IntoCompact, MetaType, Namespace, NoFields, Path, PathBuilder, Registry,
+	Field, Fields, FieldsBuilder, IntoCompact, MetaType, Namespace, NoFields, Path, PathBuilder, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -216,7 +216,7 @@ impl VariantsBuilder<VariantFields> {
 	}
 
 	pub fn variant_unit(self, name: <MetaForm as Form>::String) -> Self {
-		self.variant::<NoFields>(name, FieldsBuilder::new())
+		self.variant::<NoFields>(name, Fields::unit())
 	}
 }
 
