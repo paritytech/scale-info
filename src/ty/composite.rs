@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	Field, Fields, IntoCompact, MetaType, Namespace, Path, PathBuilder, Registry,
+	Field, FieldsBuilder, IntoCompact, MetaType, Namespace, Path, PathBuilder, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -94,10 +94,10 @@ impl TypeCompositeBuilder {
 		this
 	}
 
-	pub fn fields<F>(self, fields: Fields<F>) -> TypeComposite {
+	pub fn fields<F>(self, fields: FieldsBuilder<F>) -> TypeComposite {
 		TypeComposite {
 			path: self.path.done(),
-			fields: fields.fields(),
+			fields: fields.done(),
 		}
 	}
 

@@ -100,45 +100,38 @@ pub enum NamedFields {}
 /// A fields builder only allows unnamed fields (e.g. a tuple)
 pub enum UnnamedFields {}
 
-pub struct Fields<T = NoFields> {
+// Empty enum for FieldsBuilder constructors
+pub enum Fields {}
+
+impl Fields {
+	pub fn named() -> FieldsBuilder<NamedFields> {
+		FieldsBuilder::<NamedFields>::new()
+	}
+
+	pub fn unnamed() -> FieldsBuilder<UnnamedFields> {
+		FieldsBuilder::<UnnamedFields>::new()
+	}
+}
+
+pub struct FieldsBuilder<T = NoFields> {
 	fields: Vec<Field<MetaForm>>,
 	marker: PhantomData<fn() -> T>,
 }
 
-impl Fields {
-	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-	pub fn new<T>() -> Fields<T> {
-		Fields::<T> {
+impl<T> FieldsBuilder<T> {
+	pub fn new() -> FieldsBuilder<T> {
+		FieldsBuilder {
 			fields: Vec::new(),
 			marker: Default::default(),
 		}
 	}
 
-	pub fn named() -> Fields<NamedFields> {
-		Self::new::<NamedFields>()
-	}
-
-	pub fn unnamed() -> Fields<UnnamedFields> {
-		Self::new::<UnnamedFields>()
-	}
-}
-
-impl<T> IntoIterator for Fields<T> {
-	type Item = Field<MetaForm>;
-	type IntoIter = vec::IntoIter<Self::Item>;
-
-	fn into_iter(self) -> Self::IntoIter {
-		self.fields.into_iter()
-	}
-}
-
-impl<T> Fields<T> {
-	pub fn fields(self) -> Vec<Field<MetaForm>> {
+	pub fn done(self) -> Vec<Field<MetaForm>> {
 		self.fields
 	}
 }
 
-impl Fields<NamedFields> {
+impl FieldsBuilder<NamedFields> {
 	pub fn field(self, name: &'static str, ty: MetaType) -> Self {
 		let mut this = self;
 		this.fields.push(Field::named(name, ty));
@@ -155,7 +148,7 @@ impl Fields<NamedFields> {
 	}
 }
 
-impl Fields<UnnamedFields> {
+impl FieldsBuilder<UnnamedFields> {
 	pub fn field(self, ty: MetaType) -> Self {
 		let mut this = self;
 		this.fields.push(Field::unnamed(ty));

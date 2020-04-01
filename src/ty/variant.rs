@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	Field, Fields, IntoCompact, MetaType, Namespace, NoFields, Path, PathBuilder, Registry,
+	Field, FieldsBuilder, IntoCompact, MetaType, Namespace, NoFields, Path, PathBuilder, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -160,13 +160,10 @@ impl IntoCompact for Variant {
 
 impl Variant {
 	/// Creates a new variant with the given fields.
-	pub fn with_fields<F>(name: <MetaForm as Form>::String, fields: F) -> Self
-	where
-		F: IntoIterator<Item = Field>,
-	{
+	pub fn with_fields<F>(name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
 		Self {
 			name,
-			fields: fields.into_iter().collect(),
+			fields: fields.done(),
 			discriminant: None,
 		}
 	}
@@ -212,14 +209,14 @@ pub struct VariantsBuilder<T> {
 }
 
 impl VariantsBuilder<VariantFields> {
-	pub fn variant<F>(self, name: <MetaForm as Form>::String, fields: Fields<F>) -> Self {
+	pub fn variant<F>(self, name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
 		let mut this = self;
 		this.variants.push(Variant::with_fields(name, fields));
 		this
 	}
 
 	pub fn variant_unit(self, name: <MetaForm as Form>::String) -> Self {
-		self.variant::<NoFields>(name, Fields::new::<NoFields>())
+		self.variant::<NoFields>(name, FieldsBuilder::new())
 	}
 }
 
