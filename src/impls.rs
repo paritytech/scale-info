@@ -140,7 +140,7 @@ where
 	fn type_info() -> Type {
 		TypeComposite::new("BTreeMap", Namespace::prelude())
 			.type_params(tuple_meta_type![(K, V)])
-			.fields(Fields::named().field_of::<[(K, V)]>("elems"))
+			.fields(Fields::unnamed().field_of::<[(K, V)]>())
 			.into()
 	}
 }
