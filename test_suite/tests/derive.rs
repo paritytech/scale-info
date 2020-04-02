@@ -85,9 +85,7 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let ty = TypeComposite::new()
-		.path(Path::new("derive", "S"))
-		.unit();
+	let ty = TypeComposite::new().path(Path::new("derive", "S")).unit();
 
 	assert_type!(S, ty);
 }

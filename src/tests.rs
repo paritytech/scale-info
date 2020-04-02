@@ -45,10 +45,7 @@ fn primitives() {
 
 #[test]
 fn prelude_items() {
-	assert_type!(
-		String,
-		TypePrimitive::Str
-	);
+	assert_type!(String, TypePrimitive::Str);
 
 	assert_type!(
 		Option<u128>,
