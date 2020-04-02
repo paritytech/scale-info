@@ -192,10 +192,7 @@ impl TypeInfo for str {
 
 impl TypeInfo for String {
 	fn type_info() -> Type {
-		TypeComposite::new()
-			.path(Path::prelude("String"))
-			.fields(Fields::named().field_of::<Vec<u8>>("vec"))
-			.into()
+		TypePrimitive::Str.into()
 	}
 }
 

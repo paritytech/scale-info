@@ -47,9 +47,7 @@ fn primitives() {
 fn prelude_items() {
 	assert_type!(
 		String,
-		TypeComposite::new()
-			.path(Path::prelude("String"))
-			.fields(Fields::named().field_of::<Vec<u8>>("vec"))
+		TypePrimitive::Str
 	);
 
 	assert_type!(
