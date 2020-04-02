@@ -48,7 +48,7 @@ fn struct_derive() {
 	}
 
 	let struct_type = TypeComposite::new()
-		.path(Path::new("derive", "S"))
+		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(bool, u8))
 		.fields(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
 
@@ -59,7 +59,7 @@ fn struct_derive() {
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
 	let self_typed_type = TypeComposite::new()
-		.path(Path::new("derive", "S"))
+		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
 		.fields(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
 	assert_type!(SelfTyped, self_typed_type);
@@ -72,7 +72,7 @@ fn tuple_struct_derive() {
 	struct S<T>(T);
 
 	let ty = TypeComposite::new()
-		.path(Path::new("derive", "S"))
+		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(bool))
 		.fields(Fields::unnamed().field_of::<bool>());
 
@@ -85,7 +85,7 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let ty = TypeComposite::new().path(Path::new("derive", "S")).unit();
+	let ty = TypeComposite::new().path(Path::new("S", "derive")).unit();
 
 	assert_type!(S, ty);
 }
@@ -100,7 +100,7 @@ fn c_like_enum_derive() {
 	}
 
 	let ty = TypeVariant::new()
-		.path(Path::new("derive", "E"))
+		.path(Path::new("E", "derive"))
 		.variants(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
 
 	assert_type!(E, ty);
@@ -117,7 +117,7 @@ fn enum_derive() {
 	}
 
 	let ty = TypeVariant::new()
-		.path(Path::new("derive", "E"))
+		.path(Path::new("E", "derive"))
 		.type_params(tuple_meta_type!(bool))
 		.variants(
 			Variants::with_fields()

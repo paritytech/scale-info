@@ -74,7 +74,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
 			fn type_info() -> _scale_info::Type {
 				_scale_info::#type_kind::new()
-					.path(_scale_info::Path::new(module_path!(), stringify!(#ident)))
+					.path(_scale_info::Path::new(stringify!(#ident), module_path!()))
 					.type_params(__core::vec![ #( #generic_type_ids ),* ])
 					.#build_type
 					.into()

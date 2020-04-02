@@ -63,7 +63,7 @@ impl IntoCompact for Path {
 
 impl Path {
 	/// Start building a Path with PathBuilder
-	pub fn new(module_path: <MetaForm as Form>::String, ident: <MetaForm as Form>::String) -> Result<Path, PathError> {
+	pub fn new(ident: <MetaForm as Form>::String, module_path: <MetaForm as Form>::String) -> Result<Path, PathError> {
 		let mut segments = module_path.split("::").collect::<Vec<_>>();
 		segments.push(ident);
 		Self::from_segments(segments)
@@ -189,20 +189,20 @@ mod tests {
 	#[test]
 	fn path_from_module_path_and_ident() {
 		assert_eq!(
-			Path::new("hello::world", "Planet"),
+			Path::new("Planet", "hello::world"),
 			Ok(Path {
 				segments: vec!["hello", "world", "Planet"]
 			})
 		);
 		assert_eq!(
-			Path::new("::world", "Earth"),
+			Path::new("Earth", "::world"),
 			Err(PathError::InvalidIdentifier { segment: 0 })
 		);
 	}
 
 	#[test]
 	fn path_get_namespace_and_ident() {
-		let path = Path::new("hello::world", "Planet").unwrap();
+		let path = Path::new("Planet", "hello::world").unwrap();
 		assert_eq!(path.namespace(), &["hello", "world"]);
 		assert_eq!(path.ident(), Some(&"Planet"));
 	}
