@@ -83,6 +83,16 @@ where
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()
 	}
+
+	/// Get the ident segment of the Path
+	pub fn ident(&self) -> Option<&F::String> {
+		self.segments.iter().last()
+	}
+
+	/// Get the namespace segments of the Path
+	pub fn namespace(&self) -> &[F::String] {
+		self.segments.split_last().map(|(_, ns)| ns).unwrap_or(&[])
+	}
 }
 
 /// Begin building a path
@@ -230,5 +240,12 @@ mod tests {
 			Path::new().module("::world").ident("Earth").done(),
 			Err(PathError::InvalidIdentifier { segment: 0 })
 		);
+	}
+
+	#[test]
+	fn path_get_namespace_and_ident() {
+		let path = Path::new().module("hello::world").ident("Planet").done().unwrap();
+		assert_eq!(path.namespace(), &["hello", "world"]);
+		assert_eq!(path.ident(), Some(&"Planet"));
 	}
 }
