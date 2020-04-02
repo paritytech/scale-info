@@ -66,7 +66,7 @@ fn prelude_items() {
 	assert_type!(
 		Result<bool, String>,
 		TypeVariant::new()
-			.path(Path::new().ident("Option"))
+			.path(Path::new().ident("Result"))
 			.type_params(tuple_meta_type!(bool, String))
 			.variants(
 				Variants::with_fields()
@@ -77,7 +77,7 @@ fn prelude_items() {
 	assert_type!(
 		PhantomData<i32>,
 		TypeComposite::new()
-			.path(Path::new().ident("Option"))
+			.path(Path::new().ident("PhantomData"))
 			.type_params(tuple_meta_type!(i32))
 			.unit()
 	);

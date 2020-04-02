@@ -34,9 +34,9 @@ where
 {
 	let mut registry = Registry::new();
 
-	let type_id = T::type_info().into_compact(&mut registry);
+	let ty = T::type_info().into_compact(&mut registry);
 
-	assert_json_eq!(serde_json::to_value(type_id).unwrap(), expected_json,);
+	assert_json_eq!(serde_json::to_value(ty).unwrap(), expected_json,);
 }
 
 #[test]
@@ -46,8 +46,7 @@ fn test_unit_struct() {
 
 	assert_json_for_type::<UnitStruct>(json!({
 		"composite": {
-			"name": 1,
-			"namespace": [2],
+			"path": [1, 2]
 		},
 	}));
 }
@@ -59,8 +58,7 @@ fn test_tuplestruct() {
 
 	assert_json_for_type::<TupleStruct>(json!({
 		"composite": {
-			"name": 1,
-			"namespace": [2],
+			"path": [1, 2],
 			"fields": [
 				{ "type": 1 },
 				{ "type": 2 },
@@ -81,8 +79,7 @@ fn test_struct() {
 
 	assert_json_for_type::<Struct>(json!({
 		"composite": {
-			"name": 1,
-			"namespace": [2],
+			"path": [1, 2],
 			"fields": [
 				{ "name": 3, "type": 1, },
 				{ "name": 4, "type": 2, },
@@ -103,8 +100,7 @@ fn test_clike_enum() {
 
 	assert_json_for_type::<ClikeEnum>(json!({
 		"variant": {
-			"name": 1,
-			"namespace": [2],
+			"path": [1, 2],
 			"variants": [
 				{ "name": 3, "discriminant": 0, },
 				{ "name": 4, "discriminant": 42, },
@@ -125,8 +121,7 @@ fn test_enum() {
 
 	assert_json_for_type::<Enum>(json!({
 		"variant": {
-			"name": 1,
-			"namespace": [2],
+			"path": [1, 2],
 			"variants": [
 				{ "name": 3 },
 				{
@@ -189,8 +184,8 @@ fn test_registry() {
 
 	let expected_json = json!({
 		"strings": [
-			"UnitStruct",      //  1
-			"json",            //  2
+			"json",      	   //  1
+			"UnitStruct",      //  2
 			"TupleStruct",     //  3
 			"Struct",          //  4
 			"a",               //  5
@@ -207,14 +202,18 @@ fn test_registry() {
 		"types": [
 			{ // type 1
 				"composite": {
-					"name": 1, // UnitStruct
-					"namespace": [2], // json
+					"path": [
+						1, // json
+						2, // UnitStruct
+					]
 				},
 			},
 			{ // type 2
 				"composite": {
-					"name": 3, // TupleStruct
-					"namespace": [2], // json
+					"path": [
+						1, // json
+						3, // TupleStruct
+					],
 					"fields": [
 						{ "type": 3 },
 						{ "type": 4 },
@@ -229,8 +228,10 @@ fn test_registry() {
 			},
 			{ // type 5
 				"composite": {
-					"name": 4, // Struct
-					"namespace": [2], // json
+					"path": [
+						1, // json
+						4, // Struct
+					],
 					"fields": [
 						{
 							"name": 5, // a
@@ -255,8 +256,10 @@ fn test_registry() {
 			},
 			{ // type 7
 				"composite": {
-					"name": 8, // RecursiveStruct
-					"namespace": [2], // json
+					"path": [
+						1, // json
+						8, // RecursiveStruct
+					],
 					"fields": [
 						{
 							"name": 9, // rec
@@ -272,8 +275,10 @@ fn test_registry() {
 			},
 			{ // type 9
 				"variant": {
-					"name": 10, // ClikeEnum
-					"namespace": [2], // json
+					"path": [
+						1, 	// json
+						10, // CLikeEnum
+					],
 					"variants": [
 						{
 							"name": 11, // A
@@ -292,8 +297,10 @@ fn test_registry() {
 			},
 			{ // type 10
 				"variant": {
-					"name": 14, // RustEnum
-					"namespace": [2], // json
+					"path": [
+						1, 	// json
+						14, // RustEnum
+					],
 					"variants": [
 						{
 							"name": 11, // A

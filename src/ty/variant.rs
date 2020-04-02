@@ -62,11 +62,12 @@ use serde::Serialize;
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeVariant<F: Form = MetaForm> {
-	#[serde(flatten)]
+	#[serde(skip_serializing_if = "Path::is_empty")]
 	path: Path<F>,
 	/// The generic type parameters of the type in use.
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
 	type_params: Vec<F::TypeId>,
+	#[serde(skip_serializing_if = "Vec::is_empty")]
 	variants: Vec<Variant<F>>,
 }
 
