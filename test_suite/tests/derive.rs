@@ -22,7 +22,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, vec};
 
-use scale_info::{tuple_meta_type, Fields, Metadata, Namespace, Type, TypeComposite, TypeInfo, TypeVariant, Variants};
+use scale_info::{tuple_meta_type, Fields, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant, Variants};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -47,7 +47,8 @@ fn struct_derive() {
 		pub u: U,
 	}
 
-	let struct_type = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
+	let struct_type = TypeComposite::new()
+		.path(Path::new().module("derive").ident("S"))
 		.type_params(tuple_meta_type!(bool, u8))
 		.fields(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
 
@@ -57,7 +58,8 @@ fn struct_derive() {
 
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
-	let self_typed_type = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
+	let self_typed_type = TypeComposite::new()
+		.path(Path::new().module("derive").ident("S"))
 		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
 		.fields(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
 	assert_type!(SelfTyped, self_typed_type);
@@ -69,7 +71,8 @@ fn tuple_struct_derive() {
 	#[derive(Metadata)]
 	struct S<T>(T);
 
-	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap())
+	let ty = TypeComposite::new()
+		.path(Path::new().module("derive").ident("S"))
 		.type_params(tuple_meta_type!(bool))
 		.fields(Fields::unnamed().field_of::<bool>());
 
@@ -82,7 +85,9 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let ty = TypeComposite::new("S", Namespace::new(vec!["derive"]).unwrap()).unit();
+	let ty = TypeComposite::new()
+		.path(Path::new().module("derive").ident("S"))
+		.unit();
 
 	assert_type!(S, ty);
 }
@@ -96,8 +101,12 @@ fn c_like_enum_derive() {
 		B = 10,
 	}
 
-	let ty = TypeVariant::new("E", Namespace::new(vec!["derive"]).unwrap())
-		.variants(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
+	let ty = TypeVariant::new()
+		.path(Path::new().module("derive").ident("E"))
+		.variants(Variants::with_discriminants()
+			.variant("A", 0u64)
+			.variant("B", 10u64)
+		);
 
 	assert_type!(E, ty);
 }
@@ -112,7 +121,8 @@ fn enum_derive() {
 		C,
 	}
 
-	let ty = TypeVariant::new("E", Namespace::new(vec!["derive"]).unwrap())
+	let ty = TypeVariant::new()
+		.path(Path::new().module("derive").ident("E"))
 		.type_params(tuple_meta_type!(bool))
 		.variants(
 			Variants::with_fields()

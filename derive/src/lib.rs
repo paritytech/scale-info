@@ -73,14 +73,14 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	let type_info_impl = quote! {
 		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
 			fn type_info() -> _scale_info::Type {
-				_scale_info::#type_kind::new(
-					stringify!(#ident),
-					_scale_info::Namespace::from_module_path(module_path!())
-						.expect("namespace from module path cannot fail"),
-				)
-				.type_params(__core::vec![ #( #generic_type_ids ),* ])
-				.#build_type
-				.into()
+				_scale_info::#type_kind::new()
+					.path(_scale_info::Path::new()
+						.module(module_path!())
+						.ident(stringify!(#ident))
+					)
+					.type_params(__core::vec![ #( #generic_type_ids ),* ])
+					.#build_type
+					.into()
 			}
 		}
 	};
