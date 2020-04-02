@@ -17,7 +17,7 @@
 /// Returns `true` if the given string is a proper Rust identifier.
 pub fn is_rust_identifier(s: &str) -> bool {
 	// Only ascii encoding is allowed.
-	// Note: Maybe this check is superseeded by the `head` and `tail` check.
+	// Note: Maybe this check is superseded by the `head` and `tail` check.
 	if !s.is_ascii() {
 		return false;
 	}

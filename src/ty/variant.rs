@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	CompletePath, Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathBuilder, Registry,
+	Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathError, Registry, state,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -93,36 +93,52 @@ impl TypeVariant {
 	}
 }
 
-#[derive(Default)]
-pub struct TypeVariantBuilder {
-	path: Path,
+pub struct TypeVariantBuilder<S = state::PathNotAssigned> {
+	path: Option<Path>,
 	type_params: Vec<MetaType>,
+	marker: PhantomData<fn() -> S>,
 }
 
-impl TypeVariantBuilder {
+impl<S> Default for TypeVariantBuilder<S> {
+	fn default() -> Self {
+		TypeVariantBuilder {
+			path: Default::default(),
+			type_params: Default::default(),
+			marker: Default::default(),
+		}
+	}
+}
+
+impl TypeVariantBuilder<state::PathNotAssigned> {
 	/// Set the Path for the type
 	///
 	/// # Panics
 	///
 	/// If the Path is invalid
-	pub fn path(self, path: PathBuilder<CompletePath>) -> Self {
-		let mut this = self;
-		this.path = path.done().expect("Should be a valid path");
-		this
+	pub fn path(self, path: Result<Path, PathError>) -> TypeVariantBuilder<state::PathAssigned> {
+		TypeVariantBuilder {
+			path: Some(path.expect("Invalid Path")),
+			type_params: self.type_params,
+			marker: Default::default(),
+		}
 	}
+}
 
+impl<S> TypeVariantBuilder<S> {
 	pub fn type_params<I>(self, type_params: I) -> Self
-	where
-		I: IntoIterator<Item = MetaType>,
+		where
+			I: IntoIterator<Item = MetaType>,
 	{
 		let mut this = self;
 		this.type_params = type_params.into_iter().collect();
 		this
 	}
+}
 
+impl TypeVariantBuilder<state::PathAssigned> {
 	pub fn variants<F>(self, variants: VariantsBuilder<F>) -> TypeVariant {
 		TypeVariant {
-			path: self.path,
+			path: self.path.expect("Path is assigned"),
 			type_params: self.type_params,
 			variants: variants.done(),
 		}

@@ -105,7 +105,7 @@ where
 {
 	fn type_info() -> Type {
 		TypeVariant::new()
-			.path(Path::new().ident("Option"))
+			.path(Path::prelude("Option"))
 			.type_params(tuple_meta_type![T])
 			.variants(
 				Variants::with_fields()
@@ -123,7 +123,7 @@ where
 {
 	fn type_info() -> Type {
 		TypeVariant::new()
-			.path(Path::new().ident("Result"))
+			.path(Path::prelude("Result"))
 			.type_params(tuple_meta_type!(T, E))
 			.variants(
 				Variants::with_fields()
@@ -141,7 +141,7 @@ where
 {
 	fn type_info() -> Type {
 		TypeComposite::new()
-			.path(Path::new().ident("BTreeMap"))
+			.path(Path::prelude("BTreeMap"))
 			.type_params(tuple_meta_type![(K, V)])
 			.fields(Fields::unnamed().field_of::<[(K, V)]>())
 			.into()
@@ -193,7 +193,7 @@ impl TypeInfo for str {
 impl TypeInfo for String {
 	fn type_info() -> Type {
 		TypeComposite::new()
-			.path(Path::new().ident("String"))
+			.path(Path::prelude("String"))
 			.fields(Fields::named().field_of::<Vec<u8>>("vec"))
 			.into()
 	}
@@ -205,7 +205,7 @@ where
 {
 	fn type_info() -> Type {
 		TypeComposite::new()
-			.path(Path::new().ident("PhantomData"))
+			.path(Path::prelude("PhantomData"))
 			.type_params(vec![T::meta_type()])
 			.unit()
 			.into()
