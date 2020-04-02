@@ -16,7 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, Field, FieldsBuilder, IntoCompact, MetaType, Path, CompletePath, PathBuilder, Registry};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	CompletePath, Field, FieldsBuilder, IntoCompact, MetaType, Path, PathBuilder, Registry,
+};
 use derive_more::From;
 use serde::Serialize;
 

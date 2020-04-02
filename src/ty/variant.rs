@@ -16,7 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathBuilder, Registry, CompletePath};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	CompletePath, Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathBuilder, Registry,
+};
 use derive_more::From;
 use serde::Serialize;
 
@@ -109,8 +112,8 @@ impl TypeVariantBuilder {
 	}
 
 	pub fn type_params<I>(self, type_params: I) -> Self
-		where
-			I: IntoIterator<Item = MetaType>,
+	where
+		I: IntoIterator<Item = MetaType>,
 	{
 		let mut this = self;
 		this.type_params = type_params.into_iter().collect();

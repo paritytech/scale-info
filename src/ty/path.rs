@@ -39,7 +39,7 @@ pub struct Path<F: Form = MetaForm> {
 
 impl<F> Default for Path<F>
 where
-	F: Form
+	F: Form,
 {
 	fn default() -> Self {
 		Path { segments: Vec::new() }
@@ -78,7 +78,7 @@ impl Path {
 
 impl<F> Path<F>
 where
-	F: Form
+	F: Form,
 {
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()
@@ -162,7 +162,9 @@ impl PathBuilder<CompletePath> {
 		if let Some(err_at) = self.segments.iter().position(|seg| !is_rust_identifier(seg)) {
 			return Err(PathError::InvalidIdentifier { segment: err_at });
 		}
-		Ok(Path { segments: self.segments })
+		Ok(Path {
+			segments: self.segments,
+		})
 	}
 }
 
@@ -219,10 +221,7 @@ mod tests {
 	#[test]
 	fn path_from_module_path_and_ident() {
 		assert_eq!(
-			Path::new()
-				.module("hello::world")
-				.ident("Planet")
-				.done(),
+			Path::new().module("hello::world").ident("Planet").done(),
 			Ok(Path {
 				segments: vec!["hello", "world", "Planet"]
 			})

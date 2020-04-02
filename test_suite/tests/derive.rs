@@ -103,10 +103,7 @@ fn c_like_enum_derive() {
 
 	let ty = TypeVariant::new()
 		.path(Path::new().module("derive").ident("E"))
-		.variants(Variants::with_discriminants()
-			.variant("A", 0u64)
-			.variant("B", 10u64)
-		);
+		.variants(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
 
 	assert_type!(E, ty);
 }
