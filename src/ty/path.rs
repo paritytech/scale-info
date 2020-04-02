@@ -75,7 +75,7 @@ impl Path {
 	///
 	/// Returns an always `Ok` Result to match the other constructor signatures
 	#[allow(unused)]
-	pub(crate) fn voldermort() -> Result<Path, PathError> {
+	pub(crate) fn voldemort() -> Result<Path, PathError> {
 		Ok(Path { segments: Vec::new() })
 	}
 
@@ -84,7 +84,7 @@ impl Path {
 	/// # Errors
 	///
 	/// - If the supplied ident is an invalid Rust identifier
-	pub fn prelude(ident: <MetaForm as Form>::String) -> Result<Path, PathError> {
+	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Result<Path, PathError> {
 		Self::from_segments(vec![ident])
 	}
 
