@@ -16,10 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathBuilder, Registry,
-};
+use crate::{form::{CompactForm, Form, MetaForm}, Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathBuilder, Registry, CompletePath};
 use derive_more::From;
 use serde::Serialize;
 
@@ -87,7 +84,7 @@ impl IntoCompact for TypeVariant {
 
 impl TypeVariant {
 	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-	pub fn new(name: &'static str, namespace: Namespace) -> TypeVariantBuilder {
+	pub fn new() -> TypeVariantBuilder {
 		TypeVariantBuilder::default()
 	}
 }
@@ -99,9 +96,14 @@ pub struct TypeVariantBuilder {
 }
 
 impl TypeVariantBuilder {
-	pub fn path(self, path: Path) -> Self {
+	/// Set the Path for the type
+	///
+	/// # Panics
+	///
+	/// If the Path is invalid
+	pub fn path(self, path: PathBuilder<CompletePath>) -> Self {
 		let mut this = self;
-		this.path = path;
+		this.path = path.done().expect("Should be a valid path");
 		this
 	}
 

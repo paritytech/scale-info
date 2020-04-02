@@ -16,7 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, Field, FieldsBuilder, IntoCompact, MetaType, Path, CompletePath, PathError, PathBuilder, Registry};
+use crate::{form::{CompactForm, Form, MetaForm}, Field, FieldsBuilder, IntoCompact, MetaType, Path, CompletePath, PathBuilder, Registry};
 use derive_more::From;
 use serde::Serialize;
 
@@ -64,6 +64,7 @@ impl IntoCompact for TypeComposite {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeComposite {
 			path: self.path.into_compact(registry),
+			type_params: registry.register_types(self.type_params),
 			fields: registry.map_into_compact(self.fields),
 		}
 	}
@@ -84,9 +85,14 @@ pub struct TypeCompositeBuilder {
 }
 
 impl TypeCompositeBuilder {
-	pub fn path(self, path: Path) -> Self {
+	/// Set the Path for the type
+	///
+	/// # Panics
+	///
+	/// If the Path is invalid
+	pub fn path(self, path: PathBuilder<CompletePath>) -> Self {
 		let mut this = self;
-		this.path = path;
+		this.path = path.done().expect("Should be a valid path");
 		this
 	}
 

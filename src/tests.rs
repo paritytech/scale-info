@@ -47,12 +47,15 @@ fn primitives() {
 fn prelude_items() {
 	assert_type!(
 		String,
-		TypeComposite::new("String", Namespace::prelude()).fields(Fields::named().field_of::<Vec<u8>>("vec"))
+		TypeComposite::new()
+			.path(Path::new().ident("String"))
+			.fields(Fields::named().field_of::<Vec<u8>>("vec"))
 	);
 
 	assert_type!(
 		Option<u128>,
-		TypeVariant::new("Option", Namespace::prelude())
+		TypeVariant::new()
+			.path(Path::new().ident("Option"))
 			.type_params(tuple_meta_type!(u128))
 			.variants(
 				Variants::with_fields()
@@ -62,7 +65,8 @@ fn prelude_items() {
 	);
 	assert_type!(
 		Result<bool, String>,
-		TypeVariant::new("Result", Namespace::prelude())
+		TypeVariant::new()
+			.path(Path::new().ident("Option"))
 			.type_params(tuple_meta_type!(bool, String))
 			.variants(
 				Variants::with_fields()
@@ -72,7 +76,8 @@ fn prelude_items() {
 	);
 	assert_type!(
 		PhantomData<i32>,
-		TypeComposite::new("PhantomData", Namespace::prelude())
+		TypeComposite::new()
+			.path(Path::new().ident("Option"))
 			.type_params(tuple_meta_type!(i32))
 			.unit()
 	);
@@ -120,7 +125,10 @@ fn struct_with_generics() {
 		T: Metadata + 'static,
 	{
 		fn type_info() -> Type {
-			TypeComposite::new("MyStruct", Namespace::from_module_path(module_path!()).unwrap())
+			TypeComposite::new()
+				.path(Path::new()
+					.module(module_path!())
+					.ident("MyStruct"))
 				.type_params(tuple_meta_type!(T))
 				.fields(Fields::named().field_of::<T>("data"))
 				.into()
@@ -128,7 +136,8 @@ fn struct_with_generics() {
 	}
 
 	// Normal struct
-	let struct_bool_type_info = TypeComposite::new("MyStruct", Namespace::new(vec!["scale_info", "tests"]).unwrap())
+	let struct_bool_type_info = TypeComposite::new()
+		.path(Path::new().segments(vec!["scale_info", "tests", "MyStruct"]))
 		.type_params(tuple_meta_type!(bool))
 		.fields(Fields::named().field_of::<bool>("data"));
 
@@ -136,7 +145,10 @@ fn struct_with_generics() {
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type = TypeComposite::new("MyStruct", Namespace::new(vec!["scale_info", "tests"]).unwrap())
+	let expected_type = TypeComposite::new()
+		.path(Path::new()
+			.segments(vec!["scale_info", "tests"])
+			.ident("MyStruct"))
 		.type_params(tuple_meta_type!(Box<MyStruct<bool>>))
 		.fields(Fields::named().field_of::<Box<MyStruct<bool>>>("data"));
 	assert_type!(SelfTyped, expected_type);

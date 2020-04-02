@@ -19,7 +19,7 @@ use crate::tm_std::*;
 use crate::{
 	form::{CompactForm, Form, MetaForm},
 	utils::is_rust_identifier,
-	IntoCompact, MetaType, Registry,
+	IntoCompact, Registry,
 };
 use serde::Serialize;
 
@@ -30,11 +30,20 @@ use serde::Serialize;
 /// has been defined. The last
 ///
 /// Rust prelude type may have an empty namespace definition.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug, Default)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(transparent)]
 pub struct Path<F: Form = MetaForm> {
 	/// The segments of the namespace.
 	segments: Vec<F::String>,
+}
+
+impl<F> Default for Path<F>
+where
+	F: Form
+{
+	fn default() -> Self {
+		Path { segments: Vec::new() }
+	}
 }
 
 impl IntoCompact for Path {
@@ -59,17 +68,11 @@ impl Path {
 		PathBuilder::new()
 	}
 
-	/// Creates a new path from the given segments.
-	pub fn from_segments<S>(segments: S) -> Result<Self, PathError>
+	pub fn from_segments<I>(segments: I) -> Result<Path, PathError>
 	where
-		S: IntoIterator<Item = <MetaForm as Form>::String>,
+		I: IntoIterator<Item = <MetaForm as Form>::String>,
 	{
-		Self::new().segments(segments).done()
-	}
-
-	/// Creates a new empty path
-	pub fn empty() -> Self {
-		Self::new().done()
+		PathBuilder::<BeginPath>::new().segments(segments).done()
 	}
 }
 
@@ -89,45 +92,65 @@ pub enum ModulePath {}
 /// The PathBuilder is ready to attempt to build a Path
 pub enum CompletePath {}
 
-#[derive(Default)]
 pub struct PathBuilder<S = BeginPath> {
 	segments: Vec<<MetaForm as Form>::String>,
 	marker: PhantomData<fn() -> S>,
 }
 
-impl PathBuilder<BeginPath> {
-	/// Create a new PathBuilder
-	pub fn new() -> Self {
-		Self::default()
+impl<S> Default for PathBuilder<S> {
+	fn default() -> Self {
+		PathBuilder {
+			segments: Vec::new(),
+			marker: Default::default(),
+		}
 	}
+}
 
+impl PathBuilder<BeginPath> {
 	/// Starts to build a path from the given module path
 	///
 	/// # Note
 	///
 	/// Module path is generally obtained from the `module_path!` Rust macro.
-	pub fn module_path(self, module_path: <MetaForm as Form>::String) -> PathBuilder<ModulePath> {
-		PathBuilder { segments: module_path.split("::") }
-	}
-
-	/// Build a new path from the given segments.
-	pub fn segments<S>(self, segments: S) -> PathBuilder<CompletePath>
-	where
-		S: IntoIterator<Item = <MetaForm as Form>::String>,
-	{
-		PathBuilder { segments }
+	pub fn module(self, module_path: <MetaForm as Form>::String) -> PathBuilder<ModulePath> {
+		PathBuilder {
+			segments: module_path.split("::").collect(),
+			marker: Default::default(),
+		}
 	}
 
 	/// Build an empty path, which is valid for so-called Voldermort types
 	pub fn empty(self) -> PathBuilder<CompletePath> {
-		PathBuilder { segments: Vec::new() }
+		PathBuilder::new()
 	}
 }
 
 impl<S> PathBuilder<S> {
-	/// Add a type identifier segment to the path
-	pub fn type_ident(self, ident: <MetaForm as Form>::String) -> PathBuilder<CompletePath> {
-		PathBuilder { segments: this.path.segments.chain([ident]) }
+	/// Create a new PathBuilder
+	pub fn new() -> Self {
+		Self::default()
+	}
+
+	/// Build a Path from segments: completes building the Path
+	pub fn segments<I>(self, segments: I) -> PathBuilder<CompletePath>
+	where
+		I: IntoIterator<Item = <MetaForm as Form>::String>,
+	{
+		PathBuilder {
+			segments: segments.into_iter().collect(),
+			marker: Default::default(),
+		}
+	}
+
+	/// Add a type identifier segment to the Path: completes building the Path
+	pub fn ident(self, ident: <MetaForm as Form>::String) -> PathBuilder<CompletePath> {
+		let mut segments = self.segments;
+		segments.push(ident);
+
+		PathBuilder {
+			segments,
+			marker: Default::default(),
+		}
 	}
 }
 
@@ -197,15 +220,15 @@ mod tests {
 	fn path_from_module_path_and_ident() {
 		assert_eq!(
 			Path::new()
-				.module_path("hello::world")
-				.type_ident("Planet")
+				.module("hello::world")
+				.ident("Planet")
 				.done(),
 			Ok(Path {
 				segments: vec!["hello", "world", "Planet"]
 			})
 		);
 		assert_eq!(
-			Path::new().module_path("::world").type_ident("Earth"),
+			Path::new().module("::world").ident("Earth").done(),
 			Err(PathError::InvalidIdentifier { segment: 0 })
 		);
 	}
