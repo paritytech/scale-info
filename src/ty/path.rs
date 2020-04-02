@@ -64,7 +64,7 @@ impl IntoCompact for Path {
 impl Path {
 	/// Start building a Path with PathBuilder
 	pub fn new(module_path: <MetaForm as Form>::String, ident: <MetaForm as Form>::String) -> Result<Path, PathError> {
-		let mut segments = module_path.split("::").into_iter().collect::<Vec<_>>();
+		let mut segments = module_path.split("::").collect::<Vec<_>>();
 		segments.push(ident);
 		Self::from_segments(segments)
 	}
