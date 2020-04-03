@@ -1,4 +1,4 @@
-// Copyright 2019
+// Copyright 2019-2020
 //     by  Centrality Investments Ltd.
 //     and Parity Technologies (UK) Ltd.
 //
@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![allow(unused)]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
@@ -23,15 +24,9 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
 
-use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry, TypeDef, TypeId};
-use serde::Serialize;
+use assert_json_diff::assert_json_eq;
+use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry};
 use serde_json::json;
-
-#[derive(Serialize)]
-struct TypeIdDef {
-	id: TypeId<CompactForm>,
-	def: TypeDef<CompactForm>,
-}
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where
@@ -39,14 +34,9 @@ where
 {
 	let mut registry = Registry::new();
 
-	let type_id = T::type_id().into_compact(&mut registry);
-	let type_def = T::type_def().into_compact(&mut registry);
-	let id_def = TypeIdDef {
-		id: type_id,
-		def: type_def,
-	};
+	let ty = T::type_info().into_compact(&mut registry);
 
-	assert_eq!(serde_json::to_value(id_def).unwrap(), expected_json,);
+	assert_json_eq!(serde_json::to_value(ty).unwrap(), expected_json,);
 }
 
 #[test]
@@ -55,30 +45,25 @@ fn test_unit_struct() {
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
-		"id": {
-			"custom.name": 1,
-			"custom.namespace": [2],
-			"custom.params": [],
-		},
-		"def": {
-			"tuple_struct.types": []
+		"composite": {
+			"path": [1, 2]
 		},
 	}));
 }
 
 #[test]
-fn test_tuple_struct() {
+fn test_tuplestruct() {
 	#[derive(Metadata)]
 	struct TupleStruct(i32, [u8; 32], bool);
 
 	assert_json_for_type::<TupleStruct>(json!({
-		"id": {
-			"custom.name": 1,
-			"custom.namespace": [2],
-			"custom.params": [],
-		},
-		"def": {
-			"tuple_struct.types": [1, 2, 4]
+		"composite": {
+			"path": [1, 2],
+			"fields": [
+				{ "type": 1 },
+				{ "type": 2 },
+				{ "type": 4 },
+			],
 		},
 	}));
 }
@@ -93,17 +78,13 @@ fn test_struct() {
 	}
 
 	assert_json_for_type::<Struct>(json!({
-		"id": {
-			"custom.name": 1,
-			"custom.namespace": [2],
-			"custom.params": [],
-		},
-		"def": {
-			"struct.fields": [
+		"composite": {
+			"path": [1, 2],
+			"fields": [
 				{ "name": 3, "type": 1, },
 				{ "name": 4, "type": 2, },
 				{ "name": 5, "type": 4, },
-			]
+			],
 		},
 	}));
 }
@@ -118,17 +99,13 @@ fn test_clike_enum() {
 	}
 
 	assert_json_for_type::<ClikeEnum>(json!({
-		"id": {
-			"custom.name": 1,
-			"custom.namespace": [2],
-			"custom.params": [],
-		},
-		"def": {
-			"clike_enum.variants": [
+		"variant": {
+			"path": [1, 2],
+			"variants": [
 				{ "name": 3, "discriminant": 0, },
 				{ "name": 4, "discriminant": 42, },
 				{ "name": 5, "discriminant": 2, },
-			]
+			],
 		},
 	}));
 }
@@ -143,52 +120,26 @@ fn test_enum() {
 	}
 
 	assert_json_for_type::<Enum>(json!({
-		"id": {
-			"custom.name": 1,
-			"custom.namespace": [2],
-			"custom.params": [],
-		},
-		"def": {
-			"enum.variants": [
+		"variant": {
+			"path": [1, 2],
+			"variants": [
+				{ "name": 3 },
 				{
-					"unit_variant.name": 3,
+					"name": 4,
+					"fields": [
+						{ "type": 1 },
+						{ "type": 2 },
+					],
 				},
 				{
-					"tuple_struct_variant.name": 4,
-					"tuple_struct_variant.types": [1, 2],
-				},
-				{
-					"struct_variant.name": 5,
-					"struct_variant.fields": [
+					"name": 5,
+					"fields": [
 						{ "name": 6, "type": 1, },
 						{ "name": 7, "type": 3, },
 						{ "name": 8, "type": 5, },
 					],
 				}
-			]
-		},
-	}));
-}
-
-#[test]
-fn test_union() {
-	#[derive(Metadata)]
-	union Union {
-		inl: [u8; 32],
-		ext: u128,
-	}
-
-	assert_json_for_type::<Union>(json!({
-		"id": {
-			"custom.name": 1,
-			"custom.namespace": [2],
-			"custom.params": [],
-		},
-		"def": {
-			"union.fields": [
-				{ "name": 3, "type": 1, },
-				{ "name": 4, "type": 3, },
-			]
+			],
 		},
 	}));
 }
@@ -233,8 +184,8 @@ fn test_registry() {
 
 	let expected_json = json!({
 		"strings": [
-			"UnitStruct",      //  1
-			"json",            //  2
+			"json",      	   //  1
+			"UnitStruct",      //  2
 			"TupleStruct",     //  3
 			"Struct",          //  4
 			"a",               //  5
@@ -242,54 +193,46 @@ fn test_registry() {
 			"c",               //  7
 			"RecursiveStruct", //  8
 			"rec",             //  9
-			"Vec",             // 10
-			"elems",           // 11
-			"ClikeEnum",       // 12
-			"A",               // 13
-			"B",               // 14
-			"C",               // 15
-			"RustEnum",        // 16
+			"ClikeEnum",       // 10
+			"A",               // 11
+			"B",               // 12
+			"C",               // 13
+			"RustEnum",        // 14
 		],
 		"types": [
 			{ // type 1
-				"id": {
-					"custom.name": 1, // UnitStruct
-					"custom.namespace": [2], // json
-					"custom.params": [],
+				"composite": {
+					"path": [
+						1, // json
+						2, // UnitStruct
+					]
 				},
-				"def": {
-					"tuple_struct.types": [],
-				}
 			},
 			{ // type 2
-				"id": {
-					"custom.name": 3, // TupleStruct
-					"custom.namespace": [2], // json
-					"custom.params": [],
+				"composite": {
+					"path": [
+						1, // json
+						3, // TupleStruct
+					],
+					"fields": [
+						{ "type": 3 },
+						{ "type": 4 },
+					],
 				},
-				"def": {
-					"tuple_struct.types": [
-						3, // u8
-						4, // u32
-					]
-				}
 			},
 			{ // type 3
-				"id": "u8",
-				"def": "builtin",
+				"primitive": "u8",
 			},
 			{ // type 4
-				"id": "u32",
-				"def": "builtin",
+				"primitive": "u32",
 			},
 			{ // type 5
-				"id": {
-					"custom.name": 4, // Struct
-					"custom.namespace": [2], // json
-					"custom.params": [],
-				},
-				"def": {
-					"struct.fields": [
+				"composite": {
+					"path": [
+						1, // json
+						4, // Struct
+					],
+					"fields": [
 						{
 							"name": 5, // a
 							"type": 3, // u8
@@ -303,97 +246,75 @@ fn test_registry() {
 							"type": 6, // [u8; 32]
 						}
 					]
-				}
+				},
 			},
 			{ // type 6
-				"id": {
-					"array.len": 32,
-					"array.type": 3, // u8
+				"array": {
+					"len": 32,
+					"type": 3, // u8
 				},
-				"def": "builtin",
 			},
 			{ // type 7
-				"id": {
-					"custom.name": 8, // RecursiveStruct
-					"custom.namespace": [2], // json
-					"custom.params": [],
-				},
-				"def": {
-					"struct.fields": [
+				"composite": {
+					"path": [
+						1, // json
+						8, // RecursiveStruct
+					],
+					"fields": [
 						{
 							"name": 9, // rec
 							"type": 8, // Vec<RecursiveStruct>
 						}
 					]
-				}
+				},
 			},
 			{ // type 8
-				"id": {
-					"custom.name": 10, // Vec
-					"custom.namespace": [], // empty represents prelude (root) namespace
-					"custom.params": [
-						7, // RecursiveStruct
-					],
+				"sequence": {
+					"type": 7, // RecursiveStruct
 				},
-				"def": {
-					"struct.fields": [
-						{
-							"name": 11, // elems
-							"type": 9, // RecursiveStruct
-						}
-					]
-				}
 			},
 			{ // type 9
-				"id": {
-					"slice.type": 7, // RecursiveStruct
-				},
-				"def": "builtin",
-			},
-			{ // type 10
-				"id": {
-					"custom.name": 12, // ClikeEnum
-					"custom.namespace": [2], // json
-					"custom.params": [],
-				},
-				"def": {
-					"clike_enum.variants": [
+				"variant": {
+					"path": [
+						1, 	// json
+						10, // CLikeEnum
+					],
+					"variants": [
 						{
-							"name": 13, // A
+							"name": 11, // A
 							"discriminant": 0,
 						},
 						{
-							"name": 14, // B
+							"name": 12, // B
 							"discriminant": 1,
 						},
 						{
-							"name": 15, // C
+							"name": 13, // C
 							"discriminant": 2,
 						},
 					]
 				}
 			},
-			{ // type 11
-				"id": {
-					"custom.name": 16, // RustEnum
-					"custom.namespace": [2], // json
-					"custom.params": [],
-				},
-				"def": {
-					"enum.variants": [
+			{ // type 10
+				"variant": {
+					"path": [
+						1, 	// json
+						14, // RustEnum
+					],
+					"variants": [
 						{
-							"unit_variant.name": 13, // A
+							"name": 11, // A
 						},
 						{
-							"tuple_struct_variant.name": 14, // B
-							"tuple_struct_variant.types": [
-								3, // u8
-								4, // u32
-							],
+							"name": 12, // B
+							"fields": [
+								{ "type": 3 }, // u8
+								{ "type": 4 }, // u32
+							]
 						},
 						{
-							"struct_variant.name": 15, // C
-							"struct_variant.fields": [
+							"name": 13, // C
+							"fields": [
 								{
 									"name": 5, // a
 									"type": 3, // u8
@@ -409,10 +330,10 @@ fn test_registry() {
 							]
 						}
 					]
-				}
+				},
 			},
 		]
 	});
 
-	assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
+	assert_json_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }

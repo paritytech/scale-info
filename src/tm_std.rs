@@ -1,4 +1,4 @@
-// Copyright 2019
+// Copyright 2019-2020
 //     by  Centrality Investments Ltd.
 //     and Parity Technologies (UK) Ltd.
 //
@@ -34,7 +34,7 @@ pub use self::core::{
 	option::Option,
 	result::Result,
 
-	any::{TypeId as AnyTypeId},
+	any::TypeId,
 
 	clone::{Clone},
 	cmp::{Eq, PartialEq, Ordering},

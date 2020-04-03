@@ -1,4 +1,4 @@
-// Copyright 2019
+// Copyright 2019-2020
 //     by  Centrality Investments Ltd.
 //     and Parity Technologies (UK) Ltd.
 //
@@ -25,18 +25,18 @@
 //! Since symbol names etc. are often shared between different types they are
 //! as well deduplicated.
 //!
-//! Types with the same name are uniquely identifiable by introducing namespaces.
-//! For this the normal Rust namespace of a type is used where it has been defined it.
-//! Rust prelude types live within the so-called root namespace that is just empty.
-//! In general namespaces are ordered sequences of symbols and thus also profit from
-//! string deduplication.
+//! Types with the same name are uniquely identifiable by introducing
+//! namespaces. For this the normal Rust namespace of a type is used where it
+//! has been defined it. Rust prelude types live within the so-called root
+//! namespace that is just empty. In general namespaces are ordered sequences of
+//! symbols and thus also profit from string deduplication.
 
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
-	TypeDef, TypeId,
+	Type,
 };
 use serde::Serialize;
 
@@ -47,17 +47,6 @@ pub trait IntoCompact {
 
 	/// Compacts `self` by using the registry for caching and compaction.
 	fn into_compact(self, registry: &mut Registry) -> Self::Output;
-}
-
-/// The pair of associated type identifier and structure.
-///
-/// This exists only as compactified version and is part of the registry.
-#[derive(Debug, PartialEq, Eq, Serialize)]
-pub struct TypeIdDef {
-	/// The identifier of the type.
-	id: TypeId<CompactForm>,
-	/// The definition (aka internal structure) of the type.
-	def: TypeDef<CompactForm>,
 }
 
 /// The registry for compaction of type identifiers and definitions.
@@ -83,18 +72,18 @@ pub struct Registry {
 	/// This is just an accessor to the actual database
 	/// for all types found in the `types` field.
 	#[serde(skip)]
-	type_table: Interner<AnyTypeId>,
+	type_table: Interner<TypeId>,
 	/// The database where registered types actually reside.
 	///
 	/// This is going to be serialized upon serlialization.
 	#[serde(serialize_with = "serialize_registry_types")]
-	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeIdDef>,
+	types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs
 /// and instead serialize them in order of their removed unique ID.
 fn serialize_registry_types<S>(
-	types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, TypeIdDef>,
+	types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
 	serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -120,13 +109,13 @@ impl Registry {
 		}
 	}
 
-	/// Registeres the given string into the registry and returns
+	/// Registers the given string into the registry and returns
 	/// its respective associated string symbol.
 	pub fn register_string(&mut self, string: &'static str) -> UntrackedSymbol<&'static str> {
 		self.string_table.intern_or_get(string).1.into_untracked()
 	}
 
-	/// Registeres the given type ID into the registry.
+	/// Registers the given type ID into the registry.
 	///
 	/// Returns `false` as the first return value if the type ID has already
 	/// been registered into this registry.
@@ -134,9 +123,10 @@ impl Registry {
 	///
 	/// # Note
 	///
-	/// This is an internal API and should not be called directly from the outside.
-	fn intern_type_id(&mut self, any_type_id: AnyTypeId) -> (bool, UntrackedSymbol<AnyTypeId>) {
-		let (inserted, symbol) = self.type_table.intern_or_get(any_type_id);
+	/// This is an internal API and should not be called directly from the
+	/// outside.
+	fn intern_type_id(&mut self, type_id: TypeId) -> (bool, UntrackedSymbol<TypeId>) {
+		let (inserted, symbol) = self.type_table.intern_or_get(type_id);
 		(inserted, symbol.into_untracked())
 	}
 
@@ -149,19 +139,30 @@ impl Registry {
 	/// be used later to resolve back to the associated type definition.
 	/// However, since this facility is going to be used for serialization
 	/// purposes this functionality isn't needed anyway.
-	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<AnyTypeId> {
-		let (inserted, symbol) = self.intern_type_id(ty.any_id());
+	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
+		let (inserted, symbol) = self.intern_type_id(ty.type_id());
 		if inserted {
-			let compact_id = ty.type_id().into_compact(self);
-			let compact_def = ty.type_def().into_compact(self);
-			self.types.insert(
-				symbol,
-				TypeIdDef {
-					id: compact_id,
-					def: compact_def,
-				},
-			);
+			let compact_id = ty.type_info().into_compact(self);
+			self.types.insert(symbol, compact_id);
 		}
 		symbol
+	}
+
+	/// Calls `register_type` for each `MetaType` in the given `iter`
+	pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeId>>
+	where
+		I: IntoIterator<Item = MetaType>,
+	{
+		iter.into_iter().map(|i| self.register_type(&i)).collect::<Vec<_>>()
+	}
+
+	/// Converts an iterator into a Vec of the equivalent compact
+	/// representations
+	pub fn map_into_compact<I, T>(&mut self, iter: I) -> Vec<T::Output>
+	where
+		I: IntoIterator<Item = T>,
+		T: IntoCompact,
+	{
+		iter.into_iter().map(|i| i.into_compact(self)).collect::<Vec<_>>()
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright 2019
+// Copyright 2019-2020
 //     by  Centrality Investments Ltd.
 //     and Parity Technologies (UK) Ltd.
 //
@@ -20,79 +20,92 @@ use core::marker::PhantomData;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, string::String, vec};
 
-fn assert_type_id<T, E>(expected: E)
+fn assert_type<T, E>(expected: E)
 where
-	T: HasTypeId + ?Sized,
-	E: Into<TypeId>,
+	T: TypeInfo + ?Sized,
+	E: Into<Type>,
 {
-	assert_eq!(T::type_id(), expected.into());
+	assert_eq!(T::type_info(), expected.into());
 }
 
-macro_rules! assert_type_id {
+macro_rules! assert_type {
 	( $ty:ty, $expected:expr ) => {{
-		assert_type_id::<$ty, _>($expected)
+		assert_type::<$ty, _>($expected)
 		}};
 }
 
 #[test]
 fn primitives() {
-	assert_type_id!(bool, TypeIdPrimitive::Bool);
-	assert_type_id!(String, TypeIdPrimitive::Str);
-	assert_type_id!(&str, TypeIdPrimitive::Str);
-	assert_type_id!(i8, TypeIdPrimitive::I8);
+	assert_type!(bool, TypePrimitive::Bool);
+	assert_type!(&str, TypePrimitive::Str);
+	assert_type!(i8, TypePrimitive::I8);
 
-	assert_type_id!(Box<String>, TypeIdPrimitive::Str);
-	assert_type_id!(&String, TypeIdPrimitive::Str);
-	assert_type_id!([bool], TypeIdSlice::new(bool::meta_type()));
+	assert_type!([bool], TypeSequence::new(bool::meta_type()));
 }
 
 #[test]
 fn prelude_items() {
-	assert_type_id!(
+	assert_type!(String, TypePrimitive::Str);
+
+	assert_type!(
 		Option<u128>,
-		TypeIdCustom::new("Option", Namespace::prelude(), tuple_meta_type!(u128))
+		TypeVariant::new()
+			.path(Path::prelude("Option"))
+			.type_params(tuple_meta_type!(u128))
+			.variants(
+				Variants::with_fields()
+					.variant_unit("None")
+					.variant("Some", Fields::unnamed().field_of::<u128>())
+			)
 	);
-	assert_type_id!(
+	assert_type!(
 		Result<bool, String>,
-		TypeIdCustom::new("Result", Namespace::prelude(), tuple_meta_type!(bool, String))
+		TypeVariant::new()
+			.path(Path::prelude("Result"))
+			.type_params(tuple_meta_type!(bool, String))
+			.variants(
+				Variants::with_fields()
+					.variant("Ok", Fields::unnamed().field_of::<bool>())
+					.variant("Err", Fields::unnamed().field_of::<String>())
+			)
 	);
-	assert_type_id!(
+	assert_type!(
 		PhantomData<i32>,
-		TypeIdCustom::new("PhantomData", Namespace::prelude(), tuple_meta_type!(i32))
-	)
+		TypeComposite::new()
+			.path(Path::prelude("PhantomData"))
+			.type_params(tuple_meta_type!(i32))
+			.unit()
+	);
 }
 
 #[test]
 fn tuple_primitives() {
 	// unit
-	assert_type_id!((), TypeIdTuple::new(tuple_meta_type!()));
+	assert_type!((), TypeTuple::new(tuple_meta_type!()));
 
 	// tuple with one element
-	assert_type_id!((bool,), TypeIdTuple::new(tuple_meta_type!(bool)));
+	assert_type!((bool,), TypeTuple::new(tuple_meta_type!(bool)));
 
 	// tuple with multiple elements
-	assert_type_id!((bool, String), TypeIdTuple::new(tuple_meta_type!(bool, String)));
+	assert_type!((bool, String), TypeTuple::new(tuple_meta_type!(bool, String)));
 
 	// nested tuple
-	assert_type_id!(
+	assert_type!(
 		((i8, i16), (u32, u64)),
-		TypeIdTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),])
+		TypeTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),])
 	);
 }
 
 #[test]
 fn array_primitives() {
 	// array
-	assert_type_id!([bool; 3], TypeIdArray::new(3, bool::meta_type()));
+	assert_type!([bool; 3], TypeArray::new(3, bool::meta_type()));
 	// nested
-	assert_type_id!([[i32; 5]; 5], TypeIdArray::new(5, <[i32; 5]>::meta_type()));
-	// slice
-	assert_type_id!([bool], TypeIdSlice::new(bool::meta_type()));
+	assert_type!([[i32; 5]; 5], TypeArray::new(5, <[i32; 5]>::meta_type()));
+	// sequence
+	assert_type!([bool], TypeSequence::new(bool::meta_type()));
 	// vec
-	assert_type_id!(
-		Vec<bool>,
-		TypeIdCustom::new("Vec", Namespace::prelude(), tuple_meta_type![bool])
-	);
+	assert_type!(Vec<bool>, TypeSequence::new(bool::meta_type()));
 }
 
 #[test]
@@ -102,50 +115,32 @@ fn struct_with_generics() {
 		data: T,
 	}
 
-	impl<T> HasTypeId for MyStruct<T>
+	impl<T> TypeInfo for MyStruct<T>
 	where
 		T: Metadata + 'static,
 	{
-		fn type_id() -> TypeId {
-			TypeIdCustom::new(
-				"MyStruct",
-				Namespace::from_module_path(module_path!()).unwrap(),
-				tuple_meta_type!(T),
-			)
-			.into()
-		}
-	}
-
-	impl<T> HasTypeDef for MyStruct<T>
-	where
-		T: Metadata,
-	{
-		fn type_def() -> TypeDef {
-			TypeDefStruct::new(vec![NamedField::new("data", T::meta_type())]).into()
+		fn type_info() -> Type {
+			TypeComposite::new()
+				.path(Path::new("MyStruct", module_path!()))
+				.type_params(tuple_meta_type!(T))
+				.fields(Fields::named().field_of::<T>("data"))
+				.into()
 		}
 	}
 
 	// Normal struct
-	let struct_bool_id = TypeIdCustom::new(
-		"MyStruct",
-		Namespace::new(vec!["scale_info", "tests"]).unwrap(),
-		tuple_meta_type!(bool),
-	);
-	assert_type_id!(MyStruct<bool>, struct_bool_id.clone());
+	let struct_bool_type_info = TypeComposite::new()
+		.path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]))
+		.type_params(tuple_meta_type!(bool))
+		.fields(Fields::named().field_of::<bool>("data"));
 
-	let struct_bool_def = TypeDefStruct::new(vec![NamedField::new("data", bool::meta_type())]).into();
-	assert_eq!(<MyStruct<bool>>::type_def(), struct_bool_def);
+	assert_type!(MyStruct<bool>, struct_bool_type_info);
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type_id = TypeIdCustom::new(
-		"MyStruct",
-		Namespace::new(vec!["scale_info", "tests"]).unwrap(),
-		vec![<Box<MyStruct<bool>>>::meta_type()],
-	);
-	assert_type_id!(SelfTyped, expected_type_id);
-	assert_eq!(
-		SelfTyped::type_def(),
-		TypeDefStruct::new(vec![NamedField::new("data", <Box<MyStruct<bool>>>::meta_type()),]).into(),
-	);
+	let expected_type = TypeComposite::new()
+		.path(Path::new("MyStruct", "scale_info::tests"))
+		.type_params(tuple_meta_type!(Box<MyStruct<bool>>))
+		.fields(Fields::named().field_of::<Box<MyStruct<bool>>>("data"));
+	assert_type!(SelfTyped, expected_type);
 }

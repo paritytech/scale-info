@@ -1,4 +1,4 @@
-// Copyright 2019
+// Copyright 2019-2020
 //     by  Centrality Investments Ltd.
 //     and Parity Technologies (UK) Ltd.
 //
@@ -36,21 +36,17 @@ use crate::tm_std::*;
 use crate::{interner::UntrackedSymbol, meta_type::MetaType};
 use serde::Serialize;
 
-/// Trait to control the internal structures of type identifiers and definitions.
+/// Trait to control the internal structures of type identifiers and
+/// definitions.
 ///
-/// This allows for type-level separation between free forms that can be instantiated
-/// out of the flux and compact forms that require some sort of interning data structures.
+/// This allows for type-level separation between free forms that can be
+/// instantiated out of the flux and compact forms that require some sort of
+/// interning data structures.
 pub trait Form {
 	/// The string type.
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type identifier type.
 	type TypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
-	/// A type identifier with indirection.
-	///
-	/// # Note
-	///
-	/// This is an optimization for the compact forms.
-	type IndirectTypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
 
 /// A meta meta-type.
@@ -63,7 +59,6 @@ pub enum MetaForm {}
 impl Form for MetaForm {
 	type String = &'static str;
 	type TypeId = MetaType;
-	type IndirectTypeId = MetaType;
 }
 
 /// Compact form that has its lifetime untracked in association to its interner.
@@ -78,6 +73,5 @@ pub enum CompactForm {}
 
 impl Form for CompactForm {
 	type String = UntrackedSymbol<&'static str>;
-	type TypeId = UntrackedSymbol<AnyTypeId>;
-	type IndirectTypeId = Self::TypeId;
+	type TypeId = UntrackedSymbol<TypeId>;
 }

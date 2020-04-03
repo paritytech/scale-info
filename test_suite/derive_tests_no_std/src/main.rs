@@ -1,4 +1,4 @@
-// Copyright 2019
+// Copyright 2019-2020
 //     by  Centrality Investments Ltd.
 //     and Parity Technologies (UK) Ltd.
 //
@@ -88,10 +88,4 @@ enum E<T> {
 	A(T),
 	B { b: T },
 	C,
-}
-
-#[allow(unused)]
-#[derive(Metadata)]
-union U<T: Copy> {
-	u: T,
 }

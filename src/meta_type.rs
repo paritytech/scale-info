@@ -1,4 +1,4 @@
-// Copyright 2019
+// Copyright 2019-2020
 //     by  Centrality Investments Ltd.
 //     and Parity Technologies (UK) Ltd.
 //
@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{form::MetaForm, HasTypeDef, HasTypeId, Metadata, TypeDef, TypeId};
+use crate::{form::MetaForm, Metadata, Type, TypeInfo};
 
 /// A metatype abstraction.
 ///
@@ -26,19 +26,17 @@ use crate::{form::MetaForm, HasTypeDef, HasTypeId, Metadata, TypeDef, TypeId};
 /// in order to be serializable.
 #[derive(Clone, Copy)]
 pub struct MetaType {
-	/// Function pointer to type ID.
-	fn_type_id: fn() -> TypeId<MetaForm>,
-	/// Function pointer to type definition.
-	fn_type_def: fn() -> TypeDef<MetaForm>,
+	/// Function pointer to get type information.
+	fn_type_info: fn() -> Type<MetaForm>,
 	// The standard type ID (ab)used in order to provide
 	// cheap implementations of the standard traits
 	// such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
-	any_id: AnyTypeId,
+	type_id: TypeId,
 }
 
 impl PartialEq for MetaType {
 	fn eq(&self, other: &Self) -> bool {
-		self.any_id == other.any_id
+		self.type_id == other.type_id
 	}
 }
 
@@ -46,13 +44,13 @@ impl Eq for MetaType {}
 
 impl PartialOrd for MetaType {
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		self.any_id.partial_cmp(&other.any_id)
+		self.type_id.partial_cmp(&other.type_id)
 	}
 }
 
 impl Ord for MetaType {
 	fn cmp(&self, other: &Self) -> Ordering {
-		self.any_id.cmp(&other.any_id)
+		self.type_id.cmp(&other.type_id)
 	}
 }
 
@@ -61,13 +59,13 @@ impl Hash for MetaType {
 	where
 		H: Hasher,
 	{
-		self.any_id.hash(state)
+		self.type_id.hash(state)
 	}
 }
 
 impl Debug for MetaType {
 	fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
-		self.any_id.fmt(f)
+		self.type_id.fmt(f)
 	}
 }
 
@@ -78,9 +76,8 @@ impl MetaType {
 		T: Metadata + ?Sized + 'static,
 	{
 		Self {
-			fn_type_id: <T as HasTypeId>::type_id,
-			fn_type_def: <T as HasTypeDef>::type_def,
-			any_id: AnyTypeId::of::<T>(),
+			fn_type_info: <T as TypeInfo>::type_info,
+			type_id: TypeId::of::<T>(),
 		}
 	}
 
@@ -92,18 +89,13 @@ impl MetaType {
 		Self::new::<T>()
 	}
 
-	/// Returns the meta type identifier.
-	pub fn type_id(&self) -> TypeId<MetaForm> {
-		(self.fn_type_id)()
-	}
-
-	/// Returns the meta type definition.
-	pub fn type_def(&self) -> TypeDef<MetaForm> {
-		(self.fn_type_def)()
+	/// Returns the meta type information.
+	pub fn type_info(&self) -> Type<MetaForm> {
+		(self.fn_type_info)()
 	}
 
 	/// Returns the type identifier provided by `core::any`.
-	pub fn any_id(&self) -> AnyTypeId {
-		self.any_id
+	pub fn type_id(&self) -> TypeId {
+		self.type_id
 	}
 }
