@@ -100,12 +100,12 @@ pub enum NamedFields {}
 /// A fields builder only allows unnamed fields (e.g. a tuple)
 pub enum UnnamedFields {}
 
-// Empty enum for FieldsBuilder constructors
+/// Empty enum for FieldsBuilder constructors
 pub enum Fields {}
 
 impl Fields {
 	pub fn unit() -> FieldsBuilder<NoFields> {
-		FieldsBuilder::<NoFields>::default()
+		FieldsBuilder::default()
 	}
 
 	pub fn named() -> FieldsBuilder<NamedFields> {
