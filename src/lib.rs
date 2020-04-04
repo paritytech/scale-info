@@ -118,6 +118,7 @@ pub mod interner;
 mod meta_type;
 mod registry;
 mod ty;
+mod type_id;
 mod utils;
 
 #[cfg(test)]
@@ -127,6 +128,7 @@ pub use self::{
 	meta_type::MetaType,
 	registry::{IntoCompact, Registry},
 	ty::*,
+	type_id::*,
 };
 
 #[cfg(feature = "derive")]

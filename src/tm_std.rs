@@ -17,11 +17,11 @@
 //! Exports from `std`, `core` and `alloc` crates.
 
 mod core {
-	#[cfg(not(feature = "std"))]
+	// #[cfg(not(feature = "std"))]
 	pub use core::*;
 
-	#[cfg(feature = "std")]
-	pub use std::*;
+	// #[cfg(feature = "std")]
+	// pub use std::*;
 }
 
 #[rustfmt::skip]
@@ -34,7 +34,7 @@ pub use self::core::{
 	option::Option,
 	result::Result,
 
-	any::TypeId,
+	any,
 
 	clone::{Clone},
 	cmp::{Eq, PartialEq, Ordering},

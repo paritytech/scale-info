@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
+	IntoCompact, MetaType, Metadata, Registry, TypeId,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -64,6 +64,16 @@ impl IntoCompact for Type {
 	}
 }
 
+impl Type {
+	pub fn type_id(&self) -> TypeId {
+		match self {
+			Type::Composite(composite) =>
+			// todo: figure out registration of Generic Type - requires double
+			// registration: first generic then concrete instance!!!
+		}
+	}
+}
+
 /// A primitive Rust type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(rename_all = "lowercase")]
@@ -104,7 +114,7 @@ pub struct TypeArray<F: Form = MetaForm> {
 	pub len: u32,
 	/// The element type of the array type.
 	#[serde(rename = "type")]
-	pub type_param: F::TypeId,
+	pub type_param: F::Type,
 }
 
 impl IntoCompact for TypeArray {
@@ -131,7 +141,7 @@ impl TypeArray {
 #[serde(transparent)]
 pub struct TypeTuple<F: Form = MetaForm> {
 	/// The types of the tuple fields.
-	pub fields: Vec<F::TypeId>,
+	pub fields: Vec<F::Type>,
 }
 
 impl IntoCompact for TypeTuple {
@@ -167,7 +177,7 @@ impl TypeTuple {
 pub struct TypeSequence<F: Form = MetaForm> {
 	/// The element type of the sequence type.
 	#[serde(rename = "type")]
-	type_param: F::TypeId,
+	type_param: F::Type,
 }
 
 impl IntoCompact for TypeSequence {

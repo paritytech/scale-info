@@ -22,6 +22,36 @@ use crate::{
 };
 use serde::Serialize;
 
+// Field::named_of_generic<Option<bool>>
+
+// How to identify common generic type - using Path?
+
+// How to recognise generic type
+
+// idea to enforce registering the correct  - must implement GenericTypeX
+// perhaps first do non type safe API then add that afterwards
+
+// pub trait Generic1 {
+// 	type A;
+// }
+
+#[derive(derive_more::From)]
+pub enum FieldType<F: Form = MetaForm> {
+	Generic(F::String),
+	Concrete(F::Type),
+}
+
+impl IntoCompact for FieldType {
+	type Output = FieldType<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		match self {
+			FieldType::Concrete(ref ty) => registry.register_type(ty).into(),
+			FieldType::Generic(ref name) => registry.register_string(name).into(),
+		}
+	}
+}
+
 /// A field of a struct like data type.
 ///
 /// Name is optional so it can represent both named and unnamed fields.
@@ -35,7 +65,7 @@ pub struct Field<F: Form = MetaForm> {
 	name: Option<F::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	ty: F::TypeId,
+	ty: FieldType<F>,
 }
 
 impl IntoCompact for Field {
@@ -44,7 +74,7 @@ impl IntoCompact for Field {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Field {
 			name: self.name.map(|name| registry.register_string(name)),
-			ty: registry.register_type(&self.ty),
+			ty: self.ty.into_compact(registry),
 		}
 	}
 }
@@ -56,6 +86,14 @@ impl Field {
 	pub fn new(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
 		Self { name, ty }
 	}
+
+	// pub fn concrete(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
+	// 	Self::new(name, FieldType::Concrete(ty))
+	// }
+	//
+	// pub fn parameterized(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
+	// 	Self::new(name, FieldType::Parameter(ty))
+	// }
 
 	/// Creates a new named field
 	pub fn named(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
@@ -89,7 +127,7 @@ impl Field {
 	where
 		T: Metadata + ?Sized + 'static,
 	{
-		Self::new(None, MetaType::new::<T>())
+		Self::unnamed(MetaType::new::<T>())
 	}
 }
 

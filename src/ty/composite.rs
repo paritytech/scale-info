@@ -56,7 +56,7 @@ pub struct TypeComposite<F: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Path::is_empty")]
 	path: Path<F>,
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
-	type_params: Vec<F::TypeId>,
+	type_params: Vec<F::Type>,
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	fields: Vec<Field<F>>,
 }

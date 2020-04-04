@@ -124,11 +124,11 @@ where
 	fn type_info() -> Type {
 		TypeVariant::new()
 			.path(Path::prelude("Result"))
-			.type_params(tuple_meta_type!(T, E))
+			.type_params(tuple_meta_type!(T, E)) // register type name strings
 			.variants(
 				Variants::with_fields()
-					.variant("Ok", Fields::unnamed().field_of::<T>())
-					.variant("Err", Fields::unnamed().field_of::<E>()),
+					.variant("Ok", Fields::unnamed().generic_field_of::<T>("T"))
+					.variant("Err", Fields::unnamed().generic_field_of::<E>("E")),
 			)
 			.into()
 	}

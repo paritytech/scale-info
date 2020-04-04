@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{form::MetaForm, Metadata, Type, TypeInfo};
+use crate::{form::MetaForm, Metadata, Type, TypeInfo, TypeId};
 
 /// A metatype abstraction.
 ///
@@ -28,9 +28,7 @@ use crate::{form::MetaForm, Metadata, Type, TypeInfo};
 pub struct MetaType {
 	/// Function pointer to get type information.
 	fn_type_info: fn() -> Type<MetaForm>,
-	// The standard type ID (ab)used in order to provide
-	// cheap implementations of the standard traits
-	// such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
+	/// The type identifier
 	type_id: TypeId,
 }
 
@@ -77,7 +75,7 @@ impl MetaType {
 	{
 		Self {
 			fn_type_info: <T as TypeInfo>::type_info,
-			type_id: TypeId::of::<T>(),
+			type_id: <T as TypeInfo>::type_info().type_id(),
 		}
 	}
 
@@ -96,6 +94,6 @@ impl MetaType {
 
 	/// Returns the type identifier provided by `core::any`.
 	pub fn type_id(&self) -> TypeId {
-		self.type_id
+		self.type_id.clone()
 	}
 }

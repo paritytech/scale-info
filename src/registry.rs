@@ -36,7 +36,7 @@ use crate::{
 	form::CompactForm,
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
-	Type,
+	Type, TypeId
 };
 use serde::Serialize;
 
