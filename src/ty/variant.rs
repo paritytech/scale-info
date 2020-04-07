@@ -65,11 +65,6 @@ use serde::Serialize;
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeVariant<F: Form = MetaForm> {
-	#[serde(skip_serializing_if = "Path::is_empty")]
-	path: Path<F>,
-	/// The generic type parameters of the type in use.
-	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
-	type_params: Vec<F::Type>,
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	variants: Vec<Variant<F>>,
 }
@@ -79,69 +74,14 @@ impl IntoCompact for TypeVariant {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		TypeVariant {
-			path: self.path.into_compact(registry),
-			type_params: registry.register_types(self.type_params),
 			variants: registry.map_into_compact(self.variants),
 		}
 	}
 }
 
 impl TypeVariant {
-	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-	pub fn new() -> TypeVariantBuilder {
-		TypeVariantBuilder::default()
-	}
-}
-
-pub struct TypeVariantBuilder<S = state::PathNotAssigned> {
-	path: Option<Path>,
-	type_params: Vec<MetaType>,
-	marker: PhantomData<fn() -> S>,
-}
-
-impl<S> Default for TypeVariantBuilder<S> {
-	fn default() -> Self {
-		TypeVariantBuilder {
-			path: Default::default(),
-			type_params: Default::default(),
-			marker: Default::default(),
-		}
-	}
-}
-
-impl TypeVariantBuilder<state::PathNotAssigned> {
-	/// Set the Path for the type
-	///
-	/// # Panics
-	///
-	/// If the Path is invalid
-	pub fn path(self, path: Result<Path, PathError>) -> TypeVariantBuilder<state::PathAssigned> {
-		TypeVariantBuilder {
-			path: Some(path.expect("Invalid Path")),
-			type_params: self.type_params,
-			marker: Default::default(),
-		}
-	}
-}
-
-impl<S> TypeVariantBuilder<S> {
-	pub fn type_params<I>(self, type_params: I) -> Self
-	where
-		I: IntoIterator<Item = MetaType>,
-	{
-		let mut this = self;
-		this.type_params = type_params.into_iter().collect();
-		this
-	}
-}
-
-impl TypeVariantBuilder<state::PathAssigned> {
-	pub fn variants<F>(self, variants: VariantsBuilder<F>) -> TypeVariant {
-		TypeVariant {
-			path: self.path.expect("Path is assigned"),
-			type_params: self.type_params,
-			variants: variants.done(),
-		}
+	pub fn new<F>(variants: VariantsBuilder<F>) -> Self {
+		TypeVariant { variants: variants.done() }
 	}
 }
 

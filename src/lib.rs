@@ -135,19 +135,33 @@ pub use self::{
 pub use scale_info_derive::Metadata;
 
 /// A super trait that shall be implemented by all types implementing `TypeInfo`
-///
-/// This trait is automatically implemented for all `'static` types that also
-/// implement `TypeInfo`. Users of this library should use this trait directly
-/// instead of using the `TypeInfo` trait.
 pub trait Metadata: TypeInfo {
 	/// Returns the runtime bridge to the types compile-time type information.
 	fn meta_type() -> MetaType;
 }
 
 /// Implementors return their meta type information.
+/// todo: [AJ] consider splitting to separate traits?
 pub trait TypeInfo {
-	/// Returns the static type identifier for `Self`.
-	fn type_info() -> Type;
+	fn type_id() -> TypeId {
+		TypeId::Any(tm_std::any::TypeId::of::<T>())
+	}
+
+	fn type_def() -> TypeDef;
+
+	fn type_params() -> Vec<MetaType> {
+		Vec::new()
+	}
+
+	fn path() -> Path;
+
+	fn type_info() -> Type {
+		Type::new(
+			Self::path(),
+			Self::type_params(),
+			Self
+		)
+	}
 }
 
 impl<T> Metadata for T

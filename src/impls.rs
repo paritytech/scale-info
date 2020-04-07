@@ -16,6 +16,7 @@
 
 use crate::tm_std::*;
 use crate::*;
+use crate::form::MetaForm;
 
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
@@ -90,6 +91,15 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
 
+impl<T> HasPath for Vec<T>
+where
+	T: Metadata + 'static,
+{
+	fn path() -> Path<MetaForm> {
+		Path::prelude("Vec").expect("Vec is a valid identifier")
+	}
+}
+
 impl<T> TypeInfo for Vec<T>
 where
 	T: Metadata + 'static,
@@ -99,13 +109,21 @@ where
 	}
 }
 
+impl<T> HasPath for Option<T>
+where
+	T: Metadata + 'static,
+{
+	fn path() -> Path<MetaForm> {
+		Path::prelude("Option").expect("Vec is a valid identifier")
+	}
+}
+
 impl<T> TypeInfo for Option<T>
 where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
 		TypeVariant::new()
-			.path(Path::prelude("Option"))
 			.type_params(tuple_meta_type![T])
 			.variants(
 				Variants::with_fields()
@@ -127,8 +145,8 @@ where
 			.type_params(tuple_meta_type!(T, E)) // register type name strings
 			.variants(
 				Variants::with_fields()
-					.variant("Ok", Fields::unnamed().generic_field_of::<T>("T"))
-					.variant("Err", Fields::unnamed().generic_field_of::<E>("E")),
+					.variant("Ok", Fields::unnamed().generic_field("T"))
+					.variant("Err", Fields::unnamed().generic_field("E")),
 			)
 			.into()
 	}

@@ -30,11 +30,41 @@ mod variant;
 
 pub use self::{composite::*, fields::*, path::*, variant::*};
 
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
+#[serde(bound = "F::TypeId: Serialize")]
+pub struct Type<F: Form = MetaForm> {
+	path: Path<F>,
+	params: Vec<Type<F>>,
+	def: TypeDef<F>,
+}
+
+impl IntoCompact for Type {
+	type Output = Type<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		Type {
+			path: self.path.into_compact(registry),
+			params: registry.register_types(self.params),
+			def: self.def.into_compact(registry),
+		}
+	}
+}
+
+impl Type {
+	pub fn new(path: Path, params: Vec<Type>, def: TypeDef) -> Self {
+		Type {
+			path,
+			params,
+			def,
+		}
+	}
+}
+
 /// The possible types a SCALE encodable Rust value could have.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "camelCase")]
-pub enum Type<F: Form = MetaForm> {
+pub enum TypeDef<F: Form = MetaForm> {
 	/// A composite type (e.g. a struct or a tuple)
 	Composite(TypeComposite<F>),
 	/// A variant type (e.g. an enum)
@@ -49,8 +79,8 @@ pub enum Type<F: Form = MetaForm> {
 	Primitive(TypePrimitive),
 }
 
-impl IntoCompact for Type {
-	type Output = Type<CompactForm>;
+impl IntoCompact for TypeDef {
+	type Output = TypeDef<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
@@ -60,16 +90,6 @@ impl IntoCompact for Type {
 			Type::Array(array) => array.into_compact(registry).into(),
 			Type::Tuple(tuple) => tuple.into_compact(registry).into(),
 			Type::Primitive(primitive) => primitive.into(),
-		}
-	}
-}
-
-impl Type {
-	pub fn type_id(&self) -> TypeId {
-		match self {
-			Type::Composite(composite) =>
-			// todo: figure out registration of Generic Type - requires double
-			// registration: first generic then concrete instance!!!
 		}
 	}
 }

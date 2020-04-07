@@ -20,16 +20,14 @@ use crate::form::{Form, MetaForm};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
-pub enum TypeId<F: Form = MetaForm> {
-	/// The type of the field is concrete
-	Concrete(F::Type),
-	/// The type of the field is specified by a parameter of the parent type
-	Parameter(F::String),
-	/// The type of the field is a generic type with the given type params
-	Generic {
-		ty: F::Type, // this has to be the same for all instances of generic types
-		params: Vec<F::Type>,
-	}
+pub enum TypeId {
+	/// Any type id
+	Any(any::TypeId),
+	/// Use a type's path as its unique id
+	Path(Path),
 }
 
-// need to be able to
+// Get type id from type-def and whether it is FieldType or TypeId, and also if this
+// belongs on MetaType.
+
+// Important is that the generic instance TypeId is the same...!!!!!!!!!!

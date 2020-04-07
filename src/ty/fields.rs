@@ -22,23 +22,14 @@ use crate::{
 };
 use serde::Serialize;
 
-// Field::named_of_generic<Option<bool>>
-
-// How to identify common generic type - using Path?
-
-// How to recognise generic type
-
-// idea to enforce registering the correct  - must implement GenericTypeX
-// perhaps first do non type safe API then add that afterwards
-
-// pub trait Generic1 {
-// 	type A;
-// }
-
 #[derive(derive_more::From)]
 pub enum FieldType<F: Form = MetaForm> {
-	Generic(F::String),
+	/// The type of the field is concrete
 	Concrete(F::Type),
+	/// The type of the field is specified by a parameter of the parent type
+	Parameter(F::String),
+	/// The type of the field is a generic type with the given type params
+	Generic(GenericFieldType<F>),
 }
 
 impl IntoCompact for FieldType {
@@ -47,7 +38,24 @@ impl IntoCompact for FieldType {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
 			FieldType::Concrete(ref ty) => registry.register_type(ty).into(),
-			FieldType::Generic(ref name) => registry.register_string(name).into(),
+			FieldType::Parameter(ref name) => registry.register_string(name).into(),
+			FieldType::Generic(generic) => generic.into_compact(registry).into(),
+		}
+	}
+}
+
+pub struct GenericFieldType<F: Form = MetaForm> {
+	ty: F::Type, // this has to be the same for all instances of generic types
+	params: Vec<F::Type>,
+}
+
+impl IntoCompact for GenericFieldType {
+	type Output = GenericFieldType<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		GenericFieldType {
+			ty: registry.register_type(&self.ty),
+			params: registry.register_types(self.params),
 		}
 	}
 }
@@ -83,51 +91,21 @@ impl Field {
 	/// Creates a new field.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
-	pub fn new(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
+	pub fn new(name: Option<<MetaForm as Form>::String>, ty: FieldType) -> Self {
 		Self { name, ty }
 	}
 
-	// pub fn concrete(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
-	// 	Self::new(name, FieldType::Concrete(ty))
-	// }
-	//
-	// pub fn parameterized(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
-	// 	Self::new(name, FieldType::Parameter(ty))
-	// }
-
 	/// Creates a new named field
-	pub fn named(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
+	pub fn named(name: <MetaForm as Form>::String, ty: k) -> Self {
 		Self::new(Some(name), ty)
-	}
-
-	/// Creates a new named field.
-	///
-	/// Use this constructor if you want to instantiate from a given
-	/// compile-time type.
-	pub fn named_of<T>(name: <MetaForm as Form>::String) -> Self
-	where
-		T: Metadata + ?Sized + 'static,
-	{
-		Self::new(Some(name), MetaType::new::<T>())
 	}
 
 	/// Creates a new unnamed field.
 	///
 	/// Use this constructor if you want to instantiate an unnamed field from a
 	/// given meta type.
-	pub fn unnamed(meta_type: MetaType) -> Self {
-		Self::new(None, meta_type)
-	}
-
-	/// Creates a new unnamed field.
-	///
-	/// Use this constructor if you want to instantiate an unnamed field from a
-	/// given compile-time type.
-	pub fn unnamed_of<T>() -> Self
-	where
-		T: Metadata + ?Sized + 'static,
-	{
-		Self::unnamed(MetaType::new::<T>())
+	pub fn unnamed(ty: FieldType) -> Self {
+		Self::new(None, ty)
 	}
 }
 
