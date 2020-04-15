@@ -145,6 +145,100 @@ fn test_enum() {
 }
 
 #[test]
+fn test_generics() {
+	let mut registry = Registry::new();
+
+	#[derive(Metadata)]
+	struct GenericStruct<T> {
+		a: T,
+		b: Option<T>,
+		// c: Box<Struct<T>>,
+	}
+
+	#[derive(Metadata)]
+	struct ConcreteStruct {
+		a: GenericStruct<bool>,
+		b: Option<u32>,
+		// c: GenericStruct<Option<bool>>,
+	}
+
+	assert_json_for_type::<ConcreteStruct>(json!(
+		"strings": [
+			"json",      		//  1
+			"GenericStruct",   	//  2
+			"Option",		   	//  3
+			"Some",		   		//  4
+			"None",		   		//  5
+			"ConcreteStruct",  	//  6
+			"a",               	//  7
+			"b",               	//  8
+		],
+		"types": [
+			{ // type 1
+				"primitive": "bool",
+			},
+			{ // type 2
+				"primitive": "u32",
+			},
+			{ // type 3
+				// GENERIC PARAM 0
+			},
+			{ // type 4
+				// Option<T>
+				"variant": {
+					"path": [3],
+					"variants": [
+						{ // Some(T)
+							"name": 4,
+							"fields": [
+								{ "type": 3 }, // Generic Param 0
+							],
+						},
+						{ // None
+							"name": 5,
+						}
+					]
+				}
+			},
+			{ // type 5
+				// GenericStruct<T>
+				"composite": {
+					"path": [1, 2],
+					"fields": [
+						{ "name": 7, "type": 3 } // a: T
+						{ "name": 8, "type": 4 } // b: Option<T>
+					]
+				}
+			},
+			{ // type 6
+				// GenericStruct<bool>
+				"generic": {
+					"type": 4,		// GenericStruct<T>
+					"params": [1]	// bool
+				}
+			},
+			{ // type 7
+				// Option<u32>
+				"generic": {
+					"type": 4,		// GenericStruct<T>
+					"params": [1]	// bool
+				}
+			},
+			{ // type 8
+				// ConcreteStruct
+				"composite": {
+					"path": [1, 6],
+					"fields": [
+						{ "name": 7, "type": 5 } // a: GenericStruct<bool>
+						{ "name": 8, "type": 7 } // b: Option<u32>
+					]
+				}
+			},
+		]
+	))
+}
+
+#[test]
 fn test_registry() {
 	let mut registry = Registry::new();
 
