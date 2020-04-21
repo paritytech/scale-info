@@ -53,21 +53,37 @@ impl Field {
 	/// Creates a new field.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
-	pub fn new(name: Option<<MetaForm as Form>::String>) -> Self {
-		Self { name }
+	pub fn new(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
+		Self { name, ty }
 	}
 
 	/// Creates a new named field
-	pub fn named(name: <MetaForm as Form>::String) -> Self {
-		Self::new(Some(name))
+	pub fn named(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
+		Self::new(Some(name), ty)
+	}
+
+	/// Creates a new named field of the given type
+	pub fn named_of<T>(name: <MetaForm as Form>::String) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+	{
+		Self::named(name, MetaType::of::<T>())
 	}
 
 	/// Creates a new unnamed field.
 	///
 	/// Use this constructor if you want to instantiate an unnamed field from a
 	/// given meta type.
-	pub fn unnamed() -> Self {
-		Self::new(None)
+	pub fn unnamed(ty: MetaType) -> Self {
+		Self::new(None, ty)
+	}
+
+	/// Creates a new unnamed field of the given type
+	pub fn unnamed_of<T>() -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+	{
+		Self::unnamed(MetaType::of::<T>())
 	}
 }
 

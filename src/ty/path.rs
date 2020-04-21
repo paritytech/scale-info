@@ -192,19 +192,19 @@ mod tests {
 	fn path_from_module_path_and_ident() {
 		assert_eq!(
 			Path::new("Planet", "hello::world"),
-			Ok(Path {
+			Path {
 				segments: vec!["hello", "world", "Planet"]
-			})
+			}
 		);
 		assert_eq!(
-			Path::new("Earth", "::world"),
+			Path::from_segments(vec!["Earth", "::world"]),
 			Err(PathError::InvalidIdentifier { segment: 0 })
 		);
 	}
 
 	#[test]
 	fn path_get_namespace_and_ident() {
-		let path = Path::new("Planet", "hello::world").unwrap();
+		let path = Path::new("Planet", "hello::world");
 		assert_eq!(path.namespace(), &["hello", "world"]);
 		assert_eq!(path.ident(), Some(&"Planet"));
 	}

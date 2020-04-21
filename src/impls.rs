@@ -20,6 +20,10 @@ use crate::*;
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
 		impl TypeInfo for $t {
+			fn path() -> Path {
+				Path::voldemort()
+			}
+
 			fn type_info() -> Type {
 				Type::Primitive($ident_kind)
 			}
@@ -46,6 +50,10 @@ macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
 		$(
 			impl<T: Metadata + 'static> TypeInfo for [T; $n] {
+				fn path() -> Path {
+					Path::voldemort()
+				}
+
 				fn type_info() -> Type {
 					TypeArray::new($n, MetaType::new::<T>()).into()
 				}
@@ -64,13 +72,17 @@ impl_metadata_for_array!(
 );
 
 macro_rules! impl_metadata_for_tuple {
-    ( $($ty:ident),* ) => {
+    ( $path:tt, $($ty:ident),* ) => {
 		impl<$($ty),*> TypeInfo for ($($ty,)*)
 		where
 			$(
 				$ty: Metadata + 'static,
 			)*
 		{
+			fn path() -> Path {
+				Path::prelude($path)
+			}
+
 			fn type_info() -> Type {
 				TypeTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
@@ -78,17 +90,17 @@ macro_rules! impl_metadata_for_tuple {
     }
 }
 
-impl_metadata_for_tuple!();
-impl_metadata_for_tuple!(A);
-impl_metadata_for_tuple!(A, B);
-impl_metadata_for_tuple!(A, B, C);
-impl_metadata_for_tuple!(A, B, C, D);
-impl_metadata_for_tuple!(A, B, C, D, E);
-impl_metadata_for_tuple!(A, B, C, D, E, F);
-impl_metadata_for_tuple!(A, B, C, D, E, F, G);
-impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
-impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
-impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
+impl_metadata_for_tuple!("Tuple", );
+impl_metadata_for_tuple!("Tuple1", A);
+impl_metadata_for_tuple!("Tuple2", A, B);
+impl_metadata_for_tuple!("Tuple3", A, B, C);
+impl_metadata_for_tuple!("Tuple4", A, B, C, D);
+impl_metadata_for_tuple!("Tuple5", A, B, C, D, E);
+impl_metadata_for_tuple!("Tuple6", A, B, C, D, E, F);
+impl_metadata_for_tuple!("Tuple7", A, B, C, D, E, F, G);
+impl_metadata_for_tuple!("Tuple8", A, B, C, D, E, F, G, H);
+impl_metadata_for_tuple!("Tuple9", A, B, C, D, E, F, G, H, I);
+impl_metadata_for_tuple!("Tuple10", A, B, C, D, E, F, G, H, I, J);
 
 impl<T> TypeInfo for Vec<T>
 where
@@ -122,7 +134,7 @@ where
 	fn type_info() -> Type {
 		TypeVariant::new(Variants::with_fields()
 			.variant_unit("None")
-			.variant("Some", Fields::unnamed().parameter(type_param!(T)))
+			.variant("Some", Fields::unnamed().field(type_param!(T)))
 		)
 		.into()
 	}
@@ -143,8 +155,8 @@ where
 
 	fn type_info() -> Type {
 		TypeVariant::new(Variants::with_fields()
-			.variant("Ok", Fields::unnamed().parameter(type_param!(T)))
-			.variant("Err", Fields::unnamed().parameter(type_param!(E)))
+			.variant("Ok", Fields::unnamed().field(type_param!(T)))
+			.variant("Err", Fields::unnamed().field(type_param!(E)))
 		).into()
 	}
 }

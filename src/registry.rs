@@ -147,9 +147,9 @@ impl Registry {
 					let (inserted, symbol) = self.intern_type_id(generic_type_id);
 					if inserted {
 						let registry_type = RegistryType::Definition(TypeDef {
-							path: ty.path(),
-							params: ty.params(),
-							ty: ty.type_info(),
+							path: ty.path().into_compact(self),
+							params: self.map_into_compact(ty.params()),
+							ty: ty.type_info().into_compact(self),
 						});
 						let compact_id = registry_type.into_compact(self);
 						self.types.insert(symbol, compact_id);
@@ -158,19 +158,19 @@ impl Registry {
 				} else {
 					let (inserted, symbol) = self.intern_type_id(any_type_id);
 					if inserted {
-						let generic_type = RegistryType::Definition(TypeDef {
-							path: ty.path(),
-							params: ty.params(),
-							ty: ty.type_info(),
+						let registry_type = RegistryType::Definition(TypeDef {
+							path: ty.path().into_compact(self),
+							params: self.map_into_compact(ty.params()),
+							ty: ty.type_info().into_compact(self),
 						});
-						let compact_id = generic_type.into_compact(self);
+						let compact_id = registry_type.into_compact(self);
 						self.types.insert(symbol, compact_id);
 					}
 					let (inserted, symbol) = self.intern_type_id(any_type_id);
 					if inserted {
 						let generic_type = RegistryType::Generic(GenericType {
 							ty: symbol,
-							params: ty.params(),
+							params: ty.params().to_vec(),
 						});
 						let compact_id = generic_type.into_compact(self);
 						self.types.insert(symbol, compact_id);
@@ -178,7 +178,7 @@ impl Registry {
 					symbol
 				}
 			},
-			MetaType::Parameter(parameter) => {
+			MetaTypeKind::Parameter(_parameter) => {
 				todo!()
 			},
 		}
@@ -212,7 +212,7 @@ use crate::{
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub enum RegistryType<F: Form = MetaForm> {
+pub enum RegistryType<F: Form = CompactForm> {
 	/// The definition of the type
 	Definition(TypeDef<F>),
 	/// The type is specified by a parameter of the parent type
@@ -221,61 +221,26 @@ pub enum RegistryType<F: Form = MetaForm> {
 	Generic(GenericType<F>),
 }
 
-impl IntoCompact for RegistryType {
-	type Output = RegistryType<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		match self {
-			Type::Concrete(ref ty) => ty.into_compact(registry).into(),
-			Type::Parameter(ref param) => param.into_compact(registry).into(),
-			Type::Generic(generic) => generic.into_compact(registry).into(),
-		}
-	}
-}
-
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct TypeDef<F: Form = MetaForm> {
+pub struct TypeDef<F: Form = CompactForm> {
 	path: Path<F>,
 	params: Vec<TypeParameter<F>>, // points back to RegistryType::Parameter
 	ty: Type<F>,
 }
 
-impl IntoCompact for TypeDef {
-	type Output = TypeDef<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDef {
-			path: self.path.into_compact(registry),
-			params: self.registry.map_into_compact(params),
-			ty: self.ty.into_compact(registry),
-		}
-	}
-}
-
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 pub struct TypeParameter<F: Form = MetaForm> {
 	name: F::String,
 	// ty: F::Type,
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 pub struct GenericType<F: Form = CompactForm> {
 	ty: F::Type, // this has to be the same for all instances of generic types
 	params: Vec<F::Type>,
-}
-
-impl IntoCompact for GenericType {
-	type Output = GenericType<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		GenericType {
-			ty: registry.register_type(&self.ty),
-			params: registry.register_types(self.params),
-		}
-	}
 }
 
 impl GenericType {
