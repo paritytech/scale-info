@@ -33,7 +33,7 @@
 //! (also via lifetime tracking) are possible but current not needed.
 
 use crate::tm_std::*;
-use crate::{interner::UntrackedSymbol, meta_type::MetaType};
+use crate::{interner::UntrackedSymbol, meta_type::MetaType, TypeId};
 use serde::Serialize;
 
 /// Trait to control the internal structures of type representations.

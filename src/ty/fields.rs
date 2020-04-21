@@ -22,58 +22,20 @@ use crate::{
 };
 use serde::Serialize;
 
-#[derive(derive_more::From)]
-pub enum FieldType<F: Form = MetaForm> {
-	/// The type of the field is concrete
-	Concrete(F::Type),
-	/// The type of the field is specified by a parameter of the parent type
-	Parameter(F::String),
-	/// The type of the field is a generic type with the given type params
-	Generic(GenericFieldType<F>),
-}
-
-impl IntoCompact for FieldType {
-	type Output = FieldType<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		match self {
-			FieldType::Concrete(ref ty) => registry.register_type(ty).into(),
-			FieldType::Parameter(ref name) => registry.register_string(name).into(),
-			FieldType::Generic(generic) => generic.into_compact(registry).into(),
-		}
-	}
-}
-
-pub struct GenericFieldType<F: Form = MetaForm> {
-	ty: F::Type, // this has to be the same for all instances of generic types
-	params: Vec<F::Type>,
-}
-
-impl IntoCompact for GenericFieldType {
-	type Output = GenericFieldType<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		GenericFieldType {
-			ty: registry.register_type(&self.ty),
-			params: registry.register_types(self.params),
-		}
-	}
-}
-
 /// A field of a struct like data type.
 ///
 /// Name is optional so it can represent both named and unnamed fields.
 ///
 /// This can be a named field of a struct type or a struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct Field<F: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none")]
 	name: Option<F::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	ty: FieldType<F>,
+	ty: F::Type,
 }
 
 impl IntoCompact for Field {
@@ -82,7 +44,7 @@ impl IntoCompact for Field {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Field {
 			name: self.name.map(|name| registry.register_string(name)),
-			ty: self.ty.into_compact(registry),
+			ty: registry.register_type(&self.ty)
 		}
 	}
 }
@@ -91,21 +53,21 @@ impl Field {
 	/// Creates a new field.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
-	pub fn new(name: Option<<MetaForm as Form>::String>, ty: FieldType) -> Self {
-		Self { name, ty }
+	pub fn new(name: Option<<MetaForm as Form>::String>) -> Self {
+		Self { name }
 	}
 
 	/// Creates a new named field
-	pub fn named(name: <MetaForm as Form>::String, ty: k) -> Self {
-		Self::new(Some(name), ty)
+	pub fn named(name: <MetaForm as Form>::String) -> Self {
+		Self::new(Some(name))
 	}
 
 	/// Creates a new unnamed field.
 	///
 	/// Use this constructor if you want to instantiate an unnamed field from a
 	/// given meta type.
-	pub fn unnamed(ty: FieldType) -> Self {
-		Self::new(None, ty)
+	pub fn unnamed() -> Self {
+		Self::new(None)
 	}
 }
 

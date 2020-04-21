@@ -16,7 +16,6 @@
 
 use crate::tm_std::*;
 use crate::*;
-use crate::form::MetaForm;
 
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
@@ -91,30 +90,20 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
 
-impl<T> HasPath for Vec<T>
-where
-	T: Metadata + 'static,
-{
-	fn path() -> Path<MetaForm> {
-		Path::prelude("Vec").expect("Vec is a valid identifier")
-	}
-}
-
 impl<T> TypeInfo for Vec<T>
 where
 	T: Metadata + 'static,
 {
+	fn path() -> Path {
+		Path::prelude("Vec")
+	}
+
+	fn params() -> Vec<MetaType> {
+		tuple_meta_type!(T)
+	}
+
 	fn type_info() -> Type {
 		<[T] as TypeInfo>::type_info()
-	}
-}
-
-impl<T> HasPath for Option<T>
-where
-	T: Metadata + 'static,
-{
-	fn path() -> Path<MetaForm> {
-		Path::prelude("Option").expect("Vec is a valid identifier")
 	}
 }
 
@@ -122,15 +111,20 @@ impl<T> TypeInfo for Option<T>
 where
 	T: Metadata + 'static,
 {
+	fn path() -> Path {
+		Path::prelude("Option")
+	}
+
+	fn params() -> Vec<MetaType> {
+		tuple_meta_type!(T)
+	}
+
 	fn type_info() -> Type {
-		TypeVariant::new()
-			.type_params(tuple_meta_type![T])
-			.variants(
-				Variants::with_fields()
-					.variant_unit("None")
-					.variant("Some", Fields::unnamed().field_of::<T>()),
-			)
-			.into()
+		TypeVariant::new(Variants::with_fields()
+			.variant_unit("None")
+			.variant("Some", Fields::unnamed().parameter(type_param!(T)))
+		)
+		.into()
 	}
 }
 
@@ -139,16 +133,19 @@ where
 	T: Metadata + 'static,
 	E: Metadata + 'static,
 {
+	fn path() -> Path {
+		Path::prelude("Result")
+	}
+
+	fn params() -> Vec<MetaType> {
+		tuple_meta_type!(T, E)
+	}
+
 	fn type_info() -> Type {
-		TypeVariant::new()
-			.path(Path::prelude("Result"))
-			.type_params(tuple_meta_type!(T, E)) // register type name strings
-			.variants(
-				Variants::with_fields()
-					.variant("Ok", Fields::unnamed().generic_field("T"))
-					.variant("Err", Fields::unnamed().generic_field("E")),
-			)
-			.into()
+		TypeVariant::new(Variants::with_fields()
+			.variant("Ok", Fields::unnamed().parameter(type_param!(T)))
+			.variant("Err", Fields::unnamed().parameter(type_param!(E)))
+		).into()
 	}
 }
 
@@ -157,12 +154,16 @@ where
 	K: Metadata + 'static,
 	V: Metadata + 'static,
 {
+	fn path() -> Path {
+		Path::prelude("BTreeMap")
+	}
+
+	fn params() -> Vec<MetaType> {
+		tuple_meta_type!(K, V)
+	}
+
 	fn type_info() -> Type {
-		TypeComposite::new()
-			.path(Path::prelude("BTreeMap"))
-			.type_params(tuple_meta_type![(K, V)])
-			.fields(Fields::unnamed().field_of::<[(K, V)]>())
-			.into()
+		TypeComposite::new(Fields::unnamed().field_of::<[(K, V)]>()).into()
 	}
 }
 
@@ -170,6 +171,10 @@ impl<T> TypeInfo for Box<T>
 where
 	T: TypeInfo + ?Sized,
 {
+	fn path() -> Path {
+		T::path()
+	}
+
 	fn type_info() -> Type {
 		T::type_info()
 	}
@@ -179,6 +184,10 @@ impl<T> TypeInfo for &T
 where
 	T: TypeInfo + ?Sized,
 {
+	fn path() -> Path {
+		T::path()
+	}
+
 	fn type_info() -> Type {
 		T::type_info()
 	}
@@ -188,6 +197,10 @@ impl<T> TypeInfo for &mut T
 where
 	T: TypeInfo + ?Sized,
 {
+	fn path() -> Path {
+		T::path()
+	}
+
 	fn type_info() -> Type {
 		T::type_info()
 	}
@@ -197,18 +210,34 @@ impl<T> TypeInfo for [T]
 where
 	T: Metadata + 'static,
 {
+	fn path() -> Path {
+		Path::prelude("Sequence")
+	}
+
+	fn params() -> Vec<MetaType> {
+		tuple_meta_type!(T)
+	}
+
 	fn type_info() -> Type {
 		TypeSequence::of::<T>().into()
 	}
 }
 
 impl TypeInfo for str {
+	fn path() -> Path {
+		Path::voldemort()
+	}
+
 	fn type_info() -> Type {
 		TypePrimitive::Str.into()
 	}
 }
 
 impl TypeInfo for String {
+	fn path() -> Path {
+		Path::voldemort()
+	}
+
 	fn type_info() -> Type {
 		TypePrimitive::Str.into()
 	}
@@ -218,11 +247,15 @@ impl<T> TypeInfo for PhantomData<T>
 where
 	T: Metadata + ?Sized,
 {
+	fn path() -> Path {
+		Path::prelude("PhantomData")
+	}
+
+	fn params() -> Vec<MetaType> {
+		tuple_meta_type!(T)
+	}
+
 	fn type_info() -> Type {
-		TypeComposite::new()
-			.path(Path::prelude("PhantomData"))
-			.type_params(vec![T::meta_type()])
-			.unit()
-			.into()
+		TypeComposite::new(Fields::unit()).into()
 	}
 }

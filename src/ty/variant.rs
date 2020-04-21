@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	state, Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathError, Registry,
+	Field, Fields, FieldsBuilder, IntoCompact, NoFields, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -62,7 +62,7 @@ use serde::Serialize;
 /// enum JustAMarker {}
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeVariant<F: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty")]
@@ -101,7 +101,7 @@ impl TypeVariant {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "F::Type: Serialize")]
 pub struct Variant<F: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: F::String,

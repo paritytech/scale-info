@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{form::MetaForm, Metadata, Type, TypeDef, TypeInfo, HasPath, TypeId};
+use crate::{form::MetaForm, Metadata, Type, TypeInfo, Path};
 
 /// A metatype abstraction.
 ///
@@ -24,12 +24,21 @@ use crate::{form::MetaForm, Metadata, Type, TypeDef, TypeInfo, HasPath, TypeId};
 ///
 /// This needs a conversion to another representation of types
 /// in order to be serializable.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct MetaType {
+	kind: MetaTypeKind,
+	path: Path,
+	params: Vec<MetaType>,
 	/// Function pointer to get type information.
 	fn_type_info: fn() -> Type<MetaForm>,
 	/// The type identifier
-	type_id: TypeId,
+	type_id: any::TypeId,
+}
+
+#[derive(Clone, Copy)]
+pub enum MetaTypeKind {
+	Concrete,
+	Parameter(&'static str),
 }
 
 impl PartialEq for MetaType {
@@ -73,8 +82,24 @@ impl MetaType {
 		T: Metadata + ?Sized + 'static,
 	{
 		Self {
+			kind: MetaTypeKind::Concrete,
 			fn_type_info: <T as TypeInfo>::type_info,
-			type_id: <T as TypeInfo>::type_id(),
+			type_id: any::TypeId::of::<T>(),
+			path: <T as TypeInfo>::path(),
+			params: <T as TypeInfo>::params(),
+		}
+	}
+
+	pub fn parameter<T>(name: &'static str) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+	{
+		Self {
+			kind: MetaTypeKind::Parameter(name),
+			fn_type_info: <T as TypeInfo>::type_info,
+			type_id: any::TypeId::of::<T>(),
+			path: <T as TypeInfo>::path(),
+			params: <T as TypeInfo>::params(),
 		}
 	}
 
@@ -85,13 +110,29 @@ impl MetaType {
 		Self::new::<T>()
 	}
 
+	pub fn kind(&self) -> &MetaTypeKind {
+		&self.kind
+	}
+
+	pub fn params(&self) -> &[MetaType] {
+		&self.params
+	}
+
+	pub fn is_generic(&self) -> bool {
+		self.params.len() > 0
+	}
+
+	pub fn path(&self) -> Path {
+		self.path.clone()
+	}
+
 	/// Returns the meta type information.
 	pub fn type_info(&self) -> Type<MetaForm> {
 		(self.fn_type_info)()
 	}
 
 	/// Returns the type identifier provided by `core::any`.
-	pub fn type_id(&self) -> TypeId {
-		self.type_id.clone()
+	pub fn type_id(&self) -> any::TypeId {
+		self.type_id
 	}
 }

@@ -62,30 +62,32 @@ impl IntoCompact for Path {
 }
 
 impl Path {
-	/// Start building a Path with PathBuilder
-	pub fn new(ident: <MetaForm as Form>::String, module_path: <MetaForm as Form>::String) -> Result<Path, PathError> {
+	/// Create a new Path
+	///
+	/// # Panics
+	///
+	/// - If the type identifier or module path contain invalid Rust identifiers
+	pub fn new(ident: <MetaForm as Form>::String, module_path: <MetaForm as Form>::String) -> Path {
 		let mut segments = module_path.split("::").collect::<Vec<_>>();
 		segments.push(ident);
 		Self::from_segments(segments)
+			.expect("All path segments should be valid Rust identifiers")
 	}
 
 	/// Create an empty path for types which shall not be named
-	///
-	/// # Note
-	///
-	/// Returns an always `Ok` Result to match the other constructor signatures
 	#[allow(unused)]
-	pub(crate) fn voldemort() -> Result<Path, PathError> {
-		Ok(Path { segments: Vec::new() })
+	pub(crate) fn voldemort() -> Path {
+		Path { segments: Vec::new() }
 	}
 
 	/// Crate a Path for types in the Prelude namespace
 	///
-	/// # Errors
+	/// # Panics
 	///
-	/// - If the supplied ident is an invalid Rust identifier
-	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Result<Path, PathError> {
+	/// - If the supplied ident is not a valid Rust identifier
+	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Path {
 		Self::from_segments(vec![ident])
+			.expect(&format!("{} is not a valid Rust identifier", ident))
 	}
 
 	/// Create a Path from the given segments

@@ -16,16 +16,22 @@
 
 use crate::tm_std::*;
 use crate::Path;
-use crate::form::{Form, MetaForm};
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub enum TypeId {
 	/// Any type id
 	Any(any::TypeId),
 	/// Use a type's path as its unique id
 	Path(Path),
+	/// Number of elements in a tuple
+	Tuple(u8),
+	// Generic(GenericTypeId),
 }
+
+// pub enum GenericTypeId {
+// 	Parameterized(TypeId),
+// 	Instance(TypeId, Vec<TypeId>)
+// }
 
 // Get type id from type-def and whether it is FieldType or TypeId, and also if this
 // belongs on MetaType.

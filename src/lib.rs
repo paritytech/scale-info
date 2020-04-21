@@ -110,6 +110,15 @@ macro_rules! tuple_meta_type {
 	}
 }
 
+#[macro_export]
+macro_rules! type_param {
+	( $ty:ty ) => {
+		{
+			$crate::MetaType::parameter::<$ty>(stringify!($ty))
+		}
+	}
+}
+
 mod tm_std;
 
 pub mod form;
@@ -126,7 +135,7 @@ mod tests;
 
 pub use self::{
 	meta_type::MetaType,
-	registry::{IntoCompact, Registry},
+	registry::{IntoCompact, Registry, TypeParameter},
 	ty::*,
 	type_id::*,
 };
@@ -143,25 +152,13 @@ pub trait Metadata: TypeInfo {
 /// Implementors return their meta type information.
 /// todo: [AJ] consider splitting to separate traits?
 pub trait TypeInfo {
-	fn type_id() -> TypeId {
-		TypeId::Any(tm_std::any::TypeId::of::<T>())
-	}
+	fn path() -> Path;
 
-	fn type_def() -> TypeDef;
-
-	fn type_params() -> Vec<MetaType> {
+	fn params() -> Vec<TypeParameter> {
 		Vec::new()
 	}
 
-	fn path() -> Path;
-
-	fn type_info() -> Type {
-		Type::new(
-			Self::path(),
-			Self::type_params(),
-			Self
-		)
-	}
+	fn type_info() -> Type;
 }
 
 impl<T> Metadata for T

@@ -150,10 +150,17 @@ fn test_generics() {
 
 	#[derive(Metadata)]
 	struct GenericStruct<T> {
-		a: T,
-		b: Option<T>,
-		// c: Box<Struct<T>>,
+		a: T,				// Should look up in the set of all type params for a matching parameter (use any::TypeId?) Field::of_parameter::<T>()
+		b: Option<T>,		// Should point to parameterized type: Field::of_parameterized::<Option<T>>(parameters) ? TypeId::Path
+		c: Option<bool>, 	// Should point to non parameterized type Field::of::<Option<bool>>(): TypeId::Any
+		d: Vec<Option<T>>,
+		// e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
 	}
+
+	// The set of type parameters here is [T]
+	// The challenge is to make sure the params line up e.g. if the set is [T,U]
+	// make sure that the params get substituted in the right places
+	// Should be able to do this with concrete `any::TypeId`
 
 	#[derive(Metadata)]
 	struct ConcreteStruct {
@@ -166,12 +173,15 @@ fn test_generics() {
 		"strings": [
 			"json",      		//  1
 			"GenericStruct",   	//  2
-			"Option",		   	//  3
-			"Some",		   		//  4
-			"None",		   		//  5
-			"ConcreteStruct",  	//  6
-			"a",               	//  7
-			"b",               	//  8
+			"T",				//  3
+			"Option",		   	//  4
+			"Some",		   		//  5
+			"None",		   		//  6
+			"Vec",				//  7
+			"ConcreteStruct",  	//  8
+			"a",               	//  9
+			"b",               	//  10
+			"c",               	//  11
 		],
 		"types": [
 			{ // type 1
@@ -181,56 +191,79 @@ fn test_generics() {
 				"primitive": "u32",
 			},
 			{ // type 3
-				// GENERIC PARAM 0
+				// T
+				"parameter": 3,
 			},
 			{ // type 4
 				// Option<T>
-				"variant": {
-					"path": [3],
-					"variants": [
-						{ // Some(T)
-							"name": 4,
-							"fields": [
-								{ "type": 3 }, // Generic Param 0
-							],
-						},
-						{ // None
-							"name": 5,
+				"parameterized": {
+					"parameters": [3], // Generic Param 0
+					"def": {
+						"variant": {
+							"path": [3],
+							"variants": [
+								{ // Some(T)
+									"name": 4,
+									"fields": [
+										{ "type": 3 }, // Generic Param 0
+									],
+								},
+								{ // None
+									"name": 5,
+								}
+							]
 						}
-					]
+					}
 				}
 			},
 			{ // type 5
 				// GenericStruct<T>
-				"composite": {
-					"path": [1, 2],
-					"fields": [
-						{ "name": 7, "type": 3 } // a: T
-						{ "name": 8, "type": 4 } // b: Option<T>
-					]
+				"parameterized": {
+					"parameters": [3], // Generic Param 0
+					"def": {
+						"composite": {
+							"path": [1, 2],
+							"fields": [
+								{ "name": 7, "type": 3 } // a: T
+								{ "name": 8, "type": 4 } // b: Option<T>
+							]
+						}
+					}
 				}
 			},
 			{ // type 6
 				// GenericStruct<bool>
 				"generic": {
-					"type": 4,		// GenericStruct<T>
+					"type": 5,		// GenericStruct<T>
 					"params": [1]	// bool
 				}
 			},
 			{ // type 7
 				// Option<u32>
 				"generic": {
-					"type": 4,		// GenericStruct<T>
-					"params": [1]	// bool
+					"type": 4,		// Option<T>
+					"params": [2]	// u32
 				}
 			},
 			{ // type 8
+				// Vec<T>
+				// todo
+			},
+			{ // type 9
+				// Vec<Option<T>>
+				"generic": {
+					"type": 8,		// Vec<T>
+					"params": [3]	// T
+				}
+			},
+			{ // type 10
 				// ConcreteStruct
 				"composite": {
 					"path": [1, 6],
 					"fields": [
 						{ "name": 7, "type": 5 } // a: GenericStruct<bool>
 						{ "name": 8, "type": 7 } // b: Option<u32>
+						{ "name": 9, "type": 9 } // c: Vec<Option<T>>
 					]
 				}
 			},
