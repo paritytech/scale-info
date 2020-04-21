@@ -166,7 +166,7 @@ fn test_generics() {
 	struct ConcreteStruct {
 		a: GenericStruct<bool>,
 		b: Option<u32>,
-		// c: GenericStruct<Option<bool>>,
+		c: GenericStruct<Option<bool>>,
 	}
 
 	assert_json_for_type::<ConcreteStruct>(json!(
@@ -192,20 +192,23 @@ fn test_generics() {
 			},
 			{ // type 3
 				// T
-				"parameter": 3,
+				"parameter": {
+					"path": [4], 	// Option
+					"name": 3, 		// T
+				}
 			},
 			{ // type 4
 				// Option<T>
-				"parameterized": {
-					"parameters": [3], // Generic Param 0
-					"def": {
+				"definition": {
+					"path": [4], 	// Option
+					"params": [3], 	// Option::T
+					"ty": {
 						"variant": {
-							"path": [3],
 							"variants": [
 								{ // Some(T)
 									"name": 4,
 									"fields": [
-										{ "type": 3 }, // Generic Param 0
+										{ "type": 3 }, // Option::T
 									],
 								},
 								{ // None
@@ -217,15 +220,29 @@ fn test_generics() {
 				}
 			},
 			{ // type 5
+				// GenericStruct::T
+				"parameter": {
+					"path": [2], 	// GenericStruct
+					"name": 3, 		// T
+				}
+			},
+			{ // type 6
+				// Option<GenericStruct::T>
+				"generic": {
+					"type": 4,		// Option<T>
+					"params": [5]	// GenericStruct::T
+				}
+			},
+			{ // type 5
 				// GenericStruct<T>
-				"parameterized": {
-					"parameters": [3], // Generic Param 0
-					"def": {
+				"definition": {
+					"path": [1, 2],
+					"params": [5], // GenericStruct::T
+					"ty": {
 						"composite": {
-							"path": [1, 2],
 							"fields": [
-								{ "name": 7, "type": 3 } // a: T
-								{ "name": 8, "type": 4 } // b: Option<T>
+								{ "name": 7, "type": 3 } // a: GenericStruct::T
+								{ "name": 8, "type": 6 } // b: Option<GenericStruct::T>
 							]
 						}
 					}
@@ -257,14 +274,34 @@ fn test_generics() {
 				}
 			},
 			{ // type 10
+				// Option<bool>
+				"generic": {
+					"type": 4,		// Option<T>
+					"params": [1]	// bool
+				}
+			},
+			{ // type 11
+				// GenericStruct<Option<bool>>
+				"generic": {
+					"type": 5,		// GenericStruct<T>
+					"params": [1]	// Option<bool>
+				}
+			},
+			{ // type 12
 				// ConcreteStruct
-				"composite": {
-					"path": [1, 6],
-					"fields": [
-						{ "name": 7, "type": 5 } // a: GenericStruct<bool>
-						{ "name": 8, "type": 7 } // b: Option<u32>
-						{ "name": 9, "type": 9 } // c: Vec<Option<T>>
-					]
+				"definition": {
+					"path": [1, 2],
+					"ty": {
+						"composite": {
+							"path": [1, 6],
+							"fields": [
+								{ "name": 7, "type": 5 } // a: GenericStruct<bool>
+								{ "name": 8, "type": 7 } // b: Option<u32>
+								{ "name": 9, "type": 9 } // c: Vec<Option<T>>
+								{ "name": 10, "type": 10 } // d: GenericStruct<Option<bool>>,
+							]
+						}
+					}
 				}
 			},
 		]
