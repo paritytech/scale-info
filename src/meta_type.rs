@@ -28,7 +28,7 @@ use crate::{form::MetaForm, Metadata, Type, TypeInfo, Path};
 pub struct MetaType {
 	kind: MetaTypeKind,
 	path: Path,
-	params: Vec<MetaType>,
+	params: Vec<MetaTypeParameter>,
 	/// Function pointer to get type information.
 	fn_type_info: fn() -> Type<MetaForm>,
 	/// The type identifier
@@ -38,7 +38,8 @@ pub struct MetaType {
 #[derive(Clone, Copy)]
 pub enum MetaTypeKind {
 	Concrete,
-	Parameter(&'static str),
+	Generic,
+	Parameter(&'static str, MetaType),
 }
 
 impl PartialEq for MetaType {
@@ -90,17 +91,24 @@ impl MetaType {
 		}
 	}
 
-	pub fn parameter<T>(name: &'static str) -> Self
+	pub fn parameter(name: &'static str, ty: MetaType) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
 		Self {
-			kind: MetaTypeKind::Parameter(name),
-			fn_type_info: <T as TypeInfo>::type_info,
-			type_id: any::TypeId::of::<T>(),
-			path: <T as TypeInfo>::path(),
-			params: <T as TypeInfo>::params(),
+			kind: MetaTypeKind::Parameter(name, ty),
+			fn_type_info: ty.fn_type_info.clone(),
+			type_id: ty.type_id.clone(),
+			path: ty.path.clone(),
+			params: ty.params.clone(),
 		}
+	}
+
+	pub fn parameter_of<T>(name: &'static str) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+	{
+		Self::parameter(name, Self::of::<T>())
 	}
 
 	pub fn of<T>() -> Self
@@ -114,7 +122,7 @@ impl MetaType {
 		&self.kind
 	}
 
-	pub fn params(&self) -> &[MetaType] {
+	pub fn params(&self) -> &[MetaTypeParameter] {
 		&self.params
 	}
 
@@ -134,5 +142,22 @@ impl MetaType {
 	/// Returns the type identifier provided by `core::any`.
 	pub fn type_id(&self) -> any::TypeId {
 		self.type_id
+	}
+}
+
+pub struct MetaTypeParameter {
+	pub name: &'static str,
+	pub ty: MetaType,
+}
+
+impl MetaTypeParameter {
+	pub fn new<T>(name: &'static str) -> Self
+	where
+		T: TypeInfo + 'static,
+	{
+		Self {
+			name,
+			ty: MetaType::of::<T>(),
+		}
 	}
 }

@@ -145,15 +145,50 @@ fn test_enum() {
 }
 
 #[test]
+fn test_associated_types() {
+	trait A {
+		type B;
+	}
+
+	#[derive(Metadata)]
+	struct C<T>
+	where
+		T: A
+	{
+		a: T::B // idea: could infer assoc types from usage
+	}
+
+	struct D {}
+
+	impl A for D {
+		type B = bool;
+	}
+
+	let mut registry = Registry::new();
+	registry.register_type(&C::<D>::meta_type());
+
+	let expected_json = json!({
+		"strings": [
+			"json",      	   //  1
+			"A",      		//  2
+
+		],
+		"types": [
+		]
+	});
+}
+
+#[test]
 fn test_generics() {
 	let mut registry = Registry::new();
 
 	#[derive(Metadata)]
 	struct GenericStruct<T> {
 		a: T,				// Should look up in the set of all type params for a matching parameter (use any::TypeId?) Field::of_parameter::<T>()
-		b: Option<T>,		// Should point to parameterized type: Field::of_parameterized::<Option<T>>(parameters) ? TypeId::Path
+		b: Option<T>,		// Field::of_parameterized::<Option<T>>(parameters!(param(T));
 		c: Option<bool>, 	// Should point to non parameterized type Field::of::<Option<bool>>(): TypeId::Any
-		d: Vec<Option<T>>,
+		// d: (Option<T>, Option<bool>), // Field::of_parameterized::<Option<T>>(parameters!(param(T), concrete(bool)) // left to right params (scope stack)
+		// d: Option<GenericStruct<T, bool>>,
 		// e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
 	}
 
@@ -161,6 +196,9 @@ fn test_generics() {
 	// The challenge is to make sure the params line up e.g. if the set is [T,U]
 	// make sure that the params get substituted in the right places
 	// Should be able to do this with concrete `any::TypeId`
+
+	// Solution to the parameter matching, specify which types are parameterized, and which concrete
+	// e.g.
 
 	#[derive(Metadata)]
 	struct ConcreteStruct {
@@ -177,11 +215,10 @@ fn test_generics() {
 			"Option",		   	//  4
 			"Some",		   		//  5
 			"None",		   		//  6
-			"Vec",				//  7
-			"ConcreteStruct",  	//  8
-			"a",               	//  9
-			"b",               	//  10
-			"c",               	//  11
+			"ConcreteStruct",  	//  7
+			"a",               	//  8
+			"b",               	//  9
+			"c",               	//  10
 		],
 		"types": [
 			{ // type 1
@@ -222,7 +259,7 @@ fn test_generics() {
 			{ // type 5
 				// GenericStruct::T
 				"parameter": {
-					"path": [2], 	// GenericStruct
+					"type": [2], 	// GenericStruct
 					"name": 3, 		// T
 				}
 			},
@@ -241,8 +278,10 @@ fn test_generics() {
 					"ty": {
 						"composite": {
 							"fields": [
-								{ "name": 7, "type": 3 } // a: GenericStruct::T
-								{ "name": 8, "type": 6 } // b: Option<GenericStruct::T>
+								{ "name": 7, "type": 3 } 	// a: GenericStruct::T
+								{ "name": 8, "type": 6 } 	// b: Option<GenericStruct::T>
+								{ "name": 9, "type": 10 } 	// c: Option<bool>
+								{ "name": 10, "type": 9 } 	// d: Option<GenericStruct<T>>,
 							]
 						}
 					}
@@ -263,14 +302,17 @@ fn test_generics() {
 				}
 			},
 			{ // type 8
-				// Vec<T>
-				// todo
+				// GenericStruct<GenericStruct::T>
+				"generic": {
+					"type": 5,		// GenericStruct<T>
+					"params": [5]	// GenericStruct::T
+				}
 			},
 			{ // type 9
-				// Vec<Option<T>>
+				// Option<GenericStruct<GenericStruct::T>>
 				"generic": {
-					"type": 8,		// Vec<T>
-					"params": [3]	// T
+					"type": 4,		// Option<T>
+					"params": [8]	// GenericStruct<GenericStruct::T>
 				}
 			},
 			{ // type 10
@@ -281,13 +323,6 @@ fn test_generics() {
 				}
 			},
 			{ // type 11
-				// GenericStruct<Option<bool>>
-				"generic": {
-					"type": 5,		// GenericStruct<T>
-					"params": [1]	// Option<bool>
-				}
-			},
-			{ // type 12
 				// ConcreteStruct
 				"definition": {
 					"path": [1, 2],
@@ -295,10 +330,9 @@ fn test_generics() {
 						"composite": {
 							"path": [1, 6],
 							"fields": [
-								{ "name": 7, "type": 5 } // a: GenericStruct<bool>
-								{ "name": 8, "type": 7 } // b: Option<u32>
-								{ "name": 9, "type": 9 } // c: Vec<Option<T>>
-								{ "name": 10, "type": 10 } // d: GenericStruct<Option<bool>>,
+								{ "name": 8, "type": 5 } // a: GenericStruct<bool>
+								{ "name": 9, "type": 7 } // b: Option<u32>
+								{ "name": 10, "type": 9 } // c: Vec<Option<T>>
 							]
 						}
 					}

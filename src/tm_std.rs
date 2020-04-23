@@ -18,10 +18,10 @@
 
 mod core {
 	// #[cfg(not(feature = "std"))]
-	pub use core::*;
+	// pub use core::*;
 
 	// #[cfg(feature = "std")]
-	// pub use std::*;
+	pub use std::*;
 }
 
 #[rustfmt::skip]
@@ -45,10 +45,10 @@ pub use self::core::{
 };
 
 mod alloc {
-	#[cfg(not(feature = "std"))]
-	pub use ::alloc::*;
+	// #[cfg(not(feature = "std"))]
+	// pub use ::alloc::*;
 
-	#[cfg(feature = "std")]
+	// #[cfg(feature = "std")]
 	pub use std::*;
 }
 

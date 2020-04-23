@@ -23,17 +23,11 @@ pub enum TypeId {
 	Any(any::TypeId),
 	/// Use a type's path as its unique id
 	Path(Path),
-	/// Number of elements in a tuple
-	Tuple(u8),
-	// Generic(GenericTypeId),
+	/// Generic type parameter Path + Name
+	Parameter(TypeParameterId),
 }
 
-// pub enum GenericTypeId {
-// 	Parameterized(TypeId),
-// 	Instance(TypeId, Vec<TypeId>)
-// }
-
-// Get type id from type-def and whether it is FieldType or TypeId, and also if this
-// belongs on MetaType.
-
-// Important is that the generic instance TypeId is the same...!!!!!!!!!!
+pub enum TypeParameterId {
+	path: Path,
+	name: &'static str,
+}

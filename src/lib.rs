@@ -112,9 +112,9 @@ macro_rules! tuple_meta_type {
 
 #[macro_export]
 macro_rules! type_param {
-	( $ty:ty ) => {
+	( $parent:ty, $ty:ty ) => {
 		{
-			$crate::MetaType::parameter::<$ty>(stringify!($ty))
+			$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($ty))
 		}
 	}
 }
@@ -135,7 +135,7 @@ mod utils;
 // mod tests;
 
 pub use self::{
-	meta_type::MetaType,
+	meta_type::{MetaType, MetaTypeParameter},
 	registry::{IntoCompact, Registry, TypeParameter},
 	ty::*,
 	type_id::*,
@@ -155,7 +155,7 @@ pub trait Metadata: TypeInfo {
 pub trait TypeInfo {
 	fn path() -> Path;
 
-	fn params() -> Vec<MetaType> {
+	fn params() -> Vec<MetaTypeParameter> {
 		Vec::new()
 	}
 
