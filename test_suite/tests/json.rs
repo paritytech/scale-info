@@ -190,6 +190,10 @@ fn test_generics() {
 		// d: (Option<T>, Option<bool>), // Field::of_parameterized::<Option<T>>(parameters!(param(T), concrete(bool)) // left to right params (scope stack)
 		// d: Option<GenericStruct<T, bool>>,
 		// e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
+		// f: Result<
+		// 	GenericStruct<T, bool>, // same type as nested in field d
+		//  ()
+		// >
 	}
 
 	// The set of type parameters here is [T]
@@ -222,10 +226,18 @@ fn test_generics() {
 		],
 		"types": [
 			{ // type 1
-				"primitive": "bool",
+				"definition": {
+					"ty": {
+						"primitive": "bool"
+					}
+				}
 			},
 			{ // type 2
-				"primitive": "u32",
+				"definition": {
+					"ty": {
+						"primitive": "u32"
+					}
+				}
 			},
 			{ // type 3
 				// T

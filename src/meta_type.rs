@@ -38,7 +38,7 @@ pub struct MetaType {
 #[derive(Clone, Copy)]
 pub enum MetaTypeKind {
 	Concrete,
-	Generic,
+	Parameterized(Vec<MetaType>),
 	Parameter(&'static str, MetaType),
 }
 

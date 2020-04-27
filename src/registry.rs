@@ -32,7 +32,7 @@
 //! symbols and thus also profit from string deduplication.
 
 use crate::tm_std::*;
-use crate::{form::CompactForm, interner::{Interner, UntrackedSymbol}, meta_type::MetaType, Type, TypeId};
+use crate::{form::CompactForm, interner::{Interner, UntrackedSymbol}, meta_type::MetaType, Type, TypeId, GenericTypeId};
 use crate::meta_type::MetaTypeKind;
 use derive_more::From;
 use serde::Serialize;
@@ -72,7 +72,7 @@ pub struct Registry {
 	type_table: Interner<TypeId>,
 	/// Scope stack for resolving nested parameterized types
 	#[serde(skip)]
-	param_stack: Vec<UntrackedSymbol<TypeId>>,
+	param_stack: Vec<MetaType>,
 	/// The database where registered types actually reside.
 	///
 	/// This is going to be serialized upon serialization.
@@ -158,32 +158,8 @@ impl Registry {
 		let any_type_id = TypeId::Any(ty.type_id());
 		let generic_type_id = TypeId::Path(ty.path());
 
-
 		match ty.kind() {
-			MetaTypeKind::Generic => {
-				// from MetaType::parameterized
-				// todo: [AJ] need to resolve the id of the parameterized instance...
-
-				let generic_params = self.register_types(ty.params().iter().map(|tp| {
-					let parent = ty.clone();
-					MetaType::parameter(tp.name, parent);
-				}));
-
-				unimplemented!()
-				// let (inserted, symbol) = self.intern_type_id(generic_type_id);
-				// if inserted {
-				// 	let registry_type = RegistryType::Definition(TypeDef {
-				// 		path: ty.path().into_compact(self),
-				// 		params: self.map_into_compact(ty.params()),
-				// 		ty: ty.type_info().into_compact(self),
-				// 	});
-				// 	let compact_id = registry_type.into_compact(self);
-				// 	self.types.insert(symbol, compact_id);
-				// }
-				// symbol
-			}
 			MetaTypeKind::Concrete => {
-
 				// todo: we know that we have fully concrete TPs here, so we set the params at the
 				// top level (using any::TypeId) and then they are available as we walk down the tree
 				// of types, where we can match a parameter type to this generic type parameter
@@ -194,11 +170,6 @@ impl Registry {
 						let parent = ty.clone();
 						MetaType::parameter(tp.name, parent);
 					}));
-
-					// PARAM STACK
-					// let params = self.register_types(ty.params());
-					// // push the type parameters onto the parameter stack
-					// self.param_stack.extend_from_slice(&params);
 
 					// register the generic definition
 					let generic_symbol = self.intern_type(generic_type_id, || {
@@ -231,17 +202,55 @@ impl Registry {
 					});
 				}
 			},
+			MetaTypeKind::Parameterized(params) => {
+				// from MetaType::parameterized
+
+				// it's NOT recursive because although a type can be a param to itself
+				// e.g. GenericStruct<GenericStruct<T>> the type is still GenericStruct<T>
+
+				// register the generic definition
+				let generic_symbol = self.intern_type(generic_type_id, || {
+					RegistryType::Definition(TypeDef {
+						path: ty.path().into_compact(self),
+						params: generic_params,
+						ty: ty.type_info().into_compact(self),
+					})
+				});
+
+				self.param_stack.extend_from_slice(params);
+
+				// substitute parameterized types from stack
+				// it's okay to recurse here
+				let mut param_stack = self.param_stack.iter().peekable();
+				let params = ty.params().iter().map(|p| {
+					if param_stack.peek() = Some(&&p.ty) {
+						let param = self.param_stack.pop().expect("Stack is not empty");
+						self.register_type(&param)
+					} else {
+						self.register_type(&p.ty)
+					}
+				}).collect::<Vec<_>>();
+
+				let type_id = TypeId::Generic(GenericTypeId {
+					path: ty.path().into_compact(self),
+					params: params.clone(),
+				});
+
+				self.intern_type(type_id, || {
+					RegistryType::Generic(GenericType {
+						ty: generic_symbol,
+						params,
+					})
+				})
+			}
 			MetaTypeKind::Parameter(param_name, parent_type) => {
 				// e.g. `a: T`
-				let type_id = TypeId::Parameter(parent_type.path(), param_name);
-				self.intern_type(type_id, || {
-					RegistryType::Parameter(
-						TypeParameter {
-							name: *param_name,
-							path: parent_type.path().into_compact(self),
-						}
-					)
-				})
+				let parameter = TypeParameter {
+					name: *param_name,
+					path: parent_type.path().into_compact(self),
+				};
+				let type_id = TypeId::Parameter(parameter.clone());
+				self.intern_type(type_id, || { parameter.into() })
 			},
 		}
 	}
