@@ -5,4 +5,4 @@ reorder_imports = true
 hard_tabs = true
 max_width = 120
 
-license_template_path = "LICENSE_TEMPLATE"
+license_template_path = "FILE_TEMPLATE"
