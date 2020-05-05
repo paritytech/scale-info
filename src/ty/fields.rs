@@ -16,10 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
-};
+use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, MetaTypeParameter};
 use serde::Serialize;
 
 /// A field of a struct like data type.
@@ -85,6 +82,14 @@ impl Field {
 	{
 		Self::unnamed(MetaType::of::<T>())
 	}
+
+	// pub fn unnamed_parameterized_of<Parent, T>(parameters: Vec<MetaTypeParameter>) -> Self
+	// where
+	// 	Parent: Metadata + ?Sized + 'static,
+	// 	T: Metadata + ?Sized + 'static,
+	// {
+	// 	Self::unnamed(MetaType::parameterized_of::<Parent, T>(parameters))
+	// }
 }
 
 /// A fields builder has no fields (e.g. a unit struct)
@@ -162,5 +167,14 @@ impl FieldsBuilder<UnnamedFields> {
 		let mut this = self;
 		this.fields.push(Field::unnamed_of::<T>());
 		this
+	}
+
+	pub fn parameterized_of<Parent, T>(self, parameters: Vec<MetaTypeParameter>) -> Self
+	where
+		Parent: Metadata + ?Sized + 'static,
+		T: Metadata + ?Sized + 'static,
+	{
+		todo!()
+		// Self::unnamed(MetaType::parameterized_of::<Parent, T>(parameters))
 	}
 }

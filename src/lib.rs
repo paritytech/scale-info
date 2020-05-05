@@ -112,10 +112,19 @@ macro_rules! tuple_meta_type {
 
 #[macro_export]
 macro_rules! type_param {
-	( $parent:ty, $ty:ty ) => {
-		{
-			$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($ty))
-		}
+	( $ty:ty ) => {
+		$crate::MetaType::parameter_of::<$ty>(stringify!($ty))
+	}
+}
+
+#[macro_export]
+macro_rules! type_params {
+	( $($ty:ty),* ) => {
+		tm_std::vec![
+			$(
+				type_param!($ty),
+			)*
+		]
 	}
 }
 
