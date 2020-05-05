@@ -196,6 +196,6 @@ impl TypeSequence {
 	where
 		T: Metadata + 'static,
 	{
-		Self::new(MetaType::new::<T>())
+		Self::new(MetaType::concrete::<T>())
 	}
 }

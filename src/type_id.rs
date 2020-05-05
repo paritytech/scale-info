@@ -17,7 +17,7 @@
 use crate::tm_std::*;
 use crate::Path;
 use crate::registry::{TypeParameter, GenericType};
-use crate::form::{Form, CompactForm, MetaForm};
+use crate::form::CompactForm;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub enum TypeId {
@@ -26,13 +26,7 @@ pub enum TypeId {
 	/// Use a type's path as its unique id
 	Path(Path),
 	/// Generic type parameter Path + Name
-	Parameter(TypeParameter),
+	Parameter(TypeParameter<CompactForm>),
 	/// Generic type instance
-	Generic(GenericType)
+	Generic(GenericType<CompactForm>)
 }
-
-// #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
-// pub struct GenericTypeId {
-// 	pub path: Path<CompactForm>,
-// 	pub params: Vec<CompactForm::Type>,
-// }

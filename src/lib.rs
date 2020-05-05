@@ -103,7 +103,7 @@ macro_rules! tuple_meta_type {
 			let mut v = std::vec![];
 
 			$(
-				v.push($crate::MetaType::new::<$ty>());
+				v.push($crate::MetaType::concrete::<$ty>());
 			)*
 			v
 		}
@@ -113,7 +113,7 @@ macro_rules! tuple_meta_type {
 #[macro_export]
 macro_rules! type_param {
 	( $ty:ty ) => {
-		$crate::MetaType::parameter_of::<$ty>(stringify!($ty))
+		$crate::MetaTypeParameter::new::<Self, $ty>(stringify!($ty)).into()
 	}
 }
 
@@ -144,7 +144,7 @@ mod utils;
 // mod tests;
 
 pub use self::{
-	meta_type::{MetaType, MetaTypeParameter},
+	meta_type::{MetaType, MetaTypeParameter, MetaTypeParameterValue},
 	registry::{IntoCompact, Registry, TypeParameter},
 	ty::*,
 	type_id::*,
@@ -176,6 +176,6 @@ where
 	T: ?Sized + TypeInfo + 'static,
 {
 	fn meta_type() -> MetaType {
-		MetaType::new::<T>()
+		MetaType::concrete::<T>()
 	}
 }

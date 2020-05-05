@@ -55,7 +55,7 @@ macro_rules! impl_metadata_for_array {
 				}
 
 				fn type_info() -> Type {
-					TypeArray::new($n, MetaType::new::<T>()).into()
+					TypeArray::new($n, MetaType::concrete::<T>()).into()
 				}
 			}
 		)*
@@ -110,8 +110,8 @@ where
 		Path::prelude("Vec")
 	}
 
-	fn params() -> Vec<MetaType> {
-		tuple_meta_type!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(T)
 	}
 
 	fn type_info() -> Type {
@@ -127,8 +127,8 @@ where
 		Path::prelude("Option")
 	}
 
-	fn params() -> Vec<MetaType> {
-		tuple_meta_type!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(T)
 	}
 
 	fn type_info() -> Type {
@@ -149,8 +149,8 @@ where
 		Path::prelude("Result")
 	}
 
-	fn params() -> Vec<MetaType> {
-		tuple_meta_type!(T, E)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(T, E)
 	}
 
 	fn type_info() -> Type {
@@ -170,8 +170,8 @@ where
 		Path::prelude("BTreeMap")
 	}
 
-	fn params() -> Vec<MetaType> {
-		tuple_meta_type!(K, V)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(K, V)
 	}
 
 	fn type_info() -> Type {
@@ -229,8 +229,8 @@ where
 		Path::prelude("Sequence")
 	}
 
-	fn params() -> Vec<MetaType> {
-		tuple_meta_type!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(T)
 	}
 
 	fn type_info() -> Type {
@@ -260,14 +260,14 @@ impl TypeInfo for String {
 
 impl<T> TypeInfo for PhantomData<T>
 where
-	T: Metadata + ?Sized,
+	T: Metadata + 'static + ?Sized,
 {
 	fn path() -> Path {
 		Path::prelude("PhantomData")
 	}
 
-	fn params() -> Vec<MetaType> {
-		tuple_meta_type!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(T)
 	}
 
 	fn type_info() -> Type {
