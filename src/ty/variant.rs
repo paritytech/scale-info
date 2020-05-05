@@ -81,7 +81,9 @@ impl IntoCompact for TypeVariant {
 
 impl TypeVariant {
 	pub fn new<F>(variants: VariantsBuilder<F>) -> Self {
-		TypeVariant { variants: variants.done() }
+		TypeVariant {
+			variants: variants.done(),
+		}
 	}
 }
 

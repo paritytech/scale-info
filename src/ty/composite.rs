@@ -70,14 +70,10 @@ impl IntoCompact for TypeComposite {
 impl TypeComposite {
 	/// Creates a new struct definition with named fields.
 	pub fn new<F>(fields: FieldsBuilder<F>) -> Self {
-		Self {
-			fields: fields.done()
-		}
+		Self { fields: fields.done() }
 	}
 
 	pub fn unit() -> Self {
-		Self {
-			fields: Vec::new()
-		}
+		Self { fields: Vec::new() }
 	}
 }

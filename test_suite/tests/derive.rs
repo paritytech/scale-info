@@ -49,9 +49,7 @@ fn struct_derive() {
 
 	let path = Path::new("S", "derive");
 	let params = tuple_meta_type!(bool, u8);
-	let struct_type = TypeComposite::new(
-		Fields::named().field_of::<bool>("t").field_of::<u8>("u")
-	);
+	let struct_type = TypeComposite::new(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
 
 	assert_type!(S<bool, u8>, struct_type);
 
@@ -60,11 +58,7 @@ fn struct_derive() {
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
 	let params = tuple_meta_type!(Box<S<bool, u8>>, bool);
-	let self_typed_type = TypeComposite::new(
-		Fields::named()
-			.field_of::<Box<S<bool, u8>>>("t")
-			.field_of::<bool>("u")
-	);
+	let self_typed_type = TypeComposite::new(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
 	assert_type!(SelfTyped, self_typed_type);
 }
 

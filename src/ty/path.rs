@@ -70,8 +70,7 @@ impl Path {
 	pub fn new(ident: <MetaForm as Form>::String, module_path: <MetaForm as Form>::String) -> Path {
 		let mut segments = module_path.split("::").collect::<Vec<_>>();
 		segments.push(ident);
-		Self::from_segments(segments)
-			.expect("All path segments should be valid Rust identifiers")
+		Self::from_segments(segments).expect("All path segments should be valid Rust identifiers")
 	}
 
 	/// Create an empty path for types which shall not be named
@@ -86,8 +85,7 @@ impl Path {
 	///
 	/// - If the supplied ident is not a valid Rust identifier
 	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Path {
-		Self::from_segments(vec![ident])
-			.expect(&format!("{} is not a valid Rust identifier", ident))
+		Self::from_segments(vec![ident]).expect(&format!("{} is not a valid Rust identifier", ident))
 	}
 
 	/// Create a Path from the given segments

@@ -32,7 +32,12 @@
 //! symbols and thus also profit from string deduplication.
 
 use crate::tm_std::*;
-use crate::{form::CompactForm, interner::{Interner, UntrackedSymbol}, meta_type::{MetaType, MetaTypeGeneric, MetaTypeParameterized}, Type, TypeId, MetaTypeParameterValue};
+use crate::{
+	form::CompactForm,
+	interner::{Interner, UntrackedSymbol},
+	meta_type::{MetaType, MetaTypeGeneric, MetaTypeParameterized},
+	MetaTypeParameterValue, Type, TypeId,
+};
 use derive_more::From;
 use serde::Serialize;
 
@@ -133,7 +138,7 @@ impl Registry {
 	// todo: [AJ] combine with above private method?
 	fn intern_type<F, T>(&mut self, type_id: TypeId, f: F) -> UntrackedSymbol<TypeId>
 	where
-		F: FnOnce () -> T,
+		F: FnOnce() -> T,
 		T: IntoCompact<Output = RegistryType<CompactForm>>,
 	{
 		let (inserted, symbol) = self.intern_type_id(type_id);
@@ -174,7 +179,8 @@ impl Registry {
 
 					let generic: GenericType<MetaForm> = GenericType {
 						ty: generic_meta_type,
-						params: concrete.params
+						params: concrete
+							.params
 							.iter()
 							.map(|p| MetaType::Concrete(p.concrete.clone()))
 							.collect(),
@@ -183,7 +189,6 @@ impl Registry {
 					let type_id = TypeId::Generic(generic.clone().into_compact(self));
 
 					self.intern_type(type_id, || RegistryType::Generic(generic))
-
 				} else {
 					let type_id = TypeId::Any(concrete.type_id);
 					self.intern_type(type_id, || {
@@ -212,9 +217,7 @@ impl Registry {
 					name: p.name,
 				};
 				let param_type_id = TypeId::Parameter(type_parameter.clone().into_compact(self));
-				self.intern_type(param_type_id, || {
-					RegistryType::Parameter(type_parameter)
-				})
+				self.intern_type(param_type_id, || RegistryType::Parameter(type_parameter))
 			}
 			MetaType::Parameterized(parameterized) => {
 				let generic_meta_type = MetaType::Generic(MetaTypeGeneric {
@@ -224,29 +227,34 @@ impl Registry {
 
 				self.param_stack.extend(parameterized.params.iter().cloned().rev());
 
-				let params = parameterized.concrete.params.iter().map(|concrete_param| {
-					// todo: use Peekable api?
-					if let Some(param) = self.param_stack.pop() {
-						if param.concrete_type_id() == concrete_param.concrete.type_id {
-							self.register_type(&param.into())
-						} else if concrete_param.concrete.params.len() > 0 {
-							self.param_stack.push(param);
-							// recurse
-							self.register_type(&MetaType::Parameterized(MetaTypeParameterized {
-								concrete: concrete_param.concrete.clone(),
-								params: Vec::new(),
-							}))
+				let params = parameterized
+					.concrete
+					.params
+					.iter()
+					.map(|concrete_param| {
+						// todo: use Peekable api?
+						if let Some(param) = self.param_stack.pop() {
+							if param.concrete_type_id() == concrete_param.concrete.type_id {
+								self.register_type(&param.into())
+							} else if concrete_param.concrete.params.len() > 0 {
+								self.param_stack.push(param);
+								// recurse
+								self.register_type(&MetaType::Parameterized(MetaTypeParameterized {
+									concrete: concrete_param.concrete.clone(),
+									params: Vec::new(),
+								}))
+							} else {
+								panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
+							}
 						} else {
-							panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
+							self.register_type(&&MetaType::Concrete(concrete_param.concrete.clone()))
 						}
-					} else {
-						self.register_type(&&MetaType::Concrete(concrete_param.concrete.clone()))
-					}
-				}).collect::<Vec<_>>();
+					})
+					.collect::<Vec<_>>();
 
 				let generic = GenericType {
 					ty: self.register_type(&generic_meta_type),
-					params
+					params,
 				};
 
 				let type_id = TypeId::Generic(generic.clone());
@@ -381,11 +389,11 @@ impl IntoCompact for GenericType<CompactForm> {
 
 impl<F> GenericType<F>
 where
-	F: Form
+	F: Form,
 {
 	pub fn new<P>(ty: F::Type, params: P) -> Self
 	where
-		P: IntoIterator<Item = F::Type>
+		P: IntoIterator<Item = F::Type>,
 	{
 		GenericType {
 			ty,

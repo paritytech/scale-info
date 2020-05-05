@@ -153,9 +153,9 @@ fn test_associated_types() {
 	#[derive(Metadata)]
 	struct C<T>
 	where
-		T: A
+		T: A,
 	{
-		a: T::B // idea: could infer assoc types from usage
+		a: T::B, // idea: could infer assoc types from usage
 	}
 
 	struct D {}
@@ -184,16 +184,16 @@ fn test_generics() {
 
 	#[derive(Metadata)]
 	struct GenericStruct<T> {
-		a: T,				// Should look up in the set of all type params for a matching parameter (use any::TypeId?) Field::of_parameter::<T>()
-		b: Option<T>,		// Field::of_parameterized::<Option<T>>(parameters!(param(T));
-		c: Option<bool>, 	// Should point to non parameterized type Field::of::<Option<bool>>(): TypeId::Any
-		// d: (Option<T>, Option<bool>), // Field::of_parameterized::<Option<T>>(parameters!(param(T), concrete(bool)) // left to right params (scope stack)
-		// d: Option<GenericStruct<T, bool>>,
-		// e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
-		// f: Result<
-		// 	GenericStruct<T, bool>, // same type as nested in field d
-		//  ()
-		// >
+		a: T, // Should look up in the set of all type params for a matching parameter (use any::TypeId?) Field::of_parameter::<T>()
+		b: Option<T>, // Field::of_parameterized::<Option<T>>(parameters!(param(T));
+		c: Option<bool>, // Should point to non parameterized type Field::of::<Option<bool>>(): TypeId::Any
+		      // d: (Option<T>, Option<bool>), // Field::of_parameterized::<Option<T>>(parameters!(param(T), concrete(bool)) // left to right params (scope stack)
+		      // d: Option<GenericStruct<T, bool>>,
+		      // e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
+		      // f: Result<
+		      // 	GenericStruct<T, bool>, // same type as nested in field d
+		      //  ()
+		      // >
 	}
 
 	// The set of type parameters here is [T]

@@ -14,10 +14,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::form::CompactForm;
+use crate::registry::{GenericType, TypeParameter};
 use crate::tm_std::*;
 use crate::Path;
-use crate::registry::{TypeParameter, GenericType};
-use crate::form::CompactForm;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub enum TypeId {
@@ -28,5 +28,5 @@ pub enum TypeId {
 	/// Generic type parameter Path + Name
 	Parameter(TypeParameter<CompactForm>),
 	/// Generic type instance
-	Generic(GenericType<CompactForm>)
+	Generic(GenericType<CompactForm>),
 }

@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{Type, TypeInfo, Path};
+use crate::{Path, Type, TypeInfo};
 use derive_more::From;
 
 /// A metatype abstraction.
@@ -33,26 +33,25 @@ pub enum MetaType {
 	Generic(MetaTypeGeneric),
 }
 
-impl MetaType
-{
+impl MetaType {
 	pub fn concrete<T>() -> Self
-		where
-			T: 'static + ?Sized + TypeInfo
+	where
+		T: 'static + ?Sized + TypeInfo,
 	{
 		MetaType::Concrete(MetaTypeConcrete::new::<T>())
 	}
 
 	pub fn parameter<T, P>(name: &'static str) -> Self
-		where
-			T: 'static + ?Sized + TypeInfo,
-			P: 'static + ?Sized + TypeInfo,
+	where
+		T: 'static + ?Sized + TypeInfo,
+		P: 'static + ?Sized + TypeInfo,
 	{
 		MetaType::Parameter(MetaTypeParameter::new::<T, P>(name))
 	}
 
 	pub fn parameterized<T>(params: Vec<MetaTypeParameterValue>) -> Self
-		where
-			T: 'static + ?Sized + TypeInfo
+	where
+		T: 'static + ?Sized + TypeInfo,
 	{
 		MetaType::Parameterized(MetaTypeParameterized {
 			concrete: MetaTypeConcrete::new::<T>(),
@@ -91,8 +90,8 @@ impl Ord for MetaTypeConcrete {
 
 impl MetaTypeConcrete {
 	pub fn new<T>() -> Self
-		where
-			T: 'static + ?Sized + TypeInfo
+	where
+		T: 'static + ?Sized + TypeInfo,
 	{
 		Self {
 			type_id: any::TypeId::of::<T>(),
@@ -112,9 +111,9 @@ pub struct MetaTypeParameter {
 
 impl MetaTypeParameter {
 	pub fn new<T, P>(name: &'static str) -> Self
-		where
-			T: 'static + ?Sized + TypeInfo,
-			P: 'static + ?Sized + TypeInfo,
+	where
+		T: 'static + ?Sized + TypeInfo,
+		P: 'static + ?Sized + TypeInfo,
 	{
 		MetaTypeParameter {
 			name,
@@ -138,9 +137,9 @@ pub enum MetaTypeParameterValue {
 
 impl MetaTypeParameterValue {
 	pub fn parameter<T, P>(name: &'static str) -> Self
-		where
-			T: 'static + ?Sized + TypeInfo,
-			P: 'static + ?Sized + TypeInfo,
+	where
+		T: 'static + ?Sized + TypeInfo,
+		P: 'static + ?Sized + TypeInfo,
 	{
 		MetaTypeParameterValue::Parameter(MetaTypeParameter {
 			name,
@@ -150,8 +149,8 @@ impl MetaTypeParameterValue {
 	}
 
 	pub fn concrete<T>() -> Self
-		where
-			T: 'static + ?Sized + TypeInfo
+	where
+		T: 'static + ?Sized + TypeInfo,
 	{
 		MetaTypeParameterValue::Concrete(MetaTypeConcrete::new::<T>())
 	}
@@ -181,8 +180,8 @@ pub struct MetaTypeGeneric {
 
 impl MetaTypeGeneric {
 	fn new<T>() -> Self
-		where
-			T: 'static + ?Sized + TypeInfo
+	where
+		T: 'static + ?Sized + TypeInfo,
 	{
 		Self {
 			fn_type_info: T::type_info,

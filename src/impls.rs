@@ -90,7 +90,7 @@ macro_rules! impl_metadata_for_tuple {
     }
 }
 
-impl_metadata_for_tuple!("Tuple", );
+impl_metadata_for_tuple!("Tuple",);
 impl_metadata_for_tuple!("Tuple1", A);
 impl_metadata_for_tuple!("Tuple2", A, B);
 impl_metadata_for_tuple!("Tuple3", A, B, C);
@@ -132,9 +132,10 @@ where
 	}
 
 	fn type_info() -> Type {
-		TypeVariant::new(Variants::with_fields()
-			.variant_unit("None")
-			.variant("Some", Fields::unnamed().field(type_param!(T)))
+		TypeVariant::new(
+			Variants::with_fields()
+				.variant_unit("None")
+				.variant("Some", Fields::unnamed().field(type_param!(T))),
 		)
 		.into()
 	}
@@ -154,10 +155,12 @@ where
 	}
 
 	fn type_info() -> Type {
-		TypeVariant::new(Variants::with_fields()
-			.variant("Ok", Fields::unnamed().field(type_param!(T)))
-			.variant("Err", Fields::unnamed().field(type_param!(E)))
-		).into()
+		TypeVariant::new(
+			Variants::with_fields()
+				.variant("Ok", Fields::unnamed().field(type_param!(T)))
+				.variant("Err", Fields::unnamed().field(type_param!(E))),
+		)
+		.into()
 	}
 }
 
@@ -175,10 +178,7 @@ where
 	}
 
 	fn type_info() -> Type {
-		TypeComposite::new(
-			Fields::unnamed()
-				.parameterized_of::<[(K, V)]>(type_params!(K, V))
-		).into()
+		TypeComposite::new(Fields::unnamed().parameterized_of::<[(K, V)]>(type_params!(K, V))).into()
 	}
 }
 

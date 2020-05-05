@@ -114,7 +114,7 @@ macro_rules! tuple_meta_type {
 macro_rules! type_param {
 	( $ty:ty ) => {
 		$crate::MetaTypeParameter::new::<Self, $ty>(stringify!($ty)).into()
-	}
+	};
 }
 
 #[macro_export]

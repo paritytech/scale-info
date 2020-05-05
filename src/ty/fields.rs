@@ -16,7 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, MetaTypeParameterValue, Metadata, Registry};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	IntoCompact, MetaType, MetaTypeParameterValue, Metadata, Registry,
+};
 use serde::Serialize;
 
 /// A field of a struct like data type.
@@ -41,7 +44,7 @@ impl IntoCompact for Field {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Field {
 			name: self.name.map(|name| registry.register_string(name)),
-			ty: registry.register_type(&self.ty)
+			ty: registry.register_type(&self.ty),
 		}
 	}
 }
