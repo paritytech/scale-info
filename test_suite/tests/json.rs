@@ -211,7 +211,7 @@ fn test_generics() {
 		c: GenericStruct<Option<bool>>,
 	}
 
-	assert_json_for_type::<ConcreteStruct>(json!(
+	assert_json_for_type::<ConcreteStruct>(json!({
 		"strings": [
 			"json",      		//  1
 			"GenericStruct",   	//  2
@@ -290,10 +290,10 @@ fn test_generics() {
 					"ty": {
 						"composite": {
 							"fields": [
-								{ "name": 7, "type": 3 } 	// a: GenericStruct::T
-								{ "name": 8, "type": 6 } 	// b: Option<GenericStruct::T>
-								{ "name": 9, "type": 10 } 	// c: Option<bool>
-								{ "name": 10, "type": 9 } 	// d: Option<GenericStruct<T>>,
+								{ "name": 7, "type": 3 },	// a: GenericStruct::T
+								{ "name": 8, "type": 6 }, 	// b: Option<GenericStruct::T>
+								{ "name": 9, "type": 10 }, 	// c: Option<bool>
+								{ "name": 10, "type": 9 }, 	// d: Option<GenericStruct<T>>,
 							]
 						}
 					}
@@ -342,16 +342,16 @@ fn test_generics() {
 						"composite": {
 							"path": [1, 6],
 							"fields": [
-								{ "name": 8, "type": 5 } // a: GenericStruct<bool>
-								{ "name": 9, "type": 7 } // b: Option<u32>
-								{ "name": 10, "type": 9 } // c: Vec<Option<T>>
+								{ "name": 8, "type": 5 }, 	// a: GenericStruct<bool>
+								{ "name": 9, "type": 7 }, 	// b: Option<u32>
+								{ "name": 10, "type": 9 } 	// c: Vec<Option<T>>
 							]
 						}
 					}
 				}
 			},
 		]
-	))
+	}))
 }
 
 #[test]

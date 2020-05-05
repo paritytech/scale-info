@@ -56,12 +56,9 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-	let generic_type_ids = ast.generics.type_params().map(|ty| {
-		let ty_ident = &ty.ident;
-		quote! {
-			<#ty_ident as _scale_info::Metadata>::meta_type()
-		}
-	});
+	let generic_type_ids = ast.generics
+		.type_params()
+		.map(|ty| &ty.ident);
 
 	let ast: DeriveInput = syn::parse2(input.clone())?;
 	let (type_kind, build_type) = match &ast.data {
@@ -72,12 +69,16 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
 	let type_info_impl = quote! {
 		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
+			fn path() -> _scale_info::Path {
+				_scale_info::Path::new(stringify!(#ident), module_path!())
+			}
+
+			fn params() -> _scale_info::tm_std::Vec<_scale_info::MetaTypeParameter> {
+				_scale_info::type_params!(#( #generic_type_ids ),*)
+			}
+
 			fn type_info() -> _scale_info::Type {
-				_scale_info::#type_kind::new()
-					.path(_scale_info::Path::new(stringify!(#ident), module_path!()))
-					.type_params(__core::vec![ #( #generic_type_ids ),* ])
-					.#build_type
-					.into()
+				_scale_info::#type_kind::new(#build_type).into()
 			}
 		}
 	};
@@ -110,23 +111,19 @@ fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
 		Fields::Named(ref fs) => {
 			let fields = generate_fields(&fs.named);
 			quote! {
-				fields(
-					_scale_info::Fields::named()
-						#( #fields )*
-				)
+				_scale_info::Fields::named()
+					#( #fields )*
 			}
 		}
 		Fields::Unnamed(ref fs) => {
 			let fields = generate_fields(&fs.unnamed);
 			quote! {
-				fields(
-					_scale_info::Fields::unnamed()
-						#( #fields )*
-				)
+				_scale_info::Fields::unnamed()
+					#( #fields )*
 			}
 		}
 		Fields::Unit => quote! {
-			unit()
+			_scale_info::Fields::unit()
 		},
 	}
 }
@@ -155,10 +152,8 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 		}
 	});
 	quote! {
-		variants(
-			_scale_info::Variants::with_discriminants()
-				#( #variants )*
-		)
+		_scale_info::Variants::with_discriminants()
+			#( #variants )*
 	}
 }
 
@@ -209,9 +204,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 		}
 	});
 	quote! {
-		variants(
-			_scale_info::Variants::with_fields()
-				#( #variants)*
-		)
+		_scale_info::Variants::with_fields()
+			#( #variants)*
 	}
 }

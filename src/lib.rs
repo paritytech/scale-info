@@ -120,15 +120,27 @@ macro_rules! type_param {
 #[macro_export]
 macro_rules! type_params {
 	( $($ty:ty),* ) => {
-		tm_std::vec![
+		{
+			#[cfg(not(feature = "std"))]
+			extern crate alloc as _alloc;
+			#[cfg(not(feature = "std"))]
+			#[allow(unused_mut)]
+			let mut v = _alloc::vec![];
+
+			#[cfg(feature = "std")]
+			#[allow(unused_mut)]
+			let mut v = std::vec![];
+
 			$(
-				type_param!($ty),
+				v.push($crate::type_param!($ty));
 			)*
-		]
+			v
+		}
 	}
 }
 
-mod tm_std;
+// todo: made public for use for Vec in derive - should we make private again?
+pub mod tm_std;
 
 pub mod form;
 mod impls;
