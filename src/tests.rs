@@ -71,7 +71,7 @@ fn primitives() {
 
 #[test]
 fn prelude_items() {
-	assert_type!([bool], TypeSequence::new(bool::meta_type()), Path::prelude("Sequence"), type_param!([bool], bool));
+	assert_type!([bool], TypeSequence::new(bool::meta_type()), Path::prelude("Sequence"), type_params!([bool], bool));
 
 	assert_type!(
 		Option<u128>,
@@ -81,7 +81,7 @@ fn prelude_items() {
 				.variant("Some", Fields::unnamed().field_of::<u128>())
 			),
 		Path::prelude("Option"),
-		type_param!(Option<u128>, u128)
+		type_params!(Option<u128>, u128)
 	);
 	assert_type!(
 		Result<bool, String>,
@@ -97,38 +97,70 @@ fn prelude_items() {
 		PhantomData<i32>,
 		TypeComposite::unit(),
 		Path::prelude("PhantomData"),
-		type_param!(PhantomData<i32>, i32)
+		type_params!(PhantomData<i32>, i32)
 	);
 }
 
 #[test]
 fn tuple_primitives() {
 	// unit
-	assert_type!((), TypeTuple::new(tuple_meta_type!()));
+	assert_type!((), TypeTuple::new(tuple_meta_type!()), Path::prelude("Tuple"), vec![]);
 
 	// tuple with one element
-	assert_type!((bool,), TypeTuple::new(tuple_meta_type!(bool)));
+	assert_type!(
+		(bool,),
+		TypeTuple::new(tuple_meta_type!(bool)),
+		Path::prelude("Tuple1"),
+		type_params!((bool,), bool)
+	);
 
 	// tuple with multiple elements
-	assert_type!((bool, String), TypeTuple::new(tuple_meta_type!(bool, String)));
+	assert_type!(
+		(bool, String),
+		TypeTuple::new(tuple_meta_type!(bool, String)),
+		Path::prelude("Tuple2"),
+		type_params!((bool, String), bool, String)
+	);
 
 	// nested tuple
 	assert_type!(
 		((i8, i16), (u32, u64)),
-		TypeTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),])
+		TypeTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),]),
+		Path::prelude("Tuple2"),
+		type_params!(((i8, i16), (u32, u64)), (i8, i16), (u32, u64))
 	);
 }
 
 #[test]
 fn array_primitives() {
 	// array
-	assert_type!([bool; 3], TypeArray::new(3, bool::meta_type()));
+	assert_type!(
+		[bool; 3],
+		TypeArray::new(3, bool::meta_type()),
+		Path::voldemort(),
+		type_params!([bool; 3], bool)
+	);
 	// nested
-	assert_type!([[i32; 5]; 5], TypeArray::new(5, <[i32; 5]>::meta_type()));
+	assert_type!(
+		[[i32; 5]; 5],
+		TypeArray::new(5, <[i32; 5]>::meta_type()),
+		Path::voldemort(),
+		type_params!([[i32; 5]; 5], [i32; 5])
+	);
 	// sequence
-	assert_type!([bool], TypeSequence::new(bool::meta_type()));
+	assert_type!(
+		[bool],
+		TypeSequence::new(bool::meta_type()),
+		Path::prelude("Sequence"),
+		type_params!([bool], bool)
+	);
 	// vec
-	assert_type!(Vec<bool>, TypeSequence::new(bool::meta_type()));
+	assert_type!(
+		Vec<bool>,
+		TypeSequence::new(bool::meta_type()),
+		Path::prelude("Sequence"),
+		type_params!(Vec<bool>, bool)
+	);
 }
 
 #[test]
@@ -147,7 +179,9 @@ fn struct_with_generics() {
 		}
 
 		fn params() -> Vec<MetaTypeParameter> {
-			tuple_meta_type!(T)
+			vec! [
+				MetaTypeParameter::new::<Self, T>("T")
+			]
 		}
 
 		fn type_info() -> Type {

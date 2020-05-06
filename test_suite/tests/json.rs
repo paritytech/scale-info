@@ -144,39 +144,39 @@ fn test_enum() {
 	}));
 }
 
-#[test]
-fn test_associated_types() {
-	trait A {
-		type B;
-	}
-
-	#[derive(Metadata)]
-	struct C<T>
-	where
-		T: A,
-	{
-		a: T::B, // idea: could infer assoc types from usage
-	}
-
-	struct D {}
-
-	impl A for D {
-		type B = bool;
-	}
-
-	let mut registry = Registry::new();
-	registry.register_type(&C::<D>::meta_type());
-
-	let expected_json = json!({
-		"strings": [
-			"json",      	   //  1
-			"A",      		//  2
-
-		],
-		"types": [
-		]
-	});
-}
+// #[test]
+// fn test_associated_types() {
+// 	trait A {
+// 		type B;
+// 	}
+//
+// 	#[derive(Metadata)]
+// 	struct C<T>
+// 	where
+// 		T: A,
+// 	{
+// 		a: T::B, // idea: could infer assoc types from usage
+// 	}
+//
+// 	struct D {}
+//
+// 	impl A for D {
+// 		type B = bool;
+// 	}
+//
+// 	let mut registry = Registry::new();
+// 	registry.register_type(&C::<D>::meta_type());
+//
+// 	let expected_json = json!({
+// 		"strings": [
+// 			"json",      	   //  1
+// 			"A",      		//  2
+//
+// 		],
+// 		"types": [
+// 		]
+// 	});
+// }
 
 #[test]
 fn test_generics() {
