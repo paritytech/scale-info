@@ -196,7 +196,7 @@ mod tests {
 		);
 		assert_eq!(
 			Path::from_segments(vec!["Earth", "::world"]),
-			Err(PathError::InvalidIdentifier { segment: 0 })
+			Err(PathError::InvalidIdentifier { segment: 1 })
 		);
 	}
 
