@@ -16,10 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, MetaTypeParameterValue, Metadata, Registry,
-};
+use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, MetaTypeParameterValue};
 use serde::Serialize;
 
 /// A field of a struct like data type.
@@ -62,35 +59,12 @@ impl Field {
 		Self::new(Some(name), ty)
 	}
 
-	/// Creates a new named field of the given type
-	pub fn named_of<T>(name: <MetaForm as Form>::String) -> Self
-	where
-		T: Metadata + ?Sized + 'static,
-	{
-		Self::named(name, MetaType::concrete::<T>())
-	}
-
 	/// Creates a new unnamed field.
 	///
 	/// Use this constructor if you want to instantiate an unnamed field from a
 	/// given meta type.
 	pub fn unnamed(ty: MetaType) -> Self {
 		Self::new(None, ty)
-	}
-
-	/// Creates a new unnamed field of the given type
-	pub fn unnamed_of<T>() -> Self
-	where
-		T: Metadata + ?Sized + 'static,
-	{
-		Self::unnamed(MetaType::concrete::<T>())
-	}
-
-	pub fn unnamed_parameterized_of<T>(parameters: Vec<MetaTypeParameterValue>) -> Self
-	where
-		T: Metadata + ?Sized + 'static,
-	{
-		Self::unnamed(MetaType::parameterized::<T>(parameters))
 	}
 }
 
@@ -150,7 +124,26 @@ impl FieldsBuilder<NamedFields> {
 		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
-		this.fields.push(Field::named_of::<T>(name));
+		this.fields.push(Field::named(name, MetaType::concrete::<T>()));
+		this
+	}
+
+	pub fn parameter_field<T, P>(self, name: <MetaForm as Form>::String, param_name: <MetaForm as Form>::String) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+		P: Metadata + ?Sized + 'static,
+	{
+		let mut this = self;
+		this.fields.push(Field::named(name, MetaType::parameter::<T, P>(param_name).into()));
+		this
+	}
+
+	pub fn parameterized_field<T>(self, name: <MetaForm as Form>::String, parameters: Vec<MetaTypeParameterValue>) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+	{
+		let mut this = self;
+		this.fields.push(Field::named(name,MetaType::parameterized::<T>(parameters)));
 		this
 	}
 }
@@ -167,16 +160,26 @@ impl FieldsBuilder<UnnamedFields> {
 		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
-		this.fields.push(Field::unnamed_of::<T>());
+		this.fields.push(Field::unnamed(MetaType::concrete::<T>()));
 		this
 	}
 
-	pub fn parameterized_of<T>(self, parameters: Vec<MetaTypeParameterValue>) -> Self
+	pub fn parameter_field<T, P>(self, param_name: <MetaForm as Form>::String) -> Self
+	where
+		T: Metadata + ?Sized + 'static,
+		P: Metadata + ?Sized + 'static,
+	{
+		let mut this = self;
+		this.fields.push(Field::unnamed(MetaType::parameter::<T, P>(param_name)));
+		this
+	}
+
+	pub fn parameterized_field<T>(self, parameters: Vec<MetaTypeParameterValue>) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
-		this.fields.push(Field::unnamed_parameterized_of::<T>(parameters));
+		this.fields.push(Field::unnamed(MetaType::parameterized::<T>(parameters)));
 		this
 	}
 }

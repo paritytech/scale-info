@@ -20,61 +20,84 @@ use core::marker::PhantomData;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, string::String, vec};
 
-fn assert_type<T, E>(expected: E)
-where
-	T: TypeInfo + ?Sized,
-	E: Into<Type>,
+fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec<MetaTypeParameter>)
+	where
+		T: TypeInfo + ?Sized,
+		E: Into<Type>,
 {
-	assert_eq!(T::type_info(), expected.into());
+	assert_eq!(T::type_info(), expected_type.into());
+	assert_eq!(T::path(), expected_path);
+	assert_eq!(T::params(), expected_params);
 }
 
+// todo: share all these macros with derive tests?
 macro_rules! assert_type {
-	( $ty:ty, $expected:expr ) => {{
-		assert_type::<$ty, _>($expected)
-		}};
+	( $ty:ty, $expected_ty:expr, $expected_path:expr, $expected_params:expr ) => {{
+		assert_type::<$ty, _>($expected_ty, $expected_path, $expected_params)
+	}};
+}
+
+macro_rules! assert_primitive {
+	( $ty:ty, $expected_ty:expr) => {{
+		assert_type::<$ty, _>($expected_ty, Path::voldemort(), Vec::new())
+	}};
+}
+
+macro_rules! type_param {
+	( $parent:ty, $ty:ty ) => {
+		$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($ty)).into()
+	};
+}
+
+macro_rules! type_params {
+	( $parent:ty, $($ty:ty),* ) => {
+		{
+			let mut v = Vec::new();
+			$(
+				v.push(type_param!($parent, $ty));
+			)*
+			v
+		}
+	}
 }
 
 #[test]
 fn primitives() {
-	assert_type!(bool, TypePrimitive::Bool);
-	assert_type!(&str, TypePrimitive::Str);
-	assert_type!(i8, TypePrimitive::I8);
-
-	assert_type!([bool], TypeSequence::new(bool::meta_type()));
+	assert_primitive!(bool, TypePrimitive::Bool);
+	assert_primitive!(&str, TypePrimitive::Str);
+	assert_primitive!(String, TypePrimitive::Str);
+	assert_primitive!(i8, TypePrimitive::I8);
 }
 
 #[test]
 fn prelude_items() {
-	assert_type!(String, TypePrimitive::Str);
+	assert_type!([bool], TypeSequence::new(bool::meta_type()), Path::prelude("Sequence"), type_param!([bool], bool));
 
 	assert_type!(
 		Option<u128>,
-		TypeVariant::new()
-			.path(Path::prelude("Option"))
-			.type_params(tuple_meta_type!(u128))
-			.variants(
-				Variants::with_fields()
-					.variant_unit("None")
-					.variant("Some", Fields::unnamed().field_of::<u128>())
-			)
+		TypeVariant::new(
+			Variants::with_fields()
+				.variant_unit("None")
+				.variant("Some", Fields::unnamed().field_of::<u128>())
+			),
+		Path::prelude("Option"),
+		type_param!(Option<u128>, u128)
 	);
 	assert_type!(
 		Result<bool, String>,
-		TypeVariant::new()
-			.path(Path::prelude("Result"))
-			.type_params(tuple_meta_type!(bool, String))
-			.variants(
-				Variants::with_fields()
-					.variant("Ok", Fields::unnamed().field_of::<bool>())
-					.variant("Err", Fields::unnamed().field_of::<String>())
-			)
+		TypeVariant::new(
+			Variants::with_fields()
+				.variant("Ok", Fields::unnamed().field_of::<bool>())
+				.variant("Err", Fields::unnamed().field_of::<String>())
+		),
+		Path::prelude("Result"),
+		type_params!(Result<bool, String>, bool, String)
 	);
 	assert_type!(
 		PhantomData<i32>,
-		TypeComposite::new()
-			.path(Path::prelude("PhantomData"))
-			.type_params(tuple_meta_type!(i32))
-			.unit()
+		TypeComposite::unit(),
+		Path::prelude("PhantomData"),
+		type_param!(PhantomData<i32>, i32)
 	);
 }
 
@@ -123,7 +146,7 @@ fn struct_with_generics() {
 			Path::new("MyStruct", module_path!())
 		}
 
-		fn params() -> Vec<MetaType> {
+		fn params() -> Vec<MetaTypeParameter> {
 			tuple_meta_type!(T)
 		}
 

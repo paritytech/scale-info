@@ -178,7 +178,10 @@ where
 	}
 
 	fn type_info() -> Type {
-		TypeComposite::new(Fields::unnamed().parameterized_of::<[(K, V)]>(type_params!(K, V))).into()
+		TypeComposite::new(
+			Fields::unnamed()
+				.parameterized_field::<[(K, V)]>(type_params!(K, V))
+		).into()
 	}
 }
 

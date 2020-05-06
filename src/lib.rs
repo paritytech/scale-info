@@ -151,9 +151,8 @@ mod ty;
 mod type_id;
 mod utils;
 
-// todo: [AJ] fix and restore these tests
-// #[cfg(test)]
-// mod tests;
+#[cfg(test)]
+mod tests;
 
 pub use self::{
 	meta_type::{MetaType, MetaTypeParameter, MetaTypeParameterValue},

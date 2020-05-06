@@ -27,13 +27,13 @@ use alloc::{
 
 use scale_info::{tuple_meta_type, Fields, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant, Variants, MetaTypeParameter};
 
-fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec<MetaTypeParameter>)
+fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaTypeParameter>)
 where
 	T: TypeInfo + ?Sized,
 	E: Into<Type>,
 {
 	assert_eq!(T::type_info(), expected_type.into());
-	assert_eq!(T::path(), expected_path);
+	assert_eq!(T::path(), *expected_path);
 	assert_eq!(T::params(), expected_params);
 }
 
@@ -41,6 +41,24 @@ macro_rules! assert_type {
 	( $ty:ty, $expected_ty:expr, $expected_path:expr, $expected_params:expr ) => {{
 		assert_type::<$ty, _>($expected_ty, $expected_path, $expected_params)
 	}};
+}
+
+macro_rules! type_param {
+	( $parent:ty, $ty:ty ) => {
+		$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($ty)).into()
+	};
+}
+
+macro_rules! type_params {
+	( $parent:ty, $($ty:ty),* ) => {
+		{
+			let mut v = Vec::new();
+			$(
+				v.push(type_param!($parent, $ty));
+			)*
+			v
+		}
+	}
 }
 
 #[test]
@@ -52,23 +70,29 @@ fn struct_derive() {
 		pub u: U,
 	}
 
+	type ConcreteS = S<bool, u8>;
+
 	let path = Path::new("S", "derive");
-	let params = tuple_meta_type!(bool, u8);
+	let params = type_params!(ConcreteS, bool, u8);
 	let struct_type = TypeComposite::new(
 		Fields::named()
-			.field_of::<bool>("t")
-			.field_of::<u8>("u")
+			.parameter_field::<ConcreteS, bool>("t", "T")
+			.parameter_field::<ConcreteS, u8>("u", "U")
 	);
 
-	assert_type!(S<bool, u8>, struct_type, path, params);
+	assert_type!(ConcreteS, struct_type, &path, params);
 
 	// With "`Self` typed" fields
 
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
-	let params = tuple_meta_type!(Box<S<bool, u8>>, bool);
-	let self_typed_type = TypeComposite::new(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
-	assert_type!(SelfTyped, self_typed_type, path, params);
+	let params = type_params!(SelfTyped, Box<S<bool, u8>>, bool);
+	let self_typed_type = TypeComposite::new(
+		Fields::named()
+			.field_of::<Box<S<bool, u8>>>("t")
+			.field_of::<bool>("u")
+	);
+	assert_type!(SelfTyped, self_typed_type, &path, params);
 }
 
 #[test]
@@ -77,11 +101,16 @@ fn tuple_struct_derive() {
 	#[derive(Metadata)]
 	struct S<T>(T);
 
-	let path = Path::new("S", "derive");
-	let params = tuple_meta_type!(bool);
-	let ty = TypeComposite::new(Fields::unnamed().field_of::<bool>());
+	type ConcreteS = S<bool>;
 
-	assert_type!(S<bool>, ty, path, params);
+	let path = Path::new("S", "derive");
+	let params = type_params!(ConcreteS, bool);
+	let ty = TypeComposite::new(
+		Fields::unnamed()
+			.parameter_field::<ConcreteS, bool>("T")
+	);
+
+	assert_type!(ConcreteS, ty, &path, params);
 }
 
 #[test]
@@ -94,7 +123,7 @@ fn unit_struct_derive() {
 	let params = Vec::new();
 	let ty = TypeComposite::unit();
 
-	assert_type!(S, ty, path, params);
+	assert_type!(S, ty, &path, params);
 }
 
 #[test]
@@ -114,7 +143,7 @@ fn c_like_enum_derive() {
 			.variant("B", 10u64)
 	);
 
-	assert_type!(E, ty, path, params);
+	assert_type!(E, ty, &path, params);
 }
 
 #[test]
@@ -128,7 +157,7 @@ fn enum_derive() {
 	}
 
 	let path = Path::new("E", "derive");
-	let params = tuple_meta_type!(bool);
+	let params = type_params!(E<bool>, bool);
 	let ty = TypeVariant::new(
 		Variants::with_fields()
 			.variant("A", Fields::unnamed().field_of::<bool>())
@@ -136,5 +165,5 @@ fn enum_derive() {
 			.variant_unit("C"),
 	);
 
-	assert_type!(E<bool>, ty, path, params);
+	assert_type!(E<bool>, ty, &path, params);
 }
