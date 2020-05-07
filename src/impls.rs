@@ -87,6 +87,10 @@ macro_rules! impl_metadata_for_tuple {
 				Path::prelude($path)
 			}
 
+			fn params() -> Vec<MetaTypeParameter> {
+				type_params!($($ty),*)
+			}
+
 			fn type_info() -> Type {
 				TypeTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
