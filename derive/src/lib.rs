@@ -24,13 +24,7 @@ use alloc::vec::Vec;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{
-	parse::{Error, Result},
-	parse_quote,
-	punctuated::Punctuated,
-	token::Comma,
-	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
-};
+use syn::{parse::{Error, Result}, parse_quote, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Type, Variant, TypeGenerics, TypeParam};
 
 #[proc_macro_derive(Metadata)]
 pub fn metadata(input: TokenStream) -> TokenStream {
@@ -60,10 +54,10 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		.type_params()
 		.map(|ty| &ty.ident);
 
-	let ast: DeriveInput = syn::parse2(input.clone())?;
+	let type_params = ast.generics.type_params().collect::<Vec<_>>();
 	let (type_kind, build_type) = match &ast.data {
-		Data::Struct(ref s) => (quote!(TypeComposite), generate_composite_type(s)),
-		Data::Enum(ref e) => (quote!(TypeVariant), generate_variant_type(e)),
+		Data::Struct(ref s) => (quote!(TypeComposite), generate_composite_type(s, &type_params)),
+		Data::Enum(ref e) => (quote!(TypeVariant), generate_variant_type(e, &type_params)),
 		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
 	};
 
@@ -88,35 +82,67 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
 type FieldsList = Punctuated<Field, Comma>;
 
-fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
+fn generate_fields(fields: &FieldsList, type_params: &[&TypeParam]) -> Vec<TokenStream2> {
 	fields
 		.iter()
-		.map(|f| {
-			let (ty, ident) = (&f.ty, &f.ident);
-			if let Some(i) = ident {
-				quote! {
-					.field_of::<#ty>(stringify!(#i))
-				}
-			} else {
-				quote! {
-					.field_of::<#ty>()
-				}
-			}
-		})
+		.map(|f| generate_field(f, type_params))
 		.collect()
 }
 
-fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
+fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
+	let (ty, ident) = (&field.ty, &field.ident);
+
+	let (field_method, field_args) = if is_generic_field(ty, type_params) {
+		(quote!( .parameter_field::<Self, #ty> ), quote!( stringify(#ty) ))
+	} else {
+		let type_params = generate_parameterized_field_parameters(ty, type_params);
+		if type_params.is_empty() {
+			// it's a concrete non-generic type
+			(quote!( .field_of::<#ty> ), quote!())
+		} else {
+			// it's a parameterized generic type
+			let parameters = quote! {
+				_scale_info::tm_std::vec![
+					#( #type_params )*,
+				]
+			};
+			(quote!( .parameterized_field::<#ty> ), quote!( #parameters ))
+		}
+	};
+
+	if let Some(i) = ident {
+		// it's a named field, assumes the field name is the first argument to the field method
+		quote! {
+			#field_method(stringify!(#i), #field_args)
+		}
+	} else {
+		// it's an unnamed field
+		quote! {
+			#field_method(#field_args)
+		}
+	}
+}
+
+fn is_generic_field(ty: &Type, type_params: &[&TypeParam]) -> bool {
+	todo!()
+	// type_params.iter().any(|tp| tp.ident() == ty.ident())
+}
+
+fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]) -> Vec<TokenStream2> {
+	todo!()
+}
+
+fn generate_composite_type(data_struct: &DataStruct, type_params: &[&TypeParam]) -> TokenStream2 {
 	match data_struct.fields {
 		Fields::Named(ref fs) => {
-			let fields = generate_fields(&fs.named);
+			let fields = generate_fields(&fs.named, type_params);
 			quote! {
 				_scale_info::Fields::named()
 					#( #fields )*
 			}
 		}
 		Fields::Unnamed(ref fs) => {
-			let fields = generate_fields(&fs.unnamed);
+			let fields = generate_fields(&fs.unnamed, type_params);
 			quote! {
 				_scale_info::Fields::unnamed()
 					#( #fields )*
@@ -167,7 +193,7 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 		})
 }
 
-fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
+fn generate_variant_type(data_enum: &DataEnum, type_params: &[&TypeParam]) -> TokenStream2 {
 	let variants = &data_enum.variants;
 
 	if is_c_like_enum(&variants) {
@@ -179,7 +205,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 		let v_name = quote! {stringify!(#ident) };
 		match v.fields {
 			Fields::Named(ref fs) => {
-				let fields = generate_fields(&fs.named);
+				let fields = generate_fields(&fs.named, type_params);
 				quote! {
 					.variant(
 						#v_name,
@@ -189,7 +215,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				}
 			}
 			Fields::Unnamed(ref fs) => {
-				let fields = generate_fields(&fs.unnamed);
+				let fields = generate_fields(&fs.unnamed, type_params);
 				quote! {
 					.variant(
 						#v_name,
