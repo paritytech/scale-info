@@ -139,7 +139,7 @@ where
 		TypeVariant::new(
 			Variants::with_fields()
 				.variant_unit("None")
-				.variant("Some", Fields::unnamed().field(type_param!(T))),
+				.variant("Some", Fields::unnamed().parameter_field::<Self, T>("T")),
 		)
 		.into()
 	}
@@ -161,8 +161,8 @@ where
 	fn type_info() -> Type {
 		TypeVariant::new(
 			Variants::with_fields()
-				.variant("Ok", Fields::unnamed().field(type_param!(T)))
-				.variant("Err", Fields::unnamed().field(type_param!(E))),
+				.variant("Ok", Fields::unnamed().parameter_field::<Self, T>("T"))
+				.variant("Err", Fields::unnamed().parameter_field::<Self, E>("E")),
 		)
 		.into()
 	}

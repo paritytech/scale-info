@@ -83,20 +83,20 @@ fn prelude_items() {
 		TypeVariant::new(
 			Variants::with_fields()
 				.variant_unit("None")
-				.variant("Some", Fields::unnamed().field_of::<u128>())
+				.variant("Some", Fields::unnamed().parameter_field::<Option<u128>, u128>("T"))
 			),
 		Path::prelude("Option"),
-		type_params!(Option<u128>, (u128, A))
+		type_params!(Option<u128>, (u128, T))
 	);
 	assert_type!(
 		Result<bool, String>,
 		TypeVariant::new(
 			Variants::with_fields()
-				.variant("Ok", Fields::unnamed().field_of::<bool>())
-				.variant("Err", Fields::unnamed().field_of::<String>())
+				.variant("Ok", Fields::unnamed().parameter_field::<Result<bool, String>, bool>("T"))
+				.variant("Err", Fields::unnamed().parameter_field::<Result<bool, String>, String>("E"))
 		),
 		Path::prelude("Result"),
-		type_params!(Result<bool, String>, (bool, A), (String, B))
+		type_params!(Result<bool, String>, (bool, T), (String, E))
 	);
 	assert_type!(
 		PhantomData<i32>,
