@@ -160,8 +160,8 @@ fn enum_derive() {
 	let params = type_params!(E<bool>, (bool, T));
 	let ty = TypeVariant::new(
 		Variants::with_fields()
-			.variant("A", Fields::unnamed().field_of::<bool>())
-			.variant("B", Fields::named().field_of::<bool>("b"))
+			.variant("A", Fields::unnamed().parameter_field::<E<bool>, bool>("T"))
+			.variant("B", Fields::named().parameter_field::<E<bool>, bool>("b", "T"))
 			.variant_unit("C"),
 	);
 
