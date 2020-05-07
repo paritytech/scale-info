@@ -20,11 +20,12 @@ extern crate alloc;
 
 mod impl_wrapper;
 
+use alloc::vec;
 use alloc::vec::Vec;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{parse::{Error, Result}, parse_quote, punctuated::Punctuated, token::Comma, Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Type, Variant, TypeGenerics, TypeParam};
+use syn::{parse::{Error, Result}, parse_quote, punctuated::Punctuated, token::Comma, GenericArgument, Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Type, Variant, TypeParam, PathArguments};
 
 #[proc_macro_derive(Metadata)]
 pub fn metadata(input: TokenStream) -> TokenStream {
@@ -92,8 +93,9 @@ fn generate_fields(fields: &FieldsList, type_params: &[&TypeParam]) -> Vec<Token
 fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 	let (ty, ident) = (&field.ty, &field.ident);
 
-	let (field_method, field_args) = if is_generic_field(ty, type_params) {
-		(quote!( .parameter_field::<Self, #ty> ), quote!( stringify(#ty) ))
+	let (field_method, field_args) = if is_type_parameter(ty, type_params) {
+		// it's a field of a parameter e.g. `a: T`
+		(quote!( .parameter_field::<Self, #ty> ), quote!( stringify!(#ty) ))
 	} else {
 		let type_params = generate_parameterized_field_parameters(ty, type_params);
 		if type_params.is_empty() {
@@ -123,13 +125,55 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 	}
 }
 
-fn is_generic_field(ty: &Type, type_params: &[&TypeParam]) -> bool {
-	todo!()
-	// type_params.iter().any(|tp| tp.ident() == ty.ident())
+fn is_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> bool {
+	match ty {
+		Type::Path(type_path) => {
+			type_params
+				.iter()
+				.any(|tp| {
+					Some(&tp.ident) == type_path.path.get_ident()
+				})
+		}
+		_ => false
+	}
 }
 
 fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]) -> Vec<TokenStream2> {
-	todo!()
+	if is_type_parameter(ty, type_params) {
+		return vec![quote! {
+			_scale_info::MetaTypeParameterValue::parameter::<Self, #ty>(stringify!(#ty))
+		}]
+	}
+
+	match ty {
+		Type::Path(type_path) => {
+			type_path.path.segments.iter().flat_map(|segment| {
+				match &segment.arguments {
+					PathArguments::None => {
+						vec![quote! {
+							_scale_info::MetaTypeParameterValue::concrete::<bool>()
+						}]
+					},
+					PathArguments::AngleBracketed(args) => {
+						args.args.iter().flat_map(|arg| {
+							match arg {
+								GenericArgument::Type(ty) => {
+									generate_parameterized_field_parameters(ty, type_params)
+								}
+								_ => Vec::new()
+							}
+						}).collect()
+					},
+					PathArguments::Parenthesized(args) => {
+						args.inputs.iter().flat_map(|arg_ty| {
+							generate_parameterized_field_parameters(arg_ty, type_params)
+						}).collect()
+					}
+				}
+			}).collect()
+		}
+		_ => Vec::new() // todo: handle references, arrays, tuples and any other parameterized types
+	}
 }
 
 fn generate_composite_type(data_struct: &DataStruct, type_params: &[&TypeParam]) -> TokenStream2 {
@@ -202,7 +246,7 @@ fn generate_variant_type(data_enum: &DataEnum, type_params: &[&TypeParam]) -> To
 
 	let variants = variants.into_iter().map(|v| {
 		let ident = &v.ident;
-		let v_name = quote! {stringify!(#ident) };
+		let v_name = quote! { stringify!(#ident) };
 		match v.fields {
 			Fields::Named(ref fs) => {
 				let fields = generate_fields(&fs.named, type_params);
