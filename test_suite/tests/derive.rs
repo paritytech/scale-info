@@ -84,15 +84,15 @@ fn struct_derive() {
 
 	// With "`Self` typed" fields
 
-	// type SelfTyped = S<Box<S<bool, u8>>, bool>;
-	//
-	// let params = type_params!(SelfTyped, (Box<S<bool, u8>>, T), (bool, U));
-	// let self_typed_type = TypeComposite::new(
-	// 	Fields::named()
-	// 		.field_of::<Box<S<bool, u8>>>("t")
-	// 		.field_of::<bool>("u")
-	// );
-	// assert_type!(SelfTyped, self_typed_type, &path, params);
+	type SelfTyped = S<Box<S<bool, u8>>, bool>;
+
+	let params = type_params!(SelfTyped, (Box<S<bool, u8>>, T), (bool, U));
+	let self_typed_type = TypeComposite::new(
+		Fields::named()
+			.parameter_field::<SelfTyped, Box<S<bool, u8>>>("t", "T")
+			.parameter_field::<SelfTyped, bool>("u", "U")
+	);
+	assert_type!(SelfTyped, self_typed_type, &path, params);
 }
 
 #[test]
