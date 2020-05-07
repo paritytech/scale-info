@@ -54,6 +54,10 @@ macro_rules! impl_metadata_for_array {
 					Path::voldemort()
 				}
 
+				fn params() -> Vec<MetaTypeParameter> {
+					type_params!(T)
+				}
+
 				fn type_info() -> Type {
 					TypeArray::new($n, MetaType::concrete::<T>()).into()
 				}
@@ -107,7 +111,7 @@ where
 	T: Metadata + 'static,
 {
 	fn path() -> Path {
-		Path::prelude("Vec")
+		<[T] as TypeInfo>::path()
 	}
 
 	fn params() -> Vec<MetaTypeParameter> {

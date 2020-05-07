@@ -44,17 +44,17 @@ macro_rules! assert_primitive {
 }
 
 macro_rules! type_param {
-	( $parent:ty, $ty:ty ) => {
-		$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($ty)).into()
+	( $parent:ty, $ty:ty, $name:ident ) => {
+		$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($name)).into()
 	};
 }
 
 macro_rules! type_params {
-	( $parent:ty, $($ty:ty),* ) => {
+	( $parent:ty, $(($ty:ty, $name:ident)),* ) => {
 		{
 			let mut v = Vec::new();
 			$(
-				v.push(type_param!($parent, $ty));
+				v.push(type_param!($parent, $ty, $name));
 			)*
 			v
 		}
@@ -71,7 +71,12 @@ fn primitives() {
 
 #[test]
 fn prelude_items() {
-	assert_type!([bool], TypeSequence::new(bool::meta_type()), Path::prelude("Sequence"), type_params!([bool], bool));
+	assert_type!(
+		[bool],
+		TypeSequence::new(bool::meta_type()),
+		Path::prelude("Sequence"),
+		type_params!([bool], (bool, T))
+	);
 
 	assert_type!(
 		Option<u128>,
@@ -81,7 +86,7 @@ fn prelude_items() {
 				.variant("Some", Fields::unnamed().field_of::<u128>())
 			),
 		Path::prelude("Option"),
-		type_params!(Option<u128>, u128)
+		type_params!(Option<u128>, (u128, A))
 	);
 	assert_type!(
 		Result<bool, String>,
@@ -91,13 +96,13 @@ fn prelude_items() {
 				.variant("Err", Fields::unnamed().field_of::<String>())
 		),
 		Path::prelude("Result"),
-		type_params!(Result<bool, String>, bool, String)
+		type_params!(Result<bool, String>, (bool, A), (String, B))
 	);
 	assert_type!(
 		PhantomData<i32>,
 		TypeComposite::unit(),
 		Path::prelude("PhantomData"),
-		type_params!(PhantomData<i32>, i32)
+		type_params!(PhantomData<i32>, (i32, T))
 	);
 }
 
@@ -111,7 +116,7 @@ fn tuple_primitives() {
 		(bool,),
 		TypeTuple::new(tuple_meta_type!(bool)),
 		Path::prelude("Tuple1"),
-		type_params!((bool,), bool)
+		type_params!((bool,), (bool, A))
 	);
 
 	// tuple with multiple elements
@@ -119,7 +124,7 @@ fn tuple_primitives() {
 		(bool, String),
 		TypeTuple::new(tuple_meta_type!(bool, String)),
 		Path::prelude("Tuple2"),
-		type_params!((bool, String), bool, String)
+		type_params!((bool, String), (bool, A), (String, B))
 	);
 
 	// nested tuple
@@ -127,7 +132,7 @@ fn tuple_primitives() {
 		((i8, i16), (u32, u64)),
 		TypeTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),]),
 		Path::prelude("Tuple2"),
-		type_params!(((i8, i16), (u32, u64)), (i8, i16), (u32, u64))
+		type_params!(((i8, i16), (u32, u64)), ((i8, i16), A), ((u32, u64), B))
 	);
 }
 
@@ -138,28 +143,28 @@ fn array_primitives() {
 		[bool; 3],
 		TypeArray::new(3, bool::meta_type()),
 		Path::voldemort(),
-		type_params!([bool; 3], bool)
+		type_params!([bool; 3], (bool, T))
 	);
 	// nested
 	assert_type!(
 		[[i32; 5]; 5],
 		TypeArray::new(5, <[i32; 5]>::meta_type()),
 		Path::voldemort(),
-		type_params!([[i32; 5]; 5], [i32; 5])
+		type_params!([[i32; 5]; 5], ([i32; 5], T))
 	);
 	// sequence
 	assert_type!(
 		[bool],
 		TypeSequence::new(bool::meta_type()),
 		Path::prelude("Sequence"),
-		type_params!([bool], bool)
+		type_params!([bool], (bool, T))
 	);
 	// vec
 	assert_type!(
 		Vec<bool>,
 		TypeSequence::new(bool::meta_type()),
 		Path::prelude("Sequence"),
-		type_params!(Vec<bool>, bool)
+		type_params!(Vec<bool>, (bool, T))
 	);
 }
 
