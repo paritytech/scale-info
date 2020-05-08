@@ -21,9 +21,9 @@ use core::marker::PhantomData;
 use alloc::{boxed::Box, string::String, vec};
 
 fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec<MetaTypeParameter>)
-	where
-		T: TypeInfo + ?Sized,
-		E: Into<Type>,
+where
+	T: TypeInfo + ?Sized,
+	E: Into<Type>,
 {
 	assert_eq!(T::type_info(), expected_type.into());
 	assert_eq!(T::path(), expected_path);
@@ -34,13 +34,13 @@ fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec
 macro_rules! assert_type {
 	( $ty:ty, $expected_ty:expr, $expected_path:expr, $expected_params:expr ) => {{
 		assert_type::<$ty, _>($expected_ty, $expected_path, $expected_params)
-	}};
+		}};
 }
 
 macro_rules! assert_primitive {
 	( $ty:ty, $expected_ty:expr) => {{
 		assert_type::<$ty, _>($expected_ty, Path::voldemort(), Vec::new())
-	}};
+		}};
 }
 
 macro_rules! type_param {
@@ -84,7 +84,7 @@ fn prelude_items() {
 			Variants::with_fields()
 				.variant_unit("None")
 				.variant("Some", Fields::unnamed().parameter_field::<Option<u128>, u128>("T"))
-			),
+		),
 		Path::prelude("Option"),
 		type_params!(Option<u128>, (u128, T))
 	);
@@ -184,9 +184,7 @@ fn struct_with_generics() {
 		}
 
 		fn params() -> Vec<MetaTypeParameter> {
-			vec! [
-				MetaTypeParameter::new::<Self, T>("T")
-			]
+			vec![MetaTypeParameter::new::<Self, T>("T")]
 		}
 
 		fn type_info() -> Type {

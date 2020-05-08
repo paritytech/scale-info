@@ -25,7 +25,14 @@ use alloc::vec::Vec;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::{parse::{Error, Result}, parse_quote, punctuated::Punctuated, token::Comma, GenericArgument, Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Type, Variant, TypeParam, PathArguments};
+use syn::{
+	parse::{Error, Result},
+	parse_quote,
+	punctuated::Punctuated,
+	token::Comma,
+	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Lit, PathArguments, Type,
+	TypeParam, Variant,
+};
 
 #[proc_macro_derive(Metadata)]
 pub fn metadata(input: TokenStream) -> TokenStream {
@@ -51,9 +58,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-	let generic_type_ids = ast.generics
-		.type_params()
-		.map(|ty| &ty.ident);
+	let generic_type_ids = ast.generics.type_params().map(|ty| &ty.ident);
 
 	let type_params = ast.generics.type_params().collect::<Vec<_>>();
 	let (type_kind, build_type) = match &ast.data {
@@ -84,10 +89,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 type FieldsList = Punctuated<Field, Comma>;
 
 fn generate_fields(fields: &FieldsList, type_params: &[&TypeParam]) -> Vec<TokenStream2> {
-	fields
-		.iter()
-		.map(|f| generate_field(f, type_params))
-		.collect()
+	fields.iter().map(|f| generate_field(f, type_params)).collect()
 }
 
 fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
@@ -95,7 +97,7 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 
 	let (field_method, field_args) = if is_type_parameter(ty, type_params) {
 		// it's a field of a parameter e.g. `a: T`
-		(quote!( .parameter_field::<Self, #ty> ), quote!( stringify!(#ty) ))
+		(quote!( .parameter_field::<Self, #ty> ), quote!(stringify!(#ty)))
 	} else {
 		let type_params = generate_parameterized_field_parameters(ty, type_params, true);
 		if type_params.is_empty() {
@@ -127,14 +129,10 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 
 fn is_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> bool {
 	match ty {
-		Type::Path(type_path) => {
-			type_params
-				.iter()
-				.any(|tp| {
-					Some(&tp.ident) == type_path.path.get_ident()
-				})
-		}
-		_ => false
+		Type::Path(type_path) => type_params
+			.iter()
+			.any(|tp| Some(&tp.ident) == type_path.path.get_ident()),
+		_ => false,
 	}
 }
 
@@ -142,7 +140,7 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 	if is_type_parameter(ty, type_params) {
 		return vec![quote! {
 			_scale_info::MetaTypeParameterValue::parameter::<Self, #ty>(stringify!(#ty))
-		}]
+		}];
 	}
 
 	match ty {
@@ -157,28 +155,28 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 								_scale_info::MetaTypeParameterValue::concrete::<#ty>()
 							}]
 						}
-					},
-					PathArguments::AngleBracketed(args) => {
-						args.args.iter().flat_map(|arg| {
-							match arg {
-								GenericArgument::Type(ty) => {
-									generate_parameterized_field_parameters(ty, type_params, false)
-								}
-								_ => Vec::new()
-							}
-						}).collect()
-					},
-					PathArguments::Parenthesized(args) => {
-						args.inputs.iter().flat_map(|arg_ty| {
-							generate_parameterized_field_parameters(arg_ty, type_params, false)
-						}).collect()
 					}
+					PathArguments::AngleBracketed(args) => args
+						.args
+						.iter()
+						.flat_map(|arg| match arg {
+							GenericArgument::Type(ty) => {
+								generate_parameterized_field_parameters(ty, type_params, false)
+							}
+							_ => Vec::new(),
+						})
+						.collect(),
+					PathArguments::Parenthesized(args) => args
+						.inputs
+						.iter()
+						.flat_map(|arg_ty| generate_parameterized_field_parameters(arg_ty, type_params, false))
+						.collect(),
 				}
 			} else {
 				Vec::new()
 			}
 		}
-		_ => Vec::new() // todo: handle references, arrays, tuples and any other parameterized types
+		_ => Vec::new(), // todo: handle references, arrays, tuples and any other parameterized types
 	}
 }
 

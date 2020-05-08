@@ -20,14 +20,13 @@
 extern crate alloc;
 
 #[cfg(not(feature = "std"))]
-use alloc::{
-	boxed::Box,
-	vec::Vec,
-	vec,
-};
+use alloc::{boxed::Box, vec, vec::Vec};
 
 use pretty_assertions::{assert_eq, assert_ne};
-use scale_info::{Fields, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant, Variants, MetaTypeParameter, MetaTypeParameterValue};
+use scale_info::{
+	Fields, MetaTypeParameter, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
+	Variants,
+};
 
 fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaTypeParameter>)
 where
@@ -42,7 +41,7 @@ where
 macro_rules! assert_type {
 	( $ty:ty, $expected_ty:expr, $expected_path:expr, $expected_params:expr ) => {{
 		assert_type::<$ty, _>($expected_ty, $expected_path, $expected_params)
-	}};
+		}};
 }
 
 macro_rules! type_param {
@@ -79,7 +78,7 @@ fn struct_derive() {
 	let struct_type = TypeComposite::new(
 		Fields::named()
 			.parameter_field::<ConcreteS, bool>("t", "T")
-			.parameter_field::<ConcreteS, u8>("u", "U")
+			.parameter_field::<ConcreteS, u8>("u", "U"),
 	);
 
 	assert_type!(ConcreteS, struct_type, &path, params);
@@ -92,7 +91,7 @@ fn struct_derive() {
 	let self_typed_type = TypeComposite::new(
 		Fields::named()
 			.parameter_field::<SelfTyped, Box<S<bool, u8>>>("t", "T")
-			.parameter_field::<SelfTyped, bool>("u", "U")
+			.parameter_field::<SelfTyped, bool>("u", "U"),
 	);
 	assert_type!(SelfTyped, self_typed_type, &path, params);
 }
@@ -109,12 +108,8 @@ fn parameterized_generic_derive() {
 	let path = Path::new("ConcreteParameterized", "derive");
 	let struct_type = TypeComposite::new(
 		Fields::named()
-			.parameterized_field::<Option<bool>>("a", vec![
-				MetaTypeParameterValue::concrete::<bool>()
-			])
-			.parameterized_field::<Option<u32>>("b", vec![
-				MetaTypeParameterValue::concrete::<u32>()
-			])
+			.parameterized_field::<Option<bool>>("a", vec![MetaTypeParameterValue::concrete::<bool>()])
+			.parameterized_field::<Option<u32>>("b", vec![MetaTypeParameterValue::concrete::<u32>()]),
 	);
 
 	assert_type!(ConcreteParameterized, struct_type, &path, Vec::new())
@@ -130,10 +125,7 @@ fn tuple_struct_derive() {
 
 	let path = Path::new("S", "derive");
 	let params = type_params!(ConcreteS, (bool, T));
-	let ty = TypeComposite::new(
-		Fields::unnamed()
-			.parameter_field::<ConcreteS, bool>("T")
-	);
+	let ty = TypeComposite::new(Fields::unnamed().parameter_field::<ConcreteS, bool>("T"));
 
 	assert_type!(ConcreteS, ty, &path, params);
 }
@@ -162,11 +154,7 @@ fn c_like_enum_derive() {
 
 	let path = Path::new("E", "derive");
 	let params = Vec::new();
-	let ty = TypeVariant::new(
-		Variants::with_discriminants()
-			.variant("A", 0u64)
-			.variant("B", 10u64)
-	);
+	let ty = TypeVariant::new(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
 
 	assert_type!(E, ty, &path, params);
 }

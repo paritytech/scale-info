@@ -16,7 +16,10 @@
 
 use crate::tm_std::*;
 
-use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, MetaTypeParameterValue};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	IntoCompact, MetaType, MetaTypeParameterValue, Metadata, Registry,
+};
 use serde::Serialize;
 
 /// A field of a struct like data type.
@@ -134,16 +137,22 @@ impl FieldsBuilder<NamedFields> {
 		P: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
-		this.fields.push(Field::named(name, MetaType::parameter::<T, P>(param_name).into()));
+		this.fields
+			.push(Field::named(name, MetaType::parameter::<T, P>(param_name).into()));
 		this
 	}
 
-	pub fn parameterized_field<T>(self, name: <MetaForm as Form>::String, parameters: Vec<MetaTypeParameterValue>) -> Self
+	pub fn parameterized_field<T>(
+		self,
+		name: <MetaForm as Form>::String,
+		parameters: Vec<MetaTypeParameterValue>,
+	) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
-		this.fields.push(Field::named(name,MetaType::parameterized::<T>(parameters)));
+		this.fields
+			.push(Field::named(name, MetaType::parameterized::<T>(parameters)));
 		this
 	}
 }
@@ -170,7 +179,8 @@ impl FieldsBuilder<UnnamedFields> {
 		P: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
-		this.fields.push(Field::unnamed(MetaType::parameter::<T, P>(param_name)));
+		this.fields
+			.push(Field::unnamed(MetaType::parameter::<T, P>(param_name)));
 		this
 	}
 
@@ -179,7 +189,8 @@ impl FieldsBuilder<UnnamedFields> {
 		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
-		this.fields.push(Field::unnamed(MetaType::parameterized::<T>(parameters)));
+		this.fields
+			.push(Field::unnamed(MetaType::parameterized::<T>(parameters)));
 		this
 	}
 }
