@@ -411,127 +411,62 @@ fn test_registry() {
 			"c",               //  7
 			"RecursiveStruct", //  8
 			"rec",             //  9
-			"ClikeEnum",       // 10
-			"A",               // 11
-			"B",               // 12
-			"C",               // 13
-			"RustEnum",        // 14
+			"Sequence",        //  10
+			"ClikeEnum",       //  11
+			"A",               //  12
+			"B",               //  13
+			"C",               //  14
+			"RustEnum",        //  15
 		],
 		"types": [
 			{ // type 1
-				"composite": {
+				"definition": {
 					"path": [
 						1, // json
 						2, // UnitStruct
-					]
-				},
+					],
+					"ty": {
+						"composite": { },
+					}
+				}
 			},
 			{ // type 2
-				"composite": {
+				"definition": {
 					"path": [
 						1, // json
 						3, // TupleStruct
 					],
-					"fields": [
-						{ "type": 3 },
-						{ "type": 4 },
-					],
-				},
+					"ty": {
+						"composite": {
+							"fields": [
+								{ "type": 3 },
+								{ "type": 4 },
+							],
+						},
+					}
+				}
 			},
 			{ // type 3
-				"primitive": "u8",
+				"definition": {
+					"ty": {
+						"primitive": "u8",
+					}
+				}
 			},
 			{ // type 4
-				"primitive": "u32",
-			},
+				"definition": {
+					"ty": {
+						"primitive": "u32",
+					}
+				}			},
 			{ // type 5
-				"composite": {
+				"definition": {
 					"path": [
 						1, // json
 						4, // Struct
 					],
-					"fields": [
-						{
-							"name": 5, // a
-							"type": 3, // u8
-						},
-						{
-							"name": 6, // b
-							"type": 4, // u32
-						},
-						{
-							"name": 7, // c
-							"type": 6, // [u8; 32]
-						}
-					]
-				},
-			},
-			{ // type 6
-				"array": {
-					"len": 32,
-					"type": 3, // u8
-				},
-			},
-			{ // type 7
-				"composite": {
-					"path": [
-						1, // json
-						8, // RecursiveStruct
-					],
-					"fields": [
-						{
-							"name": 9, // rec
-							"type": 8, // Vec<RecursiveStruct>
-						}
-					]
-				},
-			},
-			{ // type 8
-				"sequence": {
-					"type": 7, // RecursiveStruct
-				},
-			},
-			{ // type 9
-				"variant": {
-					"path": [
-						1, 	// json
-						10, // CLikeEnum
-					],
-					"variants": [
-						{
-							"name": 11, // A
-							"discriminant": 0,
-						},
-						{
-							"name": 12, // B
-							"discriminant": 1,
-						},
-						{
-							"name": 13, // C
-							"discriminant": 2,
-						},
-					]
-				}
-			},
-			{ // type 10
-				"variant": {
-					"path": [
-						1, 	// json
-						14, // RustEnum
-					],
-					"variants": [
-						{
-							"name": 11, // A
-						},
-						{
-							"name": 12, // B
-							"fields": [
-								{ "type": 3 }, // u8
-								{ "type": 4 }, // u32
-							]
-						},
-						{
-							"name": 13, // C
+					"ty": {
+						"composite": {
 							"fields": [
 								{
 									"name": 5, // a
@@ -543,12 +478,136 @@ fn test_registry() {
 								},
 								{
 									"name": 7, // c
-									"type": 6, // [u8; 32]
+									"type": 7, // [u8; 32]
 								}
 							]
-						}
+						},
+					}
+				}
+			},
+			{ // type 6
+				"definition": {
+					"ty": {
+						"array": {
+							"len": 32,
+							"type": 3, // u8 // todo: should be generic param T
+						},
+					}
+				}
+			},
+			{ // type 7
+				"generic": {
+					"ty": 6,	// [T; 32]
+					"params": [
+						3	 	// u8
 					]
-				},
+				}
+			},
+			{ // type 8
+				"definition": {
+					"path": [
+						1, // json
+						8, // RecursiveStruct
+					],
+					"ty": {
+							"composite": {
+							"fields": [
+								{
+									"name": 9, // rec
+									"type": 10, // Vec<RecursiveStruct>
+								}
+							]
+						},
+					}
+				}
+			},
+			{ // type 9
+				"definition": {
+					"path": [
+						10	// Sequence
+					],
+					"ty": {
+						"sequence": {
+							"type": 8, // RecursiveStruct
+						},
+					}
+				}
+			},
+			{ // type 10: Vec<RecursiveStruct>
+				"generic": {
+					"ty": 9,	// Vec<T>
+					"params": [
+						8		// RecursiveStruct
+					]
+				}
+			},
+			{ // type 11
+				"definition": {
+					"path": [
+						1, 	// json
+						11, // CLikeEnum
+					],
+					"ty": {
+						"variant": {
+							"variants": [
+								{
+									"name": 12, // A
+									"discriminant": 0,
+								},
+								{
+									"name": 13, // B
+									"discriminant": 1,
+								},
+								{
+									"name": 14, // C
+									"discriminant": 2,
+								},
+							]
+						}
+					}
+				}
+
+			},
+			{ // type 12
+				"definition": {
+					"path": [
+						1, 	// json
+						15, // RustEnum
+					],
+					"ty": {
+						"variant": {
+							"variants": [
+								{
+									"name": 12, // A
+								},
+								{
+									"name": 13, // B
+									"fields": [
+										{ "type": 3 }, // u8
+										{ "type": 4 }, // u32
+									]
+								},
+								{
+									"name": 14, // C
+									"fields": [
+										{
+											"name": 5, // a
+											"type": 3, // u8
+										},
+										{
+											"name": 6, // b
+											"type": 4, // u32
+										},
+										{
+											"name": 7, // c
+											"type": 7, // [u8; 32]
+										}
+									]
+								}
+							]
+						},
+					}
+				}
 			},
 		]
 	});

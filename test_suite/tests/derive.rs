@@ -22,7 +22,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, vec, vec::Vec};
 
-use pretty_assertions::{assert_eq, assert_ne};
+use pretty_assertions::assert_eq;
 use scale_info::{
 	Fields, MetaTypeParameter, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
 	Variants,
