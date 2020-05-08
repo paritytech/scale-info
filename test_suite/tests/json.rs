@@ -24,7 +24,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
 
-use assert_json_diff::assert_json_eq;
+use pretty_assertions::{assert_eq, assert_ne};
 use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry};
 use serde_json::json;
 
@@ -36,7 +36,7 @@ where
 
 	let ty = T::type_info().into_compact(&mut registry);
 
-	assert_json_eq!(serde_json::to_value(ty).unwrap(), expected_json,);
+	assert_eq!(expected_json, serde_json::to_value(ty).unwrap());
 }
 
 #[test]
@@ -45,9 +45,7 @@ fn test_unit_struct() {
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
-		"composite": {
-			"path": [1, 2]
-		},
+		"composite": { },
 	}));
 }
 
@@ -58,7 +56,6 @@ fn test_tuplestruct() {
 
 	assert_json_for_type::<TupleStruct>(json!({
 		"composite": {
-			"path": [1, 2],
 			"fields": [
 				{ "type": 1 },
 				{ "type": 2 },
@@ -79,11 +76,10 @@ fn test_struct() {
 
 	assert_json_for_type::<Struct>(json!({
 		"composite": {
-			"path": [1, 2],
 			"fields": [
-				{ "name": 3, "type": 1, },
-				{ "name": 4, "type": 2, },
-				{ "name": 5, "type": 4, },
+				{ "name": 1, "type": 2, },
+				{ "name": 2, "type": 4, },
+				{ "name": 3, "type": 2, },
 			],
 		},
 	}));
@@ -100,11 +96,10 @@ fn test_clike_enum() {
 
 	assert_json_for_type::<ClikeEnum>(json!({
 		"variant": {
-			"path": [1, 2],
 			"variants": [
-				{ "name": 3, "discriminant": 0, },
-				{ "name": 4, "discriminant": 42, },
-				{ "name": 5, "discriminant": 2, },
+				{ "name": 1, "discriminant": 0, },
+				{ "name": 2, "discriminant": 42, },
+				{ "name": 3, "discriminant": 2, },
 			],
 		},
 	}));
@@ -121,11 +116,10 @@ fn test_enum() {
 
 	assert_json_for_type::<Enum>(json!({
 		"variant": {
-			"path": [1, 2],
 			"variants": [
-				{ "name": 3 },
+				{ "name": 1 },
 				{
-					"name": 4,
+					"name": 2,
 					"fields": [
 						{ "type": 1 },
 						{ "type": 2 },
@@ -545,5 +539,5 @@ fn test_registry() {
 		]
 	});
 
-	assert_json_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
+	assert_eq!(expected_json, serde_json::to_value(registry).unwrap());
 }
