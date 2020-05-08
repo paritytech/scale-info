@@ -292,6 +292,7 @@ use crate::{
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
+#[serde(rename_all = "lowercase")]
 pub enum RegistryType<F: Form = MetaForm> {
 	/// The definition of the type
 	Definition(TypeDef<F>),

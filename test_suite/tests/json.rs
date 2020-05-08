@@ -179,9 +179,9 @@ fn test_generics() {
 
 	#[derive(Metadata)]
 	struct GenericStruct<T> {
-		a: T, // Should look up in the set of all type params for a matching parameter (use any::TypeId?) Field::of_parameter::<T>()
-		b: Option<T>, // Field::of_parameterized::<Option<T>>(parameters!(param(T));
-		c: Option<bool>, // Should point to non parameterized type Field::of::<Option<bool>>(): TypeId::Any
+		a: T,
+		b: Option<T>,
+		c: Option<bool>,
 		      // d: (Option<T>, Option<bool>), // Field::of_parameterized::<Option<T>>(parameters!(param(T), concrete(bool)) // left to right params (scope stack)
 		      // d: Option<GenericStruct<T, bool>>,
 		      // e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
@@ -191,14 +191,6 @@ fn test_generics() {
 		      // >
 	}
 
-	// The set of type parameters here is [T]
-	// The challenge is to make sure the params line up e.g. if the set is [T,U]
-	// make sure that the params get substituted in the right places
-	// Should be able to do this with concrete `any::TypeId`
-
-	// Solution to the parameter matching, specify which types are parameterized, and which concrete
-	// e.g.
-
 	#[derive(Metadata)]
 	struct ConcreteStruct {
 		a: GenericStruct<bool>,
@@ -206,147 +198,169 @@ fn test_generics() {
 		c: GenericStruct<Option<bool>>,
 	}
 
-	assert_json_for_type::<ConcreteStruct>(json!({
+	registry.register_type(&ConcreteStruct::meta_type());
+
+	let expected_json = json!({
 		"strings": [
-			"json",      		//  1
-			"GenericStruct",   	//  2
-			"T",				//  3
-			"Option",		   	//  4
-			"Some",		   		//  5
-			"None",		   		//  6
-			"ConcreteStruct",  	//  7
-			"a",               	//  8
-			"b",               	//  9
-			"c",               	//  10
+			"json",				// 1
+			"ConcreteStruct",	// 2
+			"a",				// 3
+			"GenericStruct",	// 4
+			"T",				// 5
+			"b",				// 6
+			"Option",			// 7
+			"None",				// 8
+			"Some",				// 9
+			"c"					// 10
 		],
 		"types": [
-			{ // type 1
-				"definition": {
-					"ty": {
-						"primitive": "bool"
-					}
+			{
+			  "definition": {
+				"path": [
+				  1,
+				  2
+				],
+				"ty": {
+				  "composite": {
+					"fields": [
+					  {
+						"name": 3,
+						"type": 9
+					  },
+					  {
+						"name": 6,
+						"type": 11
+					  },
+					  {
+						"name": 10,
+						"type": 12
+					  }
+					]
+				  }
 				}
+			  }
 			},
-			{ // type 2
-				"definition": {
-					"ty": {
-						"primitive": "u32"
-					}
+			{
+			  "definition": {
+				"ty": {
+				  "primitive": "bool"
 				}
+			  }
 			},
-			{ // type 3
-				// T
-				"parameter": {
-					"path": [4], 	// Option
-					"name": 3, 		// T
+			{
+			  "definition": {
+				"path": [
+				  1,
+				  4
+				],
+				"ty": {
+				  "composite": {
+					"fields": [
+					  {
+						"name": 3,
+						"type": 4
+					  },
+					  {
+						"name": 6,
+						"type": 7
+					  },
+					  {
+						"name": 10,
+						"type": 8
+					  }
+					]
+				  }
 				}
+			  }
 			},
-			{ // type 4
-				// Option<T>
-				"definition": {
-					"path": [4], 	// Option
-					"params": [3], 	// Option::T
-					"ty": {
-						"variant": {
-							"variants": [
-								{ // Some(T)
-									"name": 4,
-									"fields": [
-										{ "type": 3 }, // Option::T
-									],
-								},
-								{ // None
-									"name": 5,
-								}
-							]
-						}
-					}
+			{
+			  "parameter": {
+				"name": 5,
+				"parent": 3
+			  }
+			},
+			{
+			  "definition": {
+				"path": [
+				  7
+				],
+				"ty": {
+				  "variant": {
+					"variants": [
+					  {
+						"name": 8
+					  },
+					  {
+						"name": 9,
+						"fields": [
+						  {
+							"type": 6
+						  }
+						]
+					  }
+					]
+				  }
 				}
+			  }
 			},
-			{ // type 5
-				// GenericStruct::T
-				"parameter": {
-					"type": [2], 	// GenericStruct
-					"name": 3, 		// T
+			{
+			  "parameter": {
+				"name": 5,
+				"parent": 5
+			  }
+			},
+			{
+			  "generic": {
+				"ty": 5,
+				"params": [
+				  4
+				]
+			  }
+			},
+			{
+			  "generic": {
+				"ty": 5,
+				"params": [
+				  2
+				]
+			  }
+			},
+			{
+			  "generic": {
+				"ty": 3,
+				"params": [
+				  2
+				]
+			  }
+			},
+			{
+			  "definition": {
+				"ty": {
+				  "primitive": "u32"
 				}
+			  }
 			},
-			{ // type 6
-				// Option<GenericStruct::T>
-				"generic": {
-					"type": 4,		// Option<T>
-					"params": [5]	// GenericStruct::T
-				}
+			{
+			  "generic": {
+				"ty": 5,
+				"params": [
+				  10
+				]
+			  }
 			},
-			{ // type 5
-				// GenericStruct<T>
-				"definition": {
-					"path": [1, 2],
-					"params": [5], // GenericStruct::T
-					"ty": {
-						"composite": {
-							"fields": [
-								{ "name": 7, "type": 3 },	// a: GenericStruct::T
-								{ "name": 8, "type": 6 }, 	// b: Option<GenericStruct::T>
-								{ "name": 9, "type": 10 }, 	// c: Option<bool>
-								{ "name": 10, "type": 9 }, 	// d: Option<GenericStruct<T>>,
-							]
-						}
-					}
-				}
-			},
-			{ // type 6
-				// GenericStruct<bool>
-				"generic": {
-					"type": 5,		// GenericStruct<T>
-					"params": [1]	// bool
-				}
-			},
-			{ // type 7
-				// Option<u32>
-				"generic": {
-					"type": 4,		// Option<T>
-					"params": [2]	// u32
-				}
-			},
-			{ // type 8
-				// GenericStruct<GenericStruct::T>
-				"generic": {
-					"type": 5,		// GenericStruct<T>
-					"params": [5]	// GenericStruct::T
-				}
-			},
-			{ // type 9
-				// Option<GenericStruct<GenericStruct::T>>
-				"generic": {
-					"type": 4,		// Option<T>
-					"params": [8]	// GenericStruct<GenericStruct::T>
-				}
-			},
-			{ // type 10
-				// Option<bool>
-				"generic": {
-					"type": 4,		// Option<T>
-					"params": [1]	// bool
-				}
-			},
-			{ // type 11
-				// ConcreteStruct
-				"definition": {
-					"path": [1, 2],
-					"ty": {
-						"composite": {
-							"path": [1, 6],
-							"fields": [
-								{ "name": 8, "type": 5 }, 	// a: GenericStruct<bool>
-								{ "name": 9, "type": 7 }, 	// b: Option<u32>
-								{ "name": 10, "type": 9 } 	// c: Vec<Option<T>>
-							]
-						}
-					}
-				}
-			},
-		]
-	}))
+			{
+			  "generic": {
+				"ty": 3,
+				"params": [
+				  8
+				]
+			  }
+			}
+	  	]
+	});
+
+	panic!(&serde_json::to_string_pretty(&registry).unwrap());
+	assert_eq!(expected_json, serde_json::to_value(registry).unwrap());
 }
 
 #[test]
