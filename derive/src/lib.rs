@@ -154,7 +154,7 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 							Vec::new()
 						} else {
 							vec![quote! {
-								_scale_info::MetaTypeParameterValue::concrete::<bool>()
+								_scale_info::MetaTypeParameterValue::concrete::<#ty>()
 							}]
 						}
 					},

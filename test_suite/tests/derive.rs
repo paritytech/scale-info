@@ -22,10 +22,12 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{
 	boxed::Box,
-	vec::Vec
+	vec::Vec,
+	vec,
 };
 
-use scale_info::{Fields, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant, Variants, MetaTypeParameter};
+use pretty_assertions::{assert_eq, assert_ne};
+use scale_info::{Fields, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant, Variants, MetaTypeParameter, MetaTypeParameterValue};
 
 fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaTypeParameter>)
 where
@@ -93,6 +95,29 @@ fn struct_derive() {
 			.parameter_field::<SelfTyped, bool>("u", "U")
 	);
 	assert_type!(SelfTyped, self_typed_type, &path, params);
+}
+
+#[test]
+fn parameterized_generic_derive() {
+	#[allow(unused)]
+	#[derive(Metadata)]
+	struct ConcreteParameterized {
+		a: Option<bool>,
+		b: Option<u32>,
+	}
+
+	let path = Path::new("ConcreteParameterized", "derive");
+	let struct_type = TypeComposite::new(
+		Fields::named()
+			.parameterized_field::<Option<bool>>("a", vec![
+				MetaTypeParameterValue::concrete::<bool>()
+			])
+			.parameterized_field::<Option<u32>>("b", vec![
+				MetaTypeParameterValue::concrete::<u32>()
+			])
+	);
+
+	assert_type!(ConcreteParameterized, struct_type, &path, Vec::new())
 }
 
 #[test]
