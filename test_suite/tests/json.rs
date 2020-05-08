@@ -59,8 +59,8 @@ fn test_tuplestruct() {
 		"composite": {
 			"fields": [
 				{ "type": 1 },
-				{ "type": 2 },
 				{ "type": 4 },
+				{ "type": 5 },
 			],
 		},
 	}));
