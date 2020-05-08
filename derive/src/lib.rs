@@ -97,7 +97,7 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 		// it's a field of a parameter e.g. `a: T`
 		(quote!( .parameter_field::<Self, #ty> ), quote!( stringify!(#ty) ))
 	} else {
-		let type_params = generate_parameterized_field_parameters(ty, type_params);
+		let type_params = generate_parameterized_field_parameters(ty, type_params, true);
 		if type_params.is_empty() {
 			// it's a concrete non-generic type
 			(quote!( .field_of::<#ty> ), quote!())
@@ -138,7 +138,7 @@ fn is_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> bool {
 	}
 }
 
-fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]) -> Vec<TokenStream2> {
+fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam], is_root: bool) -> Vec<TokenStream2> {
 	if is_type_parameter(ty, type_params) {
 		return vec![quote! {
 			_scale_info::MetaTypeParameterValue::parameter::<Self, #ty>(stringify!(#ty))
@@ -147,18 +147,22 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 
 	match ty {
 		Type::Path(type_path) => {
-			type_path.path.segments.iter().flat_map(|segment| {
+			if let Some(segment) = type_path.path.segments.last() {
 				match &segment.arguments {
 					PathArguments::None => {
-						vec![quote! {
-							_scale_info::MetaTypeParameterValue::concrete::<bool>()
-						}]
+						if is_root {
+							Vec::new()
+						} else {
+							vec![quote! {
+								_scale_info::MetaTypeParameterValue::concrete::<bool>()
+							}]
+						}
 					},
 					PathArguments::AngleBracketed(args) => {
 						args.args.iter().flat_map(|arg| {
 							match arg {
 								GenericArgument::Type(ty) => {
-									generate_parameterized_field_parameters(ty, type_params)
+									generate_parameterized_field_parameters(ty, type_params, false)
 								}
 								_ => Vec::new()
 							}
@@ -166,11 +170,13 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 					},
 					PathArguments::Parenthesized(args) => {
 						args.inputs.iter().flat_map(|arg_ty| {
-							generate_parameterized_field_parameters(arg_ty, type_params)
+							generate_parameterized_field_parameters(arg_ty, type_params, false)
 						}).collect()
 					}
 				}
-			}).collect()
+			} else {
+				Vec::new()
+			}
 		}
 		_ => Vec::new() // todo: handle references, arrays, tuples and any other parameterized types
 	}

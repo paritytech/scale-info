@@ -36,6 +36,7 @@ where
 
 	let ty = T::type_info().into_compact(&mut registry);
 
+	// panic!(&serde_json::to_string_pretty(&registry).unwrap());
 	assert_eq!(expected_json, serde_json::to_value(ty).unwrap());
 }
 
@@ -77,9 +78,9 @@ fn test_struct() {
 	assert_json_for_type::<Struct>(json!({
 		"composite": {
 			"fields": [
-				{ "name": 1, "type": 2, },
+				{ "name": 1, "type": 1, },
 				{ "name": 2, "type": 4, },
-				{ "name": 3, "type": 2, },
+				{ "name": 3, "type": 5, },
 			],
 		},
 	}));
@@ -126,11 +127,11 @@ fn test_enum() {
 					],
 				},
 				{
-					"name": 5,
+					"name": 3,
 					"fields": [
-						{ "name": 6, "type": 1, },
-						{ "name": 7, "type": 3, },
-						{ "name": 8, "type": 5, },
+						{ "name": 4, "type": 1, },
+						{ "name": 5, "type": 5, },
+						{ "name": 6, "type": 6, },
 					],
 				}
 			],
