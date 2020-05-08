@@ -182,13 +182,13 @@ fn test_generics() {
 		a: T,
 		b: Option<T>,
 		c: Option<bool>,
-		      // d: (Option<T>, Option<bool>), // Field::of_parameterized::<Option<T>>(parameters!(param(T), concrete(bool)) // left to right params (scope stack)
-		      // d: Option<GenericStruct<T, bool>>,
-		      // e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
-		      // f: Result<
-		      // 	GenericStruct<T, bool>, // same type as nested in field d
-		      //  ()
-		      // >
+		// d: (Option<T>, Option<bool>), // Field::of_parameterized::<Option<T>>(parameters!(param(T), concrete(bool)) // left to right params (scope stack)
+		// d: Option<GenericStruct<T, bool>>,
+		// e: Vec<(U, Option<T>)>, // Should resolve to correct parameters
+		// f: Result<
+		// 	GenericStruct<T, bool>, // same type as nested in field d
+		//  ()
+		// >
 	}
 
 	#[derive(Metadata)]
@@ -214,152 +214,151 @@ fn test_generics() {
 			"c"					// 10
 		],
 		"types": [
-			{
-			  "definition": {
-				"path": [
-				  1,
-				  2
-				],
-				"ty": {
-				  "composite": {
-					"fields": [
-					  {
-						"name": 3,
-						"type": 9
-					  },
-					  {
-						"name": 6,
-						"type": 11
-					  },
-					  {
-						"name": 10,
-						"type": 12
-					  }
+			{ // type 1
+				"definition": {
+					"path": [
+						1,	// json
+						2	// ConcreteStruct
+					],
+					"ty": {
+						"composite": {
+							"fields": [
+								{
+									"name": 3,	// a
+									"type": 9	// GenericStruct<Bool>
+								},
+								{
+									"name": 6, 	// b
+									"type": 11	// Option<u32>
+								},
+								{
+									"name": 10, // c
+									"type": 12	// GenericStruct<Option<bool>>
+								}
+							]
+						}
+					}
+				}
+			},
+			{ // type 2: bool
+				"definition": {
+					"ty": {
+						"primitive": "bool"
+					}
+				}
+			},
+			{ // type 3: GenericStruct<T>
+				"definition": {
+					"path": [
+						1, 	// json
+						4	// GenericStruct
+					],
+					"ty": {
+						"composite": {
+							"fields": [
+								{
+									"name": 3,	// a
+									"type": 4	// Param T of GenericStruct<T>
+								},
+								{
+									"name": 6,	// b
+									"type": 7 	// Option<T> where T is Param T of GenericStruct<T>
+								},
+								{
+									"name": 10, // c
+									"type": 8	// Option<bool>
+								}
+							]
+						}
+					}
+				}
+			},
+			{ // type 4: Param T of GenericStruct<T>
+				"parameter": {
+					"name": 5,	// T
+					"parent": 3	// GenericStruct<T>
+				}
+			},
+			{ // type 5: Option<T>
+				"definition": {
+					"path": [
+						7	// Option
+					],
+					"ty": {
+						"variant": {
+							"variants": [
+								{
+									"name": 8 	// None
+								},
+								{
+									"name": 9,	// Some
+									"fields": [
+										{
+											"type": 6 // Param T of Option<T>
+										}
+									]
+								}
+							]
+						}
+					}
+				}
+			},
+			{ // type 6: Param T of Option<T>
+				"parameter": {
+					"name": 5,	// T
+					"parent": 5	// Option<T>
+				}
+			},
+			{ // type 7: Option<T> where T is Param T of GenericStruct<T>
+				"generic": {
+					"ty": 5,	// Option<T>
+					"params": [
+						4		// Param T of GenericStruct<T>
 					]
-				  }
 				}
-			  }
 			},
-			{
-			  "definition": {
-				"ty": {
-				  "primitive": "bool"
-				}
-			  }
-			},
-			{
-			  "definition": {
-				"path": [
-				  1,
-				  4
-				],
-				"ty": {
-				  "composite": {
-					"fields": [
-					  {
-						"name": 3,
-						"type": 4
-					  },
-					  {
-						"name": 6,
-						"type": 7
-					  },
-					  {
-						"name": 10,
-						"type": 8
-					  }
+			{ // type 8: Option<bool>
+				"generic": {
+					"ty": 5,	// Option<T>
+					"params": [
+						2		// bool
 					]
-				  }
 				}
-			  }
 			},
-			{
-			  "parameter": {
-				"name": 5,
-				"parent": 3
-			  }
-			},
-			{
-			  "definition": {
-				"path": [
-				  7
-				],
-				"ty": {
-				  "variant": {
-					"variants": [
-					  {
-						"name": 8
-					  },
-					  {
-						"name": 9,
-						"fields": [
-						  {
-							"type": 6
-						  }
-						]
-					  }
+			{ // type 9: GenericStruct<bool>
+				"generic": {
+					"ty": 3,	// GenericStruct<T>
+					"params": [
+						2		// bool
 					]
-				  }
 				}
-			  }
 			},
-			{
-			  "parameter": {
-				"name": 5,
-				"parent": 5
-			  }
-			},
-			{
-			  "generic": {
-				"ty": 5,
-				"params": [
-				  4
-				]
-			  }
-			},
-			{
-			  "generic": {
-				"ty": 5,
-				"params": [
-				  2
-				]
-			  }
-			},
-			{
-			  "generic": {
-				"ty": 3,
-				"params": [
-				  2
-				]
-			  }
-			},
-			{
-			  "definition": {
-				"ty": {
-				  "primitive": "u32"
+			{ // type 10: u32
+				"definition": {
+					"ty": {
+						"primitive": "u32"
+					}
 				}
-			  }
 			},
-			{
-			  "generic": {
-				"ty": 5,
-				"params": [
-				  10
-				]
-			  }
+			{ // type 11: Option<u32>
+				"generic": {
+					"ty": 5,	// Option<T>
+					"params": [
+						10		// u32
+					]
+				}
 			},
-			{
-			  "generic": {
-				"ty": 3,
-				"params": [
-				  8
-				]
-			  }
+			{ // type 12: GenericStruct<Option<bool>>
+				"generic": {
+					"ty": 3,	// GenericStruct<T>
+					"params": [
+						8		// Option<bool>
+					]
+				}
 			}
-	  	]
+		]
 	});
 
-	panic!(&serde_json::to_string_pretty(&registry).unwrap());
 	assert_eq!(expected_json, serde_json::to_value(registry).unwrap());
 }
 
