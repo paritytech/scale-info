@@ -109,30 +109,33 @@ fn prelude_items() {
 #[test]
 fn tuple_primitives() {
 	// unit
-	assert_type!((), TypeTuple::new(tuple_meta_type!()), Path::prelude("Tuple"), vec![]);
+	assert_type!((), TypeTuple::new(vec![]), Path::prelude("Tuple"), vec![]);
 
 	// tuple with one element
+	let type_params = type_params!((bool,), (bool, A));
 	assert_type!(
 		(bool,),
-		TypeTuple::new(tuple_meta_type!(bool)),
+		TypeTuple::new(type_params.clone()),
 		Path::prelude("Tuple1"),
-		type_params!((bool,), (bool, A))
+		type_params
 	);
 
 	// tuple with multiple elements
+	let type_params = type_params!((bool, String), (bool, A), (String, B));
 	assert_type!(
 		(bool, String),
-		TypeTuple::new(tuple_meta_type!(bool, String)),
+		TypeTuple::new(type_params.clone()),
 		Path::prelude("Tuple2"),
-		type_params!((bool, String), (bool, A), (String, B))
+		type_params
 	);
 
 	// nested tuple
+	let type_params = type_params!(((i8, i16), (u32, u64)), ((i8, i16), A), ((u32, u64), B));
 	assert_type!(
 		((i8, i16), (u32, u64)),
-		TypeTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),]),
+		TypeTuple::new(type_params.clone()),
 		Path::prelude("Tuple2"),
-		type_params!(((i8, i16), (u32, u64)), ((i8, i16), A), ((u32, u64), B))
+		type_params
 	);
 }
 

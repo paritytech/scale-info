@@ -16,10 +16,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
-};
+use crate::{form::{CompactForm, Form, MetaForm}, IntoCompact, MetaType, Metadata, Registry, MetaTypeParameter};
 use derive_more::From;
 use serde::Serialize;
 
@@ -148,10 +145,10 @@ impl TypeTuple {
 	/// Creates a new tuple type definition from the given types.
 	pub fn new<T>(type_params: T) -> Self
 	where
-		T: IntoIterator<Item = MetaType>,
+		T: IntoIterator<Item = MetaTypeParameter>,
 	{
 		Self {
-			fields: type_params.into_iter().collect(),
+			fields: type_params.into_iter().map(Into::into).collect(),
 		}
 	}
 

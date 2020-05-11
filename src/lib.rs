@@ -66,50 +66,6 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 
-/// Takes a number of types and returns a vector that contains their respective
-/// `MetaType` instances.
-///
-/// This is useful for places that require inputs of iterators over `MetaType`
-/// instances and provide a way out of code bloat in these scenarious.
-///
-/// # Example
-///
-/// ```
-/// # use scale_info::tuple_meta_type;
-/// assert_eq!(
-///     tuple_meta_type!(i32, [u8; 32], String),
-///     {
-///         use scale_info::MetaType;
-///         let mut vec = Vec::new();
-///         vec.push(MetaType::new::<i32>());
-///         vec.push(MetaType::new::<[u8; 32]>());
-///         vec.push(MetaType::new::<String>());
-///         vec
-///     }
-/// );
-/// ```
-#[macro_export]
-macro_rules! tuple_meta_type {
-	( $($ty:ty),* ) => {
-		{
-			#[cfg(not(feature = "std"))]
-			extern crate alloc as _alloc;
-			#[cfg(not(feature = "std"))]
-			#[allow(unused_mut)]
-			let mut v = _alloc::vec![];
-
-			#[cfg(feature = "std")]
-			#[allow(unused_mut)]
-			let mut v = std::vec![];
-
-			$(
-				v.push($crate::MetaType::concrete::<$ty>());
-			)*
-			v
-		}
-	}
-}
-
 #[macro_export]
 macro_rules! type_param {
 	( $ty:ty ) => {

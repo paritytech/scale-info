@@ -92,7 +92,7 @@ macro_rules! impl_metadata_for_tuple {
 			}
 
 			fn type_info() -> Type {
-				TypeTuple::new(tuple_meta_type!($($ty),*)).into()
+				TypeTuple::new(type_params!($($ty),*)).into()
 			}
 		}
     }
