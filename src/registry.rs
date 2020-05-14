@@ -221,7 +221,7 @@ impl Registry {
 			}
 			MetaType::Parameterized(parameterized) => {
 				let generic_meta_type = MetaType::Generic(MetaTypeGeneric {
-					fn_type_info: parameterized.concrete.fn_type_info.clone(),
+					fn_type_info: parameterized.concrete.fn_type_info,
 					path: parameterized.concrete.path.clone(),
 				});
 
@@ -236,7 +236,7 @@ impl Registry {
 						if let Some(param) = self.param_stack.pop() {
 							if param.concrete_type_id() == concrete_param.concrete.type_id {
 								self.register_type(&param.into())
-							} else if concrete_param.concrete.params.len() > 0 {
+							} else if !concrete_param.concrete.params.is_empty() {
 								self.param_stack.push(param);
 								// recurse
 								self.register_type(&MetaType::Parameterized(MetaTypeParameterized {

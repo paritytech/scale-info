@@ -138,7 +138,7 @@ impl FieldsBuilder<NamedFields> {
 	{
 		let mut this = self;
 		this.fields
-			.push(Field::named(name, MetaType::parameter::<T, P>(param_name).into()));
+			.push(Field::named(name, MetaType::parameter::<T, P>(param_name)));
 		this
 	}
 

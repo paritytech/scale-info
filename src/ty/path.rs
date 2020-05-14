@@ -85,7 +85,7 @@ impl Path {
 	///
 	/// - If the supplied ident is not a valid Rust identifier
 	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Path {
-		Self::from_segments(vec![ident]).expect(&format!("{} is not a valid Rust identifier", ident))
+		Self::from_segments(vec![ident]).unwrap_or_else(|_| panic!("{} is not a valid Rust identifier", ident))
 	}
 
 	/// Create a Path from the given segments
