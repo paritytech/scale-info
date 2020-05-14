@@ -95,8 +95,7 @@ macro_rules! type_params {
 	}
 }
 
-// todo: made public for use for Vec in derive - should we make private again?
-pub mod tm_std;
+mod tm_std;
 
 pub mod form;
 mod impls;

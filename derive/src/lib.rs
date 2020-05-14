@@ -73,7 +73,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 				_scale_info::Path::new(stringify!(#ident), module_path!())
 			}
 
-			fn params() -> _scale_info::tm_std::Vec<_scale_info::MetaTypeParameter> {
+			fn params() -> __core::Vec<_scale_info::MetaTypeParameter> {
 				_scale_info::type_params!(#( #generic_type_ids ),*)
 			}
 
@@ -104,10 +104,9 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 			// it's a concrete non-generic type
 			(quote!( .field_of::<#ty> ), quote!())
 		} else {
-			// it's a parameterized generic type
 			let parameters = quote! {
-				_scale_info::tm_std::vec![
-					#( #type_params )*,
+				__core::vec![
+					#( #type_params ),*
 				]
 			};
 			(quote!( .parameterized_field::<#ty> ), quote!( #parameters ))
@@ -129,9 +128,9 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 
 fn is_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> bool {
 	match ty {
-		Type::Path(type_path) => type_params
+		Type::Path(path) => type_params
 			.iter()
-			.any(|tp| Some(&tp.ident) == type_path.path.get_ident()),
+			.any(|tp| Some(&tp.ident) == path.path.get_ident()),
 		_ => false,
 	}
 }
@@ -144,8 +143,8 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 	}
 
 	match ty {
-		Type::Path(type_path) => {
-			if let Some(segment) = type_path.path.segments.last() {
+		Type::Path(path) => {
+			if let Some(segment) = path.path.segments.last() {
 				match &segment.arguments {
 					PathArguments::None => {
 						if is_root {
@@ -176,7 +175,16 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 				Vec::new()
 			}
 		}
-		_ => Vec::new(), // todo: handle references, arrays, tuples and any other parameterized types
+		Type::Tuple(tuple) => {
+			tuple
+				.elems
+				.iter()
+				.flat_map(|ty| {
+					generate_parameterized_field_parameters(ty, type_params, false)
+				})
+				.collect()
+		}
+		_ => Vec::new(), // todo: handle references, arrays, and any other parameterized types
 	}
 }
 
