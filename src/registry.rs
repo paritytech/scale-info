@@ -171,9 +171,9 @@ impl Registry {
 
 		match ty {
 			MetaType::Concrete(concrete) => {
-				if concrete.params.len() > 0 {
+				if !concrete.params.is_empty() {
 					let generic_meta_type = MetaType::Generic(MetaTypeGeneric {
-						fn_type_info: concrete.fn_type_info.clone(),
+						fn_type_info: concrete.fn_type_info,
 						path: concrete.path.clone(),
 					});
 
