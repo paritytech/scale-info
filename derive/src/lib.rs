@@ -128,9 +128,7 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 
 fn is_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> bool {
 	match ty {
-		Type::Path(path) => type_params
-			.iter()
-			.any(|tp| Some(&tp.ident) == path.path.get_ident()),
+		Type::Path(path) => type_params.iter().any(|tp| Some(&tp.ident) == path.path.get_ident()),
 		_ => false,
 	}
 }
@@ -175,15 +173,11 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 				Vec::new()
 			}
 		}
-		Type::Tuple(tuple) => {
-			tuple
-				.elems
-				.iter()
-				.flat_map(|ty| {
-					generate_parameterized_field_parameters(ty, type_params, false)
-				})
-				.collect()
-		}
+		Type::Tuple(tuple) => tuple
+			.elems
+			.iter()
+			.flat_map(|ty| generate_parameterized_field_parameters(ty, type_params, false))
+			.collect(),
 		_ => Vec::new(), // todo: handle references, arrays, and any other parameterized types
 	}
 }

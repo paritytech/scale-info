@@ -24,8 +24,8 @@ use alloc::{boxed::Box, vec, vec::Vec};
 
 use pretty_assertions::assert_eq;
 use scale_info::{
-	Fields, MetaType, MetaTypeParameter, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
-	Variants,
+	Fields, MetaType, MetaTypeParameter, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo,
+	TypeVariant, Variants,
 };
 
 fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaTypeParameter>)
@@ -125,13 +125,10 @@ fn parameterized_generic_derive() {
 
 	let path = Path::new("GenericParameterized", "derive");
 	let params = type_params!(GenericParameterized<u8>, (u8, T));
-	let struct_type = TypeComposite::new(
-		Fields::named()
-			.parameterized_field::<Option<u8>>(
-				"a",
-				vec![MetaTypeParameterValue::parameter::<GenericParameterized<u8>, u8>("T")]
-			)
-	);
+	let struct_type = TypeComposite::new(Fields::named().parameterized_field::<Option<u8>>(
+		"a",
+		vec![MetaTypeParameterValue::parameter::<GenericParameterized<u8>, u8>("T")],
+	));
 
 	assert_type!(GenericParameterized<u8>, struct_type, &path, params)
 }
@@ -154,7 +151,7 @@ fn parameterized_tuple_derive() {
 				vec![
 					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u8>("T"),
 					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u16>("U"),
-				]
+				],
 			)
 			.parameterized_field::<(u8, u16, u32)>(
 				"b",
@@ -162,8 +159,8 @@ fn parameterized_tuple_derive() {
 					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u8>("T"),
 					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u16>("U"),
 					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u32>("V"),
-				]
-			)
+				],
+			),
 	);
 
 	assert_type!(TupleParameterized<u8, u16, u32>, struct_type, &path, params)
