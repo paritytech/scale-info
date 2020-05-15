@@ -167,6 +167,37 @@ fn parameterized_tuple_derive() {
 }
 
 #[test]
+fn parameterized_array_derive() {
+	#[allow(unused)]
+	#[derive(Metadata)]
+	struct ArrayParameterized<T, U> {
+		a: [T; 8],
+		b: [(T, U); 16],
+	}
+
+	let path = Path::new("ArrayParameterized", "derive");
+	let params = type_params!(ArrayParameterized<u8, u16>, (u8, T), (u16, U));
+	let struct_type = TypeComposite::new(
+		Fields::named()
+			.parameterized_field::<[u8; 8]>(
+				"a",
+				vec![MetaTypeParameterValue::parameter::<ArrayParameterized<u8, u16>, u8>(
+					"T",
+				)],
+			)
+			.parameterized_field::<[(u8, u16); 16]>(
+				"b",
+				vec![
+					MetaTypeParameterValue::parameter::<ArrayParameterized<u8, u16>, u8>("T"),
+					MetaTypeParameterValue::parameter::<ArrayParameterized<u8, u16>, u16>("U"),
+				],
+			),
+	);
+
+	assert_type!(ArrayParameterized<u8, u16>, struct_type, &path, params)
+}
+
+#[test]
 fn tuple_struct_derive() {
 	#[allow(unused)]
 	#[derive(Metadata)]

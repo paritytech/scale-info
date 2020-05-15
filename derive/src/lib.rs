@@ -178,7 +178,8 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 			.iter()
 			.flat_map(|ty| generate_parameterized_field_parameters(ty, type_params, false))
 			.collect(),
-		_ => Vec::new(), // todo: handle references, arrays, and any other parameterized types
+		Type::Array(array) => generate_parameterized_field_parameters(&array.elem, type_params, false),
+		_ => Vec::new(), // todo: handle references, and any other parameterized types
 	}
 }
 
