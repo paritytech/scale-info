@@ -30,9 +30,9 @@ use syn::{
 	parse_quote,
 	punctuated::Punctuated,
 	token::Comma,
-	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Lifetime, Lit, PathArguments, Type,
-	TypeParam, Variant,
 	visit_mut::VisitMut,
+	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Lifetime, Lit,
+	PathArguments, Type, TypeParam, Variant,
 };
 
 #[proc_macro_derive(Metadata)]
@@ -58,9 +58,9 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	});
 
 	let mut static_lifetime_generics = ast.generics.clone();
-	static_lifetime_generics.lifetimes_mut().for_each(|l| {
-		*l = parse_quote!('static)
-	});
+	static_lifetime_generics
+		.lifetimes_mut()
+		.for_each(|l| *l = parse_quote!('static));
 
 	let ident = &ast.ident;
 	let impl_generics_no_lifetimes = ast.generics.type_params();
@@ -75,8 +75,8 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
 	};
 
-	let meta_type_params = generic_type_ids
-		.map(|tp| quote! { _scale_info::MetaTypeParameter::new::<Self, #tp>(stringify!(#tp)) });
+	let meta_type_params =
+		generic_type_ids.map(|tp| quote! { _scale_info::MetaTypeParameter::new::<Self, #tp>(stringify!(#tp)) });
 
 	let type_info_impl = quote! {
 		impl <#( #impl_generics_no_lifetimes ),*> _scale_info::TypeInfo for #ident #ty_generics #where_clause {
@@ -158,7 +158,7 @@ fn get_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> Option<Type> {
 			} else {
 				None
 			}
-		},
+		}
 		// references to type params are just the plain type param (`&'a T` and `&'a mut T`) -> T
 		Type::Reference(reference) => Some(*reference.elem.clone()),
 		_ => None,
@@ -210,8 +210,7 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 			.iter()
 			.flat_map(|ty| generate_parameterized_field_parameters(ty, type_params, false))
 			.collect(),
-		Type::Array(array) =>
-			generate_parameterized_field_parameters(&array.elem, type_params, false),
+		Type::Array(array) => generate_parameterized_field_parameters(&array.elem, type_params, false),
 		_ => Vec::new(), // todo: handle references, slices and any other parameterized types
 	}
 }
