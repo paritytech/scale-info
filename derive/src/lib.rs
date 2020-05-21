@@ -30,8 +30,9 @@ use syn::{
 	parse_quote,
 	punctuated::Punctuated,
 	token::Comma,
-	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Lit, PathArguments, Type,
+	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, GenericArgument, Lifetime, Lit, PathArguments, Type,
 	TypeParam, Variant,
+	visit_mut::VisitMut,
 };
 
 #[proc_macro_derive(Metadata)]
@@ -56,13 +57,15 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		p.bounds.push(parse_quote!('static));
 	});
 
-	ast.generics.lifetimes_mut().for_each(|l| {
-		// *l = parse_quote!('static)
-		l.bounds.push(parse_quote!('static))
+	let mut static_lifetime_generics = ast.generics.clone();
+	static_lifetime_generics.lifetimes_mut().for_each(|l| {
+		*l = parse_quote!('static)
 	});
 
 	let ident = &ast.ident;
-	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
+	let impl_generics_no_lifetimes = ast.generics.type_params();
+	let (_, _, where_clause) = ast.generics.split_for_impl();
+	let (_, ty_generics, _) = static_lifetime_generics.split_for_impl();
 	let generic_type_ids = ast.generics.type_params().map(|ty| &ty.ident);
 
 	let type_params = ast.generics.type_params().collect::<Vec<_>>();
@@ -76,7 +79,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		.map(|tp| quote! { _scale_info::MetaTypeParameter::new::<Self, #tp>(stringify!(#tp)) });
 
 	let type_info_impl = quote! {
-		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
+		impl <#( #impl_generics_no_lifetimes ),*> _scale_info::TypeInfo for #ident #ty_generics #where_clause {
 			fn path() -> _scale_info::Path {
 				_scale_info::Path::new(stringify!(#ident), module_path!())
 			}
@@ -105,11 +108,22 @@ fn generate_fields(fields: &FieldsList, type_params: &[&TypeParam]) -> Vec<Token
 fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 	let (ty, ident) = (&field.ty, &field.ident);
 
-	let (field_method, field_args) = if let Some(ty) = get_type_parameter(ty, type_params) {
+	// Replace any field lifetime params with `static to prevent "unnecessary lifetime parameter"
+	// warning. Any lifetime parameters are specified as 'static in the type of the impl.
+	struct StaticLifetimesReplace;
+	impl VisitMut for StaticLifetimesReplace {
+		fn visit_lifetime_mut(&mut self, lifetime: &mut Lifetime) {
+			*lifetime = parse_quote!('static)
+		}
+	}
+	let mut ty = ty.clone();
+	StaticLifetimesReplace.visit_type_mut(&mut ty);
+
+	let (field_method, field_args) = if let Some(ty) = get_type_parameter(&ty, type_params) {
 		// it's a field of a parameter e.g. `a: T`
 		(quote!( .parameter_field::<Self, #ty> ), quote!(stringify!(#ty)))
 	} else {
-		let type_params = generate_parameterized_field_parameters(ty, type_params, true);
+		let type_params = generate_parameterized_field_parameters(&ty, type_params, true);
 		if type_params.is_empty() {
 			// it's a concrete non-generic type
 			(quote!( .field_of::<#ty> ), quote!())
