@@ -56,6 +56,11 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		p.bounds.push(parse_quote!('static));
 	});
 
+	ast.generics.lifetimes_mut().for_each(|l| {
+		// *l = parse_quote!('static)
+		l.bounds.push(parse_quote!('static))
+	});
+
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
 	let generic_type_ids = ast.generics.type_params().map(|ty| &ty.ident);
@@ -67,14 +72,20 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
 	};
 
+	let meta_type_params = generic_type_ids
+		.map(|tp| quote! { _scale_info::MetaTypeParameter::new::<Self, #tp>(stringify!(#tp)) });
+
 	let type_info_impl = quote! {
+		#[allow(lifetime_warning)]
 		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
 			fn path() -> _scale_info::Path {
 				_scale_info::Path::new(stringify!(#ident), module_path!())
 			}
 
 			fn params() -> __core::Vec<_scale_info::MetaTypeParameter> {
-				_scale_info::type_params!(#( #generic_type_ids ),*)
+				__core::vec![
+					#( #meta_type_params ),*
+				]
 			}
 
 			fn type_info() -> _scale_info::Type {
@@ -95,7 +106,7 @@ fn generate_fields(fields: &FieldsList, type_params: &[&TypeParam]) -> Vec<Token
 fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 	let (ty, ident) = (&field.ty, &field.ident);
 
-	let (field_method, field_args) = if is_type_parameter(ty, type_params) {
+	let (field_method, field_args) = if let Some(ty) = get_type_parameter(ty, type_params) {
 		// it's a field of a parameter e.g. `a: T`
 		(quote!( .parameter_field::<Self, #ty> ), quote!(stringify!(#ty)))
 	} else {
@@ -126,15 +137,23 @@ fn generate_field(field: &Field, type_params: &[&TypeParam]) -> TokenStream2 {
 	}
 }
 
-fn is_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> bool {
+fn get_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> Option<Type> {
 	match ty {
-		Type::Path(path) => type_params.iter().any(|tp| Some(&tp.ident) == path.path.get_ident()),
-		_ => false,
+		Type::Path(path) => {
+			if type_params.iter().any(|tp| Some(&tp.ident) == path.path.get_ident()) {
+				Some(ty.clone())
+			} else {
+				None
+			}
+		},
+		// references to type params are just the plain type param (`&'a T` and `&'a mut T`) -> T
+		Type::Reference(reference) => Some(*reference.elem.clone()),
+		_ => None,
 	}
 }
 
 fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam], is_root: bool) -> Vec<TokenStream2> {
-	if is_type_parameter(ty, type_params) {
+	if let Some(ty) = get_type_parameter(ty, type_params) {
 		return vec![quote! {
 			_scale_info::MetaTypeParameterValue::parameter::<Self, #ty>(stringify!(#ty))
 		}];
@@ -178,8 +197,9 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 			.iter()
 			.flat_map(|ty| generate_parameterized_field_parameters(ty, type_params, false))
 			.collect(),
-		Type::Array(array) => generate_parameterized_field_parameters(&array.elem, type_params, false),
-		_ => Vec::new(), // todo: handle references, and any other parameterized types
+		Type::Array(array) =>
+			generate_parameterized_field_parameters(&array.elem, type_params, false),
+		_ => Vec::new(), // todo: handle references, slices and any other parameterized types
 	}
 }
 

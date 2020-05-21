@@ -198,6 +198,10 @@ where
 		T::path()
 	}
 
+	fn params() -> Vec<MetaTypeParameter> {
+		T::params()
+	}
+
 	fn type_info() -> Type {
 		T::type_info()
 	}
@@ -211,6 +215,10 @@ where
 		T::path()
 	}
 
+	fn params() -> Vec<MetaTypeParameter> {
+		T::params()
+	}
+
 	fn type_info() -> Type {
 		T::type_info()
 	}
@@ -222,6 +230,10 @@ where
 {
 	fn path() -> Path {
 		T::path()
+	}
+
+	fn params() -> Vec<MetaTypeParameter> {
+		T::params()
 	}
 
 	fn type_info() -> Type {

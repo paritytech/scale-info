@@ -198,6 +198,36 @@ fn parameterized_array_derive() {
 }
 
 #[test]
+fn parameterized_refs_derive() {
+	#[allow(unused)]
+	#[derive(Metadata)]
+	struct RefsParameterized<'a, T, U> {
+		a: &'a T,
+		b: &'a mut U,
+		c: (&'a mut T, &'a U),
+	}
+
+	let path = Path::new("RefsParameterized", "derive");
+	let params = type_params!(RefsParameterized<'static, u8, u16>, (u8, T), (u16, U));
+	let struct_type = TypeComposite::new(
+		Fields::named()
+			// refs are stripped to the owned type e.g. &T and &mut T become T, since SCALE encodes
+			// all forms to the same representation.
+			.parameter_field::<RefsParameterized<'static, u8, u16>, u8>("a", "T")
+			.parameter_field::<RefsParameterized<'static, u8, u16>, u16>("b", "U")
+			.parameterized_field::<(&'static mut u8, &'static u16)>(
+				"c",
+				vec![
+					MetaTypeParameterValue::parameter::<RefsParameterized<'static, u8, u16>, u8>("T"),
+					MetaTypeParameterValue::parameter::<RefsParameterized<'static, u8, u16>, u16>("U"),
+				],
+			),
+	);
+
+	assert_type!(RefsParameterized<'static, u8, u16>, struct_type, &path, params)
+}
+
+#[test]
 fn tuple_struct_derive() {
 	#[allow(unused)]
 	#[derive(Metadata)]
