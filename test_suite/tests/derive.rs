@@ -24,7 +24,7 @@ use alloc::{boxed::Box, vec, vec::Vec};
 
 use pretty_assertions::assert_eq;
 use scale_info::{
-	Fields, MetaType, MetaTypeParameter, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo,
+	Fields, MetaTypeParameter, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo,
 	TypeVariant, Variants,
 };
 

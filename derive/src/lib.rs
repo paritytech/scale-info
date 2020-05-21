@@ -76,7 +76,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		.map(|tp| quote! { _scale_info::MetaTypeParameter::new::<Self, #tp>(stringify!(#tp)) });
 
 	let type_info_impl = quote! {
-		#[allow(lifetime_warning)]
 		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
 			fn path() -> _scale_info::Path {
 				_scale_info::Path::new(stringify!(#ident), module_path!())
