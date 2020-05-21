@@ -45,10 +45,10 @@ pub use self::core::{
 };
 
 mod alloc {
-	// #[cfg(not(feature = "std"))]
-	// pub use ::alloc::*;
+	#[cfg(not(feature = "std"))]
+	pub use ::alloc::*;
 
-	// #[cfg(feature = "std")]
+	#[cfg(feature = "std")]
 	pub use std::*;
 }
 
