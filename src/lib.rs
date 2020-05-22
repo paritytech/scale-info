@@ -102,7 +102,6 @@ mod impls;
 mod meta_type;
 mod registry;
 mod ty;
-mod type_id;
 mod utils;
 
 #[cfg(test)]
@@ -110,9 +109,8 @@ mod tests;
 
 pub use self::{
 	meta_type::{MetaType, MetaTypeParameter, MetaTypeParameterValue},
-	registry::{IntoCompact, Registry, InternedTypeParameter, interner::UntrackedSymbol},
+	registry::{IntoCompact, Registry, interner::UntrackedSymbol},
 	ty::*,
-	type_id::*,
 };
 
 #[cfg(feature = "derive")]

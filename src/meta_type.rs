@@ -178,6 +178,15 @@ pub struct MetaTypeGeneric {
 	pub path: Path,
 }
 
+impl From<MetaTypeConcrete> for MetaTypeGeneric {
+	fn from(concrete: MetaTypeConcrete) -> Self {
+		Self {
+			fn_type_info: concrete.fn_type_info,
+			path: concrete.path,
+		}
+	}
+}
+
 impl MetaTypeGeneric {
 	fn new<T>() -> Self
 	where

@@ -17,10 +17,10 @@
 //! Exports from `std`, `core` and `alloc` crates.
 
 mod core {
-	#[cfg(not(feature = "std"))]
-	pub use core::*;
-
-	#[cfg(feature = "std")]
+	// #[cfg(not(feature = "std"))]
+	// pub use core::*;
+	//
+	// #[cfg(feature = "std")]
 	pub use std::*;
 }
 
@@ -45,10 +45,10 @@ pub use self::core::{
 };
 
 mod alloc {
-	#[cfg(not(feature = "std"))]
-	pub use ::alloc::*;
-
-	#[cfg(feature = "std")]
+	// #[cfg(not(feature = "std"))]
+	// pub use ::alloc::*;
+	//
+	// #[cfg(feature = "std")]
 	pub use std::*;
 }
 
