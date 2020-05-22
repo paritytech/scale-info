@@ -34,12 +34,14 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	interner::{Interner, UntrackedSymbol},
 	meta_type::{MetaType, MetaTypeGeneric, MetaTypeParameterized},
-	MetaTypeParameterValue, Type, TypeId,
+	MetaTypeParameterValue, Type, InternedTypeId,
 };
+use interner::{Interner, UntrackedSymbol};
 use derive_more::From;
 use serde::Serialize;
+
+pub mod interner;
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -73,7 +75,7 @@ pub struct Registry {
 	/// This is just an accessor to the actual database
 	/// for all types found in the `types` field.
 	#[serde(skip)]
-	type_table: Interner<TypeId>,
+	type_table: Interner<InternedTypeId>,
 	/// Scope stack for resolving nested parameterized types
 	#[serde(skip)]
 	param_stack: Vec<MetaTypeParameterValue>,
@@ -81,13 +83,13 @@ pub struct Registry {
 	///
 	/// This is going to be serialized upon serialization.
 	#[serde(serialize_with = "serialize_registry_types")]
-	types: BTreeMap<UntrackedSymbol<TypeId>, InternedType<CompactForm>>,
+	types: BTreeMap<UntrackedSymbol<InternedTypeId>, InternedType<CompactForm>>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs
 /// and instead serialize them in order of their removed unique ID.
 fn serialize_registry_types<S>(
-	types: &BTreeMap<UntrackedSymbol<TypeId>, InternedType<CompactForm>>,
+	types: &BTreeMap<UntrackedSymbol<InternedTypeId>, InternedType<CompactForm>>,
 	serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -130,13 +132,13 @@ impl Registry {
 	///
 	/// This is an internal API and should not be called directly from the
 	/// outside.
-	fn intern_type_id(&mut self, type_id: TypeId) -> (bool, UntrackedSymbol<TypeId>) {
+	fn intern_type_id(&mut self, type_id: InternedTypeId) -> (bool, UntrackedSymbol<InternedTypeId>) {
 		let (inserted, symbol) = self.type_table.intern_or_get(type_id);
 		(inserted, symbol.into_untracked())
 	}
 
 	// todo: [AJ] combine with above private method?
-	fn intern_type<F, T>(&mut self, type_id: TypeId, f: F) -> UntrackedSymbol<TypeId>
+	fn intern_type<F, T>(&mut self, type_id: InternedTypeId, f: F) -> UntrackedSymbol<InternedTypeId>
 	where
 		F: FnOnce() -> T,
 		T: IntoCompact<Output = InternedType<CompactForm>>,
@@ -159,7 +161,7 @@ impl Registry {
 	/// be used later to resolve back to the associated type definition.
 	/// However, since this facility is going to be used for serialization
 	/// purposes this functionality isn't needed anyway.
-	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
+	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<InternedTypeId> {
 		// let register_generic_type = |ty: &MetaTypeConcrete| {
 		// 	self.intern_type(TypeId::Path(ty.path()), || {
 		// 		RegistryType::Definition(TypeDef {
@@ -186,11 +188,11 @@ impl Registry {
 							.collect(),
 					};
 
-					let type_id = TypeId::Generic(generic.clone().into_compact(self));
+					let type_id = InternedTypeId::Generic(generic.clone().into_compact(self));
 
 					self.intern_type(type_id, || InternedType::Generic(generic))
 				} else {
-					let type_id = TypeId::Any(concrete.type_id);
+					let type_id = InternedTypeId::Any(concrete.type_id);
 					self.intern_type(type_id, || {
 						let type_info = (concrete.fn_type_info)();
 						InternedType::Definition(InternedTypeDef {
@@ -201,7 +203,7 @@ impl Registry {
 				}
 			}
 			MetaType::Generic(ty) => {
-				let type_id = TypeId::Path(ty.path.clone());
+				let type_id = InternedTypeId::Path(ty.path.clone());
 				self.intern_type(type_id, || {
 					let type_info = (ty.fn_type_info)();
 					InternedType::Definition(InternedTypeDef {
@@ -216,7 +218,7 @@ impl Registry {
 					parent: generic_meta_type,
 					name: p.name,
 				};
-				let param_type_id = TypeId::Parameter(type_parameter.clone().into_compact(self));
+				let param_type_id = InternedTypeId::Parameter(type_parameter.clone().into_compact(self));
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
 			MetaType::Parameterized(parameterized) => {
@@ -257,7 +259,7 @@ impl Registry {
 					params,
 				};
 
-				let type_id = TypeId::Generic(generic.clone());
+				let type_id = InternedTypeId::Generic(generic.clone());
 
 				self.intern_type(type_id, || InternedType::Generic(generic))
 			}
@@ -265,7 +267,7 @@ impl Registry {
 	}
 
 	/// Calls `register_type` for each `MetaType` in the given `iter`
-	pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeId>>
+	pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<InternedTypeId>>
 	where
 		I: IntoIterator<Item = MetaType>,
 	{

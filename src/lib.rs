@@ -99,7 +99,6 @@ mod tm_std;
 
 pub mod form;
 mod impls;
-pub mod interner;
 mod meta_type;
 mod registry;
 mod ty;
@@ -111,7 +110,7 @@ mod tests;
 
 pub use self::{
 	meta_type::{MetaType, MetaTypeParameter, MetaTypeParameterValue},
-	registry::{IntoCompact, Registry, InternedTypeParameter},
+	registry::{IntoCompact, Registry, InternedTypeParameter, interner::UntrackedSymbol},
 	ty::*,
 	type_id::*,
 };

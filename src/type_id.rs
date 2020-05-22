@@ -20,7 +20,7 @@ use crate::tm_std::*;
 use crate::Path;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
-pub enum TypeId {
+pub enum InternedTypeId {
 	/// Any type id
 	Any(any::TypeId),
 	/// Use a type's path as its unique id

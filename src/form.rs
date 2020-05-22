@@ -33,7 +33,7 @@
 //! (also via lifetime tracking) are possible but current not needed.
 
 use crate::tm_std::*;
-use crate::{interner::UntrackedSymbol, meta_type::MetaType, TypeId};
+use crate::{UntrackedSymbol, meta_type::MetaType, InternedTypeId};
 use serde::Serialize;
 
 /// Trait to control the internal structures of type representations.
@@ -72,5 +72,5 @@ pub enum CompactForm {}
 
 impl Form for CompactForm {
 	type String = UntrackedSymbol<&'static str>;
-	type Type = UntrackedSymbol<TypeId>;
+	type Type = UntrackedSymbol<InternedTypeId>;
 }
