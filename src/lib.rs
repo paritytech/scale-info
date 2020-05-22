@@ -111,7 +111,7 @@ mod tests;
 
 pub use self::{
 	meta_type::{MetaType, MetaTypeParameter, MetaTypeParameterValue},
-	registry::{IntoCompact, Registry, TypeParameter},
+	registry::{IntoCompact, Registry, InternedTypeParameter},
 	ty::*,
 	type_id::*,
 };

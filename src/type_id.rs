@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::form::CompactForm;
-use crate::registry::{GenericType, TypeParameter};
+use crate::registry::{InternedGenericType, InternedTypeParameter};
 use crate::tm_std::*;
 use crate::Path;
 
@@ -26,7 +26,7 @@ pub enum TypeId {
 	/// Use a type's path as its unique id
 	Path(Path),
 	/// Generic type parameter Path + Name
-	Parameter(TypeParameter<CompactForm>),
+	Parameter(InternedTypeParameter<CompactForm>),
 	/// Generic type instance
-	Generic(GenericType<CompactForm>),
+	Generic(InternedGenericType<CompactForm>),
 }
