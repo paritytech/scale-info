@@ -33,12 +33,12 @@
 
 use crate::tm_std::*;
 use crate::{
-	form::{CompactForm, MetaForm},
+	form::CompactForm,
 	meta_type::{MetaType, MetaTypeGeneric, MetaTypeParameterized},
-	MetaTypeParameterValue, Type,
+	MetaTypeParameterValue,
 };
 use interner::{Interner, UntrackedSymbol};
-use interned_type::{InternedType, InternedGenericType, InternedTypeDef, InternedTypeParameter};
+use interned_type::{InternedType, InternedGenericType, InternedTypeParameter};
 use serde::Serialize;
 
 pub mod interner;
@@ -172,13 +172,13 @@ impl Registry {
 					let interned_generic = InternedGenericType::from(concrete);
 					let type_id = interned_generic.clone().into_compact(self).into();
 
-					self.intern_type(type_id, || interned_generic.into())
+					self.intern_type(type_id, || InternedType::Generic(interned_generic))
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
 					let type_id = concrete.type_id.into();
 					self.intern_type(type_id, || {
 						let type_info = (concrete.fn_type_info)();
-						InternedTypeDef::new(concrete.path.clone(), type_info).into()
+						InternedType::definition(concrete.path.clone(), type_info)
 					})
 				}
 			}
@@ -186,15 +186,11 @@ impl Registry {
 				let type_id = InternedTypeId::Path(ty.path.clone());
 				self.intern_type(type_id, || {
 					let type_info = (ty.fn_type_info)();
-					InternedTypeDef::new(ty.path.clone(), type_info).into()
+					InternedType::definition(ty.path.clone(), type_info)
 				})
 			}
 			MetaType::Parameter(p) => {
-				let generic_meta_type = MetaType::Generic(p.parent.clone());
-				let type_parameter = InternedTypeParameter {
-					parent: generic_meta_type,
-					name: p.name,
-				};
+				let type_parameter = InternedTypeParameter::from(p);
 				let param_type_id = InternedTypeId::Parameter(type_parameter.clone().into_compact(self));
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
@@ -231,10 +227,7 @@ impl Registry {
 					})
 					.collect::<Vec<_>>();
 
-				let generic = InternedGenericType {
-					ty: self.register_type(&generic_meta_type),
-					params,
-				};
+				let generic = InternedGenericType::new(self.register_type(&generic_meta_type), params);
 
 				let type_id = InternedTypeId::Generic(generic.clone());
 
