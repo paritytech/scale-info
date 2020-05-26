@@ -14,15 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::tm_std::*;
-use crate::{form::{CompactForm, Form, MetaForm}, Type, Path, meta_type::{MetaType, MetaTypeConcrete}, MetaTypeParameter};
-use derive_more::From;
-use super::{
-	IntoCompact,
-	Registry,
-};
-use serde::Serialize;
+use super::{IntoCompact, Registry};
 use crate::meta_type::MetaTypeGeneric;
+use crate::tm_std::*;
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	meta_type::{MetaType, MetaTypeConcrete},
+	MetaTypeParameter, Path, Type,
+};
+use derive_more::From;
+use serde::Serialize;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
@@ -58,7 +59,7 @@ impl IntoCompact for InternedType<CompactForm> {
 
 impl<F> InternedType<F>
 where
-	F: Form
+	F: Form,
 {
 	pub fn definition(path: Path<F>, ty: Type<F>) -> Self {
 		InternedTypeDef::new(path, ty).into()
@@ -93,13 +94,10 @@ impl IntoCompact for InternedTypeDef<MetaForm> {
 
 impl<F> InternedTypeDef<F>
 where
-	F: Form
+	F: Form,
 {
 	pub fn new(path: Path<F>, ty: Type<F>) -> Self {
-		Self {
-			path,
-			ty,
-		}
+		Self { path, ty }
 	}
 }
 
@@ -150,11 +148,7 @@ impl From<&MetaTypeConcrete> for InternedGenericType {
 	fn from(concrete: &MetaTypeConcrete) -> Self {
 		Self {
 			ty: MetaType::Generic(concrete.clone().into()),
-			params: concrete
-				.params
-				.iter()
-				.map(|p| p.concrete.clone().into())
-				.collect()
+			params: concrete.params.iter().map(|p| p.concrete.clone().into()).collect(),
 		}
 	}
 }

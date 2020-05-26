@@ -37,12 +37,12 @@ use crate::{
 	meta_type::{MetaType, MetaTypeGeneric, MetaTypeParameterized},
 	MetaTypeParameterValue,
 };
+use interned_type::{InternedGenericType, InternedType, InternedTypeParameter};
 use interner::{Interner, UntrackedSymbol};
-use interned_type::{InternedType, InternedGenericType, InternedTypeParameter};
 use serde::Serialize;
 
-pub mod interner;
 mod interned_type;
+pub mod interner;
 
 pub use interned_type::InternedTypeId;
 
@@ -195,11 +195,6 @@ impl Registry {
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
 			MetaType::Parameterized(parameterized) => {
-				let generic_meta_type = MetaType::Generic(MetaTypeGeneric {
-					fn_type_info: parameterized.concrete.fn_type_info,
-					path: parameterized.concrete.path.clone(),
-				});
-
 				self.param_stack.extend(parameterized.params.iter().cloned().rev());
 
 				let params = parameterized
@@ -227,7 +222,15 @@ impl Registry {
 					})
 					.collect::<Vec<_>>();
 
-				let generic = InternedGenericType::new(self.register_type(&generic_meta_type), params);
+				let generic_meta_type = MetaType::Generic(MetaTypeGeneric {
+					fn_type_info: parameterized.concrete.fn_type_info,
+					path: parameterized.concrete.path.clone(),
+				});
+
+				let generic = InternedGenericType::new(
+					self.register_type(&MetaType::Generic(parameterized.concrete.clone().into())),
+					params,
+				);
 
 				let type_id = InternedTypeId::Generic(generic.clone());
 
