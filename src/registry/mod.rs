@@ -34,7 +34,7 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	meta_type::{MetaType, MetaTypeGeneric, MetaTypeParameterized},
+	meta_type::{MetaType, MetaTypeParameterized},
 	MetaTypeParameterValue,
 };
 use interned_type::{InternedGenericType, InternedType, InternedTypeParameter};
@@ -221,11 +221,6 @@ impl Registry {
 						}
 					})
 					.collect::<Vec<_>>();
-
-				let generic_meta_type = MetaType::Generic(MetaTypeGeneric {
-					fn_type_info: parameterized.concrete.fn_type_info,
-					path: parameterized.concrete.path.clone(),
-				});
 
 				let generic = InternedGenericType::new(
 					self.register_type(&MetaType::Generic(parameterized.concrete.clone().into())),

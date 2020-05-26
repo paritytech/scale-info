@@ -64,13 +64,6 @@ where
 	pub fn definition(path: Path<F>, ty: Type<F>) -> Self {
 		InternedTypeDef::new(path, ty).into()
 	}
-
-	pub fn generic<P>(ty: F::Type, params: P) -> Self
-	where
-		P: IntoIterator<Item = F::Type>,
-	{
-		InternedGenericType::new(ty, params).into()
-	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
