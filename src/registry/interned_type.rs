@@ -20,7 +20,7 @@ use crate::tm_std::*;
 use crate::{
 	form::{CompactForm, Form, MetaForm},
 	meta_type::{MetaType, MetaTypeConcrete},
-	MetaTypeParameter, Path, Type,
+	Path, Type,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -121,12 +121,6 @@ impl InternedTypeParameter {
 			name,
 			parent: MetaType::Generic(parent),
 		}
-	}
-}
-
-impl From<&MetaTypeParameter> for InternedTypeParameter {
-	fn from(meta_param: &MetaTypeParameter) -> Self {
-		Self::new(meta_param.name.clone(), meta_param.parent.clone())
 	}
 }
 

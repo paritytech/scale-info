@@ -36,14 +36,14 @@ use crate::{
 	form::CompactForm,
 	meta_type::{MetaType, MetaTypeParameterValue},
 };
-use interned_type::{InternedGenericType, InternedType, InternedTypeParameter};
+use interned_type::{InternedGenericType, InternedType};
 use interner::{Interner, UntrackedSymbol};
 use serde::Serialize;
 
 mod interned_type;
 pub mod interner;
 
-pub use interned_type::InternedTypeId;
+pub use interned_type::{InternedTypeId, InternedTypeParameter};
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {

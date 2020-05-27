@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{Path, Type, TypeInfo};
+use crate::{Path, Type, TypeInfo, registry::InternedTypeParameter};
 use derive_more::From;
 
 /// A metatype abstraction.
@@ -132,9 +132,15 @@ impl MetaTypeConcrete {
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameter {
-	pub name: &'static str,
-	pub parent: MetaTypeGeneric,
+	name: &'static str,
+	parent: MetaTypeGeneric,
 	concrete: MetaTypeConcrete,
+}
+
+impl From<&MetaTypeParameter> for InternedTypeParameter {
+	fn from(meta_param: &MetaTypeParameter) -> Self {
+		Self::new(meta_param.name.clone(), meta_param.parent.clone())
+	}
 }
 
 impl MetaTypeParameter {
