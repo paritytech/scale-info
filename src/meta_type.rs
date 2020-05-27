@@ -236,8 +236,8 @@ impl From<MetaTypeParameterValue> for MetaType {
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeGeneric {
-	pub fn_type_info: fn() -> Type,
-	pub path: Path,
+	fn_type_info: fn() -> Type,
+	path: Path,
 }
 
 impl From<MetaTypeConcrete> for MetaTypeGeneric {
@@ -264,5 +264,13 @@ impl MetaTypeGeneric {
 			fn_type_info: T::type_info,
 			path: T::path(),
 		}
+	}
+
+	pub fn path(&self) -> Path {
+		self.path.clone()
+	}
+
+	pub fn type_info(&self) -> Type {
+		(self.fn_type_info)()
 	}
 }
