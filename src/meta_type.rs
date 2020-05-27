@@ -125,8 +125,27 @@ impl MetaTypeParameter {
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameterized {
-	pub concrete: MetaTypeConcrete,
-	pub params: Vec<MetaTypeParameterValue>,
+	concrete: MetaTypeConcrete,
+	params: Vec<MetaTypeParameterValue>,
+}
+
+impl From<MetaTypeParameter> for MetaTypeParameterized {
+	fn from(parameter: MetaTypeParameter) -> Self {
+		Self {
+			concrete: parameter.concrete,
+			params: Vec::new()
+		}
+	}
+}
+
+impl MetaTypeParameterized {
+	pub fn concrete_params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
+		self.concrete.params.iter()
+	}
+
+	pub fn parameter_values(&self) -> impl DoubleEndedIterator<Item = &MetaTypeParameterValue> {
+		self.params.iter()
+	}
 }
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug, From)]
@@ -184,6 +203,12 @@ impl From<MetaTypeConcrete> for MetaTypeGeneric {
 			fn_type_info: concrete.fn_type_info,
 			path: concrete.path,
 		}
+	}
+}
+
+impl From<MetaTypeParameterized> for MetaTypeGeneric {
+	fn from(parameterized: MetaTypeParameterized) -> Self {
+		parameterized.concrete.into()
 	}
 }
 

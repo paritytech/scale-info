@@ -34,8 +34,7 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	meta_type::{MetaType, MetaTypeParameterized},
-	MetaTypeParameterValue,
+	meta_type::{MetaType, MetaTypeParameterValue},
 };
 use interned_type::{InternedGenericType, InternedType, InternedTypeParameter};
 use interner::{Interner, UntrackedSymbol};
@@ -195,12 +194,10 @@ impl Registry {
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
 			MetaType::Parameterized(parameterized) => {
-				self.param_stack.extend(parameterized.params.iter().cloned().rev());
+				self.param_stack.extend(parameterized.parameter_values().cloned().rev());
 
 				let params = parameterized
-					.concrete
-					.params
-					.iter()
+					.concrete_params()
 					.map(|concrete_param| {
 						let mut peekable = self.param_stack.iter().peekable();
 						if let Some(param) = peekable.peek() {
@@ -209,10 +206,7 @@ impl Registry {
 								self.register_type(&param.into())
 							} else if !concrete_param.concrete.params.is_empty() {
 								// recurse
-								self.register_type(&MetaType::Parameterized(MetaTypeParameterized {
-									concrete: concrete_param.concrete.clone(),
-									params: Vec::new(),
-								}))
+								self.register_type(&MetaType::Parameterized(concrete_param.clone().into()))
 							} else {
 								panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
 							}
@@ -223,7 +217,7 @@ impl Registry {
 					.collect::<Vec<_>>();
 
 				let generic = InternedGenericType::new(
-					self.register_type(&MetaType::Generic(parameterized.concrete.clone().into())),
+					self.register_type(&MetaType::Generic(parameterized.clone().into())),
 					params,
 				);
 
