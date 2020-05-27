@@ -34,17 +34,15 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	meta_type::{MetaType, MetaTypeParameterValue},
+	meta_type::{MetaType, MetaTypeParameterValue, MetaTypeParameterized},
 };
-use interned_type::{InternedGenericType, InternedType};
 use interner::{Interner, UntrackedSymbol};
 use serde::Serialize;
 
 mod interned_type;
 pub mod interner;
 
-pub use interned_type::{InternedTypeId, InternedTypeParameter};
-use crate::meta_type::MetaTypeParameterized;
+pub use interned_type::{InternedGenericType, InternedType, InternedTypeId, InternedTypeParameter};
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -155,7 +153,10 @@ impl Registry {
 		symbol
 	}
 
-	fn register_parameterized_type(&mut self, parameterized: &MetaTypeParameterized) -> UntrackedSymbol<InternedTypeId> {
+	fn register_parameterized_type(
+		&mut self,
+		parameterized: &MetaTypeParameterized,
+	) -> UntrackedSymbol<InternedTypeId> {
 		self.param_stack.extend(parameterized.parameter_values().cloned().rev());
 
 		let params = parameterized
@@ -224,9 +225,7 @@ impl Registry {
 				let param_type_id = InternedTypeId::Parameter(type_parameter.clone().into_compact(self));
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
-			MetaType::Parameterized(parameterized) => {
-				self.register_parameterized_type(parameterized)
-			}
+			MetaType::Parameterized(parameterized) => self.register_parameterized_type(parameterized),
 		}
 	}
 
