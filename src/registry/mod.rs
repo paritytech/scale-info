@@ -202,12 +202,12 @@ impl Registry {
 					.params
 					.iter()
 					.map(|concrete_param| {
-						// todo: use Peekable api?
-						if let Some(param) = self.param_stack.pop() {
+						let mut peekable = self.param_stack.iter().peekable();
+						if let Some(param) = peekable.peek() {
 							if param.concrete_type_id() == concrete_param.concrete.type_id {
+								let param = self.param_stack.pop().expect("parameter was peeked first");
 								self.register_type(&param.into())
 							} else if !concrete_param.concrete.params.is_empty() {
-								self.param_stack.push(param);
 								// recurse
 								self.register_type(&MetaType::Parameterized(MetaTypeParameterized {
 									concrete: concrete_param.concrete.clone(),
