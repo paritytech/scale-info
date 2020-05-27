@@ -146,6 +146,7 @@ where
 
 	/// Returns the symbol of the given element or `None` if it hasn't been
 	/// interned already.
+	#[allow(unused)]
 	pub fn get(&self, s: &T) -> Option<Symbol<T>> {
 		self.map.get(s).map(|&id| Symbol {
 			id: NonZeroU32::new(id as u32).unwrap(),
@@ -155,6 +156,7 @@ where
 
 	/// Resolves the original element given its associated symbol or
 	/// returns `None` if it has not been interned yet.
+	#[allow(unused)]
 	pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
 		let idx = (sym.id.get() - 1) as usize;
 		if idx >= self.vec.len() {
