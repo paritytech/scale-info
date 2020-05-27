@@ -44,6 +44,7 @@ mod interned_type;
 pub mod interner;
 
 pub use interned_type::{InternedTypeId, InternedTypeParameter};
+use crate::meta_type::MetaTypeParameterized;
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -154,6 +155,39 @@ impl Registry {
 		symbol
 	}
 
+	fn register_parameterized_type(&mut self, parameterized: &MetaTypeParameterized) -> UntrackedSymbol<InternedTypeId> {
+		self.param_stack.extend(parameterized.parameter_values().cloned().rev());
+
+		let params = parameterized
+			.concrete_params()
+			.map(|concrete_param| {
+				let mut peekable = self.param_stack.iter().peekable();
+				if let Some(param) = peekable.peek() {
+					if param.concrete_type_id() == concrete_param.concrete_type_id() {
+						let param = self.param_stack.pop().expect("parameter was peeked first");
+						self.register_type(&param.into())
+					} else if concrete_param.has_params() {
+						// recurse
+						self.register_parameterized_type(&concrete_param.clone().into())
+					} else {
+						panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
+					}
+				} else {
+					self.register_type(&&MetaType::Concrete(concrete_param.clone().into()))
+				}
+			})
+			.collect::<Vec<_>>();
+
+		let generic = InternedGenericType::new(
+			self.register_type(&MetaType::Generic(parameterized.clone().into())),
+			params,
+		);
+
+		let type_id = InternedTypeId::Generic(generic.clone());
+
+		self.intern_type(type_id, || InternedType::Generic(generic))
+	}
+
 	/// Registers the given type into the registry and returns
 	/// its associated type ID symbol.
 	///
@@ -191,36 +225,7 @@ impl Registry {
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
 			MetaType::Parameterized(parameterized) => {
-				self.param_stack.extend(parameterized.parameter_values().cloned().rev());
-
-				let params = parameterized
-					.concrete_params()
-					.map(|concrete_param| {
-						let mut peekable = self.param_stack.iter().peekable();
-						if let Some(param) = peekable.peek() {
-							if param.concrete_type_id() == concrete_param.concrete_type_id() {
-								let param = self.param_stack.pop().expect("parameter was peeked first");
-								self.register_type(&param.into())
-							} else if concrete_param.has_params() {
-								// recurse
-								self.register_type(&MetaType::Parameterized(concrete_param.clone().into()))
-							} else {
-								panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
-							}
-						} else {
-							self.register_type(&&MetaType::Concrete(concrete_param.clone().into()))
-						}
-					})
-					.collect::<Vec<_>>();
-
-				let generic = InternedGenericType::new(
-					self.register_type(&MetaType::Generic(parameterized.clone().into())),
-					params,
-				);
-
-				let type_id = InternedTypeId::Generic(generic.clone());
-
-				self.intern_type(type_id, || InternedType::Generic(generic))
+				self.register_parameterized_type(parameterized)
 			}
 		}
 	}
