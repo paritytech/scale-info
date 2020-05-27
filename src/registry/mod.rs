@@ -183,9 +183,7 @@ impl Registry {
 			}
 			MetaType::Generic(ty) => {
 				let type_id = InternedTypeId::Path(ty.path());
-				self.intern_type(type_id, || {
-					InternedType::definition(ty.path(), ty.type_info())
-				})
+				self.intern_type(type_id, || InternedType::definition(ty.path(), ty.type_info()))
 			}
 			MetaType::Parameter(p) => {
 				let type_parameter = InternedTypeParameter::from(p);

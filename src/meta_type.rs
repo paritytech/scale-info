@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{Path, Type, TypeInfo, registry::InternedTypeParameter};
+use crate::{registry::InternedTypeParameter, Path, Type, TypeInfo};
 use derive_more::From;
 
 /// A metatype abstraction.
@@ -176,7 +176,7 @@ impl From<MetaTypeParameter> for MetaTypeParameterized {
 	fn from(parameter: MetaTypeParameter) -> Self {
 		Self {
 			concrete: parameter.concrete,
-			params: Vec::new()
+			params: Vec::new(),
 		}
 	}
 }
