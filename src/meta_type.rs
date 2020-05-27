@@ -139,7 +139,7 @@ pub struct MetaTypeParameter {
 
 impl From<&MetaTypeParameter> for InternedTypeParameter {
 	fn from(meta_param: &MetaTypeParameter) -> Self {
-		Self::new(meta_param.name.clone(), meta_param.parent.clone())
+		Self::new(meta_param.name, meta_param.parent.clone())
 	}
 }
 
@@ -165,6 +165,7 @@ impl MetaTypeParameter {
 		self.concrete.has_params()
 	}
 }
+
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameterized {

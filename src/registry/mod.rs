@@ -174,7 +174,7 @@ impl Registry {
 						panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
 					}
 				} else {
-					self.register_type(&&MetaType::Concrete(concrete_param.clone().into()))
+					self.register_type(&concrete_param.clone().into())
 				}
 			})
 			.collect::<Vec<_>>();
