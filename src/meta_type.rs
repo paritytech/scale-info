@@ -62,10 +62,38 @@ impl MetaType {
 
 #[derive(Clone, Debug)]
 pub struct MetaTypeConcrete {
-	pub type_id: any::TypeId,
-	pub fn_type_info: fn() -> Type,
-	pub path: Path,
-	pub params: Vec<MetaTypeParameter>,
+	type_id: any::TypeId,
+	fn_type_info: fn() -> Type,
+	path: Path,
+	params: Vec<MetaTypeParameter>,
+}
+
+impl From<MetaTypeParameter> for MetaTypeConcrete {
+	fn from(param: MetaTypeParameter) -> MetaTypeConcrete {
+		param.concrete
+	}
+}
+
+impl MetaTypeConcrete {
+	pub fn concrete_type_id(&self) -> any::TypeId {
+		self.type_id
+	}
+
+	pub fn type_info(&self) -> Type {
+		(self.fn_type_info)()
+	}
+
+	pub fn path(&self) -> &Path {
+		&self.path
+	}
+
+	pub fn has_params(&self) -> bool {
+		!self.params.is_empty()
+	}
+
+	pub fn params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
+		self.params.iter()
+	}
 }
 
 impl PartialEq for MetaTypeConcrete {
@@ -106,7 +134,7 @@ impl MetaTypeConcrete {
 pub struct MetaTypeParameter {
 	pub name: &'static str,
 	pub parent: MetaTypeGeneric,
-	pub concrete: MetaTypeConcrete,
+	concrete: MetaTypeConcrete,
 }
 
 impl MetaTypeParameter {
@@ -120,6 +148,15 @@ impl MetaTypeParameter {
 			parent: MetaTypeGeneric::new::<T>(),
 			concrete: MetaTypeConcrete::new::<P>(),
 		}
+	}
+
+	pub fn concrete_type_id(&self) -> any::TypeId {
+		self.concrete.concrete_type_id()
+	}
+
+	/// Returns true if the concrete type of the parameter itself has parameters
+	pub fn has_params(&self) -> bool {
+		self.concrete.has_params()
 	}
 }
 

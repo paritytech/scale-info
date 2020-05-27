@@ -166,7 +166,7 @@ impl Registry {
 	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<InternedTypeId> {
 		match ty {
 			MetaType::Concrete(concrete) => {
-				if !concrete.params.is_empty() {
+				if concrete.has_params() {
 					// The concrete type definition has some type parameters, so is a generic type
 					let interned_generic = InternedGenericType::from(concrete);
 					let type_id = interned_generic.clone().into_compact(self).into();
@@ -174,10 +174,10 @@ impl Registry {
 					self.intern_type(type_id, || InternedType::Generic(interned_generic))
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
-					let type_id = concrete.type_id.into();
+					let type_id = concrete.concrete_type_id().into();
 					self.intern_type(type_id, || {
-						let type_info = (concrete.fn_type_info)();
-						InternedType::definition(concrete.path.clone(), type_info)
+						let type_info = concrete.type_info();
+						InternedType::definition(concrete.path().clone(), type_info)
 					})
 				}
 			}
@@ -201,17 +201,17 @@ impl Registry {
 					.map(|concrete_param| {
 						let mut peekable = self.param_stack.iter().peekable();
 						if let Some(param) = peekable.peek() {
-							if param.concrete_type_id() == concrete_param.concrete.type_id {
+							if param.concrete_type_id() == concrete_param.concrete_type_id() {
 								let param = self.param_stack.pop().expect("parameter was peeked first");
 								self.register_type(&param.into())
-							} else if !concrete_param.concrete.params.is_empty() {
+							} else if concrete_param.has_params() {
 								// recurse
 								self.register_type(&MetaType::Parameterized(concrete_param.clone().into()))
 							} else {
 								panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
 							}
 						} else {
-							self.register_type(&&MetaType::Concrete(concrete_param.concrete.clone()))
+							self.register_type(&&MetaType::Concrete(concrete_param.clone().into()))
 						}
 					})
 					.collect::<Vec<_>>();

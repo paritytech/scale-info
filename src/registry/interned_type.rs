@@ -141,7 +141,7 @@ impl From<&MetaTypeConcrete> for InternedGenericType {
 	fn from(concrete: &MetaTypeConcrete) -> Self {
 		Self {
 			ty: MetaType::Generic(concrete.clone().into()),
-			params: concrete.params.iter().map(|p| p.concrete.clone().into()).collect(),
+			params: concrete.params().map(|p| p.clone().into()).collect(),
 		}
 	}
 }
