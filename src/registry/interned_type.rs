@@ -34,7 +34,7 @@ pub enum InternedType<F: Form = MetaForm> {
 	/// The type is specified by a parameter of the parent type
 	Parameter(InternedTypeParameter<F>),
 	/// The type of the field is a generic type with the given type params
-	Generic(InternedGenericType<F>),
+	Generic(InternedGenericType),
 }
 
 impl IntoCompact for InternedType<MetaForm> {
@@ -101,7 +101,7 @@ where
 #[serde(bound = "F::Type: Serialize")]
 pub struct InternedTypeParameter<F: Form = MetaForm> {
 	name: F::String,
-	parent: F::Type,
+	parent: <CompactForm as Form>::Type,
 }
 
 impl IntoCompact for InternedTypeParameter<MetaForm> {
@@ -110,62 +110,38 @@ impl IntoCompact for InternedTypeParameter<MetaForm> {
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		InternedTypeParameter {
 			name: registry.register_string(self.name),
-			parent: registry.register_type(&self.parent),
+			parent: self.parent,
 		}
 	}
 }
 
 impl InternedTypeParameter {
-	pub fn new(name: <MetaForm as Form>::String, parent: MetaTypeGeneric) -> Self {
+	pub fn new(name: <MetaForm as Form>::String, parent: <CompactForm as Form>::Type) -> Self {
 		Self {
 			name,
-			parent: MetaType::Generic(parent),
+			parent,
 		}
 	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
-pub struct InternedGenericType<F: Form = MetaForm> {
-	ty: F::Type, // this has to be the same for all instances of generic types
-	params: Vec<F::Type>,
+pub struct InternedGenericType {
+	ty: <CompactForm as Form>::Type, // this has to be the same for all instances of generic types
+	params: Vec<<CompactForm as Form>::Type>,
 }
 
-impl From<&MetaTypeConcrete> for InternedGenericType {
-	fn from(concrete: &MetaTypeConcrete) -> Self {
-		Self {
-			ty: MetaType::Generic(concrete.clone().into()),
-			params: concrete.params().map(|p| p.clone().into()).collect(),
-		}
-	}
-}
-
-impl IntoCompact for InternedGenericType<MetaForm> {
-	type Output = InternedGenericType<CompactForm>;
-
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		InternedGenericType {
-			ty: registry.register_type(&self.ty),
-			params: registry.register_types(self.params),
-		}
-	}
-}
-
-impl IntoCompact for InternedGenericType<CompactForm> {
-	type Output = InternedGenericType<CompactForm>;
+impl IntoCompact for InternedGenericType {
+	type Output = InternedGenericType;
 
 	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
 		self
 	}
 }
 
-impl<F> InternedGenericType<F>
-where
-	F: Form,
-{
-	pub fn new<P>(ty: F::Type, params: P) -> Self
+impl InternedGenericType {
+	pub fn new<P>(ty: <CompactForm as Form>::Type, params: P) -> Self
 	where
-		P: IntoIterator<Item = F::Type>,
+		P: IntoIterator<Item = <CompactForm as Form>::Type>,
 	{
 		InternedGenericType {
 			ty,
@@ -183,5 +159,5 @@ pub enum InternedTypeId {
 	/// Generic type parameter Path + Name
 	Parameter(InternedTypeParameter<CompactForm>),
 	/// Generic type instance
-	Generic(InternedGenericType<CompactForm>),
+	Generic(InternedGenericType),
 }

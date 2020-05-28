@@ -43,6 +43,7 @@ mod interned_type;
 pub mod interner;
 
 pub use interned_type::{InternedGenericType, InternedType, InternedTypeId, InternedTypeParameter};
+use crate::meta_type::MetaTypeGeneric;
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -180,13 +181,21 @@ impl Registry {
 			.collect::<Vec<_>>();
 
 		let generic = InternedGenericType::new(
-			self.register_type(&MetaType::Generic(parameterized.clone().into())),
+			self.register_generic_type(&parameterized.clone().into()),
 			params,
 		);
 
 		let type_id = InternedTypeId::Generic(generic.clone());
 
-		self.intern_type(type_id, || InternedType::Generic(generic))
+		self.intern_type(type_id, || {
+			let ty: InternedType<CompactForm> = InternedType::<CompactForm>::Generic(generic);
+			ty
+		})
+	}
+
+	fn register_generic_type(&mut self, ty: &MetaTypeGeneric) -> UntrackedSymbol<InternedTypeId> {
+		let type_id = InternedTypeId::Path(ty.path());
+		self.intern_type(type_id, || InternedType::definition(ty.path(), ty.type_info()))
 	}
 
 	/// Registers the given type into the registry and returns
@@ -203,10 +212,14 @@ impl Registry {
 			MetaType::Concrete(concrete) => {
 				if concrete.has_params() {
 					// The concrete type definition has some type parameters, so is a generic type
-					let interned_generic = InternedGenericType::from(concrete);
-					let type_id = interned_generic.clone().into_compact(self).into();
+					let generic_ty = self.register_generic_type(&concrete.clone().into());
+					let params = concrete
+						.params()
+						.map(|p| self.register_type(&p.concrete.clone().into())); // concrete.params().map(|p| p.clone()).collect::<Vec<_>>();
+					let interned_generic = InternedGenericType::new(generic_ty, params);
+					let type_id = InternedTypeId::Generic(interned_generic.clone());
 
-					self.intern_type(type_id, || InternedType::Generic(interned_generic))
+					self.intern_type(type_id, || InternedType::<CompactForm>::Generic(interned_generic))
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
 					let type_id = concrete.concrete_type_id().into();
@@ -216,12 +229,9 @@ impl Registry {
 					})
 				}
 			}
-			MetaType::Generic(ty) => {
-				let type_id = InternedTypeId::Path(ty.path());
-				self.intern_type(type_id, || InternedType::definition(ty.path(), ty.type_info()))
-			}
 			MetaType::Parameter(p) => {
-				let type_parameter = InternedTypeParameter::from(p);
+				let parent = self.register_generic_type(&p.parent);
+				let type_parameter = InternedTypeParameter::new(p.name, parent);
 				let param_type_id = InternedTypeId::Parameter(type_parameter.clone().into_compact(self));
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}

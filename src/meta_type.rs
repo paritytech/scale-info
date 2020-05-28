@@ -30,7 +30,6 @@ pub enum MetaType {
 	Parameter(MetaTypeParameter),
 	Concrete(MetaTypeConcrete),
 	Parameterized(MetaTypeParameterized),
-	Generic(MetaTypeGeneric),
 }
 
 impl MetaType {
@@ -132,15 +131,9 @@ impl MetaTypeConcrete {
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameter {
-	name: &'static str,
-	parent: MetaTypeGeneric,
-	concrete: MetaTypeConcrete,
-}
-
-impl From<&MetaTypeParameter> for InternedTypeParameter {
-	fn from(meta_param: &MetaTypeParameter) -> Self {
-		Self::new(meta_param.name, meta_param.parent.clone())
-	}
+	pub name: &'static str, // todo: make private
+	pub parent: MetaTypeGeneric, // todo: make private
+	pub concrete: MetaTypeConcrete, // todo: make private
 }
 
 impl MetaTypeParameter {
