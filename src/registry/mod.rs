@@ -43,7 +43,7 @@ mod interned_type;
 pub mod interner;
 
 pub use interned_type::{InternedGenericType, InternedType, InternedTypeId, InternedTypeParameter};
-use crate::meta_type::MetaTypeGeneric;
+use crate::meta_type::MetaTypeDefinition;
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -181,7 +181,7 @@ impl Registry {
 			.collect::<Vec<_>>();
 
 		let generic = InternedGenericType::new(
-			self.register_generic_type(&parameterized.clone().into()),
+			self.register_generic_type(&parameterized.concrete.type_def()),
 			params,
 		);
 
@@ -193,7 +193,7 @@ impl Registry {
 		})
 	}
 
-	fn register_generic_type(&mut self, ty: &MetaTypeGeneric) -> UntrackedSymbol<InternedTypeId> {
+	fn register_generic_type(&mut self, ty: &MetaTypeDefinition) -> UntrackedSymbol<InternedTypeId> {
 		let type_id = InternedTypeId::Path(ty.path());
 		self.intern_type(type_id, || InternedType::definition(ty.path(), ty.type_info()))
 	}
@@ -212,7 +212,7 @@ impl Registry {
 			MetaType::Concrete(concrete) => {
 				if concrete.has_params() {
 					// The concrete type definition has some type parameters, so is a generic type
-					let generic_ty = self.register_generic_type(&concrete.clone().into());
+					let generic_ty = self.register_generic_type(&concrete.type_def());
 					let params = concrete
 						.params()
 						.map(|p| self.register_type(&p.concrete.clone().into())); // concrete.params().map(|p| p.clone()).collect::<Vec<_>>();

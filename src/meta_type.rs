@@ -62,8 +62,7 @@ impl MetaType {
 #[derive(Clone, Debug)]
 pub struct MetaTypeConcrete {
 	type_id: any::TypeId,
-	fn_type_info: fn() -> Type,
-	path: Path,
+	type_def: MetaTypeDefinition,
 	params: Vec<MetaTypeParameter>,
 }
 
@@ -73,17 +72,27 @@ impl From<MetaTypeParameter> for MetaTypeConcrete {
 	}
 }
 
+impl From<MetaTypeParameterized> for MetaTypeConcrete {
+	fn from(parameterized: MetaTypeParameterized) -> MetaTypeConcrete {
+		parameterized.concrete
+	}
+}
+
 impl MetaTypeConcrete {
 	pub fn concrete_type_id(&self) -> any::TypeId {
 		self.type_id
 	}
 
+	pub fn type_def(&self) -> &MetaTypeDefinition {
+		&self.type_def
+	}
+
 	pub fn type_info(&self) -> Type {
-		(self.fn_type_info)()
+		(self.type_def.fn_type_info)()
 	}
 
 	pub fn path(&self) -> &Path {
-		&self.path
+		&self.type_def.path
 	}
 
 	pub fn has_params(&self) -> bool {
@@ -122,8 +131,7 @@ impl MetaTypeConcrete {
 	{
 		Self {
 			type_id: any::TypeId::of::<T>(),
-			fn_type_info: T::type_info,
-			path: T::path(),
+			type_def: MetaTypeDefinition::new::<T>(),
 			params: T::params(),
 		}
 	}
@@ -132,7 +140,7 @@ impl MetaTypeConcrete {
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameter {
 	pub name: &'static str, // todo: make private
-	pub parent: MetaTypeGeneric, // todo: make private
+	pub parent: MetaTypeDefinition, // todo: make private
 	pub concrete: MetaTypeConcrete, // todo: make private
 }
 
@@ -144,7 +152,7 @@ impl MetaTypeParameter {
 	{
 		MetaTypeParameter {
 			name,
-			parent: MetaTypeGeneric::new::<T>(),
+			parent: MetaTypeDefinition::new::<T>(),
 			concrete: MetaTypeConcrete::new::<P>(),
 		}
 	}
@@ -162,7 +170,7 @@ impl MetaTypeParameter {
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameterized {
-	concrete: MetaTypeConcrete,
+	pub concrete: MetaTypeConcrete, // todo: make private
 	params: Vec<MetaTypeParameterValue>,
 }
 
@@ -197,11 +205,7 @@ impl MetaTypeParameterValue {
 		T: 'static + ?Sized + TypeInfo,
 		P: 'static + ?Sized + TypeInfo,
 	{
-		MetaTypeParameterValue::Parameter(MetaTypeParameter {
-			name,
-			parent: MetaTypeGeneric::new::<T>(),
-			concrete: MetaTypeConcrete::new::<P>(),
-		})
+		MetaTypeParameterValue::Parameter(MetaTypeParameter::new::<T, P>(name))
 	}
 
 	pub fn concrete<T>() -> Self
@@ -229,27 +233,12 @@ impl From<MetaTypeParameterValue> for MetaType {
 }
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
-pub struct MetaTypeGeneric {
+pub struct MetaTypeDefinition {
 	fn_type_info: fn() -> Type,
 	path: Path,
 }
 
-impl From<MetaTypeConcrete> for MetaTypeGeneric {
-	fn from(concrete: MetaTypeConcrete) -> Self {
-		Self {
-			fn_type_info: concrete.fn_type_info,
-			path: concrete.path,
-		}
-	}
-}
-
-impl From<MetaTypeParameterized> for MetaTypeGeneric {
-	fn from(parameterized: MetaTypeParameterized) -> Self {
-		parameterized.concrete.into()
-	}
-}
-
-impl MetaTypeGeneric {
+impl MetaTypeDefinition {
 	fn new<T>() -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,

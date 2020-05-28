@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use super::{IntoCompact, Registry};
-use crate::meta_type::MetaTypeGeneric;
+use crate::meta_type::MetaTypeDefinition;
 use crate::tm_std::*;
 use crate::{
 	form::{CompactForm, Form, MetaForm},
