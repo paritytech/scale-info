@@ -29,7 +29,6 @@ use derive_more::From;
 pub enum MetaType {
 	Parameter(MetaTypeParameter),
 	Concrete(MetaTypeConcrete),
-	Parameterized(MetaTypeParameterized),
 }
 
 impl MetaType {
@@ -52,10 +51,7 @@ impl MetaType {
 	where
 		T: 'static + ?Sized + TypeInfo,
 	{
-		MetaType::Parameterized(MetaTypeParameterized {
-			concrete: MetaTypeConcrete::new::<T>(),
-			params,
-		})
+		MetaType::Concrete(MetaTypeConcrete::parameterized::<T, _>(params))
 	}
 }
 
@@ -64,43 +60,12 @@ pub struct MetaTypeConcrete {
 	type_id: any::TypeId,
 	type_def: MetaTypeDefinition,
 	params: Vec<MetaTypeParameter>,
+	param_values: Vec<MetaTypeParameterValue>,
 }
 
 impl From<MetaTypeParameter> for MetaTypeConcrete {
 	fn from(param: MetaTypeParameter) -> MetaTypeConcrete {
 		param.concrete
-	}
-}
-
-impl From<MetaTypeParameterized> for MetaTypeConcrete {
-	fn from(parameterized: MetaTypeParameterized) -> MetaTypeConcrete {
-		parameterized.concrete
-	}
-}
-
-impl MetaTypeConcrete {
-	pub fn concrete_type_id(&self) -> any::TypeId {
-		self.type_id
-	}
-
-	pub fn type_def(&self) -> &MetaTypeDefinition {
-		&self.type_def
-	}
-
-	pub fn type_info(&self) -> Type {
-		(self.type_def.fn_type_info)()
-	}
-
-	pub fn path(&self) -> &Path {
-		&self.type_def.path
-	}
-
-	pub fn has_params(&self) -> bool {
-		!self.params.is_empty()
-	}
-
-	pub fn params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
-		self.params.iter()
 	}
 }
 
@@ -129,11 +94,52 @@ impl MetaTypeConcrete {
 	where
 		T: 'static + ?Sized + TypeInfo,
 	{
+		Self::parameterized::<T, _>(Vec::new())
+	}
+
+	pub fn parameterized<T, P>(param_values: P) -> Self
+	where
+		T: 'static + ?Sized + TypeInfo,
+		P: IntoIterator<Item = MetaTypeParameterValue>,
+	{
 		Self {
 			type_id: any::TypeId::of::<T>(),
 			type_def: MetaTypeDefinition::new::<T>(),
 			params: T::params(),
+			param_values: param_values.into_iter().collect(),
 		}
+	}
+
+	pub fn concrete_type_id(&self) -> any::TypeId {
+		self.type_id
+	}
+
+	pub fn type_def(&self) -> &MetaTypeDefinition {
+		&self.type_def
+	}
+
+	pub fn type_info(&self) -> Type {
+		(self.type_def.fn_type_info)()
+	}
+
+	pub fn path(&self) -> &Path {
+		&self.type_def.path
+	}
+
+	pub fn has_params(&self) -> bool {
+		!self.params.is_empty()
+	}
+
+	pub fn params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
+		self.params.iter()
+	}
+
+	pub fn is_parameterized(&self) -> bool {
+		!self.param_values.is_empty()
+	}
+
+	pub fn parameter_values(&self) -> impl DoubleEndedIterator<Item = &MetaTypeParameterValue> {
+		self.param_values.iter()
 	}
 }
 
@@ -164,32 +170,6 @@ impl MetaTypeParameter {
 	/// Returns true if the concrete type of the parameter itself has parameters
 	pub fn has_params(&self) -> bool {
 		self.concrete.has_params()
-	}
-}
-
-
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
-pub struct MetaTypeParameterized {
-	pub concrete: MetaTypeConcrete, // todo: make private
-	params: Vec<MetaTypeParameterValue>,
-}
-
-impl From<MetaTypeParameter> for MetaTypeParameterized {
-	fn from(parameter: MetaTypeParameter) -> Self {
-		Self {
-			concrete: parameter.concrete,
-			params: Vec::new(),
-		}
-	}
-}
-
-impl MetaTypeParameterized {
-	pub fn concrete_params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
-		self.concrete.params.iter()
-	}
-
-	pub fn parameter_values(&self) -> impl DoubleEndedIterator<Item = &MetaTypeParameterValue> {
-		self.params.iter()
 	}
 }
 

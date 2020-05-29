@@ -34,7 +34,7 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	meta_type::{MetaType, MetaTypeParameterValue, MetaTypeParameterized},
+	meta_type::{MetaType, MetaTypeParameterValue},
 };
 use interner::{Interner, UntrackedSymbol};
 use serde::Serialize;
@@ -43,7 +43,7 @@ mod interned_type;
 pub mod interner;
 
 pub use interned_type::{InternedGenericType, InternedType, InternedTypeId, InternedTypeParameter};
-use crate::meta_type::MetaTypeDefinition;
+use crate::meta_type::{MetaTypeDefinition, MetaTypeConcrete};
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -162,12 +162,12 @@ impl Registry {
 
 	fn register_parameterized_type(
 		&mut self,
-		parameterized: &MetaTypeParameterized,
+		parameterized: &MetaTypeConcrete,
 	) -> UntrackedSymbol<InternedTypeId> {
 		self.param_stack.extend(parameterized.parameter_values().cloned().rev());
 
 		let params = parameterized
-			.concrete_params()
+			.params()
 			.map(|concrete_param| {
 				let mut peekable = self.param_stack.iter().peekable();
 				if let Some(param) = peekable.peek() {
@@ -186,7 +186,7 @@ impl Registry {
 			})
 			.collect::<Vec<_>>();
 
-		self.intern_generic_type(parameterized.concrete.type_def(), params)
+		self.intern_generic_type(parameterized.type_def(), params)
 	}
 
 	fn register_generic_type(&mut self, ty: &MetaTypeDefinition) -> UntrackedSymbol<InternedTypeId> {
@@ -206,7 +206,9 @@ impl Registry {
 	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<InternedTypeId> {
 		match ty {
 			MetaType::Concrete(concrete) => {
-				if concrete.has_params() {
+				if concrete.is_parameterized() {
+					self.register_parameterized_type(concrete)
+				} else if concrete.has_params() {
 					// The concrete type definition has some type parameters, so is a generic type
 					let params = concrete
 						.params()
@@ -229,7 +231,6 @@ impl Registry {
 				let param_type_id = InternedTypeId::Parameter(type_parameter.clone());
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
-			MetaType::Parameterized(parameterized) => self.register_parameterized_type(parameterized),
 		}
 	}
 
