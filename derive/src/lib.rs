@@ -76,7 +76,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	};
 
 	let meta_type_params =
-		generic_type_ids.map(|tp| quote! { _scale_info::MetaTypeParameter::new::<Self, #tp>(stringify!(#tp)) });
+		generic_type_ids.map(|tp| quote! { _scale_info::MetaTypeConcrete::new::<#tp>() });
 
 	let type_info_impl = quote! {
 		impl <#( #impl_generics_no_lifetimes ),*> _scale_info::TypeInfo for #ident #ty_generics #where_clause {
@@ -84,7 +84,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 				_scale_info::Path::new(stringify!(#ident), module_path!())
 			}
 
-			fn params() -> __core::Vec<_scale_info::MetaTypeParameter> {
+			fn params() -> __core::Vec<_scale_info::MetaTypeConcrete> {
 				__core::vec![
 					#( #meta_type_params ),*
 				]

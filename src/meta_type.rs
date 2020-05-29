@@ -59,7 +59,7 @@ impl MetaType {
 pub struct MetaTypeConcrete {
 	type_id: any::TypeId,
 	type_def: MetaTypeDefinition,
-	params: Vec<MetaTypeParameter>,
+	params: Vec<MetaTypeConcrete>,
 	param_values: Vec<MetaTypeParameterValue>,
 }
 
@@ -130,7 +130,7 @@ impl MetaTypeConcrete {
 		!self.params.is_empty()
 	}
 
-	pub fn params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
+	pub fn params(&self) -> impl Iterator<Item = &MetaTypeConcrete> {
 		self.params.iter()
 	}
 

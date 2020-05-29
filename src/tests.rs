@@ -20,7 +20,7 @@ use core::marker::PhantomData;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, string::String, vec};
 
-fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec<MetaTypeParameter>)
+fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec<MetaTypeConcrete>)
 where
 	T: TypeInfo + ?Sized,
 	E: Into<Type>,
@@ -44,17 +44,17 @@ macro_rules! assert_primitive {
 }
 
 macro_rules! type_param {
-	( $parent:ty, $ty:ty, $name:ident ) => {
-		$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($name)).into()
+	( $ty:ty ) => {
+		$crate::MetaTypeConcrete::new::<$ty>().into()
 	};
 }
 
 macro_rules! type_params {
-	( $parent:ty, $(($ty:ty, $name:ident)),* ) => {
+K	( $($ty:ty),* ) => {
 		{
 			let mut v = Vec::new();
 			$(
-				v.push(type_param!($parent, $ty, $name));
+				v.push(type_param!($ty));
 			)*
 			v
 		}
@@ -75,7 +75,7 @@ fn prelude_items() {
 		[bool],
 		TypeSequence::new(bool::meta_type()),
 		Path::prelude("Sequence"),
-		type_params!([bool], (bool, T))
+		type_params!(bool)
 	);
 
 	assert_type!(
@@ -86,7 +86,7 @@ fn prelude_items() {
 				.variant("Some", Fields::unnamed().parameter_field::<Option<u128>, u128>("T"))
 		),
 		Path::prelude("Option"),
-		type_params!(Option<u128>, (u128, T))
+		type_params!(u128)
 	);
 	assert_type!(
 		Result<bool, String>,
@@ -96,13 +96,13 @@ fn prelude_items() {
 				.variant("Err", Fields::unnamed().parameter_field::<Result<bool, String>, String>("E"))
 		),
 		Path::prelude("Result"),
-		type_params!(Result<bool, String>, (bool, T), (String, E))
+		type_params!(bool, String)
 	);
 	assert_type!(
 		PhantomData<i32>,
 		TypeComposite::unit(),
 		Path::prelude("PhantomData"),
-		type_params!(PhantomData<i32>, (i32, T))
+		type_params!(i32)
 	);
 }
 
@@ -112,7 +112,7 @@ fn tuple_primitives() {
 	assert_type!((), TypeTuple::new(vec![]), Path::prelude("Tuple"), vec![]);
 
 	// tuple with one element
-	let type_params = type_params!((bool,), (bool, A));
+	let type_params = type_params!(bool);
 	assert_type!(
 		(bool,),
 		TypeTuple::new(type_params.clone()),
@@ -121,7 +121,7 @@ fn tuple_primitives() {
 	);
 
 	// tuple with multiple elements
-	let type_params = type_params!((bool, String), (bool, A), (String, B));
+	let type_params = type_params!(bool, String);
 	assert_type!(
 		(bool, String),
 		TypeTuple::new(type_params.clone()),
@@ -130,7 +130,7 @@ fn tuple_primitives() {
 	);
 
 	// nested tuple
-	let type_params = type_params!(((i8, i16), (u32, u64)), ((i8, i16), A), ((u32, u64), B));
+	let type_params = type_params!((i8, i16), (u32, u64));
 	assert_type!(
 		((i8, i16), (u32, u64)),
 		TypeTuple::new(type_params.clone()),
@@ -146,28 +146,28 @@ fn array_primitives() {
 		[bool; 3],
 		TypeArray::new(3, bool::meta_type()),
 		Path::voldemort(),
-		type_params!([bool; 3], (bool, T))
+		type_params!(bool)
 	);
 	// nested
 	assert_type!(
 		[[i32; 5]; 5],
 		TypeArray::new(5, <[i32; 5]>::meta_type()),
 		Path::voldemort(),
-		type_params!([[i32; 5]; 5], ([i32; 5], T))
+		type_params!([i32; 5])
 	);
 	// sequence
 	assert_type!(
 		[bool],
 		TypeSequence::new(bool::meta_type()),
 		Path::prelude("Sequence"),
-		type_params!([bool], (bool, T))
+		type_params!(bool)
 	);
 	// vec
 	assert_type!(
 		Vec<bool>,
 		TypeSequence::new(bool::meta_type()),
 		Path::prelude("Sequence"),
-		type_params!(Vec<bool>, (bool, T))
+		type_params!(bool)
 	);
 }
 
@@ -186,8 +186,8 @@ fn struct_with_generics() {
 			Path::new("MyStruct", module_path!())
 		}
 
-		fn params() -> Vec<MetaTypeParameter> {
-			vec![MetaTypeParameter::new::<Self, T>("T")]
+		fn params() -> Vec<MetaTypeConcrete> {
+			vec![MetaTypeConcrete::new::<T>()]
 		}
 
 		fn type_info() -> Type {

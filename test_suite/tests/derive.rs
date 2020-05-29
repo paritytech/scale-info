@@ -24,11 +24,11 @@ use alloc::{boxed::Box, vec, vec::Vec};
 
 use pretty_assertions::assert_eq;
 use scale_info::{
-	Fields, MetaTypeParameter, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
+	Fields, MetaTypeConcrete, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
 	Variants,
 };
 
-fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaTypeParameter>)
+fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaTypeConcrete>)
 where
 	T: TypeInfo + ?Sized,
 	E: Into<Type>,
@@ -45,17 +45,17 @@ macro_rules! assert_type {
 }
 
 macro_rules! type_param {
-	( $parent:ty, $ty:ty, $name:ident ) => {
-		$crate::MetaTypeParameter::new::<$parent, $ty>(stringify!($name))
+	( $ty:ty ) => {
+		$crate::MetaTypeConcrete::new::<$ty>()
 	};
 }
 
 macro_rules! type_params {
-	( $parent:ty, $(($ty:ty, $name:ident)),* ) => {
+	( $($ty:ty),* ) => {
 		{
 			let mut v = Vec::new();
 			$(
-				v.push(type_param!($parent, $ty, $name));
+				v.push(type_param!($ty));
 			)*
 			v
 		}
@@ -74,7 +74,7 @@ fn struct_derive() {
 	type ConcreteS = S<bool, u8>;
 
 	let path = Path::new("S", "derive");
-	let params = type_params!(ConcreteS, (bool, T), (u8, U));
+	let params = type_params!(bool, u8);
 	let struct_type = TypeComposite::new(
 		Fields::named()
 			.parameter_field::<ConcreteS, bool>("t", "T")
@@ -87,7 +87,7 @@ fn struct_derive() {
 
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
-	let params = type_params!(SelfTyped, (Box<S<bool, u8>>, T), (bool, U));
+	let params = type_params!(Box<S<bool, u8>>, bool);
 	let self_typed_type = TypeComposite::new(
 		Fields::named()
 			.parameter_field::<SelfTyped, Box<S<bool, u8>>>("t", "T")
@@ -124,7 +124,7 @@ fn parameterized_generic_derive() {
 	}
 
 	let path = Path::new("GenericParameterized", "derive");
-	let params = type_params!(GenericParameterized<u8>, (u8, T));
+	let params = type_params!(u8);
 	let struct_type = TypeComposite::new(Fields::named().parameterized_field::<Option<u8>>(
 		"a",
 		vec![MetaTypeParameterValue::parameter::<GenericParameterized<u8>, u8>("T")],
@@ -143,7 +143,7 @@ fn parameterized_tuple_derive() {
 	}
 
 	let path = Path::new("TupleParameterized", "derive");
-	let params = type_params!(TupleParameterized<u8, u16, u32>, (u8, T), (u16, U), (u32, V));
+	let params = type_params!(u8, u16, u32);
 	let struct_type = TypeComposite::new(
 		Fields::named()
 			.parameterized_field::<(u8, u16)>(
@@ -176,7 +176,7 @@ fn parameterized_array_derive() {
 	}
 
 	let path = Path::new("ArrayParameterized", "derive");
-	let params = type_params!(ArrayParameterized<u8, u16>, (u8, T), (u16, U));
+	let params = type_params!(u8, u16);
 	let struct_type = TypeComposite::new(
 		Fields::named()
 			.parameterized_field::<[u8; 8]>(
@@ -208,7 +208,7 @@ fn parameterized_refs_derive() {
 	}
 
 	let path = Path::new("RefsParameterized", "derive");
-	let params = type_params!(RefsParameterized<'static, 'static, u8, u16>, (u8, T), (u16, U));
+	let params = type_params!(u8, u16);
 	let struct_type = TypeComposite::new(
 		Fields::named()
 			// refs are stripped to the owned type e.g. &T and &mut T become T, since SCALE encodes
@@ -236,7 +236,7 @@ fn tuple_struct_derive() {
 	type ConcreteS = S<bool>;
 
 	let path = Path::new("S", "derive");
-	let params = type_params!(ConcreteS, (bool, T));
+	let params = type_params!(bool);
 	let ty = TypeComposite::new(Fields::unnamed().parameter_field::<ConcreteS, bool>("T"));
 
 	assert_type!(ConcreteS, ty, &path, params);
@@ -282,7 +282,7 @@ fn enum_derive() {
 	}
 
 	let path = Path::new("E", "derive");
-	let params = type_params!(E<bool>, (bool, T));
+	let params = type_params!(bool);
 	let ty = TypeVariant::new(
 		Variants::with_fields()
 			.variant("A", Fields::unnamed().parameter_field::<E<bool>, bool>("T"))

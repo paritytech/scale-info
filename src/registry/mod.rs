@@ -212,7 +212,7 @@ impl Registry {
 					// The concrete type definition has some type parameters, so is a generic type
 					let params = concrete
 						.params()
-						.map(|p| self.register_type(&p.concrete.clone().into()))
+						.map(|p| self.register_type(&p.clone().into()))
 						.collect::<Vec<_>>();
 
 					self.intern_generic_type(concrete.type_def(), params)

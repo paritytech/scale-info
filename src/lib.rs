@@ -69,7 +69,7 @@ extern crate alloc;
 #[macro_export]
 macro_rules! type_param {
 	( $ty:ty ) => {
-		$crate::MetaTypeParameter::new::<Self, $ty>(stringify!($ty)).into()
+		$crate::MetaTypeConcrete::new::<$ty>().into()
 	};
 }
 
@@ -108,7 +108,7 @@ mod utils;
 mod tests;
 
 pub use self::{
-	meta_type::{MetaType, MetaTypeParameter, MetaTypeParameterValue},
+	meta_type::{MetaType, MetaTypeConcrete, MetaTypeParameterValue},
 	registry::{interner::UntrackedSymbol, IntoCompact, Registry},
 	ty::*,
 };
@@ -127,7 +127,7 @@ pub trait Metadata: TypeInfo {
 pub trait TypeInfo {
 	fn path() -> Path;
 
-	fn params() -> Vec<MetaTypeParameter> {
+	fn params() -> Vec<MetaTypeConcrete> {
 		Vec::new()
 	}
 
