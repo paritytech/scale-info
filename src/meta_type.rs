@@ -15,7 +15,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{registry::InternedTypeParameter, Path, Type, TypeInfo};
+use crate::{Path, Type, TypeInfo};
 use derive_more::From;
 
 /// A metatype abstraction.

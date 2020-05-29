@@ -134,24 +134,30 @@ impl Registry {
 	///
 	/// This is an internal API and should not be called directly from the
 	/// outside.
-	fn intern_type_id(&mut self, type_id: InternedTypeId) -> (bool, UntrackedSymbol<InternedTypeId>) {
-		let (inserted, symbol) = self.type_table.intern_or_get(type_id);
-		(inserted, symbol.into_untracked())
-	}
-
-	// todo: [AJ] combine with above private method?
 	fn intern_type<F, T>(&mut self, type_id: InternedTypeId, f: F) -> UntrackedSymbol<InternedTypeId>
 	where
 		F: FnOnce() -> T,
 		T: IntoCompact<Output = InternedType<CompactForm>>,
 	{
-		let (inserted, symbol) = self.intern_type_id(type_id);
+		let (inserted, symbol) = self.type_table.intern_or_get(type_id);
+		let symbol = symbol.into_untracked();
 		if inserted {
 			let registry_type = f();
 			let compact_id = registry_type.into_compact(self);
 			self.types.insert(symbol.clone(), compact_id);
 		}
 		symbol
+	}
+
+	fn intern_generic_type<P>(&mut self, type_def: &MetaTypeDefinition, params: P) -> UntrackedSymbol<InternedTypeId>
+	where
+		P: IntoIterator<Item = UntrackedSymbol<InternedTypeId>>,
+	{
+		let generic_ty = self.register_generic_type(type_def);
+		let interned_generic = InternedGenericType::new(generic_ty, params);
+		let type_id = InternedTypeId::Generic(interned_generic.clone());
+
+		self.intern_type(type_id, || InternedType::<CompactForm>::Generic(interned_generic))
 	}
 
 	fn register_parameterized_type(
@@ -180,17 +186,7 @@ impl Registry {
 			})
 			.collect::<Vec<_>>();
 
-		let generic = InternedGenericType::new(
-			self.register_generic_type(&parameterized.concrete.type_def()),
-			params,
-		);
-
-		let type_id = InternedTypeId::Generic(generic.clone());
-
-		self.intern_type(type_id, || {
-			let ty: InternedType<CompactForm> = InternedType::<CompactForm>::Generic(generic);
-			ty
-		})
+		self.intern_generic_type(parameterized.concrete.type_def(), params)
 	}
 
 	fn register_generic_type(&mut self, ty: &MetaTypeDefinition) -> UntrackedSymbol<InternedTypeId> {
@@ -212,17 +208,15 @@ impl Registry {
 			MetaType::Concrete(concrete) => {
 				if concrete.has_params() {
 					// The concrete type definition has some type parameters, so is a generic type
-					let generic_ty = self.register_generic_type(&concrete.type_def());
 					let params = concrete
 						.params()
-						.map(|p| self.register_type(&p.concrete.clone().into())); // concrete.params().map(|p| p.clone()).collect::<Vec<_>>();
-					let interned_generic = InternedGenericType::new(generic_ty, params);
-					let type_id = InternedTypeId::Generic(interned_generic.clone());
+						.map(|p| self.register_type(&p.concrete.clone().into()))
+						.collect::<Vec<_>>();
 
-					self.intern_type(type_id, || InternedType::<CompactForm>::Generic(interned_generic))
+					self.intern_generic_type(concrete.type_def(), params)
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
-					let type_id = concrete.concrete_type_id().into();
+					let type_id = InternedTypeId::Any(concrete.concrete_type_id());
 					self.intern_type(type_id, || {
 						let type_info = concrete.type_info();
 						InternedType::definition(concrete.path().clone(), type_info)
@@ -231,8 +225,8 @@ impl Registry {
 			}
 			MetaType::Parameter(p) => {
 				let parent = self.register_generic_type(&p.parent);
-				let type_parameter = InternedTypeParameter::new(p.name, parent);
-				let param_type_id = InternedTypeId::Parameter(type_parameter.clone().into_compact(self));
+				let type_parameter = InternedTypeParameter::new(p.name, parent).into_compact(self);
+				let param_type_id = InternedTypeId::Parameter(type_parameter.clone());
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}
 			MetaType::Parameterized(parameterized) => self.register_parameterized_type(parameterized),

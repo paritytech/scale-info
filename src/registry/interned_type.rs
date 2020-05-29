@@ -15,11 +15,9 @@
 // limitations under the License.
 
 use super::{IntoCompact, Registry};
-use crate::meta_type::MetaTypeDefinition;
 use crate::tm_std::*;
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	meta_type::{MetaType, MetaTypeConcrete},
 	Path, Type,
 };
 use derive_more::From;
@@ -126,7 +124,7 @@ impl InternedTypeParameter {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 pub struct InternedGenericType {
-	ty: <CompactForm as Form>::Type, // this has to be the same for all instances of generic types
+	ty: <CompactForm as Form>::Type,
 	params: Vec<<CompactForm as Form>::Type>,
 }
 
