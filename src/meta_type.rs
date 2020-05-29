@@ -94,7 +94,15 @@ impl MetaTypeConcrete {
 	where
 		T: 'static + ?Sized + TypeInfo,
 	{
-		Self::parameterized::<T, _>(Vec::new())
+		Self {
+			type_id: any::TypeId::of::<T>(),
+			type_def: MetaTypeDefinition::new::<T>(),
+			params: T::params(),
+			param_values: T::params()
+				.iter()
+				.map(|p| MetaTypeParameterValue::Concrete(p.clone()))
+				.collect(),
+		}
 	}
 
 	pub fn parameterized<T, P>(param_values: P) -> Self
@@ -134,10 +142,6 @@ impl MetaTypeConcrete {
 		self.params.iter()
 	}
 
-	pub fn is_parameterized(&self) -> bool {
-		!self.param_values.is_empty()
-	}
-
 	pub fn parameter_values(&self) -> impl DoubleEndedIterator<Item = &MetaTypeParameterValue> {
 		self.param_values.iter()
 	}
@@ -147,7 +151,7 @@ impl MetaTypeConcrete {
 pub struct MetaTypeParameter {
 	pub name: &'static str, // todo: make private
 	pub parent: MetaTypeDefinition, // todo: make private
-	pub concrete: MetaTypeConcrete, // todo: make private
+	concrete: MetaTypeConcrete,
 }
 
 impl MetaTypeParameter {

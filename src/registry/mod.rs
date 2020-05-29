@@ -206,16 +206,8 @@ impl Registry {
 	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<InternedTypeId> {
 		match ty {
 			MetaType::Concrete(concrete) => {
-				if concrete.is_parameterized() {
+				if concrete.has_params() {
 					self.register_parameterized_type(concrete)
-				} else if concrete.has_params() {
-					// The concrete type definition has some type parameters, so is a generic type
-					let params = concrete
-						.params()
-						.map(|p| self.register_type(&p.clone().into()))
-						.collect::<Vec<_>>();
-
-					self.intern_generic_type(concrete.type_def(), params)
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
 					let type_id = InternedTypeId::Any(concrete.concrete_type_id());
