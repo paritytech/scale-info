@@ -175,7 +175,7 @@ impl Registry {
 			.map(|concrete_param| {
 				let mut peekable = self.param_stack.iter().peekable();
 				if let Some(param) = peekable.peek() {
-					if param.concrete_type_id() == concrete_param.concrete_type_id() {
+					if *param == concrete_param {
 						let param = self.param_stack.pop().expect("parameter was peeked first");
 						self.register_type(&param.into())
 					} else if concrete_param.has_params() {
