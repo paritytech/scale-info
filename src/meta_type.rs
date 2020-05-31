@@ -36,7 +36,7 @@ pub struct MetaType {
 	kind: MetaTypeKind,
 }
 
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug, From)]
+#[derive(Clone, Debug, From)]
 pub enum MetaTypeKind {
 	Concrete,
 	Parameterized(Vec<MetaType>),
