@@ -125,18 +125,6 @@ impl PartialEq for MetaType {
 
 impl Eq for MetaType {}
 
-impl PartialOrd for MetaType {
-	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		self.type_id.partial_cmp(&other.type_id)
-	}
-}
-
-impl Ord for MetaType {
-	fn cmp(&self, other: &Self) -> Ordering {
-		self.type_id.cmp(&other.type_id)
-	}
-}
-
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameter {
 	pub name: &'static str,         // todo: make private
