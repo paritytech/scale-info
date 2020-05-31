@@ -186,7 +186,8 @@ impl Registry {
 						// recurse
 						self.register_parameterized_type(&concrete_param.clone(), Vec::new())
 					} else {
-						panic!("Should either be matching concrete type (e.g. bool) or parameterized e.g. Option<T>")
+						panic!("Parameter {:?} should match the concrete type {:?} or be parameterized e.g. Option<T>",
+							   param.concrete_type_name(), concrete_param.concrete_type_name());
 					}
 				} else {
 					self.register_type(&concrete_param.clone().into())

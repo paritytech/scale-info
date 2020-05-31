@@ -28,6 +28,9 @@ use derive_more::From;
 #[derive(Clone, Debug)]
 pub struct MetaType {
 	type_id: any::TypeId,
+	/// The value of `any::type_name::<T>()`.
+	/// This should *only* be used for debugging purposes
+	type_name: &'static str,
 	type_def: MetaTypeDefinition,
 	params: Vec<MetaType>,
 	kind: MetaTypeKind,
@@ -47,6 +50,7 @@ impl MetaType {
 	{
 		Self {
 			type_id: any::TypeId::of::<T>(),
+			type_name: any::type_name::<T>(),
 			type_def: MetaTypeDefinition::new::<T>(),
 			params: T::params(),
 			kind,
@@ -60,12 +64,12 @@ impl MetaType {
 		Self::new::<T>(MetaTypeKind::Concrete)
 	}
 
-	pub fn parameter<T, P>(name: &'static str) -> Self
+	pub fn parameter<P, T>(name: &'static str) -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
 		P: 'static + ?Sized + TypeInfo,
 	{
-		Self::new::<T>(MetaTypeKind::Parameter(MetaTypeParameter::new::<T, P>(name)))
+		Self::new::<T>(MetaTypeKind::Parameter(MetaTypeParameter::new::<P>(name)))
 	}
 
 	pub fn parameterized<T, I>(params: I) -> Self
@@ -80,6 +84,14 @@ impl MetaType {
 		&self.kind
 	}
 
+	/// Get the concrete type name for this `MetaType`.
+	/// e.g. `core::option::Option<bool>`
+	///
+	/// This should *only* be used for debugging purposes.
+	pub fn concrete_type_name(&self) -> &'static str {
+		self.type_name
+	}
+
 	pub fn concrete_type_id(&self) -> any::TypeId {
 		self.type_id
 	}
@@ -91,6 +103,8 @@ impl MetaType {
 	pub fn type_info(&self) -> Type {
 		(self.type_def.fn_type_info)()
 	}
+
+
 
 	pub fn path(&self) -> &Path {
 		&self.type_def.path
@@ -132,10 +146,9 @@ pub struct MetaTypeParameter {
 }
 
 impl MetaTypeParameter {
-	pub fn new<T, P>(name: &'static str) -> Self
+	pub fn new<T>(name: &'static str) -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
-		P: 'static + ?Sized + TypeInfo,
 	{
 		MetaTypeParameter {
 			name,
