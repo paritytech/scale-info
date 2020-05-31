@@ -20,7 +20,7 @@ use core::marker::PhantomData;
 #[cfg(not(feature = "std"))]
 use alloc::{boxed::Box, string::String, vec};
 
-fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec<MetaTypeConcrete>)
+fn assert_type<T, E>(expected_type: E, expected_path: Path, expected_params: Vec<MetaType>)
 where
 	T: TypeInfo + ?Sized,
 	E: Into<Type>,
@@ -45,7 +45,7 @@ macro_rules! assert_primitive {
 
 macro_rules! type_param {
 	( $ty:ty ) => {
-		$crate::MetaTypeConcrete::new::<$ty>().into()
+		$crate::MetaType::concrete::<$ty>().into()
 	};
 }
 
@@ -186,8 +186,8 @@ fn struct_with_generics() {
 			Path::new("MyStruct", module_path!())
 		}
 
-		fn params() -> Vec<MetaTypeConcrete> {
-			vec![MetaTypeConcrete::new::<T>()]
+		fn params() -> Vec<MetaType> {
+			vec![MetaType::concrete::<T>()]
 		}
 
 		fn type_info() -> Type {

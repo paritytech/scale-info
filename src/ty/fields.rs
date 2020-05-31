@@ -18,7 +18,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, MetaTypeParameterValue, Metadata, Registry,
+	IntoCompact, MetaType, Metadata, Registry,
 };
 use serde::Serialize;
 
@@ -145,14 +145,14 @@ impl FieldsBuilder<NamedFields> {
 	pub fn parameterized_field<T>(
 		self,
 		name: <MetaForm as Form>::String,
-		parameters: Vec<MetaTypeParameterValue>,
+		parameters: Vec<MetaType>,
 	) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
 		this.fields
-			.push(Field::named(name, MetaType::parameterized::<T>(parameters)));
+			.push(Field::named(name, MetaType::parameterized::<T, _>(parameters)));
 		this
 	}
 }
@@ -184,13 +184,13 @@ impl FieldsBuilder<UnnamedFields> {
 		this
 	}
 
-	pub fn parameterized_field<T>(self, parameters: Vec<MetaTypeParameterValue>) -> Self
+	pub fn parameterized_field<T>(self, parameters: Vec<MetaType>) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
 		this.fields
-			.push(Field::unnamed(MetaType::parameterized::<T>(parameters)));
+			.push(Field::unnamed(MetaType::parameterized::<T, _>(parameters)));
 		this
 	}
 }

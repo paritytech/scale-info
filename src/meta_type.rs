@@ -25,18 +25,39 @@ use derive_more::From;
 ///
 /// This needs a conversion to another representation of types
 /// in order to be serializable.
+#[derive(Clone, Debug)]
+pub struct MetaType {
+	type_id: any::TypeId,
+	type_def: MetaTypeDefinition,
+	params: Vec<MetaType>,
+	kind: MetaTypeKind,
+}
+
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug, From)]
-pub enum MetaType {
+pub enum MetaTypeKind {
+	Concrete,
+	Parameterized(Vec<MetaType>),
 	Parameter(MetaTypeParameter),
-	Concrete(MetaTypeConcrete),
 }
 
 impl MetaType {
+	pub fn new<T>(kind: MetaTypeKind) -> Self
+	where
+		T: 'static + ?Sized + TypeInfo,
+	{
+		Self {
+			type_id: any::TypeId::of::<T>(),
+			type_def: MetaTypeDefinition::new::<T>(),
+			params: T::params(),
+			kind,
+		}
+	}
+
 	pub fn concrete<T>() -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
 	{
-		MetaType::Concrete(MetaTypeConcrete::new::<T>())
+		Self::new::<T>(MetaTypeKind::Concrete)
 	}
 
 	pub fn parameter<T, P>(name: &'static str) -> Self
@@ -44,78 +65,19 @@ impl MetaType {
 		T: 'static + ?Sized + TypeInfo,
 		P: 'static + ?Sized + TypeInfo,
 	{
-		MetaType::Parameter(MetaTypeParameter::new::<T, P>(name))
+		Self::new::<T>(MetaTypeKind::Parameter(MetaTypeParameter::new::<T, P>(name)))
 	}
 
-	pub fn parameterized<T>(params: Vec<MetaTypeParameterValue>) -> Self
+	pub fn parameterized<T, I>(params: I) -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
+		I: IntoIterator<Item = MetaType>,
 	{
-		MetaType::Concrete(MetaTypeConcrete::parameterized::<T, _>(params))
-	}
-}
-
-#[derive(Clone, Debug)]
-pub struct MetaTypeConcrete {
-	type_id: any::TypeId,
-	type_def: MetaTypeDefinition,
-	params: Vec<MetaTypeConcrete>,
-	param_values: Vec<MetaTypeParameterValue>,
-}
-
-impl From<MetaTypeParameter> for MetaTypeConcrete {
-	fn from(param: MetaTypeParameter) -> MetaTypeConcrete {
-		param.concrete
-	}
-}
-
-impl PartialEq for MetaTypeConcrete {
-	fn eq(&self, other: &Self) -> bool {
-		self.type_id == other.type_id
-	}
-}
-
-impl Eq for MetaTypeConcrete {}
-
-impl PartialOrd for MetaTypeConcrete {
-	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-		self.type_id.partial_cmp(&other.type_id)
-	}
-}
-
-impl Ord for MetaTypeConcrete {
-	fn cmp(&self, other: &Self) -> Ordering {
-		self.type_id.cmp(&other.type_id)
-	}
-}
-
-impl MetaTypeConcrete {
-	pub fn new<T>() -> Self
-	where
-		T: 'static + ?Sized + TypeInfo,
-	{
-		Self {
-			type_id: any::TypeId::of::<T>(),
-			type_def: MetaTypeDefinition::new::<T>(),
-			params: T::params(),
-			param_values: T::params()
-				.iter()
-				.map(|p| MetaTypeParameterValue::Concrete(p.clone()))
-				.collect(),
-		}
+		Self::new::<T>(MetaTypeKind::Parameterized(params.into_iter().collect()))
 	}
 
-	pub fn parameterized<T, P>(param_values: P) -> Self
-	where
-		T: 'static + ?Sized + TypeInfo,
-		P: IntoIterator<Item = MetaTypeParameterValue>,
-	{
-		Self {
-			type_id: any::TypeId::of::<T>(),
-			type_def: MetaTypeDefinition::new::<T>(),
-			params: T::params(),
-			param_values: param_values.into_iter().collect(),
-		}
+	pub fn kind(&self) -> &MetaTypeKind {
+		&self.kind
 	}
 
 	pub fn concrete_type_id(&self) -> any::TypeId {
@@ -138,12 +100,28 @@ impl MetaTypeConcrete {
 		!self.params.is_empty()
 	}
 
-	pub fn params(&self) -> impl Iterator<Item = &MetaTypeConcrete> {
+	pub fn params(&self) -> impl DoubleEndedIterator<Item = &MetaType> {
 		self.params.iter()
 	}
+}
 
-	pub fn parameter_values(&self) -> impl DoubleEndedIterator<Item = &MetaTypeParameterValue> {
-		self.param_values.iter()
+impl PartialEq for MetaType {
+	fn eq(&self, other: &Self) -> bool {
+		self.type_id == other.type_id
+	}
+}
+
+impl Eq for MetaType {}
+
+impl PartialOrd for MetaType {
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		self.type_id.partial_cmp(&other.type_id)
+	}
+}
+
+impl Ord for MetaType {
+	fn cmp(&self, other: &Self) -> Ordering {
+		self.type_id.cmp(&other.type_id)
 	}
 }
 
@@ -151,7 +129,6 @@ impl MetaTypeConcrete {
 pub struct MetaTypeParameter {
 	pub name: &'static str, // todo: make private
 	pub parent: MetaTypeDefinition, // todo: make private
-	concrete: MetaTypeConcrete,
 }
 
 impl MetaTypeParameter {
@@ -163,55 +140,6 @@ impl MetaTypeParameter {
 		MetaTypeParameter {
 			name,
 			parent: MetaTypeDefinition::new::<T>(),
-			concrete: MetaTypeConcrete::new::<P>(),
-		}
-	}
-
-	pub fn concrete_type_id(&self) -> any::TypeId {
-		self.concrete.concrete_type_id()
-	}
-
-	/// Returns true if the concrete type of the parameter itself has parameters
-	pub fn has_params(&self) -> bool {
-		self.concrete.has_params()
-	}
-}
-
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug, From)]
-pub enum MetaTypeParameterValue {
-	Concrete(MetaTypeConcrete),
-	Parameter(MetaTypeParameter),
-}
-
-impl MetaTypeParameterValue {
-	pub fn parameter<T, P>(name: &'static str) -> Self
-	where
-		T: 'static + ?Sized + TypeInfo,
-		P: 'static + ?Sized + TypeInfo,
-	{
-		MetaTypeParameterValue::Parameter(MetaTypeParameter::new::<T, P>(name))
-	}
-
-	pub fn concrete<T>() -> Self
-	where
-		T: 'static + ?Sized + TypeInfo,
-	{
-		MetaTypeParameterValue::Concrete(MetaTypeConcrete::new::<T>())
-	}
-
-	pub fn concrete_type_id(&self) -> any::TypeId {
-		match self {
-			MetaTypeParameterValue::Concrete(concrete) => concrete.type_id,
-			MetaTypeParameterValue::Parameter(param) => param.concrete.type_id,
-		}
-	}
-}
-
-impl From<MetaTypeParameterValue> for MetaType {
-	fn from(p: MetaTypeParameterValue) -> Self {
-		match p {
-			MetaTypeParameterValue::Concrete(c) => MetaType::Concrete(c),
-			MetaTypeParameterValue::Parameter(p) => MetaType::Parameter(p),
 		}
 	}
 }

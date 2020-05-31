@@ -76,7 +76,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	};
 
 	let meta_type_params =
-		generic_type_ids.map(|tp| quote! { _scale_info::MetaTypeConcrete::new::<#tp>() });
+		generic_type_ids.map(|tp| quote! { _scale_info::MetaType::concrete::<#tp>() });
 
 	let type_info_impl = quote! {
 		impl <#( #impl_generics_no_lifetimes ),*> _scale_info::TypeInfo for #ident #ty_generics #where_clause {
@@ -84,7 +84,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 				_scale_info::Path::new(stringify!(#ident), module_path!())
 			}
 
-			fn params() -> __core::Vec<_scale_info::MetaTypeConcrete> {
+			fn params() -> __core::Vec<_scale_info::MetaType> {
 				__core::vec![
 					#( #meta_type_params ),*
 				]
@@ -168,7 +168,7 @@ fn get_type_parameter(ty: &Type, type_params: &[&TypeParam]) -> Option<Type> {
 fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam], is_root: bool) -> Vec<TokenStream2> {
 	if let Some(ty) = get_type_parameter(ty, type_params) {
 		return vec![quote! {
-			_scale_info::MetaTypeParameterValue::parameter::<Self, #ty>(stringify!(#ty))
+			_scale_info::MetaType::parameter::<Self, #ty>(stringify!(#ty))
 		}];
 	}
 
@@ -181,7 +181,7 @@ fn generate_parameterized_field_parameters(ty: &Type, type_params: &[&TypeParam]
 							Vec::new()
 						} else {
 							vec![quote! {
-								_scale_info::MetaTypeParameterValue::concrete::<#ty>()
+								_scale_info::MetaType::concrete::<#ty>()
 							}]
 						}
 					}

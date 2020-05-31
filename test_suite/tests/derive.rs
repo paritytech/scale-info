@@ -24,11 +24,11 @@ use alloc::{boxed::Box, vec, vec::Vec};
 
 use pretty_assertions::assert_eq;
 use scale_info::{
-	Fields, MetaTypeConcrete, MetaTypeParameterValue, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
+	Fields, MetaType, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
 	Variants,
 };
 
-fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaTypeConcrete>)
+fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaType>)
 where
 	T: TypeInfo + ?Sized,
 	E: Into<Type>,
@@ -46,7 +46,7 @@ macro_rules! assert_type {
 
 macro_rules! type_param {
 	( $ty:ty ) => {
-		$crate::MetaTypeConcrete::new::<$ty>()
+		$crate::MetaType::concrete::<$ty>()
 	};
 }
 
@@ -108,8 +108,8 @@ fn parameterized_concrete_derive() {
 	let path = Path::new("ConcreteParameterized", "derive");
 	let struct_type = TypeComposite::new(
 		Fields::named()
-			.parameterized_field::<Option<bool>>("a", vec![MetaTypeParameterValue::concrete::<bool>()])
-			.parameterized_field::<Option<u32>>("b", vec![MetaTypeParameterValue::concrete::<u32>()]),
+			.parameterized_field::<Option<bool>>("a", vec![MetaType::concrete::<bool>()])
+			.parameterized_field::<Option<u32>>("b", vec![MetaType::concrete::<u32>()]),
 	);
 
 	assert_type!(ConcreteParameterized, struct_type, &path, Vec::new())
@@ -127,7 +127,7 @@ fn parameterized_generic_derive() {
 	let params = type_params!(u8);
 	let struct_type = TypeComposite::new(Fields::named().parameterized_field::<Option<u8>>(
 		"a",
-		vec![MetaTypeParameterValue::parameter::<GenericParameterized<u8>, u8>("T")],
+		vec![MetaType::parameter::<GenericParameterized<u8>, u8>("T")],
 	));
 
 	assert_type!(GenericParameterized<u8>, struct_type, &path, params)
@@ -149,16 +149,16 @@ fn parameterized_tuple_derive() {
 			.parameterized_field::<(u8, u16)>(
 				"a",
 				vec![
-					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u8>("T"),
-					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u16>("U"),
+					MetaType::parameter::<TupleParameterized<u8, u16, u32>, u8>("T"),
+					MetaType::parameter::<TupleParameterized<u8, u16, u32>, u16>("U"),
 				],
 			)
 			.parameterized_field::<(u8, u16, u32)>(
 				"b",
 				vec![
-					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u8>("T"),
-					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u16>("U"),
-					MetaTypeParameterValue::parameter::<TupleParameterized<u8, u16, u32>, u32>("V"),
+					MetaType::parameter::<TupleParameterized<u8, u16, u32>, u8>("T"),
+					MetaType::parameter::<TupleParameterized<u8, u16, u32>, u16>("U"),
+					MetaType::parameter::<TupleParameterized<u8, u16, u32>, u32>("V"),
 				],
 			),
 	);
@@ -181,15 +181,15 @@ fn parameterized_array_derive() {
 		Fields::named()
 			.parameterized_field::<[u8; 8]>(
 				"a",
-				vec![MetaTypeParameterValue::parameter::<ArrayParameterized<u8, u16>, u8>(
+				vec![MetaType::parameter::<ArrayParameterized<u8, u16>, u8>(
 					"T",
 				)],
 			)
 			.parameterized_field::<[(u8, u16); 16]>(
 				"b",
 				vec![
-					MetaTypeParameterValue::parameter::<ArrayParameterized<u8, u16>, u8>("T"),
-					MetaTypeParameterValue::parameter::<ArrayParameterized<u8, u16>, u16>("U"),
+					MetaType::parameter::<ArrayParameterized<u8, u16>, u8>("T"),
+					MetaType::parameter::<ArrayParameterized<u8, u16>, u16>("U"),
 				],
 			),
 	);
@@ -218,8 +218,8 @@ fn parameterized_refs_derive() {
 			.parameterized_field::<(&'static mut u8, &'static u16)>(
 				"c",
 				vec![
-					MetaTypeParameterValue::parameter::<RefsParameterized<'static, 'static, u8, u16>, u8>("T"),
-					MetaTypeParameterValue::parameter::<RefsParameterized<'static, 'static, u8, u16>, u16>("U"),
+					MetaType::parameter::<RefsParameterized<'static, 'static, u8, u16>, u8>("T"),
+					MetaType::parameter::<RefsParameterized<'static, 'static, u8, u16>, u16>("U"),
 				],
 			),
 	);

@@ -54,7 +54,7 @@ macro_rules! impl_metadata_for_array {
 					Path::voldemort()
 				}
 
-				fn params() -> Vec<MetaTypeConcrete> {
+				fn params() -> Vec<MetaType> {
 					type_params!(T)
 				}
 
@@ -87,7 +87,7 @@ macro_rules! impl_metadata_for_tuple {
 				Path::prelude($path)
 			}
 
-			fn params() -> Vec<MetaTypeConcrete> {
+			fn params() -> Vec<MetaType> {
 				type_params!($($ty),*)
 			}
 
@@ -118,7 +118,7 @@ where
 		<[T] as TypeInfo>::path()
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		type_params!(T)
 	}
 
@@ -135,7 +135,7 @@ where
 		Path::prelude("Option")
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		type_params!(T)
 	}
 
@@ -158,7 +158,7 @@ where
 		Path::prelude("Result")
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		type_params!(T, E)
 	}
 
@@ -181,7 +181,7 @@ where
 		Path::prelude("BTreeMap")
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		type_params!(K, V)
 	}
 
@@ -198,7 +198,7 @@ where
 		T::path()
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		T::params()
 	}
 
@@ -215,7 +215,7 @@ where
 		T::path()
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		T::params()
 	}
 
@@ -232,7 +232,7 @@ where
 		T::path()
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		T::params()
 	}
 
@@ -249,7 +249,7 @@ where
 		Path::prelude("Sequence")
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		type_params!(T)
 	}
 
@@ -286,7 +286,7 @@ where
 		Path::prelude("PhantomData")
 	}
 
-	fn params() -> Vec<MetaTypeConcrete> {
+	fn params() -> Vec<MetaType> {
 		type_params!(T)
 	}
 
