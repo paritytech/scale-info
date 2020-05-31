@@ -45,7 +45,7 @@ pub trait Form {
 	/// The string type.
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type type.
-	type Type: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+	type Type: PartialEq + Eq + Clone + core::fmt::Debug;
 }
 
 /// A meta meta-type.

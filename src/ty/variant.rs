@@ -61,7 +61,7 @@ use serde::Serialize;
 /// ```
 /// enum JustAMarker {}
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
+#[derive(PartialEq, Eq, Clone, Debug, Serialize, From)]
 #[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeVariant<F: Form = MetaForm> {
@@ -102,7 +102,7 @@ impl TypeVariant {
 /// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
 /// }
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
+#[derive(PartialEq, Eq, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 pub struct Variant<F: Form = MetaForm> {
 	/// The name of the struct variant.

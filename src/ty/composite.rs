@@ -49,7 +49,7 @@ use serde::Serialize;
 /// ```
 /// struct JustAMarker;
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
+#[derive(PartialEq, Eq, Clone, Debug, Serialize, From)]
 #[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub struct TypeComposite<F: Form = MetaForm> {

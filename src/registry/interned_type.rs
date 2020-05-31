@@ -23,7 +23,7 @@ use crate::{
 use derive_more::From;
 use serde::Serialize;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
+#[derive(PartialEq, Eq, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum InternedType<F: Form = MetaForm> {
@@ -64,7 +64,7 @@ where
 	}
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
+#[derive(PartialEq, Eq, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 pub struct InternedTypeDef<F: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Path::is_empty")]

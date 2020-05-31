@@ -31,7 +31,7 @@ mod variant;
 pub use self::{composite::*, fields::*, path::*, variant::*};
 
 /// The possible types a SCALE encodable Rust value could have.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
+#[derive(PartialEq, Eq, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "camelCase")]
 pub enum Type<F: Form = MetaForm> {
