@@ -218,7 +218,7 @@ impl Registry {
 					self.register_parameterized_type(ty, ty.params())
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
-					let type_id = InternedTypeId::Any(ty.concrete_type_id());
+					let type_id = InternedTypeId::Concrete(ty.concrete_type_id());
 					self.intern_type(type_id, || {
 						let type_info = ty.type_info();
 						InternedType::definition(ty.path().clone(), type_info)

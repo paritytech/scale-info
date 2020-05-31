@@ -147,8 +147,8 @@ impl InternedGenericType {
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From)]
 pub enum InternedTypeId {
-	/// Any type id
-	Any(any::TypeId),
+	/// Concrete type id
+	Concrete(any::TypeId),
 	/// Use a type's path as its unique id
 	Path(Path),
 	/// Generic type parameter Path + Name
