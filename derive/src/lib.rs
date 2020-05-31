@@ -75,8 +75,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
 	};
 
-	let meta_type_params =
-		generic_type_ids.map(|tp| quote! { _scale_info::MetaType::concrete::<#tp>() });
+	let meta_type_params = generic_type_ids.map(|tp| quote! { _scale_info::MetaType::concrete::<#tp>() });
 
 	let type_info_impl = quote! {
 		impl <#( #impl_generics_no_lifetimes ),*> _scale_info::TypeInfo for #ident #ty_generics #where_clause {

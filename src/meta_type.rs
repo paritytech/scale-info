@@ -104,8 +104,6 @@ impl MetaType {
 		(self.type_def.fn_type_info)()
 	}
 
-
-
 	pub fn path(&self) -> &Path {
 		&self.type_def.path
 	}
@@ -141,7 +139,7 @@ impl Ord for MetaType {
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameter {
-	pub name: &'static str, // todo: make private
+	pub name: &'static str,         // todo: make private
 	pub parent: MetaTypeDefinition, // todo: make private
 }
 

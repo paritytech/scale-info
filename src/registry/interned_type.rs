@@ -115,10 +115,7 @@ impl IntoCompact for InternedTypeParameter<MetaForm> {
 
 impl InternedTypeParameter {
 	pub fn new(name: <MetaForm as Form>::String, parent: <CompactForm as Form>::Type) -> Self {
-		Self {
-			name,
-			parent,
-		}
+		Self { name, parent }
 	}
 }
 

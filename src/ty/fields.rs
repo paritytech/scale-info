@@ -142,11 +142,7 @@ impl FieldsBuilder<NamedFields> {
 		this
 	}
 
-	pub fn parameterized_field<T>(
-		self,
-		name: <MetaForm as Form>::String,
-		parameters: Vec<MetaType>,
-	) -> Self
+	pub fn parameterized_field<T>(self, name: <MetaForm as Form>::String, parameters: Vec<MetaType>) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{

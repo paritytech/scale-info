@@ -34,11 +34,7 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	meta_type::{
-		MetaType,
-		MetaTypeKind,
-		MetaTypeDefinition,
-	},
+	meta_type::{MetaType, MetaTypeDefinition, MetaTypeKind},
 };
 use interner::{Interner, UntrackedSymbol};
 use serde::Serialize;
@@ -186,8 +182,11 @@ impl Registry {
 						// recurse
 						self.register_parameterized_type(&concrete_param.clone(), Vec::new())
 					} else {
-						panic!("Parameter {:?} should match the concrete type {:?} or be parameterized e.g. Option<T>",
-							   param.concrete_type_name(), concrete_param.concrete_type_name());
+						panic!(
+							"Parameter {:?} should match the concrete type {:?} or be parameterized e.g. Option<T>",
+							param.concrete_type_name(),
+							concrete_param.concrete_type_name()
+						);
 					}
 				} else {
 					self.register_type(&concrete_param.clone().into())
@@ -225,10 +224,8 @@ impl Registry {
 						InternedType::definition(ty.path().clone(), type_info)
 					})
 				}
-			},
-			MetaTypeKind::Parameterized(param_values) => {
-				self.register_parameterized_type(ty, param_values)
 			}
+			MetaTypeKind::Parameterized(param_values) => self.register_parameterized_type(ty, param_values),
 			MetaTypeKind::Parameter(p) => {
 				let parent = self.register_generic_type(&p.parent);
 				let type_parameter = InternedTypeParameter::new(p.name, parent).into_compact(self);

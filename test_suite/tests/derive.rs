@@ -23,10 +23,7 @@ extern crate alloc;
 use alloc::{boxed::Box, vec, vec::Vec};
 
 use pretty_assertions::assert_eq;
-use scale_info::{
-	Fields, MetaType, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant,
-	Variants,
-};
+use scale_info::{Fields, MetaType, Metadata, Path, Type, TypeComposite, TypeInfo, TypeVariant, Variants};
 
 fn assert_type<T, E>(expected_type: E, expected_path: &Path, expected_params: Vec<MetaType>)
 where
@@ -125,10 +122,10 @@ fn parameterized_generic_derive() {
 
 	let path = Path::new("GenericParameterized", "derive");
 	let params = type_params!(u8);
-	let struct_type = TypeComposite::new(Fields::named().parameterized_field::<Option<u8>>(
-		"a",
-		vec![MetaType::parameter::<GenericParameterized<u8>, u8>("T")],
-	));
+	let struct_type = TypeComposite::new(
+		Fields::named()
+			.parameterized_field::<Option<u8>>("a", vec![MetaType::parameter::<GenericParameterized<u8>, u8>("T")]),
+	);
 
 	assert_type!(GenericParameterized<u8>, struct_type, &path, params)
 }
@@ -179,12 +176,7 @@ fn parameterized_array_derive() {
 	let params = type_params!(u8, u16);
 	let struct_type = TypeComposite::new(
 		Fields::named()
-			.parameterized_field::<[u8; 8]>(
-				"a",
-				vec![MetaType::parameter::<ArrayParameterized<u8, u16>, u8>(
-					"T",
-				)],
-			)
+			.parameterized_field::<[u8; 8]>("a", vec![MetaType::parameter::<ArrayParameterized<u8, u16>, u8>("T")])
 			.parameterized_field::<[(u8, u16); 16]>(
 				"b",
 				vec![
