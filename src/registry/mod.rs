@@ -177,10 +177,10 @@ impl Registry {
 				if let Some(param) = peekable.peek() {
 					if *param == concrete_param {
 						let param = self.param_stack.pop().expect("parameter was peeked first");
-						self.register_type(&param.into())
+						self.register_type(&param)
 					} else if concrete_param.has_params() {
 						// recurse
-						self.register_parameterized_type(&concrete_param.clone(), Vec::new())
+						self.register_parameterized_type(&concrete_param, Vec::new())
 					} else {
 						panic!(
 							"Parameter {:?} should match the concrete type {:?} or be parameterized e.g. Option<T>",
@@ -189,7 +189,7 @@ impl Registry {
 						);
 					}
 				} else {
-					self.register_type(&concrete_param.clone().into())
+					self.register_type(&concrete_param)
 				}
 			})
 			.collect::<Vec<_>>();
