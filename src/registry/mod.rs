@@ -222,14 +222,14 @@ impl Registry {
 					let type_id = InternedTypeId::Concrete(ty.concrete_type_id());
 					self.intern_type(type_id, || {
 						let type_info = ty.type_info();
-						InternedType::definition(ty.path().clone(), type_info)
+						InternedType::definition(ty.path(), type_info)
 					})
 				}
 			}
 			MetaTypeKind::Parameterized(param_values) => self.register_parameterized_type(ty, param_values),
 			MetaTypeKind::Parameter(p) => {
-				let parent = self.register_generic_type(&p.parent);
-				let type_parameter = InternedTypeParameter::new(p.name, parent).into_compact(self);
+				let parent = self.register_generic_type(&p.parent());
+				let type_parameter = InternedTypeParameter::new(p.name(), parent).into_compact(self);
 				let param_type_id = InternedTypeId::Parameter(type_parameter.clone());
 				self.intern_type(param_type_id, || InternedType::Parameter(type_parameter))
 			}

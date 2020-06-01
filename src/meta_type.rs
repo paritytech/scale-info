@@ -104,8 +104,8 @@ impl MetaType {
 		(self.type_def.fn_type_info)()
 	}
 
-	pub fn path(&self) -> &Path {
-		&self.type_def.path
+	pub fn path(&self) -> Path {
+		self.type_def.path()
 	}
 
 	pub fn has_params(&self) -> bool {
@@ -127,8 +127,8 @@ impl Eq for MetaType {}
 
 #[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
 pub struct MetaTypeParameter {
-	pub name: &'static str,         // todo: make private
-	pub parent: MetaTypeDefinition, // todo: make private
+	name: &'static str,
+	parent: MetaTypeDefinition,
 }
 
 impl MetaTypeParameter {
@@ -140,6 +140,14 @@ impl MetaTypeParameter {
 			name,
 			parent: MetaTypeDefinition::new::<T>(),
 		}
+	}
+
+	pub fn name(&self) -> &'static str {
+		self.name
+	}
+
+	pub fn parent(&self) -> &MetaTypeDefinition {
+		&self.parent
 	}
 }
 
