@@ -116,6 +116,8 @@ pub use self::{
 #[cfg(feature = "derive")]
 pub use scale_info_derive::Metadata;
 
+use tm_std::*;
+
 /// A super trait that shall be implemented by all types implementing `TypeInfo`
 pub trait Metadata: TypeInfo {
 	/// Returns the runtime bridge to the types compile-time type information.
@@ -123,7 +125,6 @@ pub trait Metadata: TypeInfo {
 }
 
 /// Implementors return their meta type information.
-/// todo: [AJ] consider splitting to separate traits?
 pub trait TypeInfo {
 	fn path() -> Path;
 
