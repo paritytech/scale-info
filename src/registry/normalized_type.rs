@@ -23,67 +23,70 @@ use crate::{
 use derive_more::From;
 use serde::Serialize;
 
+/// Represents a node in a tree of type definitions and concrete instances.
+///
+/// todo: more
 #[derive(PartialEq, Eq, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
 #[serde(rename_all = "lowercase")]
-pub enum InternedType<F: Form = MetaForm> {
+pub enum NormalizedType<F: Form = MetaForm> {
 	/// The definition of the type
-	Definition(InternedTypeDef<F>),
+	Definition(NormalizedTypeDef<F>),
 	/// The type is specified by a parameter of the parent type
-	Parameter(InternedTypeParameter<F>),
+	Parameter(NormalizedTypeParameter<F>),
 	/// The type of the field is a generic type with the given type params
-	Generic(InternedGenericType),
+	Generic(NormalizedGenericType),
 }
 
-impl IntoCompact for InternedType<MetaForm> {
-	type Output = InternedType<CompactForm>;
+impl IntoCompact for NormalizedType<MetaForm> {
+	type Output = NormalizedType<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		match self {
-			InternedType::Definition(definition) => definition.into_compact(registry).into(),
-			InternedType::Parameter(parameter) => parameter.into_compact(registry).into(),
-			InternedType::Generic(generic) => generic.into_compact(registry).into(),
+			NormalizedType::Definition(definition) => definition.into_compact(registry).into(),
+			NormalizedType::Parameter(parameter) => parameter.into_compact(registry).into(),
+			NormalizedType::Generic(generic) => generic.into_compact(registry).into(),
 		}
 	}
 }
 
-impl IntoCompact for InternedType<CompactForm> {
-	type Output = InternedType<CompactForm>;
+impl IntoCompact for NormalizedType<CompactForm> {
+	type Output = NormalizedType<CompactForm>;
 
 	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
 		self
 	}
 }
 
-impl<F> InternedType<F>
+impl<F> NormalizedType<F>
 where
 	F: Form,
 {
 	pub fn definition(path: Path<F>, ty: Type<F>) -> Self {
-		InternedTypeDef::new(path, ty).into()
+		NormalizedTypeDef::new(path, ty).into()
 	}
 }
 
 #[derive(PartialEq, Eq, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct InternedTypeDef<F: Form = MetaForm> {
+pub struct NormalizedTypeDef<F: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Path::is_empty")]
 	path: Path<F>,
 	ty: Type<F>,
 }
 
-impl IntoCompact for InternedTypeDef<MetaForm> {
-	type Output = InternedTypeDef<CompactForm>;
+impl IntoCompact for NormalizedTypeDef<MetaForm> {
+	type Output = NormalizedTypeDef<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		InternedTypeDef {
+		NormalizedTypeDef {
 			path: self.path.into_compact(registry),
 			ty: self.ty.into_compact(registry),
 		}
 	}
 }
 
-impl<F> InternedTypeDef<F>
+impl<F> NormalizedTypeDef<F>
 where
 	F: Form,
 {
@@ -97,48 +100,48 @@ where
 /// e.g. the `T` in `Option<T>`
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
 #[serde(bound = "F::Type: Serialize")]
-pub struct InternedTypeParameter<F: Form = MetaForm> {
+pub struct NormalizedTypeParameter<F: Form = MetaForm> {
 	name: F::String,
 	parent: <CompactForm as Form>::Type,
 }
 
-impl IntoCompact for InternedTypeParameter<MetaForm> {
-	type Output = InternedTypeParameter<CompactForm>;
+impl IntoCompact for NormalizedTypeParameter<MetaForm> {
+	type Output = NormalizedTypeParameter<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		InternedTypeParameter {
+		NormalizedTypeParameter {
 			name: registry.register_string(self.name),
 			parent: self.parent,
 		}
 	}
 }
 
-impl InternedTypeParameter {
+impl NormalizedTypeParameter {
 	pub fn new(name: <MetaForm as Form>::String, parent: <CompactForm as Form>::Type) -> Self {
 		Self { name, parent }
 	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct InternedGenericType {
+pub struct NormalizedGenericType {
 	ty: <CompactForm as Form>::Type,
 	params: Vec<<CompactForm as Form>::Type>,
 }
 
-impl IntoCompact for InternedGenericType {
-	type Output = InternedGenericType;
+impl IntoCompact for NormalizedGenericType {
+	type Output = NormalizedGenericType;
 
 	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
 		self
 	}
 }
 
-impl InternedGenericType {
+impl NormalizedGenericType {
 	pub fn new<P>(ty: <CompactForm as Form>::Type, params: P) -> Self
 	where
 		P: IntoIterator<Item = <CompactForm as Form>::Type>,
 	{
-		InternedGenericType {
+		NormalizedGenericType {
 			ty,
 			params: params.into_iter().collect(),
 		}
@@ -146,13 +149,13 @@ impl InternedGenericType {
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From)]
-pub enum InternedTypeId {
+pub enum NormalizedTypeId {
 	/// Concrete type id
 	Concrete(any::TypeId),
 	/// Use a type's path as its unique id
 	Path(Path),
 	/// Generic type parameter Path + Name
-	Parameter(InternedTypeParameter<CompactForm>),
+	Parameter(NormalizedTypeParameter<CompactForm>),
 	/// Generic type instance
-	Generic(InternedGenericType),
+	Generic(NormalizedGenericType),
 }

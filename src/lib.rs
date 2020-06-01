@@ -126,6 +126,7 @@ pub trait Metadata: TypeInfo {
 
 /// Implementors return their meta type information.
 pub trait TypeInfo {
+	/// The unique [`Path`]
 	fn path() -> Path;
 
 	fn params() -> Vec<MetaType> {
