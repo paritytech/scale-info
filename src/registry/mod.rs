@@ -215,7 +215,8 @@ impl Registry {
 		match ty.kind() {
 			MetaTypeKind::Concrete => {
 				if ty.has_params() {
-					self.register_parameterized_type(ty, ty.params())
+					let params = ty.params().map(|p| self.register_type(p)).collect::<Vec<_>>();
+					self.intern_generic_type(ty.type_def(), params)
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
 					let type_id = InternedTypeId::Concrete(ty.concrete_type_id());
