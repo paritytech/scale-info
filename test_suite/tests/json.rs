@@ -363,6 +363,89 @@ fn test_generics() {
 }
 
 #[test]
+fn test_generic_parameters_used_out_of_order() {
+	let mut registry = Registry::new();
+
+	#[derive(Metadata)]
+	struct GenericStruct<T, U> {
+		a: U,
+		b: T,
+	}
+
+	registry.register_type(&GenericStruct::<u8, u16>::meta_type());
+
+	let expected_json = json!({
+		"strings": [
+			"json",				// 1
+			"GenericStruct",	// 2
+			"a",				// 3
+			"U",				// 4
+			"b",				// 5
+			"T",				// 6
+		],
+		"types": [
+			{ // type 1: u8
+				"definition": {
+					"ty": {
+						"primitive": "u8"
+					}
+				}
+			},{ // type 2: u16
+				"definition": {
+					"ty": {
+						"primitive": "u16"
+					}
+				}
+			},
+			{ // type 3: GenericStruct<T, U>
+				"definition": {
+					"path": [
+						1, 	// json
+						2	// GenericStruct
+					],
+					"ty": {
+						"composite": {
+							"fields": [
+								{
+									"name": 3,	// a
+									"type": 4	// Param U of GenericStruct<T, U>
+								},
+								{
+									"name": 5,	// b
+									"type": 5 	// Option<T> where T is Param T of GenericStruct<T, U>
+								},
+							]
+						}
+					}
+				}
+			},
+			{ // type 4: Param U of GenericStruct<T, U>
+				"parameter": {
+					"name": 4,	// U
+					"parent": 3	// GenericStruct<T, U>
+				}
+			},
+			{ // type 5: Param T of GenericStruct<T, U>
+				"parameter": {
+					"name": 6,	// T
+					"parent": 3	// GenericStruct<T, U>
+				}
+			},
+			{ // type 6: GenericStruct<u8, u16>
+				"generic": {
+					"ty": 3,		// GenericStruct<T, U>
+					"params": [
+						1,			// u8
+						2, 			// u16
+					]
+				}
+			}
+		]
+	});
+	assert_eq!(expected_json, serde_json::to_value(registry).unwrap());
+}
+
+#[test]
 fn test_registry() {
 	let mut registry = Registry::new();
 
