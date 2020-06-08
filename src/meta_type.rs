@@ -27,12 +27,7 @@ use derive_more::From;
 /// in order to be serializable.
 #[derive(Clone, Debug)]
 pub struct MetaType {
-	type_id: any::TypeId,
-	/// The value of `any::type_name::<T>()`.
-	/// This should *only* be used for debugging purposes
-	type_name: &'static str,
-	type_def: MetaTypeDefinition,
-	params: Vec<MetaType>,
+	type_info: MetaTypeInfo,
 	kind: MetaTypeKind,
 }
 
@@ -49,10 +44,7 @@ impl MetaType {
 		T: 'static + ?Sized + TypeInfo,
 	{
 		Self {
-			type_id: any::TypeId::of::<T>(),
-			type_name: any::type_name::<T>(),
-			type_def: MetaTypeDefinition::new::<T>(),
-			params: T::params(),
+			type_info: MetaTypeInfo::new::<T>(),
 			kind,
 		}
 	}
@@ -96,24 +88,24 @@ impl MetaType {
 		self.type_id
 	}
 
-	pub fn type_def(&self) -> &MetaTypeDefinition {
-		&self.type_def
+	pub fn type_def(&self) -> &MetaTypeInfo {
+		&self.type_info
 	}
 
 	pub fn type_info(&self) -> Type {
-		(self.type_def.fn_type_info)()
+		(self.type_info.fn_type_info)()
 	}
 
 	pub fn path(&self) -> Path {
-		self.type_def.path()
+		self.type_info.path()
 	}
 
 	pub fn has_params(&self) -> bool {
-		!self.params.is_empty()
+		!self.type_info.params.is_empty()
 	}
 
 	pub fn params(&self) -> impl DoubleEndedIterator<Item = &MetaType> {
-		self.params.iter()
+		self.type_info.params.iter()
 	}
 }
 
@@ -125,10 +117,10 @@ impl PartialEq for MetaType {
 
 impl Eq for MetaType {}
 
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
+#[derive(Clone, Eq, PartialEq, Debug)]
 pub struct MetaTypeParameter {
 	name: &'static str,
-	parent: MetaTypeDefinition,
+	parent: MetaTypeInfo,
 }
 
 impl MetaTypeParameter {
@@ -138,7 +130,7 @@ impl MetaTypeParameter {
 	{
 		MetaTypeParameter {
 			name,
-			parent: MetaTypeDefinition::new::<T>(),
+			parent: MetaTypeInfo::new::<T>(),
 		}
 	}
 
@@ -146,24 +138,32 @@ impl MetaTypeParameter {
 		self.name
 	}
 
-	pub fn parent(&self) -> &MetaTypeDefinition {
+	pub fn parent(&self) -> &MetaTypeInfo {
 		&self.parent
 	}
 }
 
-#[derive(Clone, Eq, PartialEq, PartialOrd, Ord, Debug)]
-pub struct MetaTypeDefinition {
+#[derive(Clone, Eq, PartialEq, Debug)]
+pub struct MetaTypeInfo {
+	type_id: any::TypeId,
+	/// The value of `any::type_name::<T>()`.
+	/// This should *only* be used for debugging purposes
+	type_name: &'static str,
 	fn_type_info: fn() -> Type,
+	params: Vec<MetaType>,
 	path: Path,
 }
 
-impl MetaTypeDefinition {
+impl MetaTypeInfo {
 	fn new<T>() -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
 	{
 		Self {
+			type_id: any::TypeId::of::<T>(),
+			type_name: any::type_name::<T>(),
 			fn_type_info: T::type_info,
+			params: T::params(),
 			path: T::path(),
 		}
 	}

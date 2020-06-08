@@ -34,7 +34,7 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	meta_type::{MetaType, MetaTypeDefinition, MetaTypeKind},
+	meta_type::{MetaType, MetaTypeInfo, MetaTypeKind},
 };
 use interner::{Interner, UntrackedSymbol};
 use serde::Serialize;
@@ -148,7 +148,7 @@ impl Registry {
 		symbol
 	}
 
-	fn intern_generic_type<P>(&mut self, type_def: &MetaTypeDefinition, params: P) -> UntrackedSymbol<NormalizedTypeId>
+	fn intern_generic_type<P>(&mut self, type_def: &MetaTypeInfo, params: P) -> UntrackedSymbol<NormalizedTypeId>
 	where
 		P: IntoIterator<Item = UntrackedSymbol<NormalizedTypeId>>,
 	{
@@ -197,9 +197,12 @@ impl Registry {
 		self.intern_generic_type(parameterized.type_def(), params)
 	}
 
-	fn register_generic_type(&mut self, ty: &MetaTypeDefinition) -> UntrackedSymbol<NormalizedTypeId> {
+	fn register_generic_type(&mut self, ty: &MetaTypeInfo) -> UntrackedSymbol<NormalizedTypeId> {
 		let type_id = NormalizedTypeId::Path(ty.path());
-		self.intern_type(type_id, || NormalizedType::definition(ty.path(), ty.type_info()))
+		self.intern_type(type_id, || {
+			// let params = ty.params()
+			NormalizedType::definition(ty.path(), ty.type_info())
+		})
 	}
 
 	/// Registers the given type into the registry and returns
