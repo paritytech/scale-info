@@ -68,14 +68,14 @@ extern crate alloc;
 
 #[macro_export]
 macro_rules! type_param {
-	( $ty:ty ) => {
-		$crate::MetaType::concrete::<$ty>().into()
+	( $parent:ty, $ty:ty ) => {
+		$crate::MetaTypeParameter::new::<$ty, $parent>(stringify!($ty))
 	};
 }
 
 #[macro_export]
 macro_rules! type_params {
-	( $($ty:ty),* ) => {
+	( $parent:ty, $($ty:ty),* ) => {
 		{
 			#[cfg(not(feature = "std"))]
 			extern crate alloc as _alloc;
@@ -88,7 +88,7 @@ macro_rules! type_params {
 			let mut v = std::vec![];
 
 			$(
-				v.push($crate::type_param!($ty));
+				v.push($crate::type_param!($parent, $ty));
 			)*
 			v
 		}
@@ -108,7 +108,7 @@ mod utils;
 mod tests;
 
 pub use self::{
-	meta_type::MetaType,
+	meta_type::{MetaType, MetaTypeParameter},
 	registry::{interner::UntrackedSymbol, IntoCompact, Registry},
 	ty::*,
 };
@@ -129,7 +129,7 @@ pub trait TypeInfo {
 	/// The unique [`Path`]
 	fn path() -> Path;
 
-	fn params() -> Vec<MetaType> {
+	fn params() -> Vec<MetaTypeParameter> {
 		Vec::new()
 	}
 

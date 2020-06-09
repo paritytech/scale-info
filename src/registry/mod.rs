@@ -34,7 +34,7 @@
 use crate::tm_std::*;
 use crate::{
 	form::CompactForm,
-	meta_type::{MetaType, MetaTypeInfo, MetaTypeKind},
+	meta_type::{MetaType, MetaTypeInfo, MetaTypeParameterValue},
 };
 use interner::{Interner, UntrackedSymbol};
 use serde::Serialize;
@@ -43,6 +43,7 @@ pub mod interner;
 mod normalized_type;
 
 pub use normalized_type::{NormalizedGenericType, NormalizedType, NormalizedTypeId, NormalizedTypeParameter};
+use crate::meta_type::MetaTypeParameterized;
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -79,7 +80,7 @@ pub struct Registry {
 	type_table: Interner<NormalizedTypeId>,
 	/// Scope stack for resolving nested parameterized types
 	#[serde(skip)]
-	param_stack: Vec<MetaType>,
+	param_values: Vec<MetaTypeParameterValue>,
 	/// The database where registered types actually reside.
 	///
 	/// This is going to be serialized upon serialization.
@@ -112,7 +113,7 @@ impl Registry {
 		Self {
 			string_table: Interner::new(),
 			type_table: Interner::new(),
-			param_stack: Vec::new(),
+			param_values: Vec::new(),
 			types: BTreeMap::new(),
 		}
 	}
@@ -148,53 +149,49 @@ impl Registry {
 		symbol
 	}
 
-	fn intern_generic_type<P>(&mut self, type_def: &MetaTypeInfo, params: P) -> UntrackedSymbol<NormalizedTypeId>
+	fn intern_generic_type<P>(&mut self, type_info: &MetaTypeInfo, params: P) -> UntrackedSymbol<NormalizedTypeId>
 	where
 		P: IntoIterator<Item = UntrackedSymbol<NormalizedTypeId>>,
 	{
-		let generic_ty = self.register_generic_type(type_def);
+		let generic_ty = self.register_generic_type(type_info);
 		let interned_generic = NormalizedGenericType::new(generic_ty, params);
 		let type_id = NormalizedTypeId::Generic(interned_generic.clone());
 
 		self.intern_type(type_id, || NormalizedType::<CompactForm>::Generic(interned_generic))
 	}
 
-	fn register_parameterized_type<'a, I>(
+	fn register_parameterized_type(
 		&mut self,
-		parameterized: &MetaType,
-		parameter_values: I,
+		parameterized: &MetaTypeParameterized,
 	) -> UntrackedSymbol<NormalizedTypeId>
-	where
-		I: IntoIterator<Item = &'a MetaType>,
-		<I as IntoIterator>::IntoIter: DoubleEndedIterator,
 	{
-		self.param_stack.extend(parameter_values.into_iter().cloned().rev());
+		self.param_values.extend(parameterized.param_values().cloned().rev());
 
 		let params = parameterized
-			.params()
-			.map(|concrete_param| {
-				let mut peekable = self.param_stack.iter().peekable();
-				if let Some(param) = peekable.peek() {
-					if *param == concrete_param {
-						let param = self.param_stack.pop().expect("parameter was peeked first");
-						self.register_type(&param)
-					} else if concrete_param.has_params() {
+			.concrete_params()
+			.map(|param| {
+				let mut peekable = self.param_values.iter().peekable();
+				if let Some(param_value) = peekable.peek() {
+					if param_value.is_value_for(param) {
+						let param_value = self.param_values.pop().expect("parameter was peeked first");
+						self.register_type(&param_value.into())
+					} else if param.has_params() {
 						// recurse
-						self.register_parameterized_type(&concrete_param, Vec::new())
+						self.register_parameterized_type(&MetaTypeParameterized::new(param.concrete().clone(), Vec::new()))
 					} else {
 						panic!(
-							"Parameter {:?} should match the concrete type {:?} or be parameterized e.g. Option<T>",
-							param.concrete_type_name(),
-							concrete_param.concrete_type_name()
+							"Parameter value {:?} should match the concrete type {:?} or be parameterized e.g. Option<T>",
+							param_value,
+							param
 						);
 					}
 				} else {
-					self.register_type(&concrete_param)
+					self.register_type(&param.concrete().clone().into())
 				}
 			})
 			.collect::<Vec<_>>();
 
-		self.intern_generic_type(parameterized.type_def(), params)
+		self.intern_generic_type(&parameterized.type_info(), params)
 	}
 
 	fn register_generic_type(&mut self, ty: &MetaTypeInfo) -> UntrackedSymbol<NormalizedTypeId> {
@@ -215,11 +212,13 @@ impl Registry {
 	/// However, since this facility is going to be used for serialization
 	/// purposes this functionality isn't needed anyway.
 	pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<NormalizedTypeId> {
-		match ty.kind() {
-			MetaTypeKind::Concrete => {
+		match ty {
+			MetaType::Concrete(ty) => {
 				if ty.has_params() {
-					let params = ty.params().map(|p| self.register_type(p)).collect::<Vec<_>>();
-					self.intern_generic_type(ty.type_def(), params)
+					let params = ty
+						.params()
+						.map(|p| self.register_type(&p.concrete().clone().into())).collect::<Vec<_>>();
+					self.intern_generic_type(ty, params)
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
 					let type_id = NormalizedTypeId::Concrete(ty.concrete_type_id());
@@ -229,8 +228,8 @@ impl Registry {
 					})
 				}
 			}
-			MetaTypeKind::Parameterized(param_values) => self.register_parameterized_type(ty, param_values),
-			MetaTypeKind::Parameter(p) => {
+			MetaType::Parameterized(parameterized) => self.register_parameterized_type(parameterized),
+			MetaType::Parameter(p) => {
 				let parent = self.register_generic_type(&p.parent());
 				let type_parameter = NormalizedTypeParameter::new(p.name(), parent).into_compact(self);
 				let param_type_id = NormalizedTypeId::Parameter(type_parameter.clone());

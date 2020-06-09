@@ -21,6 +21,7 @@ use crate::{
 	IntoCompact, MetaType, Metadata, Registry,
 };
 use serde::Serialize;
+use crate::meta_type::MetaTypeParameterValue;
 
 /// A field of a struct like data type.
 ///
@@ -142,7 +143,7 @@ impl FieldsBuilder<NamedFields> {
 		this
 	}
 
-	pub fn parameterized_field<T>(self, name: <MetaForm as Form>::String, parameters: Vec<MetaType>) -> Self
+	pub fn parameterized_field<T>(self, name: <MetaForm as Form>::String, parameters: Vec<MetaTypeParameterValue>) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
@@ -180,7 +181,7 @@ impl FieldsBuilder<UnnamedFields> {
 		this
 	}
 
-	pub fn parameterized_field<T>(self, parameters: Vec<MetaType>) -> Self
+	pub fn parameterized_field<T>(self, parameters: Vec<MetaTypeParameterValue>) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{

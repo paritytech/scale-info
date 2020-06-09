@@ -25,35 +25,32 @@ use derive_more::From;
 ///
 /// This needs a conversion to another representation of types
 /// in order to be serializable.
-#[derive(Clone, Debug)]
-pub struct MetaType {
-	type_info: MetaTypeInfo,
-	kind: MetaTypeKind,
-}
-
-#[derive(Clone, Debug, From)]
-pub enum MetaTypeKind {
-	Concrete,
-	Parameterized(Vec<MetaType>),
+#[derive(Clone, Debug, Eq, PartialEq, From)]
+pub enum MetaType {
+	Concrete(MetaTypeInfo),
+	Parameterized(MetaTypeParameterized),
 	Parameter(MetaTypeParameter),
 }
 
-impl MetaType {
-	pub fn new<T>(kind: MetaTypeKind) -> Self
-	where
-		T: 'static + ?Sized + TypeInfo,
-	{
-		Self {
-			type_info: MetaTypeInfo::new::<T>(),
-			kind,
+impl From<MetaTypeParameterValue> for MetaType {
+	fn from(param_value: MetaTypeParameterValue) -> MetaType {
+		match param_value {
+			MetaTypeParameterValue::Concrete(meta_type) => {
+				MetaType::Concrete(meta_type)
+			},
+			MetaTypeParameterValue::TypeParameter(param) => {
+				MetaType::Parameter(param)
+			}
 		}
 	}
+}
 
+impl MetaType {
 	pub fn concrete<T>() -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
 	{
-		Self::new::<T>(MetaTypeKind::Concrete)
+		MetaType::Concrete(MetaTypeInfo::new::<T>())
 	}
 
 	pub fn parameter<P, T>(name: &'static str) -> Self
@@ -61,76 +58,144 @@ impl MetaType {
 		T: 'static + ?Sized + TypeInfo,
 		P: 'static + ?Sized + TypeInfo,
 	{
-		Self::new::<T>(MetaTypeKind::Parameter(MetaTypeParameter::new::<P>(name)))
+		MetaType::Parameter(MetaTypeParameter::new::<T, P>(name))
 	}
 
 	pub fn parameterized<T, I>(params: I) -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
-		I: IntoIterator<Item = MetaType>,
+		I: IntoIterator<Item = MetaTypeParameterValue>,
 	{
-		Self::new::<T>(MetaTypeKind::Parameterized(params.into_iter().collect()))
+		MetaTypeParameterized::of::<T, I>(params).into()
 	}
 
-	pub fn kind(&self) -> &MetaTypeKind {
-		&self.kind
+//	/// Get the concrete type name for this `MetaType`.
+//	/// e.g. `core::option::Option<bool>`
+//	///
+//	/// This should *only* be used for debugging purposes.
+	// pub fn concrete_type_name(&self) -> &'static str {
+	// 	self.type_info().type_name
+	// }
+
+	// pub fn concrete_type_id(&self) -> any::TypeId {
+	// 	self.type_id
+	// }
+
+	// pub fn type_def(&self) -> &MetaTypeInfo {
+	// 	&self.type_info
+	// }
+	//
+	// pub fn type_info(&self) -> Type {
+	// 	(self.type_info.fn_type_info)()
+	// }
+	//
+	// pub fn path(&self) -> Path {
+	// 	self.type_info.path()
+	// }
+
+	// pub fn has_params(&self) -> bool {
+	// 	!self.type_info.params.is_empty()
+	// }
+	//
+	// pub fn params(&self) -> impl DoubleEndedIterator<Item = &MetaType> {
+	// 	self.type_info().params.iter()
+	// }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct MetaTypeParameterized {
+	type_info: MetaTypeInfo,
+	params: Vec<MetaTypeParameterValue>,
+}
+
+impl MetaTypeParameterized {
+	pub fn new<I>(type_info: MetaTypeInfo, params: I) -> Self
+	where
+		I: IntoIterator<Item = MetaTypeParameterValue>
+	{
+		Self {
+			type_info,
+			params: params.into_iter().collect(),
+		}
 	}
 
-	/// Get the concrete type name for this `MetaType`.
-	/// e.g. `core::option::Option<bool>`
-	///
-	/// This should *only* be used for debugging purposes.
-	pub fn concrete_type_name(&self) -> &'static str {
-		self.type_name
+	pub fn of<T, I>(params: I) -> Self
+	where
+		T: 'static + ?Sized + TypeInfo,
+		I: IntoIterator<Item = MetaTypeParameterValue>
+	{
+		Self::new(MetaTypeInfo::new::<T>(), params)
 	}
 
-	pub fn concrete_type_id(&self) -> any::TypeId {
-		self.type_id
-	}
-
-	pub fn type_def(&self) -> &MetaTypeInfo {
+	pub fn type_info(&self) -> &MetaTypeInfo {
 		&self.type_info
 	}
 
-	pub fn type_info(&self) -> Type {
-		(self.type_info.fn_type_info)()
-	}
-
-	pub fn path(&self) -> Path {
-		self.type_info.path()
-	}
-
-	pub fn has_params(&self) -> bool {
-		!self.type_info.params.is_empty()
-	}
-
-	pub fn params(&self) -> impl DoubleEndedIterator<Item = &MetaType> {
+	pub fn concrete_params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
 		self.type_info.params.iter()
 	}
-}
 
-impl PartialEq for MetaType {
-	fn eq(&self, other: &Self) -> bool {
-		self.type_id == other.type_id
+	pub fn param_values(&self) -> impl DoubleEndedIterator<Item = &MetaTypeParameterValue> {
+		self.params.iter()
 	}
 }
 
-impl Eq for MetaType {}
+#[derive(Clone, Debug, Eq, PartialEq, From)]
+pub enum MetaTypeParameterValue {
+	/// A concrete parameter value for a generic type.
+	///
+	/// # Example
+	///
+	/// ```
+	/// struct A {
+	/// 	a: Option<u32>,
+	/// 	// 		   ^------ Concrete parameter value
+	/// }
+	/// ```
+	Concrete(MetaTypeInfo),
+	/// A type parameter value from the parent type.
+	///
+	/// # Example
+	///
+	/// ```
+	/// struct B<T> {
+	/// 	a: Option<T>,
+	/// 	// 		  ^----- Generic parameter value
+	/// }
+	/// ```
+	TypeParameter(MetaTypeParameter),
+}
+
+impl MetaTypeParameterValue {
+	pub fn is_value_for(&self, param: &MetaTypeParameter) -> bool {
+		match self {
+			MetaTypeParameterValue::Concrete(meta_type) => {
+				*meta_type == param.concrete
+			},
+			MetaTypeParameterValue::TypeParameter(generic_param) => {
+				generic_param.concrete == param.concrete
+			}
+		}
+	}
+}
 
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub struct MetaTypeParameter {
 	name: &'static str,
+	concrete: MetaTypeInfo,
 	parent: MetaTypeInfo,
 }
 
 impl MetaTypeParameter {
-	pub fn new<T>(name: &'static str) -> Self
+	pub fn new<T, P>(name: &'static str) -> Self
 	where
 		T: 'static + ?Sized + TypeInfo,
+		P: 'static + ?Sized + TypeInfo,
 	{
 		MetaTypeParameter {
 			name,
-			parent: MetaTypeInfo::new::<T>(),
+			concrete: MetaTypeInfo::new::<T>(),
+			parent: MetaTypeInfo::new::<P>(),
 		}
 	}
 
@@ -141,18 +206,48 @@ impl MetaTypeParameter {
 	pub fn parent(&self) -> &MetaTypeInfo {
 		&self.parent
 	}
+
+	pub fn concrete(&self) -> &MetaTypeInfo {
+		&self.concrete
+	}
+
+	/// True if this parameter has parameters itself.
+	///
+	/// # Example
+	///
+	/// Constructing a type with the parameter `T` having the value `Option<bool>` which has a
+	/// parameter itself.
+	///
+	/// ```
+	/// struct A<T> {
+	/// 	f: T
+	/// }
+	///
+	/// type B = A<Option<bool>>;
+	/// ```
+	pub fn has_params(&self) -> bool {
+		!self.concrete.has_params()
+	}
 }
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct MetaTypeInfo {
 	type_id: any::TypeId,
 	/// The value of `any::type_name::<T>()`.
 	/// This should *only* be used for debugging purposes
 	type_name: &'static str,
 	fn_type_info: fn() -> Type,
-	params: Vec<MetaType>,
+	params: Vec<MetaTypeParameter>,
 	path: Path,
 }
+
+impl PartialEq for MetaTypeInfo {
+	fn eq(&self, other: &Self) -> bool {
+		self.type_id == other.type_id
+	}
+}
+
+impl Eq for MetaTypeInfo {}
 
 impl MetaTypeInfo {
 	fn new<T>() -> Self
@@ -172,7 +267,19 @@ impl MetaTypeInfo {
 		self.path.clone()
 	}
 
+	pub fn concrete_type_id(&self) -> any::TypeId {
+		self.type_id
+	}
+
 	pub fn type_info(&self) -> Type {
 		(self.fn_type_info)()
+	}
+
+	pub fn has_params(&self) -> bool {
+		!self.params.is_empty()
+	}
+
+	pub fn params(&self) -> impl Iterator<Item = &MetaTypeParameter> {
+		self.params.iter()
 	}
 }

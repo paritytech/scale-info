@@ -186,7 +186,7 @@ fn struct_with_generics() {
 			Path::new("MyStruct", module_path!())
 		}
 
-		fn params() -> Vec<MetaType> {
+		fn params() -> Vec<MetaTypeParameter> {
 			vec![MetaType::concrete::<T>()]
 		}
 

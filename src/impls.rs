@@ -16,6 +16,7 @@
 
 use crate::tm_std::*;
 use crate::*;
+use crate::meta_type::MetaTypeParameterValue;
 
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
@@ -54,8 +55,8 @@ macro_rules! impl_metadata_for_array {
 					Path::voldemort()
 				}
 
-				fn params() -> Vec<MetaType> {
-					type_params!(T)
+				fn params() -> Vec<MetaTypeParameter> {
+					type_params!(Self, T)
 				}
 
 				fn type_info() -> Type {
@@ -87,12 +88,12 @@ macro_rules! impl_metadata_for_tuple {
 				Path::prelude($path)
 			}
 
-			fn params() -> Vec<MetaType> {
-				type_params!($($ty),*)
+			fn params() -> Vec<MetaTypeParameter> {
+				type_params!(Self, $($ty),*)
 			}
 
 			fn type_info() -> Type {
-				TypeTuple::new(type_params!($($ty),*)).into()
+				TypeTuple::new(type_params!(Self, $($ty),*)).into()
 			}
 		}
     }
@@ -118,8 +119,8 @@ where
 		<[T] as TypeInfo>::path()
 	}
 
-	fn params() -> Vec<MetaType> {
-		type_params!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(Self, T)
 	}
 
 	fn type_info() -> Type {
@@ -135,8 +136,8 @@ where
 		Path::prelude("Option")
 	}
 
-	fn params() -> Vec<MetaType> {
-		type_params!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(Self, T)
 	}
 
 	fn type_info() -> Type {
@@ -158,7 +159,7 @@ where
 		Path::prelude("Result")
 	}
 
-	fn params() -> Vec<MetaType> {
+	fn params() -> Vec<MetaTypeParameter> {
 		type_params!(T, E)
 	}
 
@@ -181,12 +182,17 @@ where
 		Path::prelude("BTreeMap")
 	}
 
-	fn params() -> Vec<MetaType> {
-		type_params!(K, V)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(Self, K, V)
 	}
 
 	fn type_info() -> Type {
-		TypeComposite::new(Fields::unnamed().parameterized_field::<[(K, V)]>(type_params!(K, V))).into()
+		TypeComposite::new(Fields::unnamed()
+			.parameterized_field::<[(K, V)]>(vec! [
+				MetaTypeParameterValue::TypeParameter(type_param!(Self, K)),
+				MetaTypeParameterValue::TypeParameter(type_param!(Self, V)),
+			])
+		).into()
 	}
 }
 
@@ -198,7 +204,7 @@ where
 		T::path()
 	}
 
-	fn params() -> Vec<MetaType> {
+	fn params() -> Vec<MetaTypeParameter> {
 		T::params()
 	}
 
@@ -215,7 +221,7 @@ where
 		T::path()
 	}
 
-	fn params() -> Vec<MetaType> {
+	fn params() -> Vec<MetaTypeParameter> {
 		T::params()
 	}
 
@@ -232,7 +238,7 @@ where
 		T::path()
 	}
 
-	fn params() -> Vec<MetaType> {
+	fn params() -> Vec<MetaTypeParameter> {
 		T::params()
 	}
 
@@ -249,8 +255,8 @@ where
 		Path::prelude("Sequence")
 	}
 
-	fn params() -> Vec<MetaType> {
-		type_params!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(Self, T)
 	}
 
 	fn type_info() -> Type {
@@ -286,8 +292,8 @@ where
 		Path::prelude("PhantomData")
 	}
 
-	fn params() -> Vec<MetaType> {
-		type_params!(T)
+	fn params() -> Vec<MetaTypeParameter> {
+		type_params!(Self, T)
 	}
 
 	fn type_info() -> Type {

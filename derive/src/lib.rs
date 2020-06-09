@@ -83,7 +83,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 				_scale_info::Path::new(stringify!(#ident), module_path!())
 			}
 
-			fn params() -> __core::Vec<_scale_info::MetaType> {
+			fn params() -> __core::Vec<_scale_info::MetaTypeParameter> {
 				__core::vec![
 					#( #meta_type_params ),*
 				]
