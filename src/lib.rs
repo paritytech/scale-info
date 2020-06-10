@@ -108,7 +108,7 @@ mod utils;
 mod tests;
 
 pub use self::{
-	meta_type::{MetaType, MetaTypeParameter},
+	meta_type::{MetaType, MetaTypeParameter, MetaTypeParameterValue},
 	registry::{interner::UntrackedSymbol, IntoCompact, Registry},
 	ty::*,
 };

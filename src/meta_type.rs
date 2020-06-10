@@ -168,6 +168,21 @@ pub enum MetaTypeParameterValue {
 }
 
 impl MetaTypeParameterValue {
+	pub fn concrete<T>() -> Self
+	where
+		T: 'static + ?Sized + TypeInfo,
+	{
+		MetaTypeParameterValue::Concrete(MetaTypeInfo::new::<T>())
+	}
+
+	pub fn type_param<T, P>(name: &'static str) -> Self
+	where
+		T: 'static + ?Sized + TypeInfo,
+		P: 'static + ?Sized + TypeInfo,
+	{
+		MetaTypeParameterValue::TypeParameter(MetaTypeParameter::new::<T, P>(name))
+	}
+
 	pub fn is_value_for(&self, param: &MetaTypeParameter) -> bool {
 		match self {
 			MetaTypeParameterValue::Concrete(meta_type) => {
