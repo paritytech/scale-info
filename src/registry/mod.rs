@@ -149,17 +149,6 @@ impl Registry {
 		symbol
 	}
 
-	fn intern_generic_type<P>(&mut self, type_info: &MetaTypeInfo, params: P) -> UntrackedSymbol<NormalizedTypeId>
-	where
-		P: IntoIterator<Item = UntrackedSymbol<NormalizedTypeId>>,
-	{
-		let generic_ty = self.register_generic_type(type_info);
-		let interned_generic = NormalizedGenericType::new(generic_ty, params);
-		let type_id = NormalizedTypeId::Generic(interned_generic.clone());
-
-		self.intern_type(type_id, || NormalizedType::<CompactForm>::Generic(interned_generic))
-	}
-
 	fn register_parameterized_type(
 		&mut self,
 		parameterized: &MetaTypeParameterized,
@@ -191,14 +180,17 @@ impl Registry {
 			})
 			.collect::<Vec<_>>();
 
-		self.intern_generic_type(&parameterized.type_info(), params)
+		let generic_type = self.register_generic_type(parameterized.type_info());
+		let interned_generic = NormalizedGenericType::new(generic_type, params);
+		let type_id = NormalizedTypeId::Generic(interned_generic.clone());
+
+		self.intern_type(type_id, || NormalizedType::Generic(interned_generic))
 	}
 
 	fn register_generic_type(&mut self, ty: &MetaTypeInfo) -> UntrackedSymbol<NormalizedTypeId> {
 		let type_id = NormalizedTypeId::Path(ty.path());
 		self.intern_type(type_id, || {
-			// let params = ty.params()
-			NormalizedType::definition(ty.path(), ty.type_info())
+			NormalizedType::from(ty.clone())
 		})
 	}
 
@@ -217,21 +209,22 @@ impl Registry {
 				if ty.has_params() {
 					let params = ty
 						.params()
-						.map(|p| self.register_type(&p.concrete().clone().into())).collect::<Vec<_>>();
-					self.intern_generic_type(ty, params)
+						.map(|p| MetaTypeParameterValue::Concrete(p.concrete().clone())); // todo: convert function?
+					let parameterized = MetaTypeParameterized::new(ty.clone(), params);
+					self.register_parameterized_type(&parameterized)
 				} else {
 					// The concrete type definition has no type parameters, so is not a generic type
 					let type_id = NormalizedTypeId::Concrete(ty.concrete_type_id());
 					self.intern_type(type_id, || {
-						let type_info = ty.type_info();
-						NormalizedType::definition(ty.path(), type_info)
+						NormalizedType::definition(ty.path(), ty.type_info(), Vec::new())
 					})
 				}
 			}
 			MetaType::Parameterized(parameterized) => self.register_parameterized_type(parameterized),
 			MetaType::Parameter(p) => {
 				let parent = self.register_generic_type(&p.parent());
-				let type_parameter = NormalizedTypeParameter::new(p.name(), parent).into_compact(self);
+				let name = self.register_string(p.name());
+				let type_parameter = NormalizedTypeParameter::new(name, parent);
 				let param_type_id = NormalizedTypeId::Parameter(type_parameter.clone());
 				self.intern_type(param_type_id, || NormalizedType::Parameter(type_parameter))
 			}

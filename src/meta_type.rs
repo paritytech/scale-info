@@ -17,6 +17,7 @@
 use crate::tm_std::*;
 use crate::{Path, Type, TypeInfo};
 use derive_more::From;
+use crate::registry::{NormalizedTypeParameter, NormalizedType};
 
 /// A metatype abstraction.
 ///
@@ -186,6 +187,12 @@ pub struct MetaTypeParameter {
 	parent: MetaTypeInfo,
 }
 
+impl From<MetaTypeParameter> for NormalizedTypeParameter {
+	fn from(param: MetaTypeParameter) -> NormalizedTypeParameter {
+		NormalizedTypeParameter::new(param.name, param.parent)
+	}
+}
+
 impl MetaTypeParameter {
 	pub fn new<T, P>(name: &'static str) -> Self
 	where
@@ -248,6 +255,13 @@ impl PartialEq for MetaTypeInfo {
 }
 
 impl Eq for MetaTypeInfo {}
+
+impl From<MetaTypeInfo> for NormalizedType {
+	fn from(type_info: MetaTypeInfo) -> NormalizedType {
+		let params = type_info.params.iter().cloned().map(Into::into);
+		NormalizedType::definition(type_info.path(), type_info.type_info(), params)
+	}
+}
 
 impl MetaTypeInfo {
 	fn new<T>() -> Self

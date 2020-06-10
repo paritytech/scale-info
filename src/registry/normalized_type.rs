@@ -27,7 +27,7 @@ use serde::Serialize;
 ///
 /// todo: more
 #[derive(PartialEq, Eq, Clone, From, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::Type: Serialize, F::GenericType: Serialize")]
 #[serde(rename_all = "lowercase")]
 pub enum NormalizedType<F: Form = MetaForm> {
 	/// The definition of the type
@@ -35,7 +35,7 @@ pub enum NormalizedType<F: Form = MetaForm> {
 	/// The type is specified by a parameter of the parent type
 	Parameter(NormalizedTypeParameter<F>),
 	/// The type of the field is a generic type with the given type params
-	Generic(NormalizedGenericType),
+	Generic(NormalizedGenericType<F>),
 }
 
 impl IntoCompact for NormalizedType<MetaForm> {
@@ -62,17 +62,21 @@ impl<F> NormalizedType<F>
 where
 	F: Form,
 {
-	pub fn definition(path: Path<F>, ty: Type<F>) -> Self {
-		NormalizedTypeDef::new(path, ty).into()
+	pub fn definition<I>(path: Path<F>, ty: Type<F>, params: I) -> Self
+	where
+		I: IntoIterator<Item = NormalizedTypeParameter<F>>
+	{
+		NormalizedTypeDef::new(path, ty, params).into()
 	}
 }
 
 #[derive(PartialEq, Eq, Clone, From, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::Type: Serialize, F::GenericType: Serialize")]
 pub struct NormalizedTypeDef<F: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Path::is_empty")]
 	path: Path<F>,
 	ty: Type<F>,
+	params: Vec<NormalizedTypeParameter<F>>,
 }
 
 impl IntoCompact for NormalizedTypeDef<MetaForm> {
@@ -82,6 +86,7 @@ impl IntoCompact for NormalizedTypeDef<MetaForm> {
 		NormalizedTypeDef {
 			path: self.path.into_compact(registry),
 			ty: self.ty.into_compact(registry),
+			params: registry.map_into_compact(self.params),
 		}
 	}
 }
@@ -90,8 +95,11 @@ impl<F> NormalizedTypeDef<F>
 where
 	F: Form,
 {
-	pub fn new(path: Path<F>, ty: Type<F>) -> Self {
-		Self { path, ty }
+	pub fn new<I>(path: Path<F>, ty: Type<F>, params: I) -> Self
+	where
+		I: IntoIterator<Item = NormalizedTypeParameter<F>>
+	{
+		Self { path, ty, params: params.into_iter().collect() }
 	}
 }
 
@@ -99,47 +107,57 @@ where
 ///
 /// e.g. the `T` in `Option<T>`
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::Type: Serialize")]
+#[serde(bound = "F::Type: Serialize, F::GenericType: Serialize")]
 pub struct NormalizedTypeParameter<F: Form = MetaForm> {
 	name: F::String,
-	parent: <CompactForm as Form>::Type,
+	parent: F::GenericType,
 }
 
-impl IntoCompact for NormalizedTypeParameter<MetaForm> {
+impl IntoCompact for NormalizedTypeParameter {
 	type Output = NormalizedTypeParameter<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		NormalizedTypeParameter {
 			name: registry.register_string(self.name),
-			parent: self.parent,
+			parent: registry.register_generic_type(&self.parent),
 		}
 	}
 }
 
-impl NormalizedTypeParameter {
-	pub fn new(name: <MetaForm as Form>::String, parent: <CompactForm as Form>::Type) -> Self {
+impl<F> NormalizedTypeParameter<F>
+where
+	F: Form
+{
+	pub fn new(name: F::String, parent: F::GenericType) -> Self {
 		Self { name, parent }
 	}
 }
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-pub struct NormalizedGenericType {
-	ty: <CompactForm as Form>::Type,
-	params: Vec<<CompactForm as Form>::Type>,
+#[serde(bound = "F::Type: Serialize, F::GenericType: Serialize")]
+pub struct NormalizedGenericType<F: Form = MetaForm> {
+	ty: F::GenericType,
+	params: Vec<F::Type>,
 }
 
 impl IntoCompact for NormalizedGenericType {
-	type Output = NormalizedGenericType;
+	type Output = NormalizedGenericType<CompactForm>;
 
-	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
-		self
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		Self::Output {
+			ty: registry.register_generic_type(&self.ty),
+			params: registry.register_types(self.params),
+		}
 	}
 }
 
-impl NormalizedGenericType {
-	pub fn new<P>(ty: <CompactForm as Form>::Type, params: P) -> Self
+impl<F> NormalizedGenericType<F>
+where
+	F: Form
+{
+	pub fn new<P>(ty: F::GenericType, params: P) -> Self
 	where
-		P: IntoIterator<Item = <CompactForm as Form>::Type>,
+		P: IntoIterator<Item = F::Type>,
 	{
 		NormalizedGenericType {
 			ty,
@@ -157,5 +175,5 @@ pub enum NormalizedTypeId {
 	/// Generic type parameter Path + Name
 	Parameter(NormalizedTypeParameter<CompactForm>),
 	/// Generic type instance
-	Generic(NormalizedGenericType),
+	Generic(NormalizedGenericType<CompactForm>),
 }

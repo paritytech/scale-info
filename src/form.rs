@@ -33,7 +33,7 @@
 //! (also via lifetime tracking) are possible but current not needed.
 
 use crate::tm_std::*;
-use crate::{meta_type::MetaType, registry::NormalizedTypeId, UntrackedSymbol};
+use crate::{meta_type::{MetaType, MetaTypeInfo}, registry::NormalizedTypeId, UntrackedSymbol};
 use serde::Serialize;
 
 /// Trait to control the internal structures of type representations.
@@ -46,6 +46,8 @@ pub trait Form {
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type type.
 	type Type: PartialEq + Eq + Clone + core::fmt::Debug;
+	/// todo: is this the correct name for this?
+	type GenericType: PartialEq + Eq + Clone + core::fmt::Debug;
 }
 
 /// A meta meta-type.
@@ -58,6 +60,7 @@ pub enum MetaForm {}
 impl Form for MetaForm {
 	type String = &'static str;
 	type Type = MetaType;
+	type GenericType = MetaTypeInfo;
 }
 
 /// Compact form that has its lifetime untracked in association to its interner.
@@ -73,4 +76,5 @@ pub enum CompactForm {}
 impl Form for CompactForm {
 	type String = UntrackedSymbol<&'static str>;
 	type Type = UntrackedSymbol<NormalizedTypeId>;
+	type GenericType = UntrackedSymbol<NormalizedTypeId>;
 }
