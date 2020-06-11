@@ -1,7 +1,7 @@
 [package]
 name = "scale-info"
 version = "0.1.0"
-authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
+authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2018"
 
 license = "APACHE-2.0"
