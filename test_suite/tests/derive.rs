@@ -22,7 +22,8 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
 
-use scale_info::{tuple_meta_type, Fields, Metadata, Path, Type, TypeDefComposite, TypeInfo, TypeDefVariant, Variants};
+use scale_info::build::*;
+use scale_info::{tuple_meta_type, Metadata, Path, Type, TypeInfo};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -47,10 +48,10 @@ fn struct_derive() {
 		pub u: U,
 	}
 
-	let struct_type = TypeDefComposite::new()
+	let struct_type = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(bool, u8))
-		.fields(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
+		.composite(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
 
 	assert_type!(S<bool, u8>, struct_type);
 
@@ -58,10 +59,10 @@ fn struct_derive() {
 
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
-	let self_typed_type = TypeDefComposite::new()
+	let self_typed_type = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
-		.fields(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
+		.composite(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
 	assert_type!(SelfTyped, self_typed_type);
 }
 
@@ -71,10 +72,10 @@ fn tuple_struct_derive() {
 	#[derive(Metadata)]
 	struct S<T>(T);
 
-	let ty = TypeDefComposite::new()
+	let ty = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(bool))
-		.fields(Fields::unnamed().field_of::<bool>());
+		.composite(Fields::unnamed().field_of::<bool>());
 
 	assert_type!(S<bool>, ty);
 }
@@ -85,7 +86,7 @@ fn unit_struct_derive() {
 	#[derive(Metadata)]
 	struct S;
 
-	let ty = TypeDefComposite::new().path(Path::new("S", "derive")).unit();
+	let ty = Type::builder().path(Path::new("S", "derive")).composite(Fields::unit());
 
 	assert_type!(S, ty);
 }
@@ -99,9 +100,9 @@ fn c_like_enum_derive() {
 		B = 10,
 	}
 
-	let ty = TypeDefVariant::new()
+	let ty = Type::builder()
 		.path(Path::new("E", "derive"))
-		.variants(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
+		.variant(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
 
 	assert_type!(E, ty);
 }
@@ -116,10 +117,10 @@ fn enum_derive() {
 		C,
 	}
 
-	let ty = TypeDefVariant::new()
+	let ty = Type::builder()
 		.path(Path::new("E", "derive"))
 		.type_params(tuple_meta_type!(bool))
-		.variants(
+		.variant(
 			Variants::with_fields()
 				.variant("A", Fields::unnamed().field_of::<bool>())
 				.variant("B", Fields::named().field_of::<bool>("b"))

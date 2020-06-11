@@ -22,7 +22,7 @@ macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
 		impl TypeInfo for $t {
 			fn type_info() -> Type {
-				Type::primitive($ident_kind)
+				$ident_kind.into()
 			}
 		}
 	)* }
@@ -48,7 +48,7 @@ macro_rules! impl_metadata_for_array {
 		$(
 			impl<T: Metadata + 'static> TypeInfo for [T; $n] {
 				fn type_info() -> Type {
-					Type::array(TypeDefArray::new($n, MetaType::new::<T>()))
+					TypeDefArray::new($n, MetaType::new::<T>()).into()
 				}
 			}
 		)*
@@ -73,7 +73,7 @@ macro_rules! impl_metadata_for_tuple {
 			)*
 		{
 			fn type_info() -> Type {
-				Type::tuple(TypeDefTuple::new(tuple_meta_type!($($ty),*)))
+				TypeDefTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
 		}
     }
@@ -178,19 +178,19 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		Type::sequence(TypeDefSequence::of::<T>())
+		TypeDefSequence::of::<T>().into()
 	}
 }
 
 impl TypeInfo for str {
 	fn type_info() -> Type {
-		Type::primitive(TypeDefPrimitive::Str)
+		TypeDefPrimitive::Str.into()
 	}
 }
 
 impl TypeInfo for String {
 	fn type_info() -> Type {
-		Type::primitive(TypeDefPrimitive::Str)
+		TypeDefPrimitive::Str.into()
 	}
 }
 

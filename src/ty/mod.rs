@@ -56,6 +56,30 @@ impl IntoCompact for Type {
 	}
 }
 
+impl From<TypeDefPrimitive> for Type {
+	fn from(primitive: TypeDefPrimitive) -> Self {
+		Self::new(Path::voldemort(), Vec::new(), primitive)
+	}
+}
+
+impl From<TypeDefArray> for Type {
+	fn from(array: TypeDefArray) -> Self {
+		Self::new(Path::voldemort(), Vec::new(), array)
+	}
+}
+
+impl From<TypeDefSequence> for Type {
+	fn from(sequence: TypeDefSequence) -> Self {
+		Self::new(Path::voldemort(), Vec::new(), sequence)
+	}
+}
+
+impl From<TypeDefTuple> for Type {
+	fn from(tuple: TypeDefTuple) -> Self {
+		Self::new(Path::voldemort(), Vec::new(), tuple)
+	}
+}
+
 impl Type {
 	pub fn builder() -> TypeBuilder {
 		TypeBuilder::default()
@@ -71,22 +95,6 @@ impl Type {
 			type_params: type_params.into_iter().collect(),
 			type_def: type_def.into(),
 		}
-	}
-
-	pub(crate) fn array(def: TypeDefArray) -> Type {
-		Self::new(Path::voldemort(), Vec::new(), def)
-	}
-
-	pub(crate) fn primitive(def: TypeDefPrimitive) -> Type {
-		Self::new(Path::voldemort(), Vec::new(), def)
-	}
-
-	pub(crate) fn sequence(def: TypeDefSequence) -> Type {
-		Self::new(Path::voldemort(), Vec::new(), def)
-	}
-
-	pub(crate) fn tuple(def: TypeDefTuple) -> Type {
-		Self::new(Path::voldemort(), Vec::new(), def)
 	}
 }
 
