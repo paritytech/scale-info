@@ -37,8 +37,8 @@ pub struct Path<F: Form = MetaForm> {
 }
 
 impl<F> Default for Path<F>
-	where
-		F: Form,
+where
+	F: Form,
 {
 	fn default() -> Self {
 		Path { segments: Vec::new() }
@@ -94,8 +94,8 @@ impl Path {
 	/// - If no segments are supplied
 	/// - If any of the segments are invalid Rust identifiers
 	pub fn from_segments<I>(segments: I) -> Result<Path, PathError>
-		where
-			I: IntoIterator<Item = <MetaForm as Form>::String>,
+	where
+		I: IntoIterator<Item = <MetaForm as Form>::String>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
 		if segments.is_empty() {
@@ -109,8 +109,8 @@ impl Path {
 }
 
 impl<F> Path<F>
-	where
-		F: Form,
+where
+	F: Form,
 {
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()

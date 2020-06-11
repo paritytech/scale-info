@@ -70,9 +70,11 @@ impl TypeDefComposite {
 	/// Creates a new struct definition with named fields.
 	pub fn new<I>(fields: I) -> Self
 	where
-		I: IntoIterator<Item = Field>
+		I: IntoIterator<Item = Field>,
 	{
-		Self { fields: fields.into_iter().collect() }
+		Self {
+			fields: fields.into_iter().collect(),
+		}
 	}
 
 	pub fn unit() -> Self {

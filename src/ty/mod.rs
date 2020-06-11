@@ -87,7 +87,7 @@ impl Type {
 	pub(crate) fn new<I, D>(path: Path, type_params: I, type_def: D) -> Self
 	where
 		I: IntoIterator<Item = MetaType>,
-		D: Into<TypeDef>
+		D: Into<TypeDef>,
 	{
 		Self {
 			path,

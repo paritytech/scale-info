@@ -13,7 +13,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{tm_std::*, form::{MetaForm, Form}, Field, MetaType, Metadata, Variant, Type, TypeDef, Path, TypeDefVariant, TypeDefComposite};
+use crate::{
+	form::{Form, MetaForm},
+	tm_std::*,
+	Field, MetaType, Metadata, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, Variant,
+};
 
 /// State types for type builders which require a Path
 pub mod state {
@@ -72,8 +76,8 @@ impl TypeBuilder<state::PathAssigned> {
 
 impl<S> TypeBuilder<S> {
 	pub fn type_params<I>(self, type_params: I) -> Self
-		where
-			I: IntoIterator<Item = MetaType>,
+	where
+		I: IntoIterator<Item = MetaType>,
 	{
 		let mut this = self;
 		this.type_params = type_params.into_iter().collect();
@@ -150,8 +154,8 @@ impl FieldsBuilder<UnnamedFields> {
 	}
 
 	pub fn field_of<T>(self) -> Self
-		where
-			T: Metadata + ?Sized + 'static,
+	where
+		T: Metadata + ?Sized + 'static,
 	{
 		let mut this = self;
 		this.fields.push(Field::unnamed_of::<T>());

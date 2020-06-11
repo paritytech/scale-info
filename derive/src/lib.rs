@@ -106,20 +106,19 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
 }
 
 fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
-	let fields =
-		match data_struct.fields {
-			Fields::Named(ref fs) => {
-				let fields = generate_fields(&fs.named);
-				quote! { named()#( #fields )* }
-			}
-			Fields::Unnamed(ref fs) => {
-				let fields = generate_fields(&fs.unnamed);
-				quote! { unnamed()#( #fields )* }
-			}
-			Fields::Unit => quote! {
-				unit()
-			}
-		};
+	let fields = match data_struct.fields {
+		Fields::Named(ref fs) => {
+			let fields = generate_fields(&fs.named);
+			quote! { named()#( #fields )* }
+		}
+		Fields::Unnamed(ref fs) => {
+			let fields = generate_fields(&fs.unnamed);
+			quote! { unnamed()#( #fields )* }
+		}
+		Fields::Unit => quote! {
+			unit()
+		},
+	};
 	quote! {
 		composite(_scale_info::build::Fields::#fields)
 	}
