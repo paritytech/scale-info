@@ -14,4 +14,4 @@ scale-info = { path = "..", features = ["derive"] }
 
 serde = "1.0"
 serde_json = "1.0"
-assert-json-diff = "1.0"
+pretty_assertions = "0.6.1"

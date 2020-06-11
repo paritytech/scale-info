@@ -21,6 +21,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::boxed::Box;
 
+use pretty_assertions::assert_eq;
 use scale_info::build::*;
 use scale_info::{tuple_meta_type, Metadata, Path, Type, TypeInfo};
 
