@@ -14,7 +14,7 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
-// #![deny(missing_docs)]
+#![deny(missing_docs)]
 
 //! Efficient and compact serialization of Rust types.
 //!

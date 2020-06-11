@@ -148,7 +148,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 	});
 	quote! {
 		variant(
-			_scale_info::build::Variants::with_discriminants()
+			_scale_info::build::Variants::fieldless()
 				#( #variants )*
 		)
 	}

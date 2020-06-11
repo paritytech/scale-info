@@ -1,5 +1,5 @@
 // Copyright 2019-2020
-//     and Parity Technologies (UK) Ltd.
+//     Parity Technologies (UK) Ltd. Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -102,7 +102,7 @@ fn c_like_enum_derive() {
 
 	let ty = Type::builder()
 		.path(Path::new("E", "derive"))
-		.variant(Variants::with_discriminants().variant("A", 0u64).variant("B", 10u64));
+		.variant(Variants::fieldless().variant("A", 0u64).variant("B", 10u64));
 
 	assert_type!(E, ty);
 }

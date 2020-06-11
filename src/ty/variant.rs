@@ -80,6 +80,7 @@ impl IntoCompact for TypeDefVariant {
 }
 
 impl TypeDefVariant {
+	/// Create a new `TypeDefVariant` with the given variants
 	pub fn new<I>(variants: I) -> Self
 	where
 		I: IntoIterator<Item = Variant>,

@@ -76,8 +76,4 @@ impl TypeDefComposite {
 			fields: fields.into_iter().collect(),
 		}
 	}
-
-	pub fn unit() -> Self {
-		Self { fields: Vec::new() }
-	}
 }

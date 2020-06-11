@@ -30,6 +30,7 @@ mod variant;
 
 pub use self::{composite::*, fields::*, path::*, variant::*};
 
+/// A [`Type`] definition with optional metadata.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct Type<F: Form = MetaForm> {
@@ -80,6 +81,7 @@ impl From<TypeDefTuple> for Type {
 }
 
 impl Type {
+	/// Create a [`scale_info::build::TypeBuilder`] the public API for constructing a [`Type`]
 	pub fn builder() -> TypeBuilder {
 		TypeBuilder::default()
 	}

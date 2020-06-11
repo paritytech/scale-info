@@ -1,5 +1,5 @@
 // Copyright 2019-2020
-//     and Parity Technologies (UK) Ltd.
+//     Parity Technologies (UK) Ltd. Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
