@@ -17,8 +17,9 @@
 use crate::tm_std::*;
 
 use crate::{
+	build::FieldsBuilder,
 	form::{CompactForm, Form, MetaForm},
-	state, Field, Fields, FieldsBuilder, IntoCompact, MetaType, NoFields, Path, PathError, Registry,
+	Field, IntoCompact, Registry,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -64,83 +65,28 @@ use serde::Serialize;
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
 #[serde(bound = "F::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
-pub struct TypeVariant<F: Form = MetaForm> {
-	#[serde(skip_serializing_if = "Path::is_empty")]
-	path: Path<F>,
-	/// The generic type parameters of the type in use.
-	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
-	type_params: Vec<F::TypeId>,
+pub struct TypeDefVariant<F: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	variants: Vec<Variant<F>>,
 }
 
-impl IntoCompact for TypeVariant {
-	type Output = TypeVariant<CompactForm>;
+impl IntoCompact for TypeDefVariant {
+	type Output = TypeDefVariant<CompactForm>;
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeVariant {
-			path: self.path.into_compact(registry),
-			type_params: registry.register_types(self.type_params),
+		TypeDefVariant {
 			variants: registry.map_into_compact(self.variants),
 		}
 	}
 }
 
-impl TypeVariant {
-	#[cfg_attr(feature = "cargo-clippy", allow(clippy::new_ret_no_self))]
-	pub fn new() -> TypeVariantBuilder {
-		TypeVariantBuilder::default()
-	}
-}
-
-pub struct TypeVariantBuilder<S = state::PathNotAssigned> {
-	path: Option<Path>,
-	type_params: Vec<MetaType>,
-	marker: PhantomData<fn() -> S>,
-}
-
-impl<S> Default for TypeVariantBuilder<S> {
-	fn default() -> Self {
-		TypeVariantBuilder {
-			path: Default::default(),
-			type_params: Default::default(),
-			marker: Default::default(),
-		}
-	}
-}
-
-impl TypeVariantBuilder<state::PathNotAssigned> {
-	/// Set the Path for the type
-	///
-	/// # Panics
-	///
-	/// If the Path is invalid
-	pub fn path(self, path: Result<Path, PathError>) -> TypeVariantBuilder<state::PathAssigned> {
-		TypeVariantBuilder {
-			path: Some(path.expect("Invalid Path")),
-			type_params: self.type_params,
-			marker: Default::default(),
-		}
-	}
-}
-
-impl<S> TypeVariantBuilder<S> {
-	pub fn type_params<I>(self, type_params: I) -> Self
+impl TypeDefVariant {
+	pub fn new<I>(variants: I) -> Self
 	where
-		I: IntoIterator<Item = MetaType>,
+		I: IntoIterator<Item = Variant>,
 	{
-		let mut this = self;
-		this.type_params = type_params.into_iter().collect();
-		this
-	}
-}
-
-impl TypeVariantBuilder<state::PathAssigned> {
-	pub fn variants<F>(self, variants: VariantsBuilder<F>) -> TypeVariant {
-		TypeVariant {
-			path: self.path.expect("Path is assigned"),
-			type_params: self.type_params,
-			variants: variants.done(),
+		Self {
+			variants: variants.into_iter().collect(),
 		}
 	}
 }
@@ -208,68 +154,5 @@ impl Variant {
 			fields: Vec::new(),
 			discriminant: Some(discriminant),
 		}
-	}
-}
-
-/// Build a type with no variants.
-pub enum NoVariants {}
-/// Build a type where at least one variant has fields.
-pub enum VariantFields {}
-/// Build a type where *all* variants have no fields and a discriminant (e.g. a
-/// Clike enum)
-pub enum Discriminant {}
-
-/// Empty enum for VariantsBuilder constructors for the type builder DSL.
-pub enum Variants {}
-
-impl Variants {
-	/// Build a set of variants, at least one of which will have fields.
-	pub fn with_fields() -> VariantsBuilder<VariantFields> {
-		VariantsBuilder::new()
-	}
-
-	/// Build a set of variants, none of which will have fields, but all of
-	/// which will have discriminants.
-	pub fn with_discriminants() -> VariantsBuilder<Discriminant> {
-		VariantsBuilder::new()
-	}
-}
-
-#[derive(Default)]
-pub struct VariantsBuilder<T> {
-	variants: Vec<Variant>,
-	marker: PhantomData<fn() -> T>,
-}
-
-impl VariantsBuilder<VariantFields> {
-	pub fn variant<F>(self, name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
-		let mut this = self;
-		this.variants.push(Variant::with_fields(name, fields));
-		this
-	}
-
-	pub fn variant_unit(self, name: <MetaForm as Form>::String) -> Self {
-		self.variant::<NoFields>(name, Fields::unit())
-	}
-}
-
-impl VariantsBuilder<Discriminant> {
-	pub fn variant(self, name: <MetaForm as Form>::String, discriminant: u64) -> Self {
-		let mut this = self;
-		this.variants.push(Variant::with_discriminant(name, discriminant));
-		this
-	}
-}
-
-impl<T> VariantsBuilder<T> {
-	pub fn new() -> Self {
-		VariantsBuilder {
-			variants: Vec::new(),
-			marker: Default::default(),
-		}
-	}
-
-	pub fn done(self) -> Vec<Variant> {
-		self.variants
 	}
 }

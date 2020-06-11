@@ -15,6 +15,7 @@
 // limitations under the License.
 
 #![cfg_attr(not(feature = "std"), no_std)]
+// #![deny(missing_docs)]
 
 //! Efficient and compact serialization of Rust types.
 //!
@@ -112,6 +113,7 @@ macro_rules! tuple_meta_type {
 
 mod tm_std;
 
+pub mod build;
 pub mod form;
 mod impls;
 pub mod interner;

@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::build::*;
 use crate::tm_std::*;
 use crate::*;
 
@@ -21,25 +22,25 @@ macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
 		impl TypeInfo for $t {
 			fn type_info() -> Type {
-				Type::Primitive($ident_kind)
+				Type::primitive($ident_kind)
 			}
 		}
 	)* }
 }
 
 impl_metadata_for_primitives!(
-	bool => TypePrimitive::Bool,
-	char => TypePrimitive::Char,
-	u8 => TypePrimitive::U8,
-	u16 => TypePrimitive::U16,
-	u32 => TypePrimitive::U32,
-	u64 => TypePrimitive::U64,
-	u128 => TypePrimitive::U128,
-	i8 => TypePrimitive::I8,
-	i16 => TypePrimitive::I16,
-	i32 => TypePrimitive::I32,
-	i64 => TypePrimitive::I64,
-	i128 => TypePrimitive::I128,
+	bool => TypeDefPrimitive::Bool,
+	char => TypeDefPrimitive::Char,
+	u8 => TypeDefPrimitive::U8,
+	u16 => TypeDefPrimitive::U16,
+	u32 => TypeDefPrimitive::U32,
+	u64 => TypeDefPrimitive::U64,
+	u128 => TypeDefPrimitive::U128,
+	i8 => TypeDefPrimitive::I8,
+	i16 => TypeDefPrimitive::I16,
+	i32 => TypeDefPrimitive::I32,
+	i64 => TypeDefPrimitive::I64,
+	i128 => TypeDefPrimitive::I128,
 );
 
 macro_rules! impl_metadata_for_array {
@@ -47,7 +48,7 @@ macro_rules! impl_metadata_for_array {
 		$(
 			impl<T: Metadata + 'static> TypeInfo for [T; $n] {
 				fn type_info() -> Type {
-					TypeArray::new($n, MetaType::new::<T>()).into()
+					Type::array(TypeDefArray::new($n, MetaType::new::<T>()))
 				}
 			}
 		)*
@@ -72,7 +73,7 @@ macro_rules! impl_metadata_for_tuple {
 			)*
 		{
 			fn type_info() -> Type {
-				TypeTuple::new(tuple_meta_type!($($ty),*)).into()
+				Type::tuple(TypeDefTuple::new(tuple_meta_type!($($ty),*)))
 			}
 		}
     }
@@ -104,15 +105,14 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		TypeVariant::new()
+		Type::builder()
 			.path(Path::prelude("Option"))
 			.type_params(tuple_meta_type![T])
-			.variants(
+			.variant(
 				Variants::with_fields()
 					.variant_unit("None")
 					.variant("Some", Fields::unnamed().field_of::<T>()),
 			)
-			.into()
 	}
 }
 
@@ -122,15 +122,14 @@ where
 	E: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		TypeVariant::new()
+		Type::builder()
 			.path(Path::prelude("Result"))
 			.type_params(tuple_meta_type!(T, E))
-			.variants(
+			.variant(
 				Variants::with_fields()
 					.variant("Ok", Fields::unnamed().field_of::<T>())
 					.variant("Err", Fields::unnamed().field_of::<E>()),
 			)
-			.into()
 	}
 }
 
@@ -140,11 +139,10 @@ where
 	V: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		TypeComposite::new()
+		Type::builder()
 			.path(Path::prelude("BTreeMap"))
 			.type_params(tuple_meta_type![(K, V)])
-			.fields(Fields::unnamed().field_of::<[(K, V)]>())
-			.into()
+			.composite(Fields::unnamed().field_of::<[(K, V)]>())
 	}
 }
 
@@ -180,19 +178,19 @@ where
 	T: Metadata + 'static,
 {
 	fn type_info() -> Type {
-		TypeSequence::of::<T>().into()
+		Type::sequence(TypeDefSequence::of::<T>())
 	}
 }
 
 impl TypeInfo for str {
 	fn type_info() -> Type {
-		TypePrimitive::Str.into()
+		Type::primitive(TypeDefPrimitive::Str)
 	}
 }
 
 impl TypeInfo for String {
 	fn type_info() -> Type {
-		TypePrimitive::Str.into()
+		Type::primitive(TypeDefPrimitive::Str)
 	}
 }
 
@@ -201,10 +199,9 @@ where
 	T: Metadata + ?Sized,
 {
 	fn type_info() -> Type {
-		TypeComposite::new()
+		Type::builder()
 			.path(Path::prelude("PhantomData"))
 			.type_params(vec![T::meta_type()])
-			.unit()
-			.into()
+			.composite(Fields::unit())
 	}
 }

@@ -120,7 +120,7 @@ fn struct_with_generics() {
 		T: Metadata + 'static,
 	{
 		fn type_info() -> Type {
-			TypeComposite::new()
+			TypeDefComposite::new()
 				.path(Path::new("MyStruct", module_path!()))
 				.type_params(tuple_meta_type!(T))
 				.fields(Fields::named().field_of::<T>("data"))
@@ -129,7 +129,7 @@ fn struct_with_generics() {
 	}
 
 	// Normal struct
-	let struct_bool_type_info = TypeComposite::new()
+	let struct_bool_type_info = TypeDefComposite::new()
 		.path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]))
 		.type_params(tuple_meta_type!(bool))
 		.fields(Fields::named().field_of::<bool>("data"));
@@ -138,7 +138,7 @@ fn struct_with_generics() {
 
 	// With "`Self` typed" fields
 	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type = TypeComposite::new()
+	let expected_type = TypeDefComposite::new()
 		.path(Path::new("MyStruct", "scale_info::tests"))
 		.type_params(tuple_meta_type!(Box<MyStruct<bool>>))
 		.fields(Fields::named().field_of::<Box<MyStruct<bool>>>("data"));
