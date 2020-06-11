@@ -82,13 +82,12 @@ impl TypeBuilder<state::PathAssigned> {
 
 impl<S> TypeBuilder<S> {
 	/// Set the type parameters if it's a generic type
-	pub fn type_params<I>(self, type_params: I) -> Self
+	pub fn type_params<I>(mut self, type_params: I) -> Self
 	where
 		I: IntoIterator<Item = MetaType>,
 	{
-		let mut this = self;
-		this.type_params = type_params.into_iter().collect();
-		this
+		self.type_params = type_params.into_iter().collect();
+		self
 	}
 }
 
@@ -143,39 +142,35 @@ impl<T> FieldsBuilder<T> {
 
 impl FieldsBuilder<NamedFields> {
 	/// Add a named field with the given [`scale_info::MetaType`] instance
-	pub fn field(self, name: &'static str, ty: MetaType) -> Self {
-		let mut this = self;
-		this.fields.push(Field::named(name, ty));
-		this
+	pub fn field(mut self, name: &'static str, ty: MetaType) -> Self {
+		self.fields.push(Field::named(name, ty));
+		self
 	}
 
 	/// Add a named field with the type of the type parameter `T`
-	pub fn field_of<T>(self, name: &'static str) -> Self
+	pub fn field_of<T>(mut self, name: &'static str) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
-		let mut this = self;
-		this.fields.push(Field::named_of::<T>(name));
-		this
+		self.fields.push(Field::named_of::<T>(name));
+		self
 	}
 }
 
 impl FieldsBuilder<UnnamedFields> {
 	/// Add an unnamed field with the given [`scale_info::MetaType`] instance
-	pub fn field(self, ty: MetaType) -> Self {
-		let mut this = self;
-		this.fields.push(Field::unnamed(ty));
-		this
+	pub fn field(mut self, ty: MetaType) -> Self {
+		self.fields.push(Field::unnamed(ty));
+		self
 	}
 
 	/// Add an unnamed field with the type of the type parameter `T`
-	pub fn field_of<T>(self) -> Self
+	pub fn field_of<T>(mut self) -> Self
 	where
 		T: Metadata + ?Sized + 'static,
 	{
-		let mut this = self;
-		this.fields.push(Field::unnamed_of::<T>());
-		this
+		self.fields.push(Field::unnamed_of::<T>());
+		self
 	}
 }
 
@@ -212,10 +207,9 @@ pub struct VariantsBuilder<T> {
 
 impl VariantsBuilder<VariantFields> {
 	/// Add a variant with fields constructed by the supplied [`scale_info::build::FieldsBuilder`]
-	pub fn variant<F>(self, name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
-		let mut this = self;
-		this.variants.push(Variant::with_fields(name, fields));
-		this
+	pub fn variant<F>(mut self, name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
+		self.variants.push(Variant::with_fields(name, fields));
+		self
 	}
 
 	/// Add a variant with no fields i.e. a unit variant
@@ -226,10 +220,9 @@ impl VariantsBuilder<VariantFields> {
 
 impl VariantsBuilder<Fieldless> {
 	/// Add a fieldless variant, explicitly setting the discriminant
-	pub fn variant(self, name: <MetaForm as Form>::String, discriminant: u64) -> Self {
-		let mut this = self;
-		this.variants.push(Variant::with_discriminant(name, discriminant));
-		this
+	pub fn variant(mut self, name: <MetaForm as Form>::String, discriminant: u64) -> Self {
+		self.variants.push(Variant::with_discriminant(name, discriminant));
+		self
 	}
 }
 
