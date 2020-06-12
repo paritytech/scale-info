@@ -59,6 +59,54 @@
 //!     }
 //! }
 //! ```
+//! ## Enum with fields
+//! ```
+//! # use scale_info::{build::{Fields, Variants}, Metadata, MetaType, Path, Type, TypeInfo};
+//! enum Foo<T>{
+//! 	A(T),
+//! 	B { f: u32 },
+//! 	C,
+//! }
+//!
+//! impl<T> TypeInfo for Foo<T>
+//! where
+//!     T: Metadata + 'static,
+//! {
+//!     fn type_info() -> Type {
+//!         Type::builder()
+//!             .path(Path::new("Foo", module_path!()))
+//! 			.type_params(vec![MetaType::new::<T>()])
+//!             .variant(
+//! 				Variants::with_fields()
+//! 					.variant("A", Fields::unnamed().field_of::<T>())
+//!           			.variant("B", Fields::named().field_of::<u32>("f"))
+//! 					.variant("C", Fields::unit())
+//!             )
+//!     }
+//! }
+//! ```
+//! ## Enum without fields
+//! ```
+//! # use scale_info::{build::{Fields, Variants}, Metadata, MetaType, Path, Type, TypeInfo};
+//! enum Foo {
+//! 	A,
+//! 	B,
+//! 	C = 33,
+//! }
+//!
+//! impl TypeInfo for Foo {
+//!     fn type_info() -> Type {
+//!         Type::builder()
+//!             .path(Path::new("Foo", module_path!()))
+//!             .variant(
+//! 				Variants::fieldless()
+//! 					.variant("A", 1)
+//!           			.variant("B", 2)
+//! 					.variant("C", 33)
+//!             )
+//!     }
+//! }
+//! ```
 
 use crate::{
 	form::{Form, MetaForm},

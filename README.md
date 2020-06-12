@@ -9,7 +9,7 @@ A library to describe Rust types, geared towards providing info about the struct
 ](https://github.com/paritytech/parity-scale-codec) encodable types.
 
 The definitions provide third party tools (e.g. a UI client) with information about how they
- are able to decode types language agnostically.
+are able to decode types agnostic of language.
 
 At its core is the `TypeInfo` trait:
 
@@ -129,30 +129,85 @@ impl TypeInfo for Foo {
 
 ### Variant
 
-**todo:** about variant types
+[Variant types](https://en.wikipedia.org/wiki/Tagged_union) aka enums or tagged unions are
+composed of a set of variants. Variants can have unnamed fields, named fields or no fields at all:
 
-https://en.wikipedia.org/wiki/Tagged_union
+```rust
+enum Foo<T>{
+    A(T),
+    B { f: u32 },
+    C,
+}
+
+impl<T> TypeInfo for Foo<T>
+where
+    T: Metadata + 'static,
+{
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::new("Foo", module_path!()))
+            .type_params(vec![MetaType::new::<T>()])
+            .variant(
+                Variants::with_fields()
+                    .variant("A", Fields::unnamed().field_of::<T>())
+                    .variant("B", Fields::named().field_of::<u32>("f"))
+                    .variant("C", Fields::unit())
+            )
+    }
+}
+```
+If all variants contain no fields then the discriminant can be set explicitly, enforced by the
+builder during construction:
+```rust
+enum Foo {
+	A,
+	B,
+	C = 33,
+}
+
+impl TypeInfo for Foo {
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::new("Foo", module_path!()))
+            .variant(
+                Variants::fieldless()
+                    .variant("A", 1)
+                    .variant("B", 2)
+                    .variant("C", 33)
+            )
+    }
+}
+```
 
 ## The Registry
 
 Information about types is provided within the so-called type registry (`Registry`).
 Type definitions are registered there and are associated with unique IDs that the outside
-can use to refer to them providing a lightweight way to decrease overhead of using type identifiers instead.
+can use to refer to them providing a lightweight way to decrease overhead instead of using type
+identifiers.
 
 All concrete `TypeInfo` structures have two forms:
-One meta form (`MetaType`) that acts as a bridge to other forms and a compact form that is later to be serialized.
-The `IntoCompact` trait is implemented by them in order to compact a type definition using an instance of a type registry.
+One meta form (`MetaType`) that acts as a bridge to other forms and a compact form that is later
+to be serialized. The `IntoCompact` trait is implemented by them in order to compact a type
+definition using an instance of a type registry.
 
 After compactification all type definitions are stored in the type registry.
-Note that during serialization the type registry should be serialized during general serialization procedure.
+Note that the type registry should be serialized as part of the metadata structure where the
+registered types are utilized to allow consumers to resolve the types.
 
-As a minor additional compaction step non-documentation strings are also compacted by the same mechanics.
+As a minor additional compaction step non-documentation strings are also compacted by the same
+mechanics.
 
-## Serialization JSON
+## Serialization
 
 Currently the only supported serialization format is JSON, an example of which can be found
+[here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/json.rs).
+
+Future support for binary formats is planned, either SCALE itself or a more compressed format where
+the monomorphization of Rust generic types could potentially result in very large files.
 
 ## Resources
 
+- See usage for describing types for [`ink!`](https://github.com/paritytech/ink/tree/master/abi
+) smart contracts metadata.
 - [Original design draft (*outdated*)](https://hackmd.io/0wWm0ueBSF26m2pBG5NaeQ?view)
-- **todo:** link to ink` usage example
