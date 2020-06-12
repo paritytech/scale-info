@@ -1,4 +1,9 @@
-# scale-info &middot; [<img alt="build" src="https://github.com/paritytech/scale-info/workflows/Rust/badge.svg">](https://github.com/paritytech/scale-info/actions?query=workflow%3ARust+branch%3Amaster)
+# scale-info &middot; [![build][a1]][a2] [![Latest Version][b1]][b2]
+
+[a1]: https://github.com/paritytech/scale-info/workflows/Rust/badge.svg
+[a2]: https://github.com/paritytech/scale-info/actions?query=workflow%3ARust+branch%3Amaster
+[b1]: https://img.shields.io/crates/v/scale-info.svg
+[b2]: https://crates.io/crates/scale-info
 
 A library to describe Rust types, geared towards providing info about the structure of [SCALE
 ](https://github.com/paritytech/parity-scale-codec) encodable types.
