@@ -33,9 +33,10 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct Type<F: Form = MetaForm> {
+	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty")]
 	path: Path<F>,
-	/// The generic type parameters of the type in use.
+	/// The generic type parameters of the type in use. Empty for non generic types
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
 	type_params: Vec<F::TypeId>,
 	/// The actual type definition

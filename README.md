@@ -11,7 +11,6 @@ A library to describe Rust types, geared towards providing info about the struct
 The definitions provide third party tools (e.g. a UI client) with information about how they
  are able to decode types language agnostically.
 
-
 At its core is the `TypeInfo` trait:
 
 ```rust
@@ -20,22 +19,33 @@ pub trait TypeInfo {
 }
 ```
 
-Types implementing this trait build up and return a `Type` enum:
+Types implementing this trait build up and return a `Type` struct:
 
 ```rust
-pub enum Type<F: Form = MetaForm> {
-    /// A composite type (e.g. a struct or a tuple)
-    Composite(TypeComposite<F>),
-    /// A variant type (e.g. an enum)
-    Variant(TypeVariant<F>),
-    /// A sequence type with runtime known length.
-    Sequence(TypeSequence<F>),
-    /// An array type with compile-time known length.
-    Array(TypeArray<F>),
-    /// A tuple type.
-    Tuple(TypeTuple<F>),
-    /// A Rust primitive type.
-    Primitive(TypePrimitive),
+pub struct Type<F: Form = MetaForm> {
+	/// The unique path to the type. Can be empty for built-in types
+	path: Path<F>,
+	/// The generic type parameters of the type in use. Empty for non generic types
+	type_params: Vec<F::TypeId>,
+	/// The actual type definition
+	type_def: TypeDef<F>,
+}
+```
+Types are defined as one of the following variants:
+```rust
+pub enum TypeDef<F: Form = MetaForm> {
+	/// A composite type (e.g. a struct or a tuple)
+	Composite(TypeDefComposite<F>),
+	/// A variant type (e.g. an enum)
+	Variant(TypeDefVariant<F>),
+	/// A sequence type with runtime known length.
+	Sequence(TypeDefSequence<F>),
+	/// An array type with compile-time known length.
+	Array(TypeDefArray<F>),
+	/// A tuple type.
+	Tuple(TypeDefTuple<F>),
+	/// A Rust primitive type.
+	Primitive(TypeDefPrimitive),
 }
 ```
 
@@ -68,7 +78,9 @@ fields have a name (e.g. structs) or all fields are unnamed (e.g. tuples).
 
 #### Path
 
-** todo: about paths **
+The path of a type is a unique sequence of identifiers. Rust types typically construct a path from
+the namespace and the identifier e.g. `foo::bar::Baz` is converted to the path `["foo", "bar
+", "Baz"]`.
 
 ### Composite
 
@@ -77,6 +89,8 @@ fields have a name (e.g. structs) or all fields are unnamed (e.g. tuples).
 **Structs** are represented by a set of *named* fields, enforced during construction:
 
 ```rust
+use scale_info::{build::Fields, Metadata, MetaType, Path, Type, TypeInfo};
+
 struct Foo<T> {
     bar: T,
     data: u64,
@@ -87,13 +101,13 @@ where
     T: Metadata + 'static,
 {
     fn type_info() -> Type {
-        TypeComposite::new("Foo", Namespace::from_module_path(module_path!()).unwrap())
-            .type_params(tuple_meta_type!(T))
-            .fields(Fields::named()
+        Type::builder()
+            .path(Path::new("Foo", module_path!()))
+            .type_params(vec![MetaType::new::<T>()])
+            .composite(Fields::named()
                 .field_of::<T>("bar")
                 .field_of::<u64>("data")
             )
-            .into()
     }
 }
 ```
@@ -112,8 +126,6 @@ https://en.wikipedia.org/wiki/Tagged_union
 
 ## The Registry
 
-**todo:** update this section
-
 Information about types is provided within the so-called type registry (`Registry`).
 Type definitions are registered there and are associated with unique IDs that the outside
 can use to refer to them providing a lightweight way to decrease overhead of using type identifiers instead.
@@ -127,9 +139,9 @@ Note that during serialization the type registry should be serialized during gen
 
 As a minor additional compaction step non-documentation strings are also compacted by the same mechanics.
 
-## Serialized JSON
+## Serialization JSON
 
-**todo: example of serialized JSON**
+Currently the only supported serialization format is JSON, an example of which can be found
 
 ## Resources
 

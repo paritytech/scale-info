@@ -17,6 +17,33 @@
 //!
 //! In most cases we recommend using the `scale-info-derive` crate to auto generate the builder
 //! constructions.
+//!
+//! # Examples
+//!
+//! ## Composite struct
+//!
+//! ```
+//! # use scale_info::{build::Fields, Metadata, MetaType, Path, Type, TypeInfo};
+//! struct Foo<T> {
+//!     bar: T,
+//!     data: u64,
+//! }
+//!
+//! impl<T> TypeInfo for Foo<T>
+//! where
+//!     T: Metadata + 'static,
+//! {
+//!     fn type_info() -> Type {
+//!         Type::builder()
+//!             .path(Path::new("Foo", module_path!()))
+//!             .type_params(vec![MetaType::new::<T>()])
+//!             .composite(Fields::named()
+//!                 .field_of::<T>("bar")
+//!                 .field_of::<u64>("data")
+//!             )
+//!     }
+//! }
+//! ```
 
 use crate::{
 	form::{Form, MetaForm},
