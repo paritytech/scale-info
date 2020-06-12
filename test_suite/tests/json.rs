@@ -28,13 +28,91 @@ use serde_json::json;
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where
-	T: Metadata,
+	T: Metadata + ?Sized,
 {
 	let mut registry = Registry::new();
 
 	let ty = T::type_info().into_compact(&mut registry);
 
 	assert_eq!(serde_json::to_value(ty).unwrap(), expected_json,);
+}
+
+#[test]
+fn test_primitives() {
+	assert_json_for_type::<bool>(json!({ "primitive": "bool" }));
+	assert_json_for_type::<char>(json!({ "primitive": "char" }));
+	assert_json_for_type::<u8>(json!({ "primitive": "u8" }));
+	assert_json_for_type::<u16>(json!({ "primitive": "u16" }));
+	assert_json_for_type::<u32>(json!({ "primitive": "u32" }));
+	assert_json_for_type::<u64>(json!({ "primitive": "u64" }));
+	assert_json_for_type::<u128>(json!({ "primitive": "u128" }));
+	assert_json_for_type::<i16>(json!({ "primitive": "i16" }));
+	assert_json_for_type::<i32>(json!({ "primitive": "i32" }));
+	assert_json_for_type::<i64>(json!({ "primitive": "i64" }));
+	assert_json_for_type::<i128>(json!({ "primitive": "i128" }));
+}
+
+#[test]
+fn test_builtins() {
+	// arrays
+	assert_json_for_type::<[u8; 2]>(json!({ "array": { "len": 2, "type": 1 } }));
+	assert_json_for_type::<[bool; 4]>(json!({ "array": { "len": 4, "type": 1 } }));
+	assert_json_for_type::<[char; 8]>(json!({ "array": { "len": 8, "type": 1 } }));
+	// tuples
+	assert_json_for_type::<(u8, bool)>(json!({ "tuple": [ 1, 2 ] }));
+	assert_json_for_type::<(u8, bool, char, u128)>(json!({ "tuple": [ 1, 2, 3, 4 ] }));
+	assert_json_for_type::<(u8, bool, char, u128, i32, u32)>(json!({
+		"tuple": [ 1, 2, 3, 4, 5, 6 ]
+	}));
+	// sequences
+	assert_json_for_type::<[bool]>(json!({ "sequence": { "type": 1 } }));
+	assert_json_for_type::<&[bool]>(json!({ "sequence": { "type": 1 } }));
+	assert_json_for_type::<Vec<bool>>(json!({ "sequence": { "type": 1 } }));
+	// complex types
+	assert_json_for_type::<Option<&str>>(json!({
+		"path": [1],
+		"params": [1],
+		"variant": {
+			"variants": [
+				{
+					"name": 2,
+				},
+				{
+					"name": 3,
+					"fields": [ { "type": 1 } ]
+				},
+			]
+		}
+	}));
+	assert_json_for_type::<Result<u32, u64>>(json!({
+		"path": [1],
+		"params": [1, 2],
+		"variant": {
+			"variants": [
+				{
+					"name": 2,
+					"fields": [ { "type": 1 } ]
+				},
+				{
+					"name": 3,
+					"fields": [ { "type": 2 } ]
+				}
+			]
+		}
+	}));
+	// references
+	assert_json_for_type::<&bool>(json!({ "primitive": "bool" }));
+	assert_json_for_type::<&mut str>(json!({ "primitive": "str" }));
+	assert_json_for_type::<alloc::boxed::Box<u32>>(json!({ "primitive": "u32" }));
+	// strings
+	assert_json_for_type::<alloc::string::String>(json!({ "primitive": "str" }));
+	assert_json_for_type::<str>(json!({ "primitive": "str" }));
+	// PhantomData
+	assert_json_for_type::<core::marker::PhantomData<bool>>(json!({
+		"path": [1],
+		"params": [1],
+		"composite": {},
+	}))
 }
 
 #[test]
