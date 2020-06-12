@@ -1,4 +1,4 @@
-# scale-info &middot; ![build](https://github.com/paritytech/scale-info/workflows/Rust/badge.svg)
+# scale-info &middot; [<img alt="build" src="https://github.com/paritytech/scale-info/workflows/Rust/badge.svg">](https://github.com/paritytech/scale-info/actions?query=workflow%3ARust+branch%3Amaster)
 
 A library to describe Rust types, geared towards providing info about the structure of [SCALE
 ](https://github.com/paritytech/parity-scale-codec) encodable types.
@@ -46,7 +46,7 @@ The following "built-in" types have predefined `TypeInfo` definitions:
 
 - **Array:** Fixed size `[T: $n]` for any `T` which implements `TypeInfo`, where `$n` is one of the
  predefined sizes.
- 
+
 - **Tuple:** Tuples consisting of up to 10 fields with types implementing `TypeInfo`.
 
 ## User-defined Types
@@ -67,7 +67,7 @@ fields have a name (e.g. structs) or all fields are unnamed (e.g. tuples).
 
 ### Composite
 
-[Composite data types](https://en.wikipedia.org/wiki/Composite_data_type) are composed of a set of `Fields`. 
+[Composite data types](https://en.wikipedia.org/wiki/Composite_data_type) are composed of a set of `Fields`.
 
 **Structs** are represented by a set of *named* fields, enforced during construction:
 
@@ -107,7 +107,7 @@ https://en.wikipedia.org/wiki/Tagged_union
 
 ## The Registry
 
-**todo:** update this section 
+**todo:** update this section
 
 Information about types is provided within the so-called type registry (`Registry`).
 Type definitions are registered there and are associated with unique IDs that the outside
