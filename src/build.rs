@@ -20,8 +20,7 @@
 //!
 //! # Examples
 //!
-//! ## Composite struct
-//!
+//! ## Generic struct
 //! ```
 //! # use scale_info::{build::Fields, Metadata, MetaType, Path, Type, TypeInfo};
 //! struct Foo<T> {
@@ -40,6 +39,22 @@
 //!             .composite(Fields::named()
 //!                 .field_of::<T>("bar")
 //!                 .field_of::<u64>("data")
+//!             )
+//!     }
+//! }
+//! ```
+//! ## Tuple struct
+//! ```
+//! # use scale_info::{build::Fields, Metadata, MetaType, Path, Type, TypeInfo};
+//! struct Foo(u32, bool);
+//!
+//! impl TypeInfo for Foo {
+//!     fn type_info() -> Type {
+//!         Type::builder()
+//!             .path(Path::new("Foo", module_path!()))
+//!             .composite(Fields::unnamed()
+//!                 .field_of::<u32>()
+//!                 .field_of::<bool>()
 //!             )
 //!     }
 //! }

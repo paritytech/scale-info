@@ -89,8 +89,6 @@ the namespace and the identifier e.g. `foo::bar::Baz` is converted to the path `
 **Structs** are represented by a set of *named* fields, enforced during construction:
 
 ```rust
-use scale_info::{build::Fields, Metadata, MetaType, Path, Type, TypeInfo};
-
 struct Foo<T> {
     bar: T,
     data: u64,
@@ -115,7 +113,18 @@ where
 **Tuples** are represented by a set of *unnamed* fields, enforced during construction:
 
 ```rust
-// todo
+struct Foo(u32, bool);
+
+impl TypeInfo for Foo {
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::new("Foo", module_path!()))
+            .composite(Fields::unnamed()
+                .field_of::<u32>()
+                .field_of::<bool>()
+            )
+    }
+}
 ```
 
 ### Variant
