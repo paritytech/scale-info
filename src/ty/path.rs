@@ -197,4 +197,10 @@ mod tests {
 		assert_eq!(path.namespace(), &["hello", "world"]);
 		assert_eq!(path.ident(), Some(&"Planet"));
 	}
+
+	#[test]
+	#[should_panic]
+	fn path_new_panics_with_invalid_identifiers() {
+		Path::new("Planet", "hello$!@$::world");
+	}
 }
