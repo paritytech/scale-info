@@ -111,7 +111,7 @@ impl<F> Path<F>
 where
 	F: Form,
 {
-	/// Returns true if the Path is empty
+	/// Returns `true` if the path is empty
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()
 	}
