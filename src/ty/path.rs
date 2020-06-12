@@ -1,6 +1,4 @@
-// Copyright 2019-2020
-//     by  Centrality Investments Ltd.
-//     and Parity Technologies (UK) Ltd.
+// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,30 +60,30 @@ impl IntoCompact for Path {
 }
 
 impl Path {
-	/// Start building a Path with PathBuilder
-	pub fn new(ident: <MetaForm as Form>::String, module_path: <MetaForm as Form>::String) -> Result<Path, PathError> {
+	/// Create a new Path
+	///
+	/// # Panics
+	///
+	/// - If the type identifier or module path contain invalid Rust identifiers
+	pub fn new(ident: <MetaForm as Form>::String, module_path: <MetaForm as Form>::String) -> Path {
 		let mut segments = module_path.split("::").collect::<Vec<_>>();
 		segments.push(ident);
-		Self::from_segments(segments)
+		Self::from_segments(segments).expect("All path segments should be valid Rust identifiers")
 	}
 
 	/// Create an empty path for types which shall not be named
-	///
-	/// # Note
-	///
-	/// Returns an always `Ok` Result to match the other constructor signatures
 	#[allow(unused)]
-	pub(crate) fn voldemort() -> Result<Path, PathError> {
-		Ok(Path { segments: Vec::new() })
+	pub(crate) fn voldemort() -> Path {
+		Path { segments: Vec::new() }
 	}
 
 	/// Crate a Path for types in the Prelude namespace
 	///
-	/// # Errors
+	/// # Panics
 	///
-	/// - If the supplied ident is an invalid Rust identifier
-	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Result<Path, PathError> {
-		Self::from_segments(vec![ident])
+	/// - If the supplied ident is not a valid Rust identifier
+	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Path {
+		Self::from_segments(vec![ident]).unwrap_or_else(|_| panic!("{} is not a valid Rust identifier", ident))
 	}
 
 	/// Create a Path from the given segments
@@ -113,6 +111,7 @@ impl<F> Path<F>
 where
 	F: Form,
 {
+	/// Returns `true` if the path is empty
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()
 	}
@@ -138,14 +137,6 @@ pub enum PathError {
 		/// The index of the erroneous segment.
 		segment: usize,
 	},
-}
-
-/// State types for type builders which require a Path
-pub mod state {
-	/// State where the builder has not assigned a Path to the type
-	pub enum PathNotAssigned {}
-	/// State where the builder has assigned a Path to the type
-	pub enum PathAssigned {}
 }
 
 #[cfg(test)]
@@ -190,20 +181,26 @@ mod tests {
 	fn path_from_module_path_and_ident() {
 		assert_eq!(
 			Path::new("Planet", "hello::world"),
-			Ok(Path {
+			Path {
 				segments: vec!["hello", "world", "Planet"]
-			})
+			}
 		);
 		assert_eq!(
-			Path::new("Earth", "::world"),
-			Err(PathError::InvalidIdentifier { segment: 0 })
+			Path::from_segments(vec!["Earth", "::world"]),
+			Err(PathError::InvalidIdentifier { segment: 1 })
 		);
 	}
 
 	#[test]
 	fn path_get_namespace_and_ident() {
-		let path = Path::new("Planet", "hello::world").unwrap();
+		let path = Path::new("Planet", "hello::world");
 		assert_eq!(path.namespace(), &["hello", "world"]);
 		assert_eq!(path.ident(), Some(&"Planet"));
+	}
+
+	#[test]
+	#[should_panic]
+	fn path_new_panics_with_invalid_identifiers() {
+		Path::new("Planet", "hello$!@$::world");
 	}
 }

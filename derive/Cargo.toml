@@ -5,7 +5,11 @@ authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <supp
 edition = "2018"
 
 license = "Apache-2.0"
-readme = "../README.md"
+repository = "https://github.com/paritytech/scale-info"
+documentation = "https://docs.rs/scale-info"
+homepage = "https://www.parity.io/"
+description = "Derive type info for SCALE encodable types"
+categories = ["no-std", "encoding"]
 
 [lib]
 proc-macro = true

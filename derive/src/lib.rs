@@ -1,6 +1,4 @@
-// Copyright 2019-2020
-//     by  Centrality Investments Ltd.
-//     and Parity Technologies (UK) Ltd.
+// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -64,16 +62,16 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	});
 
 	let ast: DeriveInput = syn::parse2(input.clone())?;
-	let (type_kind, build_type) = match &ast.data {
-		Data::Struct(ref s) => (quote!(TypeComposite), generate_composite_type(s)),
-		Data::Enum(ref e) => (quote!(TypeVariant), generate_variant_type(e)),
+	let build_type = match &ast.data {
+		Data::Struct(ref s) => generate_composite_type(s),
+		Data::Enum(ref e) => generate_variant_type(e),
 		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
 	};
 
 	let type_info_impl = quote! {
 		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
 			fn type_info() -> _scale_info::Type {
-				_scale_info::#type_kind::new()
+				_scale_info::Type::builder()
 					.path(_scale_info::Path::new(stringify!(#ident), module_path!()))
 					.type_params(__core::vec![ #( #generic_type_ids ),* ])
 					.#build_type
@@ -106,28 +104,21 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
 }
 
 fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
-	match data_struct.fields {
+	let fields = match data_struct.fields {
 		Fields::Named(ref fs) => {
 			let fields = generate_fields(&fs.named);
-			quote! {
-				fields(
-					_scale_info::Fields::named()
-						#( #fields )*
-				)
-			}
+			quote! { named()#( #fields )* }
 		}
 		Fields::Unnamed(ref fs) => {
 			let fields = generate_fields(&fs.unnamed);
-			quote! {
-				fields(
-					_scale_info::Fields::unnamed()
-						#( #fields )*
-				)
-			}
+			quote! { unnamed()#( #fields )* }
 		}
 		Fields::Unit => quote! {
 			unit()
 		},
+	};
+	quote! {
+		composite(_scale_info::build::Fields::#fields)
 	}
 }
 
@@ -155,8 +146,8 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 		}
 	});
 	quote! {
-		variants(
-			_scale_info::Variants::with_discriminants()
+		variant(
+			_scale_info::build::Variants::fieldless()
 				#( #variants )*
 		)
 	}
@@ -188,7 +179,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				quote! {
 					.variant(
 						#v_name,
-						_scale_info::Fields::named()
+						_scale_info::build::Fields::named()
 							#( #fields)*
 					)
 				}
@@ -198,7 +189,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				quote! {
 					.variant(
 						#v_name,
-						_scale_info::Fields::unnamed()
+						_scale_info::build::Fields::unnamed()
 							#( #fields)*
 					)
 				}
@@ -209,8 +200,8 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 		}
 	});
 	quote! {
-		variants(
-			_scale_info::Variants::with_fields()
+		variant(
+			_scale_info::build::Variants::with_fields()
 				#( #variants)*
 		)
 	}

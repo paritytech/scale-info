@@ -1,13 +1,17 @@
 [package]
 name = "scale-info"
 version = "0.1.0"
-authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
+authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2018"
 
 license = "Apache-2.0"
 readme = "README.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/paritytech/scale-info"
+documentation = "https://docs.rs/scale-info"
+homepage = "https://www.parity.io/"
+description = "Info about SCALE encodable Rust types"
+categories = ["no-std", "encoding"]
+include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 
 [dependencies]
 scale-info-derive = { version = "0.1.0", path = "derive", default-features = false, optional = true }

@@ -1,6 +1,4 @@
-// Copyright 2019-2020
-//     by  Centrality Investments Ltd.
-//     and Parity Technologies (UK) Ltd.
+// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,19 +22,97 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
 
-use assert_json_diff::assert_json_eq;
+use pretty_assertions::{assert_eq, assert_ne};
 use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry};
 use serde_json::json;
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where
-	T: Metadata,
+	T: Metadata + ?Sized,
 {
 	let mut registry = Registry::new();
 
 	let ty = T::type_info().into_compact(&mut registry);
 
-	assert_json_eq!(serde_json::to_value(ty).unwrap(), expected_json,);
+	assert_eq!(serde_json::to_value(ty).unwrap(), expected_json,);
+}
+
+#[test]
+fn test_primitives() {
+	assert_json_for_type::<bool>(json!({ "primitive": "bool" }));
+	assert_json_for_type::<char>(json!({ "primitive": "char" }));
+	assert_json_for_type::<u8>(json!({ "primitive": "u8" }));
+	assert_json_for_type::<u16>(json!({ "primitive": "u16" }));
+	assert_json_for_type::<u32>(json!({ "primitive": "u32" }));
+	assert_json_for_type::<u64>(json!({ "primitive": "u64" }));
+	assert_json_for_type::<u128>(json!({ "primitive": "u128" }));
+	assert_json_for_type::<i16>(json!({ "primitive": "i16" }));
+	assert_json_for_type::<i32>(json!({ "primitive": "i32" }));
+	assert_json_for_type::<i64>(json!({ "primitive": "i64" }));
+	assert_json_for_type::<i128>(json!({ "primitive": "i128" }));
+}
+
+#[test]
+fn test_builtins() {
+	// arrays
+	assert_json_for_type::<[u8; 2]>(json!({ "array": { "len": 2, "type": 1 } }));
+	assert_json_for_type::<[bool; 4]>(json!({ "array": { "len": 4, "type": 1 } }));
+	assert_json_for_type::<[char; 8]>(json!({ "array": { "len": 8, "type": 1 } }));
+	// tuples
+	assert_json_for_type::<(u8, bool)>(json!({ "tuple": [ 1, 2 ] }));
+	assert_json_for_type::<(u8, bool, char, u128)>(json!({ "tuple": [ 1, 2, 3, 4 ] }));
+	assert_json_for_type::<(u8, bool, char, u128, i32, u32)>(json!({
+		"tuple": [ 1, 2, 3, 4, 5, 6 ]
+	}));
+	// sequences
+	assert_json_for_type::<[bool]>(json!({ "sequence": { "type": 1 } }));
+	assert_json_for_type::<&[bool]>(json!({ "sequence": { "type": 1 } }));
+	assert_json_for_type::<Vec<bool>>(json!({ "sequence": { "type": 1 } }));
+	// complex types
+	assert_json_for_type::<Option<&str>>(json!({
+		"path": [1],
+		"params": [1],
+		"variant": {
+			"variants": [
+				{
+					"name": 2,
+				},
+				{
+					"name": 3,
+					"fields": [ { "type": 1 } ]
+				},
+			]
+		}
+	}));
+	assert_json_for_type::<Result<u32, u64>>(json!({
+		"path": [1],
+		"params": [1, 2],
+		"variant": {
+			"variants": [
+				{
+					"name": 2,
+					"fields": [ { "type": 1 } ]
+				},
+				{
+					"name": 3,
+					"fields": [ { "type": 2 } ]
+				}
+			]
+		}
+	}));
+	// references
+	assert_json_for_type::<&bool>(json!({ "primitive": "bool" }));
+	assert_json_for_type::<&mut str>(json!({ "primitive": "str" }));
+	assert_json_for_type::<alloc::boxed::Box<u32>>(json!({ "primitive": "u32" }));
+	// strings
+	assert_json_for_type::<alloc::string::String>(json!({ "primitive": "str" }));
+	assert_json_for_type::<str>(json!({ "primitive": "str" }));
+	// PhantomData
+	assert_json_for_type::<core::marker::PhantomData<bool>>(json!({
+		"path": [1],
+		"params": [1],
+		"composite": {},
+	}))
 }
 
 #[test]
@@ -45,9 +121,8 @@ fn test_unit_struct() {
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
-		"composite": {
-			"path": [1, 2]
-		},
+		"path": [1, 2],
+		"composite": {},
 	}));
 }
 
@@ -57,8 +132,8 @@ fn test_tuplestruct() {
 	struct TupleStruct(i32, [u8; 32], bool);
 
 	assert_json_for_type::<TupleStruct>(json!({
+		"path": [1, 2],
 		"composite": {
-			"path": [1, 2],
 			"fields": [
 				{ "type": 1 },
 				{ "type": 2 },
@@ -78,8 +153,8 @@ fn test_struct() {
 	}
 
 	assert_json_for_type::<Struct>(json!({
+		"path": [1, 2],
 		"composite": {
-			"path": [1, 2],
 			"fields": [
 				{ "name": 3, "type": 1, },
 				{ "name": 4, "type": 2, },
@@ -99,8 +174,8 @@ fn test_clike_enum() {
 	}
 
 	assert_json_for_type::<ClikeEnum>(json!({
+		"path": [1, 2],
 		"variant": {
-			"path": [1, 2],
 			"variants": [
 				{ "name": 3, "discriminant": 0, },
 				{ "name": 4, "discriminant": 42, },
@@ -120,8 +195,8 @@ fn test_enum() {
 	}
 
 	assert_json_for_type::<Enum>(json!({
+		"path": [1, 2],
 		"variant": {
-			"path": [1, 2],
 			"variants": [
 				{ "name": 3 },
 				{
@@ -201,19 +276,18 @@ fn test_registry() {
 		],
 		"types": [
 			{ // type 1
-				"composite": {
-					"path": [
-						1, // json
-						2, // UnitStruct
-					]
-				},
+				"path": [
+					1, // json
+					2, // UnitStruct
+				],
+				"composite": {},
 			},
 			{ // type 2
+				"path": [
+					1, // json
+					3, // TupleStruct
+				],
 				"composite": {
-					"path": [
-						1, // json
-						3, // TupleStruct
-					],
 					"fields": [
 						{ "type": 3 },
 						{ "type": 4 },
@@ -227,11 +301,11 @@ fn test_registry() {
 				"primitive": "u32",
 			},
 			{ // type 5
+				"path": [
+					1, // json
+					4, // Struct
+				],
 				"composite": {
-					"path": [
-						1, // json
-						4, // Struct
-					],
 					"fields": [
 						{
 							"name": 5, // a
@@ -255,11 +329,11 @@ fn test_registry() {
 				},
 			},
 			{ // type 7
+				"path": [
+					1, // json
+					8, // RecursiveStruct
+				],
 				"composite": {
-					"path": [
-						1, // json
-						8, // RecursiveStruct
-					],
 					"fields": [
 						{
 							"name": 9, // rec
@@ -274,11 +348,11 @@ fn test_registry() {
 				},
 			},
 			{ // type 9
+				"path": [
+					1, 	// json
+					10, // CLikeEnum
+				],
 				"variant": {
-					"path": [
-						1, 	// json
-						10, // CLikeEnum
-					],
 					"variants": [
 						{
 							"name": 11, // A
@@ -296,11 +370,11 @@ fn test_registry() {
 				}
 			},
 			{ // type 10
+				"path": [
+					1, 	// json
+					14, // RustEnum
+				],
 				"variant": {
-					"path": [
-						1, 	// json
-						14, // RustEnum
-					],
 					"variants": [
 						{
 							"name": 11, // A
@@ -335,5 +409,5 @@ fn test_registry() {
 		]
 	});
 
-	assert_json_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
+	assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }

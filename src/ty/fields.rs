@@ -1,6 +1,4 @@
-// Copyright 2019-2020
-//     by  Centrality Investments Ltd.
-//     and Parity Technologies (UK) Ltd.
+// Copyright 2019-2020 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -90,83 +88,5 @@ impl Field {
 		T: Metadata + ?Sized + 'static,
 	{
 		Self::new(None, MetaType::new::<T>())
-	}
-}
-
-/// A fields builder has no fields (e.g. a unit struct)
-pub enum NoFields {}
-/// A fields builder only allows named fields (e.g. a struct)
-pub enum NamedFields {}
-/// A fields builder only allows unnamed fields (e.g. a tuple)
-pub enum UnnamedFields {}
-
-// Empty enum for FieldsBuilder constructors
-pub enum Fields {}
-
-impl Fields {
-	pub fn unit() -> FieldsBuilder<NoFields> {
-		FieldsBuilder::<NoFields>::default()
-	}
-
-	pub fn named() -> FieldsBuilder<NamedFields> {
-		FieldsBuilder::default()
-	}
-
-	pub fn unnamed() -> FieldsBuilder<UnnamedFields> {
-		FieldsBuilder::default()
-	}
-}
-
-pub struct FieldsBuilder<T> {
-	fields: Vec<Field<MetaForm>>,
-	marker: PhantomData<fn() -> T>,
-}
-
-impl<T> Default for FieldsBuilder<T> {
-	fn default() -> Self {
-		Self {
-			fields: Vec::new(),
-			marker: Default::default(),
-		}
-	}
-}
-
-impl<T> FieldsBuilder<T> {
-	pub fn done(self) -> Vec<Field<MetaForm>> {
-		self.fields
-	}
-}
-
-impl FieldsBuilder<NamedFields> {
-	pub fn field(self, name: &'static str, ty: MetaType) -> Self {
-		let mut this = self;
-		this.fields.push(Field::named(name, ty));
-		this
-	}
-
-	pub fn field_of<T>(self, name: &'static str) -> Self
-	where
-		T: Metadata + ?Sized + 'static,
-	{
-		let mut this = self;
-		this.fields.push(Field::named_of::<T>(name));
-		this
-	}
-}
-
-impl FieldsBuilder<UnnamedFields> {
-	pub fn field(self, ty: MetaType) -> Self {
-		let mut this = self;
-		this.fields.push(Field::unnamed(ty));
-		this
-	}
-
-	pub fn field_of<T>(self) -> Self
-	where
-		T: Metadata + ?Sized + 'static,
-	{
-		let mut this = self;
-		this.fields.push(Field::unnamed_of::<T>());
-		this
 	}
 }
