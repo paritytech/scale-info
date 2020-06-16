@@ -81,7 +81,7 @@ impl From<TypeDefTuple> for Type {
 }
 
 impl Type {
-	/// Create a [`crate::build::TypeBuilder`] the public API for constructing a [`Type`]
+	/// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
 	pub fn builder() -> TypeBuilder {
 		TypeBuilder::default()
 	}

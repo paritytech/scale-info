@@ -122,7 +122,7 @@ pub mod state {
 	pub enum PathAssigned {}
 }
 
-/// Builds a [`crate::Type`]
+/// Builds a [`Type`](`crate::Type`)
 pub struct TypeBuilder<S = state::PathNotAssigned> {
 	path: Option<Path>,
 	type_params: Vec<MetaType>,
@@ -231,7 +231,7 @@ impl<T> FieldsBuilder<T> {
 }
 
 impl FieldsBuilder<NamedFields> {
-	/// Add a named field with the given [`crate::MetaType`] instance
+	/// Add a named field with the given [`MetaType`](`crate::MetaType`) instance
 	pub fn field(mut self, name: &'static str, ty: MetaType) -> Self {
 		self.fields.push(Field::named(name, ty));
 		self
@@ -248,7 +248,7 @@ impl FieldsBuilder<NamedFields> {
 }
 
 impl FieldsBuilder<UnnamedFields> {
-	/// Add an unnamed field with the given [`crate::MetaType`] instance
+	/// Add an unnamed field with the given [`MetaType`](`crate::MetaType`) instance
 	pub fn field(mut self, ty: MetaType) -> Self {
 		self.fields.push(Field::unnamed(ty));
 		self
@@ -296,7 +296,7 @@ pub struct VariantsBuilder<T> {
 }
 
 impl VariantsBuilder<VariantFields> {
-	/// Add a variant with fields constructed by the supplied [`crate::build::FieldsBuilder`]
+	/// Add a variant with fields constructed by the supplied [`FieldsBuilder`](`crate::build::FieldsBuilder`)
 	pub fn variant<F>(mut self, name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
 		self.variants.push(Variant::with_fields(name, fields));
 		self

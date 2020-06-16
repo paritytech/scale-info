@@ -23,13 +23,13 @@
 //!
 //! # Registry
 //!
-//! At the heart of its functionality is the [`crate::Registry`] that acts as cache for
+//! At the heart of its functionality is the [`Registry`](`crate::Registry`) that acts as cache for
 //! known strings and types in order to efficiently deduplicate them and thus
 //! compactify the overall serialization.
 //!
 //! # Type Information
 //!
-//! Information about types is provided via the [`crate::TypeInfo`] trait.
+//! Information about types is provided via the [`TypeInfo`](`crate::TypeInfo`) trait.
 //!
 //! This trait should be implemented for all types that are serializable.
 //! For this the library provides implementations for all commonly used Rust
@@ -38,25 +38,25 @@
 //!
 //! # Compaction Forms
 //!
-//! There is an uncompact form, called [`crate::form::MetaForm`] that acts as a bridge from
+//! There is an uncompact form, called [`MetaForm`](`crate::form::MetaForm`) that acts as a bridge from
 //! compile-time type information at runtime in order to easily retrieve all
 //! information needed to uniquely identify types.
-//! The compact form is retrieved by the [`crate::IntoCompact`] trait and internally used
-//! by the [`crate::Registry`] in order to convert the uncompact strings and types into
+//! The compact form is retrieved by the [`IntoCompact`](`crate::IntoCompact`) trait and internally used
+//! by the [`Registry`](`crate::Registry`) in order to convert the uncompact strings and types into
 //! their compact form.
 //!
 //! # Symbols and Namespaces
 //!
-//! Since symbol names are often shared across type boundaries the [`crate::Registry`]
+//! Since symbol names are often shared across type boundaries the [`Registry`](`crate::Registry`)
 //! also deduplicates them. To differentiate two types sharing the same name
 //! namespaces are used. Commonly the namespace is equal to the one where the
-//! type has been defined in. For Rust prelude types such as [`std::option::Option`] and
-//! [`std::result::Result`]  the root namespace (empty namespace) is used.
+//! type has been defined in. For Rust prelude types such as [`Option`](`std::option::Option`) and
+//! [`Result`](`std::result::Result`)  the root namespace (empty namespace) is used.
 //!
-//! To use this library simply use the [`crate::form::MetaForm`] initially with your own data
-//! structures and at best make them generic over the [`crate::form::Form`] trait just as has
-//! been done in this crate with [`crate::TypeInfo`] in order to go for a simple
-//! implementation of [`crate::IntoCompact`]. Use a single instance of the [`crate::Registry`] for
+//! To use this library simply use the [`MetaForm`](`crate::form::MetaForm`) initially with your own data
+//! structures and at best make them generic over the [`Form`](`crate::form::Form`) trait just as has
+//! been done in this crate with [`TypeInfo`](`crate::TypeInfo`) in order to go for a simple
+//! implementation of [`IntoCompact`](`crate::IntoCompact`). Use a single instance of the [`Registry`](`crate::Registry`) for
 //! compaction and provide this registry instance upon serialization. Done.
 //!
 //! A usage example can be found in ink! here:
@@ -66,9 +66,9 @@
 extern crate alloc;
 
 /// Takes a number of types and returns a vector that contains their respective
-/// [`crate::MetaType`] instances.
+/// [`MetaType`](`crate::MetaType`) instances.
 ///
-/// This is useful for places that require inputs of iterators over [`crate::MetaType`]
+/// This is useful for places that require inputs of iterators over [`MetaType`](`crate::MetaType`)
 /// instances and provide a way out of code bloat in these scenarious.
 ///
 /// # Example
@@ -132,11 +132,11 @@ pub use self::{
 #[cfg(feature = "derive")]
 pub use scale_info_derive::Metadata;
 
-/// A super trait that shall be implemented by all types implementing [`crate::TypeInfo`]
+/// A super trait that shall be implemented by all types implementing [`TypeInfo`](`crate::TypeInfo`)
 ///
 /// This trait is automatically implemented for all `'static` types that also
-/// implement [`crate::TypeInfo`]. Users of this library should use this trait directly
-/// instead of using the [`crate::TypeInfo`] trait.
+/// implement [`TypeInfo`](`crate::TypeInfo`). Users of this library should use this trait directly
+/// instead of using the [`TypeInfo`](`crate::TypeInfo`) trait.
 pub trait Metadata: TypeInfo {
 	/// Returns the runtime bridge to the types compile-time type information.
 	fn meta_type() -> MetaType;
