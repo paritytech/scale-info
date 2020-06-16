@@ -40,7 +40,7 @@ pub struct Type<F: Form = MetaForm> {
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
 	type_params: Vec<F::TypeId>,
 	/// The actual type definition
-	#[serde(flatten)]
+	#[serde(rename = "type")]
 	type_def: TypeDef<F>,
 }
 
