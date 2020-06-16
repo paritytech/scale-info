@@ -39,42 +39,42 @@ where
 
 #[test]
 fn test_primitives() {
-	assert_json_for_type::<bool>(json!({ "type": { "primitive": "bool" } }));
-	assert_json_for_type::<char>(json!({ "type": { "primitive": "char" } }));
-	assert_json_for_type::<u8>(json!({ "type": { "primitive": "u8" } }));
-	assert_json_for_type::<u16>(json!({ "type": { "primitive": "u16" } }));
-	assert_json_for_type::<u32>(json!({ "type": { "primitive": "u32" } }));
-	assert_json_for_type::<u64>(json!({ "type": { "primitive": "u64" } }));
-	assert_json_for_type::<u128>(json!({ "type": { "primitive": "u128" } }));
-	assert_json_for_type::<i16>(json!({ "type": { "primitive": "i16" } }));
-	assert_json_for_type::<i32>(json!({ "type": { "primitive": "i32" } }));
-	assert_json_for_type::<i64>(json!({ "type": { "primitive": "i64" } }));
-	assert_json_for_type::<i128>(json!({ "type": { "primitive": "i128" } }));
+	assert_json_for_type::<bool>(json!({ "def": { "primitive": "bool" } }));
+	assert_json_for_type::<char>(json!({ "def": { "primitive": "char" } }));
+	assert_json_for_type::<u8>(json!({ "def": { "primitive": "u8" } }));
+	assert_json_for_type::<u16>(json!({ "def": { "primitive": "u16" } }));
+	assert_json_for_type::<u32>(json!({ "def": { "primitive": "u32" } }));
+	assert_json_for_type::<u64>(json!({ "def": { "primitive": "u64" } }));
+	assert_json_for_type::<u128>(json!({ "def": { "primitive": "u128" } }));
+	assert_json_for_type::<i16>(json!({ "def": { "primitive": "i16" } }));
+	assert_json_for_type::<i32>(json!({ "def": { "primitive": "i32" } }));
+	assert_json_for_type::<i64>(json!({ "def": { "primitive": "i64" } }));
+	assert_json_for_type::<i128>(json!({ "def": { "primitive": "i128" } }));
 }
 
 #[test]
 fn test_builtins() {
 	// arrays
-	assert_json_for_type::<[u8; 2]>(json!({ "type": { "array": { "len": 2, "type": 1 } } }));
-	assert_json_for_type::<[bool; 4]>(json!({ "type": { "array": { "len": 4, "type": 1 } } }));
-	assert_json_for_type::<[char; 8]>(json!({ "type": { "array": { "len": 8, "type": 1 } } }));
+	assert_json_for_type::<[u8; 2]>(json!({ "def": { "array": { "len": 2, "type": 1 } } }));
+	assert_json_for_type::<[bool; 4]>(json!({ "def": { "array": { "len": 4, "type": 1 } } }));
+	assert_json_for_type::<[char; 8]>(json!({ "def": { "array": { "len": 8, "type": 1 } } }));
 	// tuples
-	assert_json_for_type::<(u8, bool)>(json!({ "type": { "tuple": [ 1, 2 ] } }));
-	assert_json_for_type::<(u8, bool, char, u128)>(json!({ "type": { "tuple": [ 1, 2, 3, 4 ] } }));
+	assert_json_for_type::<(u8, bool)>(json!({ "def": { "tuple": [ 1, 2 ] } }));
+	assert_json_for_type::<(u8, bool, char, u128)>(json!({ "def": { "tuple": [ 1, 2, 3, 4 ] } }));
 	assert_json_for_type::<(u8, bool, char, u128, i32, u32)>(json!({
-		"type": {
+		"def": {
 			"tuple": [ 1, 2, 3, 4, 5, 6 ]
 		}
 	}));
 	// sequences
-	assert_json_for_type::<[bool]>(json!({ "type": { "sequence": { "type": 1 } } }));
-	assert_json_for_type::<&[bool]>(json!({ "type": { "sequence": { "type": 1 } } }));
-	assert_json_for_type::<Vec<bool>>(json!({ "type": { "sequence": { "type": 1 } } }));
+	assert_json_for_type::<[bool]>(json!({ "def": { "sequence": { "type": 1 } } }));
+	assert_json_for_type::<&[bool]>(json!({ "def": { "sequence": { "type": 1 } } }));
+	assert_json_for_type::<Vec<bool>>(json!({ "def": { "sequence": { "type": 1 } } }));
 	// complex types
 	assert_json_for_type::<Option<&str>>(json!({
 		"path": [1],
 		"params": [1],
-		"type": {
+		"def": {
 			"variant": {
 				"variants": [
 					{
@@ -91,7 +91,7 @@ fn test_builtins() {
 	assert_json_for_type::<Result<u32, u64>>(json!({
 		"path": [1],
 		"params": [1, 2],
-		"type": {
+		"def": {
 			"variant": {
 				"variants": [
 					{
@@ -107,17 +107,17 @@ fn test_builtins() {
 		}
 	}));
 	// references
-	assert_json_for_type::<&bool>(json!({ "type": { "primitive": "bool" } }));
-	assert_json_for_type::<&mut str>(json!({ "type": { "primitive": "str" } }));
-	assert_json_for_type::<alloc::boxed::Box<u32>>(json!({ "type": { "primitive": "u32" } }));
+	assert_json_for_type::<&bool>(json!({ "def": { "primitive": "bool" } }));
+	assert_json_for_type::<&mut str>(json!({ "def": { "primitive": "str" } }));
+	assert_json_for_type::<alloc::boxed::Box<u32>>(json!({ "def": { "primitive": "u32" } }));
 	// strings
-	assert_json_for_type::<alloc::string::String>(json!({ "type": { "primitive": "str" } }));
-	assert_json_for_type::<str>(json!({ "type": { "primitive": "str" } }));
+	assert_json_for_type::<alloc::string::String>(json!({ "def": { "primitive": "str" } }));
+	assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
 	// PhantomData
 	assert_json_for_type::<core::marker::PhantomData<bool>>(json!({
 		"path": [1],
 		"params": [1],
-		"type": {
+		"def": {
 			"composite": {},
 		}
 	}))
@@ -130,7 +130,7 @@ fn test_unit_struct() {
 
 	assert_json_for_type::<UnitStruct>(json!({
 		"path": [1, 2],
-		"type": {
+		"def": {
 			"composite": {},
 		}
 	}));
@@ -143,7 +143,7 @@ fn test_tuplestruct() {
 
 	assert_json_for_type::<TupleStruct>(json!({
 		"path": [1, 2],
-		"type": {
+		"def": {
 			"composite": {
 				"fields": [
 					{ "type": 1 },
@@ -166,10 +166,10 @@ fn test_struct() {
 
 	assert_json_for_type::<Struct>(json!({
 		"path": [1, 2],
-		"type": {
+		"def": {
 
 		},
-		"type": {
+		"def": {
 			"composite": {
 				"fields": [
 					{ "name": 3, "type": 1, },
@@ -192,7 +192,7 @@ fn test_clike_enum() {
 
 	assert_json_for_type::<ClikeEnum>(json!({
 		"path": [1, 2],
-		"type": {
+		"def": {
 			"variant": {
 				"variants": [
 					{ "name": 3, "discriminant": 0, },
@@ -215,7 +215,7 @@ fn test_enum() {
 
 	assert_json_for_type::<Enum>(json!({
 		"path": [1, 2],
-		"type": {
+		"def": {
 			"variant": {
 				"variants": [
 					{ "name": 3 },
@@ -301,7 +301,7 @@ fn test_registry() {
 					1, // json
 					2, // UnitStruct
 				],
-				"type": {
+				"def": {
 					"composite": {},
 				}
 			},
@@ -310,7 +310,7 @@ fn test_registry() {
 					1, // json
 					3, // TupleStruct
 				],
-				"type": {
+				"def": {
 					"composite": {
 						"fields": [
 							{ "type": 3 },
@@ -320,17 +320,17 @@ fn test_registry() {
 				}
 			},
 			{ // type 3
-				"type": { "primitive": "u8" },
+				"def": { "primitive": "u8" },
 			},
 			{ // type 4
-				"type": { "primitive": "u32" },
+				"def": { "primitive": "u32" },
 			},
 			{ // type 5
 				"path": [
 					1, // json
 					4, // Struct
 				],
-				"type": {
+				"def": {
 					"composite": {
 						"fields": [
 							{
@@ -350,7 +350,7 @@ fn test_registry() {
 				}
 			},
 			{ // type 6
-				"type": {
+				"def": {
 					"array": {
 						"len": 32,
 						"type": 3, // u8
@@ -362,7 +362,7 @@ fn test_registry() {
 					1, // json
 					8, // RecursiveStruct
 				],
-				"type": {
+				"def": {
 					"composite": {
 						"fields": [
 							{
@@ -374,7 +374,7 @@ fn test_registry() {
 				}
 			},
 			{ // type 8
-				"type": {
+				"def": {
 					"sequence": {
 						"type": 7, // RecursiveStruct
 					},
@@ -385,7 +385,7 @@ fn test_registry() {
 					1, 	// json
 					10, // CLikeEnum
 				],
-				"type": {
+				"def": {
 					"variant": {
 						"variants": [
 							{
@@ -409,7 +409,7 @@ fn test_registry() {
 					1, 	// json
 					14, // RustEnum
 				],
-				"type": {
+				"def": {
 					"variant": {
 						"variants": [
 							{
