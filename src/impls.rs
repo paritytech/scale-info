@@ -44,7 +44,7 @@ impl_metadata_for_primitives!(
 macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
 		$(
-			impl<T: Metadata + 'static> TypeInfo for [T; $n] {
+			impl<T: TypeInfo + 'static> TypeInfo for [T; $n] {
 				fn type_info() -> Type {
 					TypeDefArray::new($n, MetaType::new::<T>()).into()
 				}
@@ -67,7 +67,7 @@ macro_rules! impl_metadata_for_tuple {
 		impl<$($ty),*> TypeInfo for ($($ty,)*)
 		where
 			$(
-				$ty: Metadata + 'static,
+				$ty: TypeInfo+ 'static,
 			)*
 		{
 			fn type_info() -> Type {
@@ -91,7 +91,7 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
 
 impl<T> TypeInfo for Vec<T>
 where
-	T: Metadata + 'static,
+	T: TypeInfo + 'static,
 {
 	fn type_info() -> Type {
 		<[T] as TypeInfo>::type_info()
@@ -100,7 +100,7 @@ where
 
 impl<T> TypeInfo for Option<T>
 where
-	T: Metadata + 'static,
+	T: TypeInfo + 'static,
 {
 	fn type_info() -> Type {
 		Type::builder()
@@ -116,8 +116,8 @@ where
 
 impl<T, E> TypeInfo for Result<T, E>
 where
-	T: Metadata + 'static,
-	E: Metadata + 'static,
+	T: TypeInfo + 'static,
+	E: TypeInfo + 'static,
 {
 	fn type_info() -> Type {
 		Type::builder()
@@ -133,8 +133,8 @@ where
 
 impl<K, V> TypeInfo for BTreeMap<K, V>
 where
-	K: Metadata + 'static,
-	V: Metadata + 'static,
+	K: TypeInfo + 'static,
+	V: TypeInfo + 'static,
 {
 	fn type_info() -> Type {
 		Type::builder()
@@ -173,7 +173,7 @@ where
 
 impl<T> TypeInfo for [T]
 where
-	T: Metadata + 'static,
+	T: TypeInfo + 'static,
 {
 	fn type_info() -> Type {
 		TypeDefSequence::of::<T>().into()
@@ -194,12 +194,12 @@ impl TypeInfo for String {
 
 impl<T> TypeInfo for PhantomData<T>
 where
-	T: Metadata + ?Sized,
+	T: TypeInfo + ?Sized + 'static,
 {
 	fn type_info() -> Type {
 		Type::builder()
 			.path(Path::prelude("PhantomData"))
-			.type_params(vec![T::meta_type()])
+			.type_params(vec![meta_type::<T>()])
 			.composite(Fields::unit())
 	}
 }

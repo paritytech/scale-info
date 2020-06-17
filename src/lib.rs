@@ -130,17 +130,7 @@ pub use self::{
 };
 
 #[cfg(feature = "derive")]
-pub use scale_info_derive::Metadata;
-
-/// A super trait that shall be implemented by all types implementing [`TypeInfo`](`crate::TypeInfo`)
-///
-/// This trait is automatically implemented for all `'static` types that also
-/// implement [`TypeInfo`](`crate::TypeInfo`). Users of this library should use this trait directly
-/// instead of using the [`TypeInfo`](`crate::TypeInfo`) trait.
-pub trait Metadata: TypeInfo {
-	/// Returns the runtime bridge to the types compile-time type information.
-	fn meta_type() -> MetaType;
-}
+pub use scale_info_derive::TypeInfo;
 
 /// Implementors return their meta type information.
 pub trait TypeInfo {
@@ -148,11 +138,10 @@ pub trait TypeInfo {
 	fn type_info() -> Type;
 }
 
-impl<T> Metadata for T
+/// Returns the runtime bridge to the types compile-time type information.
+pub fn meta_type<T>() -> MetaType
 where
 	T: ?Sized + TypeInfo + 'static,
 {
-	fn meta_type() -> MetaType {
-		MetaType::new::<T>()
-	}
+	MetaType::new::<T>()
 }

@@ -22,7 +22,7 @@ use alloc::boxed::Box;
 
 use pretty_assertions::assert_eq;
 use scale_info::build::*;
-use scale_info::{tuple_meta_type, Metadata, Path, Type, TypeInfo};
+use scale_info::{tuple_meta_type, Path, Type, TypeInfo};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -41,7 +41,7 @@ macro_rules! assert_type {
 #[test]
 fn struct_derive() {
 	#[allow(unused)]
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct S<T, U> {
 		pub t: T,
 		pub u: U,
@@ -68,7 +68,7 @@ fn struct_derive() {
 #[test]
 fn tuple_struct_derive() {
 	#[allow(unused)]
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct S<T>(T);
 
 	let ty = Type::builder()
@@ -82,7 +82,7 @@ fn tuple_struct_derive() {
 #[test]
 fn unit_struct_derive() {
 	#[allow(unused)]
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct S;
 
 	let ty = Type::builder().path(Path::new("S", "derive")).composite(Fields::unit());
@@ -93,7 +93,7 @@ fn unit_struct_derive() {
 #[test]
 fn c_like_enum_derive() {
 	#[allow(unused)]
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	enum E {
 		A,
 		B = 10,
@@ -109,7 +109,7 @@ fn c_like_enum_derive() {
 #[test]
 fn enum_derive() {
 	#[allow(unused)]
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	enum E<T> {
 		A(T),
 		B { b: T },

@@ -30,8 +30,8 @@ use syn::{
 	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
 };
 
-#[proc_macro_derive(Metadata)]
-pub fn metadata(input: TokenStream) -> TokenStream {
+#[proc_macro_derive(TypeInfo)]
+pub fn type_info(input: TokenStream) -> TokenStream {
 	match generate(input.into()) {
 		Ok(output) => output.into(),
 		Err(err) => err.to_compile_error().into(),
@@ -48,7 +48,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
 	ast.generics.type_params_mut().for_each(|p| {
-		p.bounds.push(parse_quote!(_scale_info::Metadata));
+		p.bounds.push(parse_quote!(_scale_info::TypeInfo));
 		p.bounds.push(parse_quote!('static));
 	});
 
@@ -57,7 +57,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 	let generic_type_ids = ast.generics.type_params().map(|ty| {
 		let ty_ident = &ty.ident;
 		quote! {
-			<#ty_ident as _scale_info::Metadata>::meta_type()
+			_scale_info::meta_type::<#ty_ident>()
 		}
 	});
 

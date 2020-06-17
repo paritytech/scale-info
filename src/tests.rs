@@ -39,7 +39,7 @@ fn primitives() {
 	assert_type!(&str, TypeDefPrimitive::Str);
 	assert_type!(i8, TypeDefPrimitive::I8);
 
-	assert_type!([bool], TypeDefSequence::new(bool::meta_type()));
+	assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
 }
 
 #[test]
@@ -91,20 +91,20 @@ fn tuple_primitives() {
 	// nested tuple
 	assert_type!(
 		((i8, i16), (u32, u64)),
-		TypeDefTuple::new(vec![<(i8, i16)>::meta_type(), <(u32, u64)>::meta_type(),])
+		TypeDefTuple::new(vec![meta_type::<(i8, i16)>(), meta_type::<(u32, u64)>(),])
 	);
 }
 
 #[test]
 fn array_primitives() {
 	// array
-	assert_type!([bool; 3], TypeDefArray::new(3, bool::meta_type()));
+	assert_type!([bool; 3], TypeDefArray::new(3, meta_type::<bool>()));
 	// nested
-	assert_type!([[i32; 5]; 5], TypeDefArray::new(5, <[i32; 5]>::meta_type()));
+	assert_type!([[i32; 5]; 5], TypeDefArray::new(5, meta_type::<[i32; 5]>()));
 	// sequence
-	assert_type!([bool], TypeDefSequence::new(bool::meta_type()));
+	assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
 	// vec
-	assert_type!(Vec<bool>, TypeDefSequence::new(bool::meta_type()));
+	assert_type!(Vec<bool>, TypeDefSequence::new(meta_type::<bool>()));
 }
 
 #[test]
@@ -116,7 +116,7 @@ fn struct_with_generics() {
 
 	impl<T> TypeInfo for MyStruct<T>
 	where
-		T: Metadata + 'static,
+		T: TypeInfo + 'static,
 	{
 		fn type_info() -> Type {
 			Type::builder()

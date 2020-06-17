@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{form::MetaForm, Metadata, Type, TypeInfo};
+use crate::{form::MetaForm, Type, TypeInfo};
 
 /// A metatype abstraction.
 ///
@@ -71,7 +71,7 @@ impl MetaType {
 	/// Creates a new meta type from the given compile-time known type.
 	pub fn new<T>() -> Self
 	where
-		T: Metadata + ?Sized + 'static,
+		T: TypeInfo + ?Sized + 'static,
 	{
 		Self {
 			fn_type_info: <T as TypeInfo>::type_info,
@@ -82,7 +82,7 @@ impl MetaType {
 	/// Creates a new meta types from the type of the given reference.
 	pub fn of<T>(_elem: &T) -> Self
 	where
-		T: Metadata + ?Sized + 'static,
+		T: TypeInfo + ?Sized + 'static,
 	{
 		Self::new::<T>()
 	}

@@ -23,12 +23,12 @@ extern crate alloc;
 use alloc::{vec, vec::Vec};
 
 use pretty_assertions::{assert_eq, assert_ne};
-use scale_info::{form::CompactForm, IntoCompact as _, Metadata, Registry};
+use scale_info::{form::CompactForm, meta_type, IntoCompact as _, Registry, TypeInfo};
 use serde_json::json;
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)
 where
-	T: Metadata + ?Sized,
+	T: TypeInfo + ?Sized,
 {
 	let mut registry = Registry::new();
 
@@ -125,7 +125,7 @@ fn test_builtins() {
 
 #[test]
 fn test_unit_struct() {
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
@@ -138,7 +138,7 @@ fn test_unit_struct() {
 
 #[test]
 fn test_tuplestruct() {
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct TupleStruct(i32, [u8; 32], bool);
 
 	assert_json_for_type::<TupleStruct>(json!({
@@ -157,7 +157,7 @@ fn test_tuplestruct() {
 
 #[test]
 fn test_struct() {
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct Struct {
 		a: i32,
 		b: [u8; 32],
@@ -183,7 +183,7 @@ fn test_struct() {
 
 #[test]
 fn test_clike_enum() {
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	enum ClikeEnum {
 		A,
 		B = 42,
@@ -206,7 +206,7 @@ fn test_clike_enum() {
 
 #[test]
 fn test_enum() {
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	enum Enum {
 		ClikeVariant,
 		TupleStructVariant(u32, bool),
@@ -244,39 +244,39 @@ fn test_enum() {
 fn test_registry() {
 	let mut registry = Registry::new();
 
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct UnitStruct;
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct TupleStruct(u8, u32);
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct Struct {
 		a: u8,
 		b: u32,
 		c: [u8; 32],
 	}
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	struct RecursiveStruct {
 		rec: Vec<RecursiveStruct>,
 	}
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	enum ClikeEnum {
 		A,
 		B,
 		C,
 	}
-	#[derive(Metadata)]
+	#[derive(TypeInfo)]
 	enum RustEnum {
 		A,
 		B(u8, u32),
 		C { a: u8, b: u32, c: [u8; 32] },
 	}
 
-	registry.register_type(&UnitStruct::meta_type());
-	registry.register_type(&TupleStruct::meta_type());
-	registry.register_type(&Struct::meta_type());
-	registry.register_type(&RecursiveStruct::meta_type());
-	registry.register_type(&ClikeEnum::meta_type());
-	registry.register_type(&RustEnum::meta_type());
+	registry.register_type(&meta_type::<UnitStruct>());
+	registry.register_type(&meta_type::<TupleStruct>());
+	registry.register_type(&meta_type::<Struct>());
+	registry.register_type(&meta_type::<RecursiveStruct>());
+	registry.register_type(&meta_type::<ClikeEnum>());
+	registry.register_type(&meta_type::<RustEnum>());
 
 	let expected_json = json!({
 		"strings": [
