@@ -17,7 +17,7 @@ use crate::tm_std::*;
 use crate::{
 	build::TypeBuilder,
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
+	IntoCompact, MetaType, Registry, TypeInfo,
 };
 use derive_more::From;
 use serde::Serialize;
@@ -263,7 +263,7 @@ impl TypeDefSequence {
 	/// compile-time type.
 	pub fn of<T>() -> Self
 	where
-		T: Metadata + 'static,
+		T: TypeInfo + 'static,
 	{
 		Self::new(MetaType::new::<T>())
 	}

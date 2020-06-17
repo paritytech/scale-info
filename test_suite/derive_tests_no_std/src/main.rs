@@ -57,24 +57,24 @@ unsafe impl GlobalAlloc for Allocator {
 	}
 }
 
-use scale_info::Metadata;
+use scale_info::TypeInfo;
 
 #[allow(unused)]
-#[derive(Metadata)]
+#[derive(TypeInfo)]
 struct UnitStruct;
 
 #[allow(unused)]
-#[derive(Metadata)]
+#[derive(TypeInfo)]
 struct TupleStruct(u128, bool);
 
 #[allow(unused)]
-#[derive(Metadata)]
+#[derive(TypeInfo)]
 struct Struct<T> {
 	t: T,
 }
 
 #[allow(unused)]
-#[derive(Metadata)]
+#[derive(TypeInfo)]
 enum CLike {
 	A,
 	B,
@@ -82,7 +82,7 @@ enum CLike {
 }
 
 #[allow(unused)]
-#[derive(Metadata)]
+#[derive(TypeInfo)]
 enum E<T> {
 	A(T),
 	B { b: T },

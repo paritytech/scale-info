@@ -22,7 +22,7 @@
 //!
 //! ## Generic struct
 //! ```
-//! # use scale_info::{build::Fields, Metadata, MetaType, Path, Type, TypeInfo};
+//! # use scale_info::{build::Fields, MetaType, Path, Type, TypeInfo};
 //! struct Foo<T> {
 //!     bar: T,
 //!     data: u64,
@@ -30,7 +30,7 @@
 //!
 //! impl<T> TypeInfo for Foo<T>
 //! where
-//!     T: Metadata + 'static,
+//!     T: TypeInfo + 'static,
 //! {
 //!     fn type_info() -> Type {
 //!         Type::builder()
@@ -45,7 +45,7 @@
 //! ```
 //! ## Tuple struct
 //! ```
-//! # use scale_info::{build::Fields, Metadata, MetaType, Path, Type, TypeInfo};
+//! # use scale_info::{build::Fields, MetaType, Path, Type, TypeInfo};
 //! struct Foo(u32, bool);
 //!
 //! impl TypeInfo for Foo {
@@ -61,7 +61,7 @@
 //! ```
 //! ## Enum with fields
 //! ```
-//! # use scale_info::{build::{Fields, Variants}, Metadata, MetaType, Path, Type, TypeInfo};
+//! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo};
 //! enum Foo<T>{
 //!     A(T),
 //!     B { f: u32 },
@@ -70,7 +70,7 @@
 //!
 //! impl<T> TypeInfo for Foo<T>
 //! where
-//!     T: Metadata + 'static,
+//!     T: TypeInfo + 'static,
 //! {
 //!     fn type_info() -> Type {
 //!         Type::builder()
@@ -87,7 +87,7 @@
 //! ```
 //! ## Enum without fields
 //! ```
-//! # use scale_info::{build::{Fields, Variants}, Metadata, MetaType, Path, Type, TypeInfo};
+//! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo};
 //! enum Foo {
 //!     A,
 //!     B,
@@ -111,7 +111,7 @@
 use crate::{
 	form::{Form, MetaForm},
 	tm_std::*,
-	Field, MetaType, Metadata, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, Variant,
+	Field, MetaType, Path, Type, TypeInfo, TypeDef, TypeDefComposite, TypeDefVariant, Variant,
 };
 
 /// State types for type builders which require a Path
@@ -240,7 +240,7 @@ impl FieldsBuilder<NamedFields> {
 	/// Add a named field with the type of the type parameter `T`
 	pub fn field_of<T>(mut self, name: &'static str) -> Self
 	where
-		T: Metadata + ?Sized + 'static,
+		T: TypeInfo + ?Sized + 'static,
 	{
 		self.fields.push(Field::named_of::<T>(name));
 		self
@@ -257,7 +257,7 @@ impl FieldsBuilder<UnnamedFields> {
 	/// Add an unnamed field with the type of the type parameter `T`
 	pub fn field_of<T>(mut self) -> Self
 	where
-		T: Metadata + ?Sized + 'static,
+		T: TypeInfo + ?Sized + 'static,
 	{
 		self.fields.push(Field::unnamed_of::<T>());
 		self

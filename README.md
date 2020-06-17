@@ -96,7 +96,7 @@ struct Foo<T> {
 
 impl<T> TypeInfo for Foo<T>
 where
-    T: Metadata + 'static,
+    T: TypeInfo + 'static,
 {
     fn type_info() -> Type {
         Type::builder()
@@ -141,7 +141,7 @@ enum Foo<T>{
 
 impl<T> TypeInfo for Foo<T>
 where
-    T: Metadata + 'static,
+    T: TypeInfo + 'static,
 {
     fn type_info() -> Type {
         Type::builder()

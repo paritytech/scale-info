@@ -16,7 +16,7 @@ use crate::tm_std::*;
 
 use crate::{
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Metadata, Registry,
+	IntoCompact, MetaType, Registry, TypeInfo,
 };
 use serde::Serialize;
 
@@ -66,7 +66,7 @@ impl Field {
 	/// compile-time type.
 	pub fn named_of<T>(name: <MetaForm as Form>::String) -> Self
 	where
-		T: Metadata + ?Sized + 'static,
+		T: TypeInfo + ?Sized + 'static,
 	{
 		Self::new(Some(name), MetaType::new::<T>())
 	}
@@ -85,7 +85,7 @@ impl Field {
 	/// given compile-time type.
 	pub fn unnamed_of<T>() -> Self
 	where
-		T: Metadata + ?Sized + 'static,
+		T: TypeInfo + ?Sized + 'static,
 	{
 		Self::new(None, MetaType::new::<T>())
 	}
