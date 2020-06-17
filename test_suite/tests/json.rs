@@ -23,7 +23,7 @@ extern crate alloc;
 use alloc::{vec, vec::Vec};
 
 use pretty_assertions::{assert_eq, assert_ne};
-use scale_info::{form::CompactForm, IntoCompact as _, TypeInfo, Registry, meta_type};
+use scale_info::{form::CompactForm, meta_type, IntoCompact as _, Registry, TypeInfo};
 use serde_json::json;
 
 fn assert_json_for_type<T>(expected_json: serde_json::Value)

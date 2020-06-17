@@ -117,7 +117,7 @@ where
 impl<T, E> TypeInfo for Result<T, E>
 where
 	T: TypeInfo + 'static,
-	E: TypeInfo+ 'static,
+	E: TypeInfo + 'static,
 {
 	fn type_info() -> Type {
 		Type::builder()
@@ -133,8 +133,8 @@ where
 
 impl<K, V> TypeInfo for BTreeMap<K, V>
 where
-	K: TypeInfo+ 'static,
-	V: TypeInfo+ 'static,
+	K: TypeInfo + 'static,
+	V: TypeInfo + 'static,
 {
 	fn type_info() -> Type {
 		Type::builder()

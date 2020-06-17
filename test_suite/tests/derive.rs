@@ -22,7 +22,7 @@ use alloc::boxed::Box;
 
 use pretty_assertions::assert_eq;
 use scale_info::build::*;
-use scale_info::{tuple_meta_type, TypeInfo, Path, Type};
+use scale_info::{tuple_meta_type, Path, Type, TypeInfo};
 
 fn assert_type<T, E>(expected: E)
 where
