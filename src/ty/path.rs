@@ -14,9 +14,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	utils::is_rust_identifier,
-};
+use crate::utils::is_rust_identifier;
 use serde::Serialize;
 
 /// Represents the path of a type definition.

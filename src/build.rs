@@ -109,9 +109,8 @@
 //! ```
 
 use crate::{
-	form::MetaForm,
-	tm_std::*,
-	Field, MetaType, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, TypeInfo, Variant,
+	form::MetaForm, tm_std::*, Field, MetaType, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, TypeInfo,
+	Variant,
 };
 
 /// State types for type builders which require a Path
