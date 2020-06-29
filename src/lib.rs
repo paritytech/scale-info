@@ -24,8 +24,8 @@
 //! # Registry
 //!
 //! At the heart of its functionality is the [`Registry`](`crate::Registry`) that acts as cache for
-//! known strings and types in order to efficiently deduplicate them and thus
-//! compactify the overall serialization.
+//! known types in order to efficiently deduplicate them and thus compactify the overall
+//! serialization.
 //!
 //! # Type Information
 //!
@@ -38,20 +38,20 @@
 //!
 //! # Compaction Forms
 //!
-//! There is an uncompact form, called [`MetaForm`](`crate::form::MetaForm`) that acts as a bridge from
-//! compile-time type information at runtime in order to easily retrieve all
-//! information needed to uniquely identify types.
-//! The compact form is retrieved by the [`IntoCompact`](`crate::IntoCompact`) trait and internally used
-//! by the [`Registry`](`crate::Registry`) in order to convert the uncompact strings and types into
-//! their compact form.
+//! There is an uncompact form, called [`MetaForm`](`crate::form::MetaForm`) that acts as a bridge
+//! from compile-time type information at runtime in order to easily retrieve all information needed
+//! to uniquely identify types.
+//!
+//! The compact form is retrieved by the [`IntoCompact`](`crate::IntoCompact`) trait and internally
+//! used by the [`Registry`](`crate::Registry`) in order to convert the uncompact strings and types
+//! into their compact form.
 //!
 //! # Symbols and Namespaces
 //!
-//! Since symbol names are often shared across type boundaries the [`Registry`](`crate::Registry`)
-//! also deduplicates them. To differentiate two types sharing the same name
-//! namespaces are used. Commonly the namespace is equal to the one where the
-//! type has been defined in. For Rust prelude types such as [`Option`](`std::option::Option`) and
-//! [`Result`](`std::result::Result`)  the root namespace (empty namespace) is used.
+//! To differentiate two types sharing the same name namespaces are used.
+//! Commonly the namespace is equal to the one where the ype has been defined in. For Rust prelude
+//! types such as [`Option`](`std::option::Option`) and [`Result`](`std::result::Result`) the root
+//! namespace (empty namespace) is used.
 //!
 //! To use this library simply use the [`MetaForm`](`crate::form::MetaForm`) initially with your own data
 //! structures and at best make them generic over the [`Form`](`crate::form::Form`) trait just as has
@@ -140,8 +140,8 @@ pub trait TypeInfo {
 
 /// Returns the runtime bridge to the types compile-time type information.
 pub fn meta_type<T>() -> MetaType
-where
-	T: ?Sized + TypeInfo + 'static,
+	where
+		T: ?Sized + TypeInfo + 'static,
 {
 	MetaType::new::<T>()
 }

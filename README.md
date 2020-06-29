@@ -195,9 +195,6 @@ After compactification all type definitions are stored in the type registry.
 Note that the type registry should be serialized as part of the metadata structure where the
 registered types are utilized to allow consumers to resolve the types.
 
-As a minor additional compaction step non-documentation strings are also compacted by the same
-mechanics.
-
 ## Serialization
 
 Currently the only supported serialization format is JSON, an example of which can be found
