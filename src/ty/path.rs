@@ -93,7 +93,7 @@ impl Path {
 
 	/// Get the ident segment of the Path
 	pub fn ident(&self) -> Option<&str> {
-		self.segments.iter().last().map(|ident| *ident)
+		self.segments.iter().last().copied()
 	}
 
 	/// Get the namespace segments of the Path
