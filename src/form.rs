@@ -34,15 +34,12 @@ use crate::tm_std::*;
 use crate::{interner::UntrackedSymbol, meta_type::MetaType};
 use serde::Serialize;
 
-/// Trait to control the internal structures of type identifiers and
-/// definitions.
+/// Trait to control the internal structures of type definitions.
 ///
 /// This allows for type-level separation between free forms that can be
 /// instantiated out of the flux and compact forms that require some sort of
 /// interning data structures.
 pub trait Form {
-	/// The string type.
-	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The type identifier type.
 	type TypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
@@ -55,7 +52,6 @@ pub trait Form {
 pub enum MetaForm {}
 
 impl Form for MetaForm {
-	type String = &'static str;
 	type TypeId = MetaType;
 }
 
@@ -70,6 +66,5 @@ impl Form for MetaForm {
 pub enum CompactForm {}
 
 impl Form for CompactForm {
-	type String = UntrackedSymbol<&'static str>;
 	type TypeId = UntrackedSymbol<TypeId>;
 }

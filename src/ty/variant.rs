@@ -109,7 +109,7 @@ impl TypeDefVariant {
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct Variant<F: Form = MetaForm> {
 	/// The name of the struct variant.
-	name: F::String,
+	name: &'static str,
 	/// The fields of the struct variant.
 	#[serde(skip_serializing_if = "Vec::is_empty")]
 	fields: Vec<Field<F>>,
@@ -129,7 +129,7 @@ impl IntoCompact for Variant {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Variant {
-			name: registry.register_string(self.name),
+			name: self.name,
 			fields: registry.map_into_compact(self.fields),
 			discriminant: self.discriminant,
 		}
@@ -138,7 +138,7 @@ impl IntoCompact for Variant {
 
 impl Variant {
 	/// Creates a new variant with the given fields.
-	pub fn with_fields<F>(name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
+	pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>) -> Self {
 		Self {
 			name,
 			fields: fields.done(),
@@ -147,7 +147,7 @@ impl Variant {
 	}
 
 	/// Creates a new variant with the given discriminant.
-	pub fn with_discriminant(name: <MetaForm as Form>::String, discriminant: u64) -> Self {
+	pub fn with_discriminant(name: &'static str, discriminant: u64) -> Self {
 		Self {
 			name,
 			fields: Vec::new(),

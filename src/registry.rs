@@ -49,8 +49,7 @@ pub trait IntoCompact {
 
 /// The registry for compaction of type identifiers and definitions.
 ///
-/// The registry consists of a cache for strings such as symbol names
-/// and a cache for already compactified type identifiers and definitions.
+/// The registry consists of a cache for already compactified type identifiers and definitions.
 ///
 /// Whenever using the registry to compact a type all of its sub-types
 /// are going to be registered recursively as well. A type is a sub-type
@@ -62,9 +61,6 @@ pub trait IntoCompact {
 /// mechanism to stop recursion before going into an infinite loop.
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Registry {
-	/// The cache for already registered strings.
-	#[serde(rename = "strings")]
-	string_table: Interner<&'static str>,
 	/// The cache for already registered types.
 	///
 	/// This is just an accessor to the actual database
@@ -101,16 +97,9 @@ impl Registry {
 	/// Creates a new empty registry.
 	pub fn new() -> Self {
 		Self {
-			string_table: Interner::new(),
 			type_table: Interner::new(),
 			types: BTreeMap::new(),
 		}
-	}
-
-	/// Registers the given string into the registry and returns
-	/// its respective associated string symbol.
-	pub fn register_string(&mut self, string: &'static str) -> UntrackedSymbol<&'static str> {
-		self.string_table.intern_or_get(string).1.into_untracked()
 	}
 
 	/// Registers the given type ID into the registry.

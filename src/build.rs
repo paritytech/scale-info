@@ -109,7 +109,7 @@
 //! ```
 
 use crate::{
-	form::{Form, MetaForm},
+	form::MetaForm,
 	tm_std::*,
 	Field, MetaType, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, TypeInfo, Variant,
 };
@@ -297,20 +297,20 @@ pub struct VariantsBuilder<T> {
 
 impl VariantsBuilder<VariantFields> {
 	/// Add a variant with fields constructed by the supplied [`FieldsBuilder`](`crate::build::FieldsBuilder`)
-	pub fn variant<F>(mut self, name: <MetaForm as Form>::String, fields: FieldsBuilder<F>) -> Self {
+	pub fn variant<F>(mut self, name: &'static str, fields: FieldsBuilder<F>) -> Self {
 		self.variants.push(Variant::with_fields(name, fields));
 		self
 	}
 
 	/// Add a variant with no fields i.e. a unit variant
-	pub fn variant_unit(self, name: <MetaForm as Form>::String) -> Self {
+	pub fn variant_unit(self, name: &'static str) -> Self {
 		self.variant::<NoFields>(name, Fields::unit())
 	}
 }
 
 impl VariantsBuilder<Fieldless> {
 	/// Add a fieldless variant, explicitly setting the discriminant
-	pub fn variant(mut self, name: <MetaForm as Form>::String, discriminant: u64) -> Self {
+	pub fn variant(mut self, name: &'static str, discriminant: u64) -> Self {
 		self.variants.push(Variant::with_discriminant(name, discriminant));
 		self
 	}

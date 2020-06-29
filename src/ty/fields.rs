@@ -30,7 +30,7 @@ use serde::Serialize;
 pub struct Field<F: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none")]
-	name: Option<F::String>,
+	name: Option<&'static str>,
 	/// The type of the field.
 	#[serde(rename = "type")]
 	ty: F::TypeId,
@@ -41,7 +41,7 @@ impl IntoCompact for Field {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Field {
-			name: self.name.map(|name| registry.register_string(name)),
+			name: self.name,
 			ty: registry.register_type(&self.ty),
 		}
 	}
@@ -51,12 +51,12 @@ impl Field {
 	/// Creates a new field.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
-	pub fn new(name: Option<<MetaForm as Form>::String>, ty: MetaType) -> Self {
+	pub fn new(name: Option<&'static str>, ty: MetaType) -> Self {
 		Self { name, ty }
 	}
 
 	/// Creates a new named field
-	pub fn named(name: <MetaForm as Form>::String, ty: MetaType) -> Self {
+	pub fn named(name: &'static str, ty: MetaType) -> Self {
 		Self::new(Some(name), ty)
 	}
 
@@ -64,7 +64,7 @@ impl Field {
 	///
 	/// Use this constructor if you want to instantiate from a given
 	/// compile-time type.
-	pub fn named_of<T>(name: <MetaForm as Form>::String) -> Self
+	pub fn named_of<T>(name: &'static str) -> Self
 	where
 		T: TypeInfo + ?Sized + 'static,
 	{

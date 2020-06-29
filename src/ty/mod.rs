@@ -35,7 +35,7 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 pub struct Type<F: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty")]
-	path: Path<F>,
+	path: Path,
 	/// The generic type parameters of the type in use. Empty for non generic types
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
 	type_params: Vec<F::TypeId>,
@@ -49,7 +49,7 @@ impl IntoCompact for Type {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Type {
-			path: self.path.into_compact(registry),
+			path: self.path,
 			type_params: registry.register_types(self.type_params),
 			type_def: self.type_def.into_compact(registry),
 		}
