@@ -43,13 +43,13 @@
 //! to uniquely identify types.
 //!
 //! The compact form is retrieved by the [`IntoCompact`](`crate::IntoCompact`) trait and internally
-//! used by the [`Registry`](`crate::Registry`) in order to convert the uncompact strings and types
+//! used by the [`Registry`](`crate::Registry`) in order to convert the uncompact types
 //! into their compact form.
 //!
 //! # Symbols and Namespaces
 //!
 //! To differentiate two types sharing the same name namespaces are used.
-//! Commonly the namespace is equal to the one where the ype has been defined in. For Rust prelude
+//! Commonly the namespace is equal to the one where the type has been defined in. For Rust prelude
 //! types such as [`Option`](`std::option::Option`) and [`Result`](`std::result::Result`) the root
 //! namespace (empty namespace) is used.
 //!
