@@ -72,16 +72,16 @@ fn test_builtins() {
 	assert_json_for_type::<Vec<bool>>(json!({ "def": { "sequence": { "type": 1 } } }));
 	// complex types
 	assert_json_for_type::<Option<&str>>(json!({
-		"path": [1],
+		"path": ["Option"],
 		"params": [1],
 		"def": {
 			"variant": {
 				"variants": [
 					{
-						"name": 2,
+						"name": "None",
 					},
 					{
-						"name": 3,
+						"name": "Some",
 						"fields": [ { "type": 1 } ]
 					},
 				]
@@ -89,17 +89,17 @@ fn test_builtins() {
 		}
 	}));
 	assert_json_for_type::<Result<u32, u64>>(json!({
-		"path": [1],
+		"path": ["Result"],
 		"params": [1, 2],
 		"def": {
 			"variant": {
 				"variants": [
 					{
-						"name": 2,
+						"name": "Ok",
 						"fields": [ { "type": 1 } ]
 					},
 					{
-						"name": 3,
+						"name": "Err",
 						"fields": [ { "type": 2 } ]
 					}
 				]
@@ -115,7 +115,7 @@ fn test_builtins() {
 	assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
 	// PhantomData
 	assert_json_for_type::<core::marker::PhantomData<bool>>(json!({
-		"path": [1],
+		"path": ["PhantomData"],
 		"params": [1],
 		"def": {
 			"composite": {},
@@ -129,7 +129,7 @@ fn test_unit_struct() {
 	struct UnitStruct;
 
 	assert_json_for_type::<UnitStruct>(json!({
-		"path": [1, 2],
+		"path": ["json", "UnitStruct"],
 		"def": {
 			"composite": {},
 		}
@@ -142,7 +142,7 @@ fn test_tuplestruct() {
 	struct TupleStruct(i32, [u8; 32], bool);
 
 	assert_json_for_type::<TupleStruct>(json!({
-		"path": [1, 2],
+		"path": ["json", "TupleStruct"],
 		"def": {
 			"composite": {
 				"fields": [
@@ -165,16 +165,13 @@ fn test_struct() {
 	}
 
 	assert_json_for_type::<Struct>(json!({
-		"path": [1, 2],
-		"def": {
-
-		},
+		"path": ["json", "Struct"],
 		"def": {
 			"composite": {
 				"fields": [
-					{ "name": 3, "type": 1, },
-					{ "name": 4, "type": 2, },
-					{ "name": 5, "type": 4, },
+					{ "name": "a", "type": 1, },
+					{ "name": "b", "type": 2, },
+					{ "name": "c", "type": 4, },
 				],
 			},
 		}
@@ -191,13 +188,13 @@ fn test_clike_enum() {
 	}
 
 	assert_json_for_type::<ClikeEnum>(json!({
-		"path": [1, 2],
+		"path": ["json", "ClikeEnum"],
 		"def": {
 			"variant": {
 				"variants": [
-					{ "name": 3, "discriminant": 0, },
-					{ "name": 4, "discriminant": 42, },
-					{ "name": 5, "discriminant": 2, },
+					{ "name": "A", "discriminant": 0, },
+					{ "name": "B", "discriminant": 42, },
+					{ "name": "C", "discriminant": 2, },
 				],
 			},
 		}
@@ -214,24 +211,24 @@ fn test_enum() {
 	}
 
 	assert_json_for_type::<Enum>(json!({
-		"path": [1, 2],
+		"path": ["json", "Enum"],
 		"def": {
 			"variant": {
 				"variants": [
-					{ "name": 3 },
+					{ "name": "ClikeVariant" },
 					{
-						"name": 4,
+						"name": "TupleStructVariant",
 						"fields": [
 							{ "type": 1 },
 							{ "type": 2 },
 						],
 					},
 					{
-						"name": 5,
+						"name": "StructVariant",
 						"fields": [
-							{ "name": 6, "type": 1, },
-							{ "name": 7, "type": 3, },
-							{ "name": 8, "type": 5, },
+							{ "name": "a", "type": 1, },
+							{ "name": "b", "type": 3, },
+							{ "name": "c", "type": 5, },
 						],
 					}
 				],
@@ -279,27 +276,11 @@ fn test_registry() {
 	registry.register_type(&meta_type::<RustEnum>());
 
 	let expected_json = json!({
-		"strings": [
-			"json",      	   //  1
-			"UnitStruct",      //  2
-			"TupleStruct",     //  3
-			"Struct",          //  4
-			"a",               //  5
-			"b",               //  6
-			"c",               //  7
-			"RecursiveStruct", //  8
-			"rec",             //  9
-			"ClikeEnum",       // 10
-			"A",               // 11
-			"B",               // 12
-			"C",               // 13
-			"RustEnum",        // 14
-		],
 		"types": [
 			{ // type 1
 				"path": [
-					1, // json
-					2, // UnitStruct
+					"json",
+					"UnitStruct",
 				],
 				"def": {
 					"composite": {},
@@ -307,8 +288,8 @@ fn test_registry() {
 			},
 			{ // type 2
 				"path": [
-					1, // json
-					3, // TupleStruct
+					"json",
+					"TupleStruct",
 				],
 				"def": {
 					"composite": {
@@ -327,22 +308,22 @@ fn test_registry() {
 			},
 			{ // type 5
 				"path": [
-					1, // json
-					4, // Struct
+					"json",
+					"Struct",
 				],
 				"def": {
 					"composite": {
 						"fields": [
 							{
-								"name": 5, // a
+								"name": "a",
 								"type": 3, // u8
 							},
 							{
-								"name": 6, // b
+								"name": "b",
 								"type": 4, // u32
 							},
 							{
-								"name": 7, // c
+								"name": "c",
 								"type": 6, // [u8; 32]
 							}
 						]
@@ -359,14 +340,14 @@ fn test_registry() {
 			},
 			{ // type 7
 				"path": [
-					1, // json
-					8, // RecursiveStruct
+					"json",
+					"RecursiveStruct",
 				],
 				"def": {
 					"composite": {
 						"fields": [
 							{
-								"name": 9, // rec
+								"name": "rec",
 								"type": 8, // Vec<RecursiveStruct>
 							}
 						]
@@ -382,22 +363,22 @@ fn test_registry() {
 			},
 			{ // type 9
 				"path": [
-					1, 	// json
-					10, // CLikeEnum
+					"json",
+					"ClikeEnum",
 				],
 				"def": {
 					"variant": {
 						"variants": [
 							{
-								"name": 11, // A
+								"name": "A",
 								"discriminant": 0,
 							},
 							{
-								"name": 12, // B
+								"name": "B",
 								"discriminant": 1,
 							},
 							{
-								"name": 13, // C
+								"name": "C",
 								"discriminant": 2,
 							},
 						]
@@ -406,35 +387,35 @@ fn test_registry() {
 			},
 			{ // type 10
 				"path": [
-					1, 	// json
-					14, // RustEnum
+					"json",
+					"RustEnum"
 				],
 				"def": {
 					"variant": {
 						"variants": [
 							{
-								"name": 11, // A
+								"name": "A"
 							},
 							{
-								"name": 12, // B
+								"name": "B",
 								"fields": [
 									{ "type": 3 }, // u8
 									{ "type": 4 }, // u32
 								]
 							},
 							{
-								"name": 13, // C
+								"name": "C",
 								"fields": [
 									{
-										"name": 5, // a
+										"name": "a",
 										"type": 3, // u8
 									},
 									{
-										"name": 6, // b
+										"name": "b",
 										"type": 4, // u32
 									},
 									{
-										"name": 7, // c
+										"name": "c",
 										"type": 6, // [u8; 32]
 									}
 								]

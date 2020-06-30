@@ -14,11 +14,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	utils::is_rust_identifier,
-	IntoCompact, Registry,
-};
+use crate::utils::is_rust_identifier;
 use serde::Serialize;
 
 /// Represents the path of a type definition.
@@ -30,32 +26,14 @@ use serde::Serialize;
 /// Rust prelude type may have an empty namespace definition.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(transparent)]
-pub struct Path<F: Form = MetaForm> {
+pub struct Path {
 	/// The segments of the namespace.
-	segments: Vec<F::String>,
+	segments: Vec<&'static str>,
 }
 
-impl<F> Default for Path<F>
-where
-	F: Form,
-{
+impl Default for Path {
 	fn default() -> Self {
 		Path { segments: Vec::new() }
-	}
-}
-
-impl IntoCompact for Path {
-	type Output = Path<CompactForm>;
-
-	/// Compacts this path using the given registry.
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		Path {
-			segments: self
-				.segments
-				.into_iter()
-				.map(|seg| registry.register_string(seg))
-				.collect::<Vec<_>>(),
-		}
 	}
 }
 
@@ -65,7 +43,7 @@ impl Path {
 	/// # Panics
 	///
 	/// - If the type identifier or module path contain invalid Rust identifiers
-	pub fn new(ident: <MetaForm as Form>::String, module_path: <MetaForm as Form>::String) -> Path {
+	pub fn new(ident: &'static str, module_path: &'static str) -> Path {
 		let mut segments = module_path.split("::").collect::<Vec<_>>();
 		segments.push(ident);
 		Self::from_segments(segments).expect("All path segments should be valid Rust identifiers")
@@ -82,7 +60,7 @@ impl Path {
 	/// # Panics
 	///
 	/// - If the supplied ident is not a valid Rust identifier
-	pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Path {
+	pub(crate) fn prelude(ident: &'static str) -> Path {
 		Self::from_segments(vec![ident]).unwrap_or_else(|_| panic!("{} is not a valid Rust identifier", ident))
 	}
 
@@ -94,7 +72,7 @@ impl Path {
 	/// - If any of the segments are invalid Rust identifiers
 	pub fn from_segments<I>(segments: I) -> Result<Path, PathError>
 	where
-		I: IntoIterator<Item = <MetaForm as Form>::String>,
+		I: IntoIterator<Item = &'static str>,
 	{
 		let segments = segments.into_iter().collect::<Vec<_>>();
 		if segments.is_empty() {
@@ -107,22 +85,19 @@ impl Path {
 	}
 }
 
-impl<F> Path<F>
-where
-	F: Form,
-{
+impl Path {
 	/// Returns `true` if the path is empty
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()
 	}
 
 	/// Get the ident segment of the Path
-	pub fn ident(&self) -> Option<&F::String> {
-		self.segments.iter().last()
+	pub fn ident(&self) -> Option<&str> {
+		self.segments.iter().last().copied()
 	}
 
 	/// Get the namespace segments of the Path
-	pub fn namespace(&self) -> &[F::String] {
+	pub fn namespace(&self) -> &[&'static str] {
 		self.segments.split_last().map(|(_, ns)| ns).unwrap_or(&[])
 	}
 }
@@ -195,7 +170,7 @@ mod tests {
 	fn path_get_namespace_and_ident() {
 		let path = Path::new("Planet", "hello::world");
 		assert_eq!(path.namespace(), &["hello", "world"]);
-		assert_eq!(path.ident(), Some(&"Planet"));
+		assert_eq!(path.ident(), Some("Planet"));
 	}
 
 	#[test]

@@ -12,22 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The registry has the purpose to compactify types and strings found in type
-//! definitions and identifiers such as symbol names.
+//! The registry has the purpose to compactify types found in type definitions.
 //!
-//! This is done by deduplicating common strings and types in order to reuse
+//! This is done by deduplicating common types in order to reuse
 //! their definitions which can grow arbitrarily large. A type is uniquely
 //! identified by its type identifier that is therefore used to refer to types
 //! and their definitions.
 //!
-//! Since symbol names etc. are often shared between different types they are
-//! as well deduplicated.
-//!
 //! Types with the same name are uniquely identifiable by introducing
 //! namespaces. For this the normal Rust namespace of a type is used where it
-//! has been defined it. Rust prelude types live within the so-called root
-//! namespace that is just empty. In general namespaces are ordered sequences of
-//! symbols and thus also profit from string deduplication.
+//! has been defined. Rust prelude types live within the so-called root
+//! namespace that is just empty.
 
 use crate::tm_std::*;
 use crate::{
@@ -49,8 +44,7 @@ pub trait IntoCompact {
 
 /// The registry for compaction of type identifiers and definitions.
 ///
-/// The registry consists of a cache for strings such as symbol names
-/// and a cache for already compactified type identifiers and definitions.
+/// The registry consists of a cache for already compactified type identifiers and definitions.
 ///
 /// Whenever using the registry to compact a type all of its sub-types
 /// are going to be registered recursively as well. A type is a sub-type
@@ -62,9 +56,6 @@ pub trait IntoCompact {
 /// mechanism to stop recursion before going into an infinite loop.
 #[derive(Debug, PartialEq, Eq, Serialize)]
 pub struct Registry {
-	/// The cache for already registered strings.
-	#[serde(rename = "strings")]
-	string_table: Interner<&'static str>,
 	/// The cache for already registered types.
 	///
 	/// This is just an accessor to the actual database
@@ -101,16 +92,9 @@ impl Registry {
 	/// Creates a new empty registry.
 	pub fn new() -> Self {
 		Self {
-			string_table: Interner::new(),
 			type_table: Interner::new(),
 			types: BTreeMap::new(),
 		}
-	}
-
-	/// Registers the given string into the registry and returns
-	/// its respective associated string symbol.
-	pub fn register_string(&mut self, string: &'static str) -> UntrackedSymbol<&'static str> {
-		self.string_table.intern_or_get(string).1.into_untracked()
 	}
 
 	/// Registers the given type ID into the registry.
