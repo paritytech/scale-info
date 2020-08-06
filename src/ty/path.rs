@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::tm_std::*;
-
-use crate::utils::is_rust_identifier;
+use crate::{IntoCompact, form::{CompactForm, Form, MetaForm}, tm_std::*, utils::is_rust_identifier, Registry};
 use serde::Serialize;
 
 /// Represents the path of a type definition.
@@ -26,14 +24,27 @@ use serde::Serialize;
 /// Rust prelude type may have an empty namespace definition.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
 #[serde(transparent)]
-pub struct Path {
+pub struct Path<F: Form = MetaForm> {
 	/// The segments of the namespace.
-	segments: Vec<&'static str>,
+	segments: Vec<F::String>,
 }
 
-impl Default for Path {
+impl<F> Default for Path<F>
+where
+	F: Form,
+{
 	fn default() -> Self {
 		Path { segments: Vec::new() }
+	}
+}
+
+impl IntoCompact for Path {
+	type Output = Path<CompactForm>;
+
+	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
+		Path {
+			segments: self.segments,
+		}
 	}
 }
 
@@ -85,19 +96,22 @@ impl Path {
 	}
 }
 
-impl Path {
+impl<F> Path<F>
+where
+	F: Form
+{
 	/// Returns `true` if the path is empty
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()
 	}
 
 	/// Get the ident segment of the Path
-	pub fn ident(&self) -> Option<&str> {
-		self.segments.iter().last().copied()
+	pub fn ident(&self) -> Option<F::String> {
+		self.segments.iter().last().cloned()
 	}
 
 	/// Get the namespace segments of the Path
-	pub fn namespace(&self) -> &[&'static str] {
+	pub fn namespace(&self) -> &[F::String] {
 		self.segments.split_last().map(|(_, ns)| ns).unwrap_or(&[])
 	}
 }
