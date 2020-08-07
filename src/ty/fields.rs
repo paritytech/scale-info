@@ -25,12 +25,12 @@ use serde::Serialize;
 /// Name is optional so it can represent both named and unnamed fields.
 ///
 /// This can be a named field of a struct type or a struct variant.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, scale::Decode)]
 #[serde(bound = "F::TypeId: Serialize")]
 pub struct Field<F: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none")]
-	name: Option<&'static str>,
+	name: Option<F::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
 	ty: F::TypeId,

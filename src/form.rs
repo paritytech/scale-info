@@ -80,6 +80,8 @@ impl Form for CompactForm {
 pub enum OwnedForm {}
 
 impl Form for OwnedForm {
-	type TypeId = UntrackedSymbol<TypeId>;
+	/// For correctness should be [`NonZeroU32`](`core::num::NonZeroU32`), but the current
+	/// (`1.3.x`) release of `parity-scale-codec` does not include the `NoneZero*` Decode impls.
+	type TypeId = u32;
 	type String = String;
 }

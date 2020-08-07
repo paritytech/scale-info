@@ -26,7 +26,7 @@
 
 use crate::tm_std::*;
 use crate::{
-	form::CompactForm,
+	form::{CompactForm, OwnedForm},
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
 	Type,
@@ -146,5 +146,20 @@ impl Registry {
 		T: IntoCompact,
 	{
 		iter.into_iter().map(|i| i.into_compact(self)).collect::<Vec<_>>()
+	}
+}
+
+/// A read-only registry, to be used for decoding/deserializing
+#[derive(Debug, PartialEq, Eq, scale::Decode)]
+struct RegistryReadOnly {
+	ty: Type<OwnedForm>,
+	types: Vec<Type<OwnedForm>>,
+}
+
+impl RegistryReadOnly {
+	// Returns the type definition for the given identifier.
+	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<OwnedForm>> {
+		self.types.get((id.get() - 1) as usize);
+		None
 	}
 }

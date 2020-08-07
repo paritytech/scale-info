@@ -22,7 +22,7 @@ use serde::Serialize;
 /// has been defined. The last
 ///
 /// Rust prelude type may have an empty namespace definition.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug, scale::Decode)]
 #[serde(transparent)]
 pub struct Path<F: Form = MetaForm> {
 	/// The segments of the namespace.
