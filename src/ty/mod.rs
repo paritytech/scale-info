@@ -32,17 +32,17 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 
 /// A [`Type`] definition with optional metadata.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct Type<F: Form = MetaForm> {
+#[serde(bound = "T::TypeId: Serialize")]
+pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty")]
-	path: Path<F>,
+	path: Path<T>,
 	/// The generic type parameters of the type in use. Empty for non generic types
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty")]
-	type_params: Vec<F::TypeId>,
+	type_params: Vec<T::TypeId>,
 	/// The actual type definition
 	#[serde(rename = "def")]
-	type_def: TypeDef<F>,
+	type_def: TypeDef<T>,
 }
 
 impl IntoCompact for Type {
@@ -103,19 +103,19 @@ impl Type {
 
 /// The possible types a SCALE encodable Rust value could have.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "T::TypeId: Serialize")]
 #[serde(rename_all = "camelCase")]
-pub enum TypeDef<F: Form = MetaForm> {
+pub enum TypeDef<T: Form = MetaForm> {
 	/// A composite type (e.g. a struct or a tuple)
-	Composite(TypeDefComposite<F>),
+	Composite(TypeDefComposite<T>),
 	/// A variant type (e.g. an enum)
-	Variant(TypeDefVariant<F>),
+	Variant(TypeDefVariant<T>),
 	/// A sequence type with runtime known length.
-	Sequence(TypeDefSequence<F>),
+	Sequence(TypeDefSequence<T>),
 	/// An array type with compile-time known length.
-	Array(TypeDefArray<F>),
+	Array(TypeDefArray<T>),
 	/// A tuple type.
-	Tuple(TypeDefTuple<F>),
+	Tuple(TypeDefTuple<T>),
 	/// A Rust primitive type.
 	Primitive(TypeDefPrimitive),
 }
@@ -169,13 +169,13 @@ pub enum TypeDefPrimitive {
 
 /// An array type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct TypeDefArray<F: Form = MetaForm> {
+#[serde(bound = "T::TypeId: Serialize")]
+pub struct TypeDefArray<T: Form = MetaForm> {
 	/// The length of the array type.
 	pub len: u32,
 	/// The element type of the array type.
 	#[serde(rename = "type")]
-	pub type_param: F::TypeId,
+	pub type_param: T::TypeId,
 }
 
 impl IntoCompact for TypeDefArray {
@@ -198,11 +198,11 @@ impl TypeDefArray {
 
 /// A type to refer to tuple types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound = "F::TypeId: Serialize + Deserialize")]
+#[serde(bound = "T::TypeId: Serialize")]
 #[serde(transparent)]
-pub struct TypeDefTuple<F: Form = MetaForm> {
+pub struct TypeDefTuple<T: Form = MetaForm> {
 	/// The types of the tuple fields.
-	fields: Vec<F::TypeId>,
+	fields: Vec<T::TypeId>,
 }
 
 impl IntoCompact for TypeDefTuple {
@@ -234,11 +234,11 @@ impl TypeDefTuple {
 
 /// A type to refer to a sequence of elements of the same type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct TypeDefSequence<F: Form = MetaForm> {
+#[serde(bound = "T::TypeId: Serialize")]
+pub struct TypeDefSequence<T: Form = MetaForm> {
 	/// The element type of the sequence type.
 	#[serde(rename = "type")]
-	type_param: F::TypeId,
+	type_param: T::TypeId,
 }
 
 impl IntoCompact for TypeDefSequence {

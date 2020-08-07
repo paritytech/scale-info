@@ -61,11 +61,11 @@ use serde::Serialize;
 /// enum JustAMarker {}
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From, scale::Decode)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "T::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
-pub struct TypeDefVariant<F: Form = MetaForm> {
+pub struct TypeDefVariant<T: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty")]
-	variants: Vec<Variant<F>>,
+	variants: Vec<Variant<T>>,
 }
 
 impl IntoCompact for TypeDefVariant {
@@ -106,13 +106,13 @@ impl TypeDefVariant {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, scale::Decode)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct Variant<F: Form = MetaForm> {
+#[serde(bound = "T::TypeId: Serialize")]
+pub struct Variant<T: Form = MetaForm> {
 	/// The name of the struct variant.
-	name: F::String,
+	name: T::String,
 	/// The fields of the struct variant.
 	#[serde(skip_serializing_if = "Vec::is_empty")]
-	fields: Vec<Field<F>>,
+	fields: Vec<Field<T>>,
 	/// The discriminant of the variant.
 	///
 	/// # Note

@@ -18,22 +18,23 @@ use crate::{
 	form::{CompactForm, Form, MetaForm},
 	IntoCompact, MetaType, Registry, TypeInfo,
 };
-use serde::Serialize;
+use scale::{Decode, Encode};
+use serde::{Serialize, Deserialize};
 
 /// A field of a struct like data type.
 ///
 /// Name is optional so it can represent both named and unnamed fields.
 ///
 /// This can be a named field of a struct type or a struct variant.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, scale::Decode)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct Field<F: Form = MetaForm> {
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
+#[serde(bound = "T::TypeId: Serialize")]
+pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none")]
-	name: Option<F::String>,
+	name: Option<T::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	ty: F::TypeId,
+	ty: T::TypeId,
 }
 
 impl IntoCompact for Field {

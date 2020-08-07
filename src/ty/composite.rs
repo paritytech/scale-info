@@ -48,11 +48,11 @@ use serde::Serialize;
 /// struct JustAMarker;
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From, scale::Decode)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[serde(bound = "T::TypeId: Serialize")]
 #[serde(rename_all = "lowercase")]
-pub struct TypeDefComposite<F: Form = MetaForm> {
+pub struct TypeDefComposite<T: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty")]
-	fields: Vec<Field<F>>,
+	fields: Vec<Field<T>>,
 }
 
 impl IntoCompact for TypeDefComposite {

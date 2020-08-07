@@ -31,6 +31,7 @@ use crate::{
 	meta_type::MetaType,
 	Type,
 };
+use scale::{Encode, Decode};
 use serde::{Deserialize, Serialize};
 
 /// Compacts the implementor using a registry.
@@ -88,7 +89,7 @@ impl Default for Registry {
 	}
 }
 
-impl scale::Encode for Registry {
+impl Encode for Registry {
 	fn size_hint(&self) -> usize {
 		mem::size_of::<u32>() + mem::size_of::<Type<CompactForm>>() * self.types.len()
 	}
@@ -167,7 +168,7 @@ impl Registry {
 }
 
 /// A read-only registry, to be used for decoding/deserializing
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, scale::Decode)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Decode)]
 pub struct RegistryReadOnly {
 	types: Vec<Type<OwnedForm>>,
 }

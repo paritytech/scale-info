@@ -22,28 +22,28 @@ pub trait TypeInfo {
 Types implementing this trait build up and return a `Type` struct:
 
 ```rust
-pub struct Type<F: Form = MetaForm> {
+pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
-	path: Path<F>,
+	path: Path<T>,
 	/// The generic type parameters of the type in use. Empty for non generic types
-	type_params: Vec<F::TypeId>,
+	type_params: Vec<T::TypeId>,
 	/// The actual type definition
-	type_def: TypeDef<F>,
+	type_def: TypeDef<T>,
 }
 ```
 Types are defined as one of the following variants:
 ```rust
-pub enum TypeDef<F: Form = MetaForm> {
+pub enum TypeDef<T: Form = MetaForm> {
 	/// A composite type (e.g. a struct or a tuple)
-	Composite(TypeDefComposite<F>),
+	Composite(TypeDefComposite<T>),
 	/// A variant type (e.g. an enum)
-	Variant(TypeDefVariant<F>),
+	Variant(TypeDefVariant<T>),
 	/// A sequence type with runtime known length.
-	Sequence(TypeDefSequence<F>),
+	Sequence(TypeDefSequence<T>),
 	/// An array type with compile-time known length.
-	Array(TypeDefArray<F>),
+	Array(TypeDefArray<T>),
 	/// A tuple type.
-	Tuple(TypeDefTuple<F>),
+	Tuple(TypeDefTuple<T>),
 	/// A Rust primitive type.
 	Primitive(TypeDefPrimitive),
 }
