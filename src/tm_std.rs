@@ -40,6 +40,7 @@ pub use self::core::{
 	fmt::{Debug, Error as FmtError, Formatter},
 	hash::{Hash, Hasher},
 	iter,
+	mem,
 };
 
 mod alloc {

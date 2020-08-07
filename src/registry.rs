@@ -31,7 +31,7 @@ use crate::{
 	meta_type::MetaType,
 	Type,
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -85,6 +85,23 @@ where
 impl Default for Registry {
 	fn default() -> Self {
 		Self::new()
+	}
+}
+
+impl scale::Encode for Registry {
+	fn size_hint(&self) -> usize {
+		mem::size_of::<u32>() + mem::size_of::<Type<CompactForm>>() * self.types.len()
+	}
+
+	fn encode_to<W: scale::Output>(&self, dest: &mut W) {
+		if self.types.len() > u32::max_value() as usize {
+			panic!("Attempted to encode too many elements.");
+		}
+		scale::Compact(self.types.len() as u32).encode_to(dest);
+
+		for ty in self.types.values() {
+			ty.encode_to(dest);
+		}
 	}
 }
 
@@ -150,14 +167,13 @@ impl Registry {
 }
 
 /// A read-only registry, to be used for decoding/deserializing
-#[derive(Debug, PartialEq, Eq, scale::Decode)]
-struct RegistryReadOnly {
-	ty: Type<OwnedForm>,
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, scale::Decode)]
+pub struct RegistryReadOnly {
 	types: Vec<Type<OwnedForm>>,
 }
 
 impl RegistryReadOnly {
-	// Returns the type definition for the given identifier.
+	/// Returns the type definition for the given identifier, `None` if no type found for that ID.
 	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<OwnedForm>> {
 		self.types.get((id.get() - 1) as usize);
 		None
