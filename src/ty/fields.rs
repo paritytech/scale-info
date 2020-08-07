@@ -19,7 +19,7 @@ use crate::{
 	IntoCompact, MetaType, Registry, TypeInfo,
 };
 use scale::{Decode, Encode};
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
 
 /// A field of a struct like data type.
 ///
@@ -27,7 +27,7 @@ use serde::{Serialize, Deserialize};
 ///
 /// This can be a named field of a struct type or a struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none")]

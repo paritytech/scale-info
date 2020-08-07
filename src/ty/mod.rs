@@ -21,7 +21,7 @@ use crate::{
 };
 use derive_more::From;
 use scale::{Decode, Encode};
-use serde::{Deserialize, Serialize};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
 
 mod composite;
 mod fields;
@@ -32,7 +32,7 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 
 /// A [`Type`] definition with optional metadata.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty")]
@@ -103,7 +103,7 @@ impl Type {
 
 /// The possible types a SCALE encodable Rust value could have.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 #[serde(rename_all = "camelCase")]
 pub enum TypeDef<T: Form = MetaForm> {
 	/// A composite type (e.g. a struct or a tuple)
@@ -169,7 +169,7 @@ pub enum TypeDefPrimitive {
 
 /// An array type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 pub struct TypeDefArray<T: Form = MetaForm> {
 	/// The length of the array type.
 	pub len: u32,
@@ -198,7 +198,7 @@ impl TypeDefArray {
 
 /// A type to refer to tuple types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 #[serde(transparent)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
 	/// The types of the tuple fields.
@@ -234,7 +234,7 @@ impl TypeDefTuple {
 
 /// A type to refer to a sequence of elements of the same type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 pub struct TypeDefSequence<T: Form = MetaForm> {
 	/// The element type of the sequence type.
 	#[serde(rename = "type")]

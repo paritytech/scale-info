@@ -20,7 +20,8 @@ use crate::{
 	Field, IntoCompact, Registry,
 };
 use derive_more::From;
-use serde::Serialize;
+use scale::{Encode, Decode};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
 
 /// A Enum type (consisting of variants).
 ///
@@ -60,8 +61,8 @@ use serde::Serialize;
 /// ```
 /// enum JustAMarker {}
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From, scale::Decode)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefVariant<T: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty")]
@@ -106,7 +107,7 @@ impl TypeDefVariant {
 /// }
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, scale::Decode)]
-#[serde(bound = "T::TypeId: Serialize")]
+#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 pub struct Variant<T: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: T::String,

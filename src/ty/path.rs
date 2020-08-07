@@ -14,7 +14,7 @@
 
 use crate::{IntoCompact, form::{CompactForm, Form, MetaForm}, tm_std::*, utils::is_rust_identifier, Registry};
 use scale::{Decode, Encode};
-use serde::{Serialize, Deserialize};
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
 
 /// Represents the path of a type definition.
 ///
