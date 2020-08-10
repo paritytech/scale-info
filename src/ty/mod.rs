@@ -21,7 +21,7 @@ use crate::{
 };
 use derive_more::From;
 use scale::{Decode, Encode};
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 mod composite;
 mod fields;

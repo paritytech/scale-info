@@ -31,7 +31,7 @@ use crate::{
 	meta_type::MetaType,
 	Type,
 };
-use scale::{Encode, Decode};
+use scale::{Decode, Encode};
 use serde::{Deserialize, Serialize};
 
 /// Compacts the implementor using a registry.

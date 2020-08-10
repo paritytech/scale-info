@@ -19,7 +19,7 @@ use crate::{
 	IntoCompact, MetaType, Registry, TypeInfo,
 };
 use scale::{Decode, Encode};
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A field of a struct like data type.
 ///

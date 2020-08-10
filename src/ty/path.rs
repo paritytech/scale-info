@@ -12,9 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{IntoCompact, form::{CompactForm, Form, MetaForm}, tm_std::*, utils::is_rust_identifier, Registry};
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	tm_std::*,
+	utils::is_rust_identifier,
+	IntoCompact, Registry,
+};
 use scale::{Decode, Encode};
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// Represents the path of a type definition.
 ///
@@ -103,7 +108,7 @@ impl Path {
 
 impl<T> Path<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Returns `true` if the path is empty
 	pub fn is_empty(&self) -> bool {

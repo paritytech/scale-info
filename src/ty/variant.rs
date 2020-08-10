@@ -20,8 +20,8 @@ use crate::{
 	Field, IntoCompact, Registry,
 };
 use derive_more::From;
-use scale::{Encode, Decode};
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use scale::{Decode, Encode};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A Enum type (consisting of variants).
 ///

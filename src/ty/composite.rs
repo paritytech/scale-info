@@ -19,8 +19,8 @@ use crate::{
 	Field, IntoCompact, Registry,
 };
 use derive_more::From;
-use scale::{Encode, Decode};
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use scale::{Decode, Encode};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A composite type, consisting of either named (struct) or unnamed (tuple
 /// struct) fields

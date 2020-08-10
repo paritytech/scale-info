@@ -23,23 +23,21 @@ extern crate alloc;
 use alloc::{vec, vec::Vec};
 
 use pretty_assertions::{assert_eq, assert_ne};
-use scale::{Encode, Decode};
-use scale_info::{form::CompactForm, MetaType, IntoCompact as _, Registry, RegistryReadOnly, TypeInfo};
+use scale::{Decode, Encode};
+use scale_info::{form::CompactForm, IntoCompact as _, MetaType, Registry, RegistryReadOnly, TypeInfo};
 
 #[derive(TypeInfo)]
 struct A<T> {
 	a: bool,
 	b: Result<char, u32>,
-	c: T
+	c: T,
 }
 
 #[derive(TypeInfo)]
 enum B {
 	A,
 	B(A<bool>),
-	C {
-		d: [u8; 32]
-	}
+	C { d: [u8; 32] },
 }
 
 #[test]
