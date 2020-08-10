@@ -62,7 +62,10 @@ use serde::{Serialize, Deserialize, de::DeserializeOwned};
 /// enum JustAMarker {}
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefVariant<T: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty")]
@@ -106,8 +109,11 @@ impl TypeDefVariant {
 /// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
 /// }
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, scale::Decode)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 pub struct Variant<T: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: T::String,

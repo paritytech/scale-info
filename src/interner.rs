@@ -23,22 +23,18 @@
 
 use crate::tm_std::*;
 use scale::Encode;
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use serde::Serialize;
 
 /// A symbol that is not lifetime tracked.
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(transparent)]
 pub struct UntrackedSymbol<T> {
 	id: NonZeroU32,
 	#[serde(skip)]
 	marker: PhantomData<fn() -> T>,
-}
-
-impl<T> Encode for UntrackedSymbol<T> {
-
 }
 
 /// A symbol from an interner.

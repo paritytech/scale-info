@@ -27,7 +27,10 @@ use serde::{Serialize, Deserialize, de::DeserializeOwned};
 ///
 /// This can be a named field of a struct type or a struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none")]

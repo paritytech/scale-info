@@ -49,7 +49,10 @@ use serde::{Serialize, Deserialize, de::DeserializeOwned};
 /// struct JustAMarker;
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefComposite<T: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty")]

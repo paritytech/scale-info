@@ -32,7 +32,10 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 
 /// A [`Type`] definition with optional metadata.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty")]
@@ -103,7 +106,10 @@ impl Type {
 
 /// The possible types a SCALE encodable Rust value could have.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 #[serde(rename_all = "camelCase")]
 pub enum TypeDef<T: Form = MetaForm> {
 	/// A composite type (e.g. a struct or a tuple)
