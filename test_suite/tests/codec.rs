@@ -43,15 +43,15 @@ enum B {
 }
 
 #[test]
-fn encode_decode_to_readonly() {
+fn scale_encode_then_decode_to_readonly() {
 	let mut registry = Registry::new();
 	registry.register_type(&MetaType::new::<A<B>>());
 
 	let mut encoded = registry.encode();
-	// let original_serialized = serde_json::to_value(registry).unwrap();
-	//
-	// let readonly_decoded = RegistryReadOnly::decode(&mut &encoded[..]).unwrap();
-	// let decoded_serialized = serde_json::to_value(readonly_decoded).unwrap();
-	//
-	// assert_eq!(decoded_serialized, original_serialized);
+	let original_serialized = serde_json::to_value(registry).unwrap();
+
+	let readonly_decoded = RegistryReadOnly::decode(&mut &encoded[..]).unwrap();
+	let decoded_serialized = serde_json::to_value(readonly_decoded).unwrap();
+
+	assert_eq!(decoded_serialized, original_serialized);
 }

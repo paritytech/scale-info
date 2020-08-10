@@ -22,7 +22,6 @@
 //! elements and is later used for compact serialization within the registry.
 
 use crate::tm_std::*;
-use scale::Encode;
 use serde::Serialize;
 
 /// A symbol that is not lifetime tracked.
@@ -35,6 +34,11 @@ pub struct UntrackedSymbol<T> {
 	id: NonZeroU32,
 	#[serde(skip)]
 	marker: PhantomData<fn() -> T>,
+}
+impl<T> scale::Encode for UntrackedSymbol<T> {
+	fn encode_to<W: scale::Output>(&self, dest: &mut W) {
+		self.id.get().encode_to(dest)
+	}
 }
 
 /// A symbol from an interner.
