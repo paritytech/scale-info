@@ -48,3 +48,6 @@ enum E<T> {
 	B { b: T },
 	C,
 }
+
+fn main() {
+}
