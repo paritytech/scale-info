@@ -68,7 +68,7 @@ use serde::{Serialize, Deserialize, de::DeserializeOwned};
 ))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefVariant<T: Form = MetaForm> {
-	#[serde(skip_serializing_if = "Vec::is_empty")]
+	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	variants: Vec<Variant<T>>,
 }
 
@@ -118,7 +118,7 @@ pub struct Variant<T: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: T::String,
 	/// The fields of the struct variant.
-	#[serde(skip_serializing_if = "Vec::is_empty")]
+	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	fields: Vec<Field<T>>,
 	/// The discriminant of the variant.
 	///
@@ -127,7 +127,7 @@ pub struct Variant<T: Form = MetaForm> {
 	/// Even though setting the discriminant is optional
 	/// every C-like enum variant has a discriminant specified
 	/// upon compile-time.
-	#[serde(skip_serializing_if = "Option::is_none")]
+	#[serde(skip_serializing_if = "Option::is_none", default)]
 	discriminant: Option<u64>,
 }
 

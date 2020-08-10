@@ -55,7 +55,7 @@ use serde::{Serialize, Deserialize, de::DeserializeOwned};
 ))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefComposite<T: Form = MetaForm> {
-	#[serde(skip_serializing_if = "Vec::is_empty")]
+	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	fields: Vec<Field<T>>,
 }
 

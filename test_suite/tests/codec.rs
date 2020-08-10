@@ -55,3 +55,16 @@ fn scale_encode_then_decode_to_readonly() {
 
 	assert_eq!(decoded_serialized, original_serialized);
 }
+
+#[test]
+fn json_serialize_then_deserialize_to_readonly() {
+	let mut registry = Registry::new();
+	registry.register_type(&MetaType::new::<A<B>>());
+
+	let original_serialized = serde_json::to_value(registry).unwrap();
+	// assert_eq!(original_serialized, serde_json::Value::Null);
+	let readonly_deserialized: RegistryReadOnly = serde_json::from_value(original_serialized.clone()).unwrap();
+	let readonly_serialized = serde_json::to_value(readonly_deserialized).unwrap();
+
+	assert_eq!(readonly_serialized, original_serialized);
+}
