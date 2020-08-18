@@ -47,7 +47,7 @@ impl IntoCompact for &'static str {
 	type Output = <CompactForm as Form>::String;
 
 	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
-		self.to_owned()
+		self.to_string()
 	}
 }
 
