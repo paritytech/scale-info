@@ -184,7 +184,6 @@ pub struct RegistryReadOnly {
 impl RegistryReadOnly {
 	/// Returns the type definition for the given identifier, `None` if no type found for that ID.
 	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm>> {
-		self.types.get((id.get() - 1) as usize);
-		None
+		self.types.get((id.get() - 1) as usize)
 	}
 }

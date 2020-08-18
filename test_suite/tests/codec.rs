@@ -21,7 +21,7 @@ extern crate alloc;
 
 #[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
-
+use core::num::NonZeroU32;
 use pretty_assertions::{assert_eq, assert_ne};
 use scale::{Decode, Encode};
 use scale_info::{form::CompactForm, IntoCompact as _, MetaType, Registry, RegistryReadOnly, TypeInfo};
@@ -49,6 +49,7 @@ fn scale_encode_then_decode_to_readonly() {
 	let original_serialized = serde_json::to_value(registry).unwrap();
 
 	let readonly_decoded = RegistryReadOnly::decode(&mut &encoded[..]).unwrap();
+	assert!(readonly_decoded.resolve(NonZeroU32::new(1).unwrap()).is_some());
 	let decoded_serialized = serde_json::to_value(readonly_decoded).unwrap();
 
 	assert_eq!(decoded_serialized, original_serialized);
@@ -62,6 +63,7 @@ fn json_serialize_then_deserialize_to_readonly() {
 	let original_serialized = serde_json::to_value(registry).unwrap();
 	// assert_eq!(original_serialized, serde_json::Value::Null);
 	let readonly_deserialized: RegistryReadOnly = serde_json::from_value(original_serialized.clone()).unwrap();
+	assert!(readonly_deserialized.resolve(NonZeroU32::new(1).unwrap()).is_some());
 	let readonly_serialized = serde_json::to_value(readonly_deserialized).unwrap();
 
 	assert_eq!(readonly_serialized, original_serialized);
