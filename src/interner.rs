@@ -22,7 +22,7 @@
 //! elements and is later used for compact serialization within the registry.
 
 use crate::tm_std::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 /// A symbol that is not lifetime tracked.
 ///
@@ -48,8 +48,11 @@ impl<T> scale::Decode for UntrackedSymbol<T> {
 		if id < 1 {
 			return Err("UntrackedSymbol::id should be a non-zero unsigned integer".into());
 		}
-		let id =  NonZeroU32::new(id).expect("ID is non zero");
-		Ok(UntrackedSymbol { id, marker: Default::default() })
+		let id = NonZeroU32::new(id).expect("ID is non zero");
+		Ok(UntrackedSymbol {
+			id,
+			marker: Default::default(),
+		})
 	}
 }
 
