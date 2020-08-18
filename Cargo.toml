@@ -26,7 +26,7 @@ std = [
 	"scale/std"
 ]
 derive = [
-    "scale-info-derive"
+	"scale-info-derive"
 ]
 
 [workspace]
