@@ -99,7 +99,6 @@ impl Type {
 			path,
 			type_params: type_params.into_iter().collect(),
 			type_def: type_def.into(),
-			// marker: MetaForm,
 		}
 	}
 }
