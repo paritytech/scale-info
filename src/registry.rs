@@ -26,7 +26,7 @@
 
 use crate::tm_std::*;
 use crate::{
-	form::{CompactForm, OwnedForm},
+	form::{CompactForm, Form},
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
 	Type,
@@ -41,6 +41,14 @@ pub trait IntoCompact {
 
 	/// Compacts `self` by using the registry for caching and compaction.
 	fn into_compact(self, registry: &mut Registry) -> Self::Output;
+}
+
+impl IntoCompact for &'static str {
+	type Output = <CompactForm as Form>::String;
+
+	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
+		self.to_owned()
+	}
 }
 
 /// The registry for compaction of type identifiers and definitions.
@@ -170,12 +178,12 @@ impl Registry {
 /// A read-only registry, to be used for decoding/deserializing
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Decode)]
 pub struct RegistryReadOnly {
-	types: Vec<Type<OwnedForm>>,
+	types: Vec<Type<CompactForm>>,
 }
 
 impl RegistryReadOnly {
 	/// Returns the type definition for the given identifier, `None` if no type found for that ID.
-	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<OwnedForm>> {
+	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm>> {
 		self.types.get((id.get() - 1) as usize);
 		None
 	}

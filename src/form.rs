@@ -72,16 +72,5 @@ pub enum CompactForm {}
 
 impl Form for CompactForm {
 	type TypeId = UntrackedSymbol<TypeId>;
-	type String = &'static str;
-}
-
-/// Owned form for decoding
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
-pub enum OwnedForm {}
-
-impl Form for OwnedForm {
-	/// For correctness should be [`NonZeroU32`](`core::num::NonZeroU32`), but the current
-	/// (`1.3.x`) release of `parity-scale-codec` does not include the `NoneZero*` Decode impls.
-	type TypeId = u32;
 	type String = String;
 }

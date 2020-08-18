@@ -45,7 +45,7 @@ impl IntoCompact for Field {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Field {
-			name: self.name,
+			name: self.name.map(|name| name.into_compact(registry)),
 			ty: registry.register_type(&self.ty),
 		}
 	}

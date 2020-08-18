@@ -136,7 +136,7 @@ impl IntoCompact for Variant {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Variant {
-			name: self.name,
+			name: self.name.into_compact(registry),
 			fields: registry.map_into_compact(self.fields),
 			discriminant: self.discriminant,
 		}

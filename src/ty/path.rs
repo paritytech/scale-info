@@ -51,9 +51,9 @@ where
 impl IntoCompact for Path {
 	type Output = Path<CompactForm>;
 
-	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Path {
-			segments: self.segments,
+			segments: registry.map_into_compact(self.segments),
 		}
 	}
 }
