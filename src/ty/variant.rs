@@ -20,7 +20,8 @@ use crate::{
 	Field, IntoCompact, Registry,
 };
 use derive_more::From;
-use serde::Serialize;
+use scale::{Decode, Encode};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A Enum type (consisting of variants).
 ///
@@ -60,12 +61,15 @@ use serde::Serialize;
 /// ```
 /// enum JustAMarker {}
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 #[serde(rename_all = "lowercase")]
-pub struct TypeDefVariant<F: Form = MetaForm> {
-	#[serde(skip_serializing_if = "Vec::is_empty")]
-	variants: Vec<Variant<F>>,
+pub struct TypeDefVariant<T: Form = MetaForm> {
+	#[serde(skip_serializing_if = "Vec::is_empty", default)]
+	variants: Vec<Variant<T>>,
 }
 
 impl IntoCompact for TypeDefVariant {
@@ -105,14 +109,17 @@ impl TypeDefVariant {
 /// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
 /// }
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize)]
-#[serde(bound = "F::TypeId: Serialize")]
-pub struct Variant<F: Form = MetaForm> {
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
+pub struct Variant<T: Form = MetaForm> {
 	/// The name of the struct variant.
-	name: &'static str,
+	name: T::String,
 	/// The fields of the struct variant.
-	#[serde(skip_serializing_if = "Vec::is_empty")]
-	fields: Vec<Field<F>>,
+	#[serde(skip_serializing_if = "Vec::is_empty", default)]
+	fields: Vec<Field<T>>,
 	/// The discriminant of the variant.
 	///
 	/// # Note
@@ -120,7 +127,7 @@ pub struct Variant<F: Form = MetaForm> {
 	/// Even though setting the discriminant is optional
 	/// every C-like enum variant has a discriminant specified
 	/// upon compile-time.
-	#[serde(skip_serializing_if = "Option::is_none")]
+	#[serde(skip_serializing_if = "Option::is_none", default)]
 	discriminant: Option<u64>,
 }
 
@@ -129,7 +136,7 @@ impl IntoCompact for Variant {
 
 	fn into_compact(self, registry: &mut Registry) -> Self::Output {
 		Variant {
-			name: self.name,
+			name: self.name.into_compact(registry),
 			fields: registry.map_into_compact(self.fields),
 			discriminant: self.discriminant,
 		}

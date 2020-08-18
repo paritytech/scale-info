@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::tm_std::*;
-
-use crate::utils::is_rust_identifier;
-use serde::Serialize;
+use crate::{
+	form::{CompactForm, Form, MetaForm},
+	tm_std::*,
+	utils::is_rust_identifier,
+	IntoCompact, Registry,
+};
+use scale::{Decode, Encode};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// Represents the path of a type definition.
 ///
@@ -24,16 +28,33 @@ use serde::Serialize;
 /// has been defined. The last
 ///
 /// Rust prelude type may have an empty namespace definition.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode)]
 #[serde(transparent)]
-pub struct Path {
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
+pub struct Path<T: Form = MetaForm> {
 	/// The segments of the namespace.
-	segments: Vec<&'static str>,
+	segments: Vec<T::String>,
 }
 
-impl Default for Path {
+impl<T> Default for Path<T>
+where
+	T: Form,
+{
 	fn default() -> Self {
 		Path { segments: Vec::new() }
+	}
+}
+
+impl IntoCompact for Path {
+	type Output = Path<CompactForm>;
+
+	fn into_compact(self, registry: &mut Registry) -> Self::Output {
+		Path {
+			segments: registry.map_into_compact(self.segments),
+		}
 	}
 }
 
@@ -85,19 +106,22 @@ impl Path {
 	}
 }
 
-impl Path {
+impl<T> Path<T>
+where
+	T: Form,
+{
 	/// Returns `true` if the path is empty
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()
 	}
 
 	/// Get the ident segment of the Path
-	pub fn ident(&self) -> Option<&str> {
-		self.segments.iter().last().copied()
+	pub fn ident(&self) -> Option<T::String> {
+		self.segments.iter().last().cloned()
 	}
 
 	/// Get the namespace segments of the Path
-	pub fn namespace(&self) -> &[&'static str] {
+	pub fn namespace(&self) -> &[T::String] {
 		self.segments.split_last().map(|(_, ns)| ns).unwrap_or(&[])
 	}
 }

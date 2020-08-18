@@ -26,12 +26,13 @@
 
 use crate::tm_std::*;
 use crate::{
-	form::CompactForm,
+	form::{CompactForm, Form},
 	interner::{Interner, UntrackedSymbol},
 	meta_type::MetaType,
 	Type,
 };
-use serde::Serialize;
+use scale::{Decode, Encode};
+use serde::{Deserialize, Serialize};
 
 /// Compacts the implementor using a registry.
 pub trait IntoCompact {
@@ -40,6 +41,14 @@ pub trait IntoCompact {
 
 	/// Compacts `self` by using the registry for caching and compaction.
 	fn into_compact(self, registry: &mut Registry) -> Self::Output;
+}
+
+impl IntoCompact for &'static str {
+	type Output = <CompactForm as Form>::String;
+
+	fn into_compact(self, _registry: &mut Registry) -> Self::Output {
+		self.to_string()
+	}
 }
 
 /// The registry for compaction of type identifiers and definitions.
@@ -85,6 +94,23 @@ where
 impl Default for Registry {
 	fn default() -> Self {
 		Self::new()
+	}
+}
+
+impl Encode for Registry {
+	fn size_hint(&self) -> usize {
+		mem::size_of::<u32>() + mem::size_of::<Type<CompactForm>>() * self.types.len()
+	}
+
+	fn encode_to<W: scale::Output>(&self, dest: &mut W) {
+		if self.types.len() > u32::max_value() as usize {
+			panic!("Attempted to encode too many elements.");
+		}
+		scale::Compact(self.types.len() as u32).encode_to(dest);
+
+		for ty in self.types.values() {
+			ty.encode_to(dest);
+		}
 	}
 }
 
@@ -146,5 +172,18 @@ impl Registry {
 		T: IntoCompact,
 	{
 		iter.into_iter().map(|i| i.into_compact(self)).collect::<Vec<_>>()
+	}
+}
+
+/// A read-only registry, to be used for decoding/deserializing
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Decode)]
+pub struct RegistryReadOnly {
+	types: Vec<Type<CompactForm>>,
+}
+
+impl RegistryReadOnly {
+	/// Returns the type definition for the given identifier, `None` if no type found for that ID.
+	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm>> {
+		self.types.get((id.get() - 1) as usize)
 	}
 }

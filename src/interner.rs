@@ -22,18 +22,38 @@
 //! elements and is later used for compact serialization within the registry.
 
 use crate::tm_std::*;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// A symbol that is not lifetime tracked.
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct UntrackedSymbol<T> {
 	id: NonZeroU32,
 	#[serde(skip)]
 	marker: PhantomData<fn() -> T>,
+}
+
+impl<T> scale::Encode for UntrackedSymbol<T> {
+	fn encode_to<W: scale::Output>(&self, dest: &mut W) {
+		self.id.get().encode_to(dest)
+	}
+}
+
+impl<T> scale::Decode for UntrackedSymbol<T> {
+	fn decode<I: scale::Input>(value: &mut I) -> Result<Self, scale::Error> {
+		let id = <u32 as scale::Decode>::decode(value)?;
+		if id < 1 {
+			return Err("UntrackedSymbol::id should be a non-zero unsigned integer".into());
+		}
+		let id = NonZeroU32::new(id).expect("ID is non zero");
+		Ok(UntrackedSymbol {
+			id,
+			marker: Default::default(),
+		})
+	}
 }
 
 /// A symbol from an interner.

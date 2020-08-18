@@ -125,7 +125,7 @@ mod tests;
 
 pub use self::{
 	meta_type::MetaType,
-	registry::{IntoCompact, Registry},
+	registry::{IntoCompact, Registry, RegistryReadOnly},
 	ty::*,
 };
 

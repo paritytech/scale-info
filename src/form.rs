@@ -42,6 +42,8 @@ use serde::Serialize;
 pub trait Form {
 	/// The type identifier type.
 	type TypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+	/// The string type.
+	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
 
 /// A meta meta-type.
@@ -53,6 +55,7 @@ pub enum MetaForm {}
 
 impl Form for MetaForm {
 	type TypeId = MetaType;
+	type String = &'static str;
 }
 
 /// Compact form that has its lifetime untracked in association to its interner.
@@ -62,9 +65,12 @@ impl Form for MetaForm {
 /// This resolves some lifetime issues with self-referential structs (such as
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
+///
+/// `type String` is owned in order to enable decoding
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
 pub enum CompactForm {}
 
 impl Form for CompactForm {
 	type TypeId = UntrackedSymbol<TypeId>;
+	type String = String;
 }

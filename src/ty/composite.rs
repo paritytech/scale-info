@@ -19,7 +19,8 @@ use crate::{
 	Field, IntoCompact, Registry,
 };
 use derive_more::From;
-use serde::Serialize;
+use scale::{Decode, Encode};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A composite type, consisting of either named (struct) or unnamed (tuple
 /// struct) fields
@@ -47,12 +48,15 @@ use serde::Serialize;
 /// ```
 /// struct JustAMarker;
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, From)]
-#[serde(bound = "F::TypeId: Serialize")]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
+#[serde(bound(
+	serialize = "T::TypeId: Serialize, T::String: Serialize",
+	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+))]
 #[serde(rename_all = "lowercase")]
-pub struct TypeDefComposite<F: Form = MetaForm> {
-	#[serde(skip_serializing_if = "Vec::is_empty")]
-	fields: Vec<Field<F>>,
+pub struct TypeDefComposite<T: Form = MetaForm> {
+	#[serde(skip_serializing_if = "Vec::is_empty", default)]
+	fields: Vec<Field<T>>,
 }
 
 impl IntoCompact for TypeDefComposite {
