@@ -15,8 +15,9 @@
 use crate::tm_std::*;
 
 use crate::{
+	build::Fields,
 	form::{CompactForm, Form, MetaForm},
-	Field, IntoCompact, Registry,
+	Field, IntoCompact, Registry, TypeInfo, Type, Path,
 };
 use derive_more::From;
 use scale::{Decode, Encode};
@@ -66,6 +67,17 @@ impl IntoCompact for TypeDefComposite {
 		TypeDefComposite {
 			fields: registry.map_into_compact(self.fields),
 		}
+	}
+}
+
+impl TypeInfo for TypeDefComposite<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("TypeDefComposite"))
+			.composite(
+				Fields::named()
+					.field_of::<Vec<Field<CompactForm>>>("fields")
+			)
 	}
 }
 
