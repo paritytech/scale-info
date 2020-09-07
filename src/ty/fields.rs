@@ -15,8 +15,9 @@
 use crate::tm_std::*;
 
 use crate::{
+	build::Fields,
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Registry, TypeInfo,
+	IntoCompact, MetaType, Registry, TypeInfo, Type, Path,
 };
 use scale::{Decode, Encode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -48,6 +49,18 @@ impl IntoCompact for Field {
 			name: self.name.map(|name| name.into_compact(registry)),
 			ty: registry.register_type(&self.ty),
 		}
+	}
+}
+
+impl TypeInfo for Field<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("Field"))
+			.composite(
+				Fields::named()
+					.field_of::<Option<<CompactForm as Form>::String>>("name")
+					.field_of::<Option<<CompactForm as Form>::TypeId>>("ty")
+			)
 	}
 }
 

@@ -22,6 +22,7 @@
 //! elements and is later used for compact serialization within the registry.
 
 use crate::tm_std::*;
+use crate::{build::Fields, form::MetaForm, TypeInfo, Type, Path};
 use serde::{Deserialize, Serialize};
 
 /// A symbol that is not lifetime tracked.
@@ -53,6 +54,16 @@ impl<T> scale::Decode for UntrackedSymbol<T> {
 			id,
 			marker: Default::default(),
 		})
+	}
+}
+
+impl<T> TypeInfo for UntrackedSymbol<T> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("Path"))
+			.composite(
+				Fields::named().field_of::<NonZeroU32>("id")
+			)
 	}
 }
 
