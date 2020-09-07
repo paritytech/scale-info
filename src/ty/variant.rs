@@ -14,11 +14,7 @@
 
 use crate::tm_std::*;
 
-use crate::{
-	build::FieldsBuilder,
-	form::{CompactForm, Form, MetaForm},
-	Field, IntoCompact, Registry,
-};
+use crate::{build::{FieldsBuilder, Fields}, form::{CompactForm, Form, MetaForm}, Field, IntoCompact, Path, Registry, TypeInfo, Type};
 use derive_more::From;
 use scale::{Decode, Encode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -82,6 +78,17 @@ impl IntoCompact for TypeDefVariant {
 	}
 }
 
+impl TypeInfo for TypeDefVariant<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("TypeDefVariant"))
+			.composite(
+				Fields::named()
+					.field_of::<Variant<CompactForm>>("variants")
+			)
+	}
+}
+
 impl TypeDefVariant {
 	/// Create a new `TypeDefVariant` with the given variants
 	pub fn new<I>(variants: I) -> Self
@@ -140,6 +147,19 @@ impl IntoCompact for Variant {
 			fields: registry.map_into_compact(self.fields),
 			discriminant: self.discriminant,
 		}
+	}
+}
+
+impl TypeInfo for Variant<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("Variant"))
+			.composite(
+				Fields::named()
+					.field_of::<<CompactForm as Form>::String>("name")
+					.field_of::<Vec<Field<CompactForm>>>("fields")
+					.field_of::<Option<u64>>("discriminant")
+			)
 	}
 }
 
