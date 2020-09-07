@@ -15,7 +15,7 @@
 use crate::tm_std::*;
 
 use crate::{
-	build::TypeBuilder,
+	build::{TypeBuilder, Fields, Variants},
 	form::{CompactForm, Form, MetaForm},
 	IntoCompact, MetaType, Registry, TypeInfo,
 };
@@ -57,6 +57,19 @@ impl IntoCompact for Type {
 			type_params: registry.register_types(self.type_params),
 			type_def: self.type_def.into_compact(registry),
 		}
+	}
+}
+
+impl TypeInfo for Type<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("Type"))
+			.composite(
+				Fields::named()
+					.field_of::<Path<CompactForm>>("path")
+					.field_of::<Vec<<CompactForm as Form>::TypeId>>("params")
+					.field_of::<TypeDef<CompactForm>>("def")
+			)
 	}
 }
 
@@ -123,6 +136,17 @@ pub enum TypeDef<T: Form = MetaForm> {
 	Tuple(TypeDefTuple<T>),
 	/// A Rust primitive type.
 	Primitive(TypeDefPrimitive),
+}
+
+impl TypeInfo for TypeDef<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("TypeDef"))
+			.variant(
+				Variants::with_fields()
+					.variant("Composite", Fields::unnamed().field_of::<TypeDefComposite<CompactForm>>())
+			)
+	}
 }
 
 impl IntoCompact for TypeDef {
