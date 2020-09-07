@@ -12,12 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-	form::{CompactForm, Form, MetaForm},
-	tm_std::*,
-	utils::is_rust_identifier,
-	IntoCompact, Registry,
-};
+use crate::{build::Fields, form::{CompactForm, Form, MetaForm}, tm_std::*, utils::is_rust_identifier, IntoCompact, Registry, TypeInfo, Type};
 use scale::{Decode, Encode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -55,6 +50,16 @@ impl IntoCompact for Path {
 		Path {
 			segments: registry.map_into_compact(self.segments),
 		}
+	}
+}
+
+impl TypeInfo for Path<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("Path"))
+			.composite(
+				Fields::named().field_of::<Vec<<CompactForm as Form>::String>>("segments")
+			)
 	}
 }
 
