@@ -28,6 +28,9 @@ std = [
 derive = [
 	"scale-info-derive"
 ]
+dogfood = [
+	"scale-info-derive/dogfood"
+]
 
 [workspace]
 members = [

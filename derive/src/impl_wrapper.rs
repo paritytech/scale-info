@@ -19,10 +19,17 @@ use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::Ident;
 
+#[cfg(not(feature = "dogfood"))]
+const CRATE_NAME: &str = "scale_info";
+
+#[cfg(feature = "dogfood")]
+const CRATE_NAME: &str = "self";
+
 pub fn wrap(ident: &Ident, trait_name: &'static str, impl_quote: TokenStream2) -> TokenStream2 {
 	let mut renamed = format!("_IMPL_{}_FOR_", trait_name);
 	renamed.push_str(ident.to_string().trim_start_matches("r#"));
 	let dummy_const = Ident::new(&renamed, Span::call_site());
+	let crate_name = Ident::new(CRATE_NAME, Span::call_site());
 
 	quote! {
 		#[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
@@ -30,7 +37,7 @@ pub fn wrap(ident: &Ident, trait_name: &'static str, impl_quote: TokenStream2) -
 			#[allow(unknown_lints)]
 			#[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
 			#[allow(rust_2018_idioms)]
-			use scale_info as _scale_info;
+			extern crate #crate_name as _scale_info;
 
 			#[cfg(not(feature = "std"))]
 			extern crate alloc;

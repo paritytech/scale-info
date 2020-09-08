@@ -63,6 +63,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefVariant<T: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	variants: Vec<Variant<T>>,
@@ -75,17 +76,6 @@ impl IntoCompact for TypeDefVariant {
 		TypeDefVariant {
 			variants: registry.map_into_compact(self.variants),
 		}
-	}
-}
-
-impl TypeInfo for TypeDefVariant<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("TypeDefVariant"))
-			.composite(
-				Fields::named()
-					.field_of::<Variant<CompactForm>>("variants")
-			)
 	}
 }
 
@@ -121,6 +111,7 @@ impl TypeDefVariant {
 	serialize = "T::TypeId: Serialize, T::String: Serialize",
 	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
 ))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Variant<T: Form = MetaForm> {
 	/// The name of the struct variant.
 	name: T::String,
@@ -147,19 +138,6 @@ impl IntoCompact for Variant {
 			fields: registry.map_into_compact(self.fields),
 			discriminant: self.discriminant,
 		}
-	}
-}
-
-impl TypeInfo for Variant<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("Variant"))
-			.composite(
-				Fields::named()
-					.field_of::<<CompactForm as Form>::String>("name")
-					.field_of::<Vec<Field<CompactForm>>>("fields")
-					.field_of::<Option<u64>>("discriminant")
-			)
 	}
 }
 
