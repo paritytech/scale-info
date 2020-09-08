@@ -67,8 +67,8 @@ impl TypeInfo for Type<CompactForm> {
 			.composite(
 				Fields::named()
 					.field_of::<Path<CompactForm>>("path")
-					.field_of::<Vec<<CompactForm as Form>::TypeId>>("params")
-					.field_of::<TypeDef<CompactForm>>("def")
+					.field_of::<Vec<<CompactForm as Form>::TypeId>>("type_params")
+					.field_of::<TypeDef<CompactForm>>("type_def")
 			)
 	}
 }
@@ -145,6 +145,11 @@ impl TypeInfo for TypeDef<CompactForm> {
 			.variant(
 				Variants::with_fields()
 					.variant("Composite", Fields::unnamed().field_of::<TypeDefComposite<CompactForm>>())
+					.variant("Variant", Fields::unnamed().field_of::<TypeDefVariant<CompactForm>>())
+					.variant("Sequence", Fields::unnamed().field_of::<TypeDefSequence<CompactForm>>())
+					.variant("Array", Fields::unnamed().field_of::<TypeDefArray<CompactForm>>())
+					.variant("Tuple", Fields::unnamed().field_of::<TypeDefTuple<CompactForm>>())
+					// .variant("Primitive", Fields::unnamed().field_of::<TypeDefPrimitive>())
 			)
 	}
 }
@@ -218,6 +223,19 @@ impl IntoCompact for TypeDefArray {
 	}
 }
 
+impl TypeInfo for TypeDefArray<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("TypeDefArray"))
+			.composite(
+				Fields::named()
+					.field_of::<u32>("len")
+					.field_of::<<CompactForm as Form>::TypeId>("type_param")
+			)
+	}
+}
+
+
 impl TypeDefArray {
 	/// Creates a new array type.
 	pub fn new(len: u32, type_param: MetaType) -> Self {
@@ -241,6 +259,17 @@ impl IntoCompact for TypeDefTuple {
 		TypeDefTuple {
 			fields: registry.register_types(self.fields),
 		}
+	}
+}
+
+impl TypeInfo for TypeDefTuple<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("TypeDefTuple"))
+			.composite(
+				Fields::named()
+					.field_of::<Vec<<CompactForm as Form>::TypeId>>("fields")
+			)
 	}
 }
 
@@ -277,6 +306,17 @@ impl IntoCompact for TypeDefSequence {
 		TypeDefSequence {
 			type_param: registry.register_type(&self.type_param),
 		}
+	}
+}
+
+impl TypeInfo for TypeDefSequence<CompactForm> {
+	fn type_info() -> Type<MetaForm> {
+		Type::builder()
+			.path(Path::prelude("TypeDefSequence"))
+			.composite(
+				Fields::named()
+					.field_of::<<CompactForm as Form>::TypeId>("type_param")
+			)
 	}
 }
 
