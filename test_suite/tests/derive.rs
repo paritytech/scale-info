@@ -137,7 +137,7 @@ fn associated_types_derive_without_bounds() {
 	#[allow(unused)]
 	#[derive(TypeInfo)]
 	struct Assoc<T: Types> {
-		a: T::A
+		a: T::A,
 	}
 
 	#[derive(TypeInfo)]
