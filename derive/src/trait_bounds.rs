@@ -143,7 +143,9 @@ fn get_types_to_add_trait_bound(input_ident: &Ident, data: &syn::Data, ty_params
 		.flat_map(|ty| {
 			find_type_paths_not_start_or_contain_ident(&ty, input_ident)
 				.into_iter()
-				.map(|ty| Type::Path(ty))
+				// Add this back if we add the .chain line below back
+				// .map(|ty| Type::Path(ty.clone()))
+				.map(Type::Path)
 				// Remove again types that do not contain any of our generic parameters
 				.filter(|ty| type_contain_idents(ty, &ty_params))
 			// todo: [AJ] can I remove this
