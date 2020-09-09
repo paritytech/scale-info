@@ -17,7 +17,6 @@
 extern crate alloc;
 
 mod impl_wrapper;
-mod symbol;
 mod trait_bounds;
 
 use alloc::vec::Vec;
@@ -30,7 +29,6 @@ use syn::{
 	token::Comma,
 	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
 };
-use symbol::*;
 
 #[proc_macro_derive(TypeInfo)]
 pub fn type_info(input: TokenStream) -> TokenStream {
@@ -59,36 +57,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 			_scale_info::meta_type::<#ty_ident>()
 		}
 	});
-
-	let meta_items = ast
-		.attrs
-		.iter()
-		.flat_map(|attr| {
-			if attr.path != SCALE_INFO {
-				return Ok(Vec::new())
-			}
-
-			match attr.parse_meta() {
-				Ok(List(meta)) => Ok(meta.nested.into_iter().collect()),
-				Ok(other) => {
-					cx.error_spanned_by(other, "expected #[scale_info(...)]");
-					Err(())
-				}
-				Err(err) => {
-					cx.syn_error(err);
-					Err(())
-				}
-			}
-		})
-		.flatten();
-
-	// Parse `#[serde(bound = "T: SomeBound")]`
-	// Meta(NameValue(m)) if m.path == BOUND => {
-	// 	if let Ok(where_predicates) = parse_lit_into_where(cx, BOUND, BOUND, &m.lit) {
-	// 		ser_bound.set(&m.path, where_predicates.clone());
-	// 		de_bound.set(&m.path, where_predicates);
-	// 	}
-	// }
 
 	let ast: DeriveInput = syn::parse2(input.clone())?;
 	let build_type = match &ast.data {
