@@ -34,10 +34,10 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none", default)]
-	name: Option<T::String>,
+	pub name: Option<T::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	ty: T::TypeId,
+	pub ty: T::TypeId,
 }
 
 impl IntoCompact for Field {

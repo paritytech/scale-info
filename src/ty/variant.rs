@@ -68,8 +68,9 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 ))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefVariant<T: Form = MetaForm> {
+	/// The variants of a variant type
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
-	variants: Vec<Variant<T>>,
+	pub variants: Vec<Variant<T>>,
 }
 
 impl IntoCompact for TypeDefVariant {
@@ -116,10 +117,10 @@ impl TypeDefVariant {
 ))]
 pub struct Variant<T: Form = MetaForm> {
 	/// The name of the struct variant.
-	name: T::String,
+	pub name: T::String,
 	/// The fields of the struct variant.
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
-	fields: Vec<Field<T>>,
+	pub fields: Vec<Field<T>>,
 	/// The discriminant of the variant.
 	///
 	/// # Note
@@ -128,7 +129,7 @@ pub struct Variant<T: Form = MetaForm> {
 	/// every C-like enum variant has a discriminant specified
 	/// upon compile-time.
 	#[serde(skip_serializing_if = "Option::is_none", default)]
-	discriminant: Option<u64>,
+	pub discriminant: Option<u64>,
 }
 
 impl IntoCompact for Variant {

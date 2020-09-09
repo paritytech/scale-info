@@ -39,13 +39,13 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty", default)]
-	path: Path<T>,
+	pub path: Path<T>,
 	/// The generic type parameters of the type in use. Empty for non generic types
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty", default)]
-	type_params: Vec<T::TypeId>,
+	pub type_params: Vec<T::TypeId>,
 	/// The actual type definition
 	#[serde(rename = "def")]
-	type_def: TypeDef<T>,
+	pub type_def: TypeDef<T>,
 }
 
 impl IntoCompact for Type {
@@ -243,7 +243,7 @@ impl TypeDefTuple {
 pub struct TypeDefSequence<T: Form = MetaForm> {
 	/// The element type of the sequence type.
 	#[serde(rename = "type")]
-	type_param: T::TypeId,
+	pub type_param: T::TypeId,
 }
 
 impl IntoCompact for TypeDefSequence {

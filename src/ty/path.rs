@@ -36,7 +36,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 ))]
 pub struct Path<T: Form = MetaForm> {
 	/// The segments of the namespace.
-	segments: Vec<T::String>,
+	pub segments: Vec<T::String>,
 }
 
 impl<T> Default for Path<T>
