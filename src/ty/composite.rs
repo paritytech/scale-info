@@ -15,9 +15,8 @@
 use crate::tm_std::*;
 
 use crate::{
-	build::Fields,
 	form::{CompactForm, Form, MetaForm},
-	Field, IntoCompact, Registry, TypeInfo, Type, Path,
+	Field, IntoCompact, Registry,
 };
 use derive_more::From;
 use scale::{Decode, Encode};
@@ -55,6 +54,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefComposite<T: Form = MetaForm> {
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	fields: Vec<Field<T>>,
@@ -67,17 +67,6 @@ impl IntoCompact for TypeDefComposite {
 		TypeDefComposite {
 			fields: registry.map_into_compact(self.fields),
 		}
-	}
-}
-
-impl TypeInfo for TypeDefComposite<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("TypeDefComposite"))
-			.composite(
-				Fields::named()
-					.field_of::<Vec<Field<CompactForm>>>("fields")
-			)
 	}
 }
 

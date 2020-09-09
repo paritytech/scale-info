@@ -14,7 +14,7 @@
 
 use crate::tm_std::*;
 
-use crate::{build::{FieldsBuilder, Fields}, form::{CompactForm, Form, MetaForm}, Field, IntoCompact, Path, Registry, TypeInfo, Type};
+use crate::{build::FieldsBuilder, form::{CompactForm, Form, MetaForm}, Field, IntoCompact, Registry};
 use derive_more::From;
 use scale::{Decode, Encode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};

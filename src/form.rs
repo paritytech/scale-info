@@ -31,7 +31,7 @@
 //! (also via lifetime tracking) are possible but current not needed.
 
 use crate::tm_std::*;
-use crate::{build::Variants, interner::UntrackedSymbol, meta_type::MetaType, TypeInfo, Type, Path};
+use crate::{interner::UntrackedSymbol, meta_type::MetaType};
 use serde::Serialize;
 
 /// Trait to control the internal structures of type definitions.
@@ -73,12 +73,4 @@ pub enum CompactForm {}
 impl Form for CompactForm {
 	type TypeId = UntrackedSymbol<TypeId>;
 	type String = String;
-}
-
-impl TypeInfo for CompactForm {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("CompactForm"))
-			.variant(Variants::fieldless())
-	}
 }

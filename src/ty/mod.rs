@@ -15,7 +15,7 @@
 use crate::tm_std::*;
 
 use crate::{
-	build::{TypeBuilder, Fields, Variants},
+	build::TypeBuilder,
 	form::{CompactForm, Form, MetaForm},
 	IntoCompact, MetaType, Registry, TypeInfo,
 };
@@ -36,6 +36,7 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 	serialize = "T::TypeId: Serialize, T::String: Serialize",
 	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
 ))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty", default)]
@@ -57,19 +58,6 @@ impl IntoCompact for Type {
 			type_params: registry.register_types(self.type_params),
 			type_def: self.type_def.into_compact(registry),
 		}
-	}
-}
-
-impl TypeInfo for Type<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("Type"))
-			.composite(
-				Fields::named()
-					.field_of::<Path<CompactForm>>("path")
-					.field_of::<Vec<<CompactForm as Form>::TypeId>>("type_params")
-					.field_of::<TypeDef<CompactForm>>("type_def")
-			)
 	}
 }
 
@@ -123,6 +111,7 @@ impl Type {
 	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDef<T: Form = MetaForm> {
 	/// A composite type (e.g. a struct or a tuple)
 	Composite(TypeDefComposite<T>),
@@ -136,22 +125,6 @@ pub enum TypeDef<T: Form = MetaForm> {
 	Tuple(TypeDefTuple<T>),
 	/// A Rust primitive type.
 	Primitive(TypeDefPrimitive),
-}
-
-impl TypeInfo for TypeDef<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("TypeDef"))
-			.variant(
-				Variants::with_fields()
-					.variant("Composite", Fields::unnamed().field_of::<TypeDefComposite<CompactForm>>())
-					.variant("Variant", Fields::unnamed().field_of::<TypeDefVariant<CompactForm>>())
-					.variant("Sequence", Fields::unnamed().field_of::<TypeDefSequence<CompactForm>>())
-					.variant("Array", Fields::unnamed().field_of::<TypeDefArray<CompactForm>>())
-					.variant("Tuple", Fields::unnamed().field_of::<TypeDefTuple<CompactForm>>())
-					// .variant("Primitive", Fields::unnamed().field_of::<TypeDefPrimitive>())
-			)
-	}
 }
 
 impl IntoCompact for TypeDef {
@@ -172,6 +145,7 @@ impl IntoCompact for TypeDef {
 /// A primitive Rust type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
 #[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDefPrimitive {
 	/// `bool` type
 	Bool,
@@ -204,6 +178,7 @@ pub enum TypeDefPrimitive {
 /// An array type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
 #[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefArray<T: Form = MetaForm> {
 	/// The length of the array type.
 	pub len: u32,
@@ -223,19 +198,6 @@ impl IntoCompact for TypeDefArray {
 	}
 }
 
-impl TypeInfo for TypeDefArray<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("TypeDefArray"))
-			.composite(
-				Fields::named()
-					.field_of::<u32>("len")
-					.field_of::<<CompactForm as Form>::TypeId>("type_param")
-			)
-	}
-}
-
-
 impl TypeDefArray {
 	/// Creates a new array type.
 	pub fn new(len: u32, type_param: MetaType) -> Self {
@@ -247,6 +209,7 @@ impl TypeDefArray {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
 #[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
 #[serde(transparent)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefTuple<T: Form = MetaForm> {
 	/// The types of the tuple fields.
 	fields: Vec<T::TypeId>,
@@ -259,17 +222,6 @@ impl IntoCompact for TypeDefTuple {
 		TypeDefTuple {
 			fields: registry.register_types(self.fields),
 		}
-	}
-}
-
-impl TypeInfo for TypeDefTuple<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("TypeDefTuple"))
-			.composite(
-				Fields::named()
-					.field_of::<Vec<<CompactForm as Form>::TypeId>>("fields")
-			)
 	}
 }
 
@@ -293,6 +245,7 @@ impl TypeDefTuple {
 /// A type to refer to a sequence of elements of the same type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
 #[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefSequence<T: Form = MetaForm> {
 	/// The element type of the sequence type.
 	#[serde(rename = "type")]
@@ -306,17 +259,6 @@ impl IntoCompact for TypeDefSequence {
 		TypeDefSequence {
 			type_param: registry.register_type(&self.type_param),
 		}
-	}
-}
-
-impl TypeInfo for TypeDefSequence<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("TypeDefSequence"))
-			.composite(
-				Fields::named()
-					.field_of::<<CompactForm as Form>::TypeId>("type_param")
-			)
 	}
 }
 

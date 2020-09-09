@@ -15,9 +15,8 @@
 use crate::tm_std::*;
 
 use crate::{
-	build::Fields,
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Registry, TypeInfo, Type, Path,
+	IntoCompact, MetaType, Registry, TypeInfo,
 };
 use scale::{Decode, Encode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -32,6 +31,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	serialize = "T::TypeId: Serialize, T::String: Serialize",
 	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
 ))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none", default)]
@@ -49,18 +49,6 @@ impl IntoCompact for Field {
 			name: self.name.map(|name| name.into_compact(registry)),
 			ty: registry.register_type(&self.ty),
 		}
-	}
-}
-
-impl TypeInfo for Field<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("Field"))
-			.composite(
-				Fields::named()
-					.field_of::<Option<<CompactForm as Form>::String>>("name")
-					.field_of::<Option<<CompactForm as Form>::TypeId>>("ty")
-			)
 	}
 }
 

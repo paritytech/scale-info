@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{build::Fields, form::{CompactForm, Form, MetaForm}, tm_std::*, utils::is_rust_identifier, IntoCompact, Registry, TypeInfo, Type};
+use crate::{form::{CompactForm, Form, MetaForm}, tm_std::*, utils::is_rust_identifier, IntoCompact, Registry};
 use scale::{Decode, Encode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
@@ -29,6 +29,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	serialize = "T::TypeId: Serialize, T::String: Serialize",
 	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
 ))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Path<T: Form = MetaForm> {
 	/// The segments of the namespace.
 	segments: Vec<T::String>,
@@ -50,16 +51,6 @@ impl IntoCompact for Path {
 		Path {
 			segments: registry.map_into_compact(self.segments),
 		}
-	}
-}
-
-impl TypeInfo for Path<CompactForm> {
-	fn type_info() -> Type<MetaForm> {
-		Type::builder()
-			.path(Path::prelude("Path"))
-			.composite(
-				Fields::named().field_of::<Vec<<CompactForm as Form>::String>>("segments")
-			)
 	}
 }
 

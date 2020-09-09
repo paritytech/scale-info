@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::tm_std::*;
-use crate::{build::Fields, form::MetaForm, Path, Type, TypeInfo};
+use crate::{form::MetaForm, Type, TypeInfo};
 
 /// A metatype abstraction.
 ///
@@ -31,16 +31,6 @@ pub struct MetaType {
 	// such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
 	type_id: TypeId,
 }
-
-// /// Impl required to satisfy constraint on ['crate::form::Form'], to allow deriving TypeInfo when
-// /// using the "dogfood" feature. In practice the ['crate::form::CompactForm'] is used for encoding
-// /// so this definition itself probably would not be used.
-// impl TypeInfo for MetaType {
-// 	fn type_info() -> Type<MetaForm> {
-// 		Type::builder().path(Path::prelude("MetaType"))
-// 			.composite(Fields::named().field_of::<TypeId>("type_id"))
-// 	}
-// }
 
 impl PartialEq for MetaType {
 	fn eq(&self, other: &Self) -> bool {
