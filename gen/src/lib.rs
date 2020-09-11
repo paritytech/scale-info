@@ -11,3 +11,23 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+use scale_info::{
+	form::{CompactForm},
+	RegistryReadOnly,
+	TypeDef,
+};
+
+// trait GenerateTypes
+
+impl RegistryReadOnly {
+	fn generate_typescript_definitions(&self) -> String {
+
+	}
+}
+
+impl TypeDef {
+	fn generate_type(&self, registry: &RegistryReadOnly) -> String {
+
+	}
+}
