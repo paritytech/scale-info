@@ -50,11 +50,12 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+	serialize = "T::Type: Serialize, T::String: Serialize",
+	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefComposite<T: Form = MetaForm> {
+	/// The fields of the composite type.
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	fields: Vec<Field<T>>,
 }
@@ -78,5 +79,15 @@ impl TypeDefComposite {
 		Self {
 			fields: fields.into_iter().collect(),
 		}
+	}
+}
+
+impl<T> TypeDefComposite<T>
+where
+	T: Form,
+{
+	/// Returns the fields of the composite type.
+	pub fn fields(&self) -> &[Field<T>] {
+		&self.fields
 	}
 }

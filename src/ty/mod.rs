@@ -33,8 +33,8 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 /// A [`Type`] definition with optional metadata.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+	serialize = "T::Type: Serialize, T::String: Serialize",
+	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
@@ -42,7 +42,7 @@ pub struct Type<T: Form = MetaForm> {
 	path: Path<T>,
 	/// The generic type parameters of the type in use. Empty for non generic types
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty", default)]
-	type_params: Vec<T::TypeId>,
+	type_params: Vec<T::Type>,
 	/// The actual type definition
 	#[serde(rename = "def")]
 	type_def: TypeDef<T>,
@@ -103,11 +103,31 @@ impl Type {
 	}
 }
 
+impl<T> Type<T>
+where
+	T: Form,
+{
+	/// Returns the path of the type
+	pub fn path(&self) -> &Path<T> {
+		&self.path
+	}
+
+	/// Returns the generic type parameters of the type
+	pub fn type_params(&self) -> &[T::Type] {
+		&self.type_params
+	}
+
+	/// Returns the definition of the type
+	pub fn type_def(&self) -> &TypeDef<T> {
+		&self.type_def
+	}
+}
+
 /// The possible types a SCALE encodable Rust value could have.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Serialize, Deserialize, Encode, Decode)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+	serialize = "T::Type: Serialize, T::String: Serialize",
+	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "camelCase")]
 pub enum TypeDef<T: Form = MetaForm> {
@@ -174,13 +194,13 @@ pub enum TypeDefPrimitive {
 
 /// An array type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(serialize = "T::Type: Serialize", deserialize = "T::Type: DeserializeOwned"))]
 pub struct TypeDefArray<T: Form = MetaForm> {
 	/// The length of the array type.
-	pub len: u32,
+	len: u32,
 	/// The element type of the array type.
 	#[serde(rename = "type")]
-	pub type_param: T::TypeId,
+	type_param: T::Type,
 }
 
 impl IntoCompact for TypeDefArray {
@@ -201,13 +221,29 @@ impl TypeDefArray {
 	}
 }
 
+#[allow(clippy::len_without_is_empty)]
+impl<T> TypeDefArray<T>
+where
+	T: Form,
+{
+	/// Returns the length of the array type.
+	pub fn len(&self) -> u32 {
+		self.len
+	}
+
+	/// Returns the element type of the array type.
+	pub fn type_param(&self) -> &T::Type {
+		&self.type_param
+	}
+}
+
 /// A type to refer to tuple types.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(serialize = "T::Type: Serialize", deserialize = "T::Type: DeserializeOwned"))]
 #[serde(transparent)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
 	/// The types of the tuple fields.
-	fields: Vec<T::TypeId>,
+	fields: Vec<T::Type>,
 }
 
 impl IntoCompact for TypeDefTuple {
@@ -237,13 +273,23 @@ impl TypeDefTuple {
 	}
 }
 
+impl<T> TypeDefTuple<T>
+where
+	T: Form,
+{
+	/// Returns the types of the tuple fields.
+	pub fn fields(&self) -> &[T::Type] {
+		&self.fields
+	}
+}
+
 /// A type to refer to a sequence of elements of the same type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
-#[serde(bound(serialize = "T::TypeId: Serialize", deserialize = "T::TypeId: DeserializeOwned"))]
+#[serde(bound(serialize = "T::Type: Serialize", deserialize = "T::Type: DeserializeOwned"))]
 pub struct TypeDefSequence<T: Form = MetaForm> {
 	/// The element type of the sequence type.
 	#[serde(rename = "type")]
-	type_param: T::TypeId,
+	type_param: T::Type,
 }
 
 impl IntoCompact for TypeDefSequence {
@@ -273,5 +319,15 @@ impl TypeDefSequence {
 		T: TypeInfo + 'static,
 	{
 		Self::new(MetaType::new::<T>())
+	}
+}
+
+impl<T> TypeDefSequence<T>
+where
+	T: Form,
+{
+	/// Returns the element type of the sequence type.
+	pub fn type_param(&self) -> &T::Type {
+		&self.type_param
 	}
 }

@@ -63,11 +63,12 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+	serialize = "T::Type: Serialize, T::String: Serialize",
+	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefVariant<T: Form = MetaForm> {
+	/// The variants of a variant type
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	variants: Vec<Variant<T>>,
 }
@@ -94,6 +95,16 @@ impl TypeDefVariant {
 	}
 }
 
+impl<T> TypeDefVariant<T>
+where
+	T: Form,
+{
+	/// Returns the variants of a variant type
+	pub fn variants(&self) -> &[Variant<T>] {
+		&self.variants
+	}
+}
+
 /// A struct enum variant with either named (struct) or unnamed (tuple struct)
 /// fields.
 ///
@@ -111,13 +122,13 @@ impl TypeDefVariant {
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+	serialize = "T::Type: Serialize, T::String: Serialize",
+	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 pub struct Variant<T: Form = MetaForm> {
-	/// The name of the struct variant.
+	/// The name of the variant.
 	name: T::String,
-	/// The fields of the struct variant.
+	/// The fields of the variant.
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
 	fields: Vec<Field<T>>,
 	/// The discriminant of the variant.
@@ -160,5 +171,25 @@ impl Variant {
 			fields: Vec::new(),
 			discriminant: Some(discriminant),
 		}
+	}
+}
+
+impl<T> Variant<T>
+where
+	T: Form,
+{
+	/// Returns the name of the variant
+	pub fn name(&self) -> &T::String {
+		&self.name
+	}
+
+	/// Returns the fields of the struct variant.
+	pub fn fields(&self) -> &[Field<T>] {
+		&self.fields
+	}
+
+	/// Returns the discriminant of the variant.
+	pub fn discriminant(&self) -> Option<u64> {
+		self.discriminant
 	}
 }

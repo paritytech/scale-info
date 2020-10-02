@@ -181,6 +181,14 @@ pub struct RegistryReadOnly {
 	types: Vec<Type<CompactForm>>,
 }
 
+impl From<Registry> for RegistryReadOnly {
+	fn from(registry: Registry) -> Self {
+		RegistryReadOnly {
+			types: registry.types.values().cloned().collect::<Vec<_>>(),
+		}
+	}
+}
+
 impl RegistryReadOnly {
 	/// Returns the type definition for the given identifier, `None` if no type found for that ID.
 	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm>> {

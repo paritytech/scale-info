@@ -31,7 +31,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct UntrackedSymbol<T> {
-	id: NonZeroU32,
+	/// The index to the symbol in the interner table.
+	pub id: NonZeroU32,
 	#[serde(skip)]
 	marker: PhantomData<fn() -> T>,
 }
