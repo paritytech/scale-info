@@ -221,6 +221,7 @@ impl TypeDefArray {
 	}
 }
 
+#[allow(clippy::len_without_is_empty)]
 impl<T> TypeDefArray<T>
 where
 	T: Form,
