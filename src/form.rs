@@ -40,7 +40,7 @@ use serde::Serialize;
 /// instantiated out of the flux and compact forms that require some sort of
 /// interning data structures.
 pub trait Form {
-	/// The type identifier type.
+	/// The type representing the type.
 	type Type: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The string type.
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
