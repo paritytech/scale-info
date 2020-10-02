@@ -36,7 +36,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 ))]
 pub struct Path<T: Form = MetaForm> {
 	/// The segments of the namespace.
-	pub segments: Vec<T::String>,
+	segments: Vec<T::String>,
 }
 
 impl<T> Default for Path<T>
@@ -110,6 +110,11 @@ impl<T> Path<T>
 where
 	T: Form,
 {
+	/// Returns the segments of the Path
+	pub fn segments(&self) -> &[T::String] {
+		&self.segments
+	}
+
 	/// Returns `true` if the path is empty
 	pub fn is_empty(&self) -> bool {
 		self.segments.is_empty()

@@ -39,13 +39,13 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	#[serde(skip_serializing_if = "Path::is_empty", default)]
-	pub path: Path<T>,
+	path: Path<T>,
 	/// The generic type parameters of the type in use. Empty for non generic types
 	#[serde(rename = "params", skip_serializing_if = "Vec::is_empty", default)]
-	pub type_params: Vec<T::Type>,
+	type_params: Vec<T::Type>,
 	/// The actual type definition
 	#[serde(rename = "def")]
-	pub type_def: TypeDef<T>,
+	type_def: TypeDef<T>,
 }
 
 impl IntoCompact for Type {
@@ -100,6 +100,26 @@ impl Type {
 			type_params: type_params.into_iter().collect(),
 			type_def: type_def.into(),
 		}
+	}
+}
+
+impl<T> Type<T>
+where
+	T: Form,
+{
+	/// Returns the path of the type
+	pub fn path(&self) -> &Path<T> {
+		&self.path
+	}
+
+	/// Returns the generic type parameters of the type
+	pub fn type_params(&self) -> &[T::Type] {
+		&self.type_params
+	}
+
+	/// Returns the definition of the type
+	pub fn type_def(&self) -> &TypeDef<T> {
+		&self.type_def
 	}
 }
 
@@ -177,10 +197,10 @@ pub enum TypeDefPrimitive {
 #[serde(bound(serialize = "T::Type: Serialize", deserialize = "T::Type: DeserializeOwned"))]
 pub struct TypeDefArray<T: Form = MetaForm> {
 	/// The length of the array type.
-	pub len: u32,
+	len: u32,
 	/// The element type of the array type.
 	#[serde(rename = "type")]
-	pub type_param: T::Type,
+	type_param: T::Type,
 }
 
 impl IntoCompact for TypeDefArray {
@@ -198,6 +218,21 @@ impl TypeDefArray {
 	/// Creates a new array type.
 	pub fn new(len: u32, type_param: MetaType) -> Self {
 		Self { len, type_param }
+	}
+}
+
+impl<T> TypeDefArray<T>
+where
+	T: Form
+{
+	/// Returns the length of the array type.
+	pub fn len(&self) -> u32 {
+		self.len
+	}
+
+	/// Returns the element type of the array type.
+	pub fn type_param(&self) -> &T::Type {
+		&self.type_param
 	}
 }
 
@@ -237,13 +272,23 @@ impl TypeDefTuple {
 	}
 }
 
+impl<T> TypeDefTuple<T>
+where
+	T: Form
+{
+	/// Returns the types of the tuple fields.
+	pub fn fields(&self) -> &[T::Type] {
+		&self.fields
+	}
+}
+
 /// A type to refer to a sequence of elements of the same type.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode, Debug)]
 #[serde(bound(serialize = "T::Type: Serialize", deserialize = "T::Type: DeserializeOwned"))]
 pub struct TypeDefSequence<T: Form = MetaForm> {
 	/// The element type of the sequence type.
 	#[serde(rename = "type")]
-	pub type_param: T::Type,
+	type_param: T::Type,
 }
 
 impl IntoCompact for TypeDefSequence {
@@ -273,5 +318,15 @@ impl TypeDefSequence {
 		T: TypeInfo + 'static,
 	{
 		Self::new(MetaType::new::<T>())
+	}
+}
+
+impl<T> TypeDefSequence<T>
+	where
+		T: Form
+{
+	/// Returns the element type of the sequence type.
+	pub fn type_param(&self) -> &T::Type {
+		&self.type_param
 	}
 }
