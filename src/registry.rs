@@ -184,7 +184,7 @@ pub struct RegistryReadOnly {
 impl From<Registry> for RegistryReadOnly {
 	fn from(registry: Registry) -> Self {
 		RegistryReadOnly {
-			types: registry.types.values().cloned().collect::<Vec<_>>()
+			types: registry.types.values().cloned().collect::<Vec<_>>(),
 		}
 	}
 }

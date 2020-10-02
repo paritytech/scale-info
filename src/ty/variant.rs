@@ -97,7 +97,7 @@ impl TypeDefVariant {
 
 impl<T> TypeDefVariant<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Returns the variants of a variant type
 	pub fn variants(&self) -> &[Variant<T>] {
@@ -175,8 +175,8 @@ impl Variant {
 }
 
 impl<T> Variant<T>
-	where
-		T: Form
+where
+	T: Form,
 {
 	/// Returns the name of the variant
 	pub fn name(&self) -> &T::String {

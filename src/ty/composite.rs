@@ -84,7 +84,7 @@ impl TypeDefComposite {
 
 impl<T> TypeDefComposite<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Returns the fields of the composite type.
 	pub fn fields(&self) -> &[Field<T>] {

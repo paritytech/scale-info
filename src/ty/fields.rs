@@ -97,7 +97,7 @@ impl Field {
 
 impl<T> Field<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Returns the name of the field. None for unnamed fields.
 	pub fn name(&self) -> Option<&T::String> {

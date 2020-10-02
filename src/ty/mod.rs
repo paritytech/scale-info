@@ -223,7 +223,7 @@ impl TypeDefArray {
 
 impl<T> TypeDefArray<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Returns the length of the array type.
 	pub fn len(&self) -> u32 {
@@ -274,7 +274,7 @@ impl TypeDefTuple {
 
 impl<T> TypeDefTuple<T>
 where
-	T: Form
+	T: Form,
 {
 	/// Returns the types of the tuple fields.
 	pub fn fields(&self) -> &[T::Type] {
@@ -322,8 +322,8 @@ impl TypeDefSequence {
 }
 
 impl<T> TypeDefSequence<T>
-	where
-		T: Form
+where
+	T: Form,
 {
 	/// Returns the element type of the sequence type.
 	pub fn type_param(&self) -> &T::Type {
