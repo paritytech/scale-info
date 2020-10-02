@@ -41,7 +41,7 @@ use serde::Serialize;
 /// interning data structures.
 pub trait Form {
 	/// The type identifier type.
-	type TypeId: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+	type Type: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 	/// The string type.
 	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
@@ -54,7 +54,7 @@ pub trait Form {
 pub enum MetaForm {}
 
 impl Form for MetaForm {
-	type TypeId = MetaType;
+	type Type = MetaType;
 	type String = &'static str;
 }
 
@@ -71,6 +71,6 @@ impl Form for MetaForm {
 pub enum CompactForm {}
 
 impl Form for CompactForm {
-	type TypeId = UntrackedSymbol<TypeId>;
+	type Type = UntrackedSymbol<TypeId>;
 	type String = String;
 }

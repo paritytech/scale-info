@@ -31,8 +31,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode)]
 #[serde(transparent)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+	serialize = "T::Type: Serialize, T::String: Serialize",
+	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 pub struct Path<T: Form = MetaForm> {
 	/// The segments of the namespace.

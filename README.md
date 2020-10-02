@@ -26,7 +26,7 @@ pub struct Type<T: Form = MetaForm> {
 	/// The unique path to the type. Can be empty for built-in types
 	path: Path<T>,
 	/// The generic type parameters of the type in use. Empty for non generic types
-	type_params: Vec<T::TypeId>,
+	type_params: Vec<T::Type>,
 	/// The actual type definition
 	type_def: TypeDef<T>,
 }

@@ -28,8 +28,8 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// This can be a named field of a struct type or a struct variant.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+	serialize = "T::Type: Serialize, T::String: Serialize",
+	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
@@ -37,7 +37,7 @@ pub struct Field<T: Form = MetaForm> {
 	pub name: Option<T::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	pub ty: T::TypeId,
+	pub ty: T::Type,
 }
 
 impl IntoCompact for Field {
