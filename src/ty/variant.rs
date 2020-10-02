@@ -70,7 +70,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub struct TypeDefVariant<T: Form = MetaForm> {
 	/// The variants of a variant type
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
-	pub variants: Vec<Variant<T>>,
+	variants: Vec<Variant<T>>,
 }
 
 impl IntoCompact for TypeDefVariant {
@@ -95,6 +95,16 @@ impl TypeDefVariant {
 	}
 }
 
+impl<T> TypeDefVariant<T>
+where
+	T: Form
+{
+	/// Returns the variants of a variant type
+	pub fn variants(&self) -> &[Variant<T>] {
+		&self.variants
+	}
+}
+
 /// A struct enum variant with either named (struct) or unnamed (tuple struct)
 /// fields.
 ///
@@ -116,11 +126,11 @@ impl TypeDefVariant {
 	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 pub struct Variant<T: Form = MetaForm> {
-	/// The name of the struct variant.
-	pub name: T::String,
-	/// The fields of the struct variant.
+	/// The name of the variant.
+	name: T::String,
+	/// The fields of the variant.
 	#[serde(skip_serializing_if = "Vec::is_empty", default)]
-	pub fields: Vec<Field<T>>,
+	fields: Vec<Field<T>>,
 	/// The discriminant of the variant.
 	///
 	/// # Note
@@ -129,7 +139,7 @@ pub struct Variant<T: Form = MetaForm> {
 	/// every C-like enum variant has a discriminant specified
 	/// upon compile-time.
 	#[serde(skip_serializing_if = "Option::is_none", default)]
-	pub discriminant: Option<u64>,
+	discriminant: Option<u64>,
 }
 
 impl IntoCompact for Variant {
@@ -161,5 +171,25 @@ impl Variant {
 			fields: Vec::new(),
 			discriminant: Some(discriminant),
 		}
+	}
+}
+
+impl<T> TypeDefVariant<T>
+	where
+		T: Form
+{
+	/// Returns the name of the variant
+	pub fn name(&self) -> &T::String {
+		&self.name
+	}
+
+	/// Returns the fields of the struct variant.
+	pub fn fields(&self) -> &[Field<T>] {
+		&self.fields
+	}
+
+	/// Returns the discriminant of the variant.
+	pub fn discriminant(&self) -> Option<u64> {
+		self.discriminant
 	}
 }

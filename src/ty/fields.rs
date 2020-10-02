@@ -34,10 +34,10 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none", default)]
-	pub name: Option<T::String>,
+	name: Option<T::String>,
 	/// The type of the field.
 	#[serde(rename = "type")]
-	pub ty: T::Type,
+	ty: T::Type,
 }
 
 impl IntoCompact for Field {
@@ -92,5 +92,20 @@ impl Field {
 		T: TypeInfo + ?Sized + 'static,
 	{
 		Self::new(None, MetaType::new::<T>())
+	}
+}
+
+impl<T> Field<T>
+where
+	T: Form
+{
+	/// Returns the name of the field. None for unnamed fields.
+	pub fn name(&self) -> Option<&T::String> {
+		self.name.as_ref()
+	}
+
+	/// Returns the type of the field.
+	pub fn ty(&self) -> &T::Type {
+		&self.ty
 	}
 }
