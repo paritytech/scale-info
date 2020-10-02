@@ -174,7 +174,7 @@ impl Variant {
 	}
 }
 
-impl<T> TypeDefVariant<T>
+impl<T> Variant<T>
 	where
 		T: Form
 {
