@@ -23,6 +23,7 @@
 
 use crate::tm_std::*;
 use serde::{Deserialize, Serialize};
+use std::num::NonZeroU32;
 
 /// A symbol that is not lifetime tracked.
 ///
@@ -32,7 +33,7 @@ use serde::{Deserialize, Serialize};
 #[serde(transparent)]
 pub struct UntrackedSymbol<T> {
 	/// The index to the symbol in the interner table.
-	pub id: NonZeroU32,
+	id: NonZeroU32,
 	#[serde(skip)]
 	marker: PhantomData<fn() -> T>,
 }
@@ -54,6 +55,13 @@ impl<T> scale::Decode for UntrackedSymbol<T> {
 			id,
 			marker: Default::default(),
 		})
+	}
+}
+
+impl<T> UntrackedSymbol<T> {
+	/// Returns the index to the symbol in the interner table.
+	pub fn id(&self) -> NonZeroU32 {
+		self.id
 	}
 }
 
