@@ -23,7 +23,6 @@
 
 use crate::tm_std::*;
 use serde::{Deserialize, Serialize};
-use std::num::NonZeroU32;
 
 /// A symbol that is not lifetime tracked.
 ///
