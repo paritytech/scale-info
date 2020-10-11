@@ -1,9 +1,11 @@
+# Version 0.4.1 (2020-10-11)
+
+* Add missing `extern crate proc_macro;` [(#22)](https://github.com/paritytech/scale-info/pull/24)
+
 # Version 0.4.0 (2020-10-05)
 
-* Add public getters for fields in meta type hierarchy [(#22)](https://github.com/paritytech
-/scale-info/pull/22)
-* Implement SCALE encoding and serde deserialization [(#19)](https://github.com/paritytech/scale
--info/pull/19)
+* Add public getters for fields in meta type hierarchy [(#22)](https://github.com/paritytech/scale-info/pull/22)
+* Implement SCALE encoding and serde deserialization [(#19)](https://github.com/paritytech/scale-info/pull/19)
 
 # Version 0.3.0 (2020-07-03)
 
