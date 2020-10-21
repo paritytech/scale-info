@@ -180,6 +180,8 @@ pub enum TypeDefPrimitive {
 	U64,
 	/// `u128`
 	U128,
+	/// 256 bits unsigned int (no rust equivalent)
+	U256,
 	/// `i8`
 	I8,
 	/// `i16`
@@ -190,6 +192,8 @@ pub enum TypeDefPrimitive {
 	I64,
 	/// `i128`
 	I128,
+	/// 256 bits signed int (no rust equivalent)
+	I256,
 }
 
 /// An array type.
