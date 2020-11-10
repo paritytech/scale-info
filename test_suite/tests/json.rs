@@ -264,8 +264,8 @@ fn test_recursive_type_with_box() {
 							{
 								"name": "Node",
 								"fields": [
-									{ "name": "right", "type": 3, },
-									{ "name": "left", "type": 3, },
+									{ "name": "right", "type": 1, },
+									{ "name": "left", "type": 1, },
 								],
 							}
 						],
@@ -274,28 +274,6 @@ fn test_recursive_type_with_box() {
 			},
 			{
 				"def": { "primitive": "i32" },
-			},
-			{
-				"path": ["json", "Tree"],
-				"def": {
-					"variant": {
-						"variants": [
-							{
-								"name": "Leaf",
-								"fields": [
-									{ "name": "value", "type": 2 },
-								],
-							},
-							{
-								"name": "Node",
-								"fields": [
-									{ "name": "right", "type": 3, },
-									{ "name": "left", "type": 3, },
-								],
-							}
-						],
-					},
-				}
 			},
 		]
 	});
