@@ -195,3 +195,44 @@ impl RegistryReadOnly {
 		self.types.get((id.get() - 1) as usize)
 	}
 }
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::{TypeInfo, TypeDef, Path, build::Fields, meta_type};
+
+	#[test]
+	fn recursive_struct_with_references() {
+		#[allow(unused)]
+		struct RecursiveRefs<'a> {
+			boxed: Box<RecursiveRefs<'a>>,
+			reference: &'a RecursiveRefs<'a>,
+			mutable_reference: &'a mut RecursiveRefs<'a>,
+		}
+
+		impl TypeInfo for RecursiveRefs<'static> {
+			fn type_info() -> Type {
+				Type::builder()
+					.path(Path::new("RecursiveRefs", module_path!()))
+					.composite(Fields::named()
+						.field_of::<Box<RecursiveRefs>>("boxed")
+						.field_of::<&'static RecursiveRefs<'static>>("reference")
+						.field_of::<&'static mut RecursiveRefs<'static>>("mutable_reference")
+					)
+					.into()
+			}
+		}
+
+		let mut registry = Registry::new();
+		let type_id = registry.register_type(&meta_type::<RecursiveRefs>());
+
+		let recursive = registry.types.get(&type_id).unwrap();
+		if let TypeDef::Composite(composite) = recursive.type_def() {
+			for field in composite.fields() {
+				assert_eq!(*field.ty(), type_id)
+			}
+		} else {
+			panic!("Should be a composite type definition")
+		}
+	}
+}
