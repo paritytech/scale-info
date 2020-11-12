@@ -93,11 +93,11 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
 			let (ty, ident) = (&f.ty, &f.ident);
 			if let Some(i) = ident {
 				quote! {
-					.field_of::<#ty>(stringify!(#i))
+					.field(stringify!(#i), _scale_info::meta_type!(#ty))
 				}
 			} else {
 				quote! {
-					.field_of::<#ty>()
+					.field(_scale_info::meta_type!(#ty))
 				}
 			}
 		})

@@ -22,7 +22,7 @@ use alloc::boxed::Box;
 
 use pretty_assertions::assert_eq;
 use scale_info::build::*;
-use scale_info::{tuple_meta_type, Path, Type, TypeInfo};
+use scale_info::{meta_type, tuple_meta_type, Path, Type, TypeInfo};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -55,13 +55,15 @@ fn struct_derive() {
 	assert_type!(S<bool, u8>, struct_type);
 
 	// With "`Self` typed" fields
-
 	type SelfTyped = S<Box<S<bool, u8>>, bool>;
 
 	let self_typed_type = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
-		.composite(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
+		.composite(Fields::named()
+			.field("t", meta_type!(Box<S<bool, u8>>))
+			.field_of::<bool>("u")
+		);
 	assert_type!(SelfTyped, self_typed_type);
 }
 
@@ -144,8 +146,8 @@ fn recursive_type_derive() {
 			Variants::with_fields()
 				.variant("Leaf", Fields::named().field_of::<i32>("value"))
 				.variant("Node", Fields::named()
-					.field_of::<Box<Tree>>("right")
-					.field_of::<Box<Tree>>("left")
+					.field("right", meta_type!(Box<Tree>))
+					.field("left", meta_type!(Box<Tree>))
 				)
 		);
 
