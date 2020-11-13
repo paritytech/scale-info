@@ -136,6 +136,11 @@ pub use scale_info_derive::TypeInfo;
 pub trait TypeInfo {
 	/// Returns the static type identifier for `Self`.
 	fn type_info() -> Type;
+
+	/// TODO: improve! Returns the type id of a transparently wrapped type (if any)
+	fn wrapped_type_id() -> Option<tm_std::TypeId> {
+		None
+	}
 }
 
 /// Returns the runtime bridge to the types compile-time type information.

@@ -146,28 +146,40 @@ where
 
 impl<T> TypeInfo for Box<T>
 where
-	T: TypeInfo + ?Sized,
+	T: TypeInfo + ?Sized + 'static,
 {
 	fn type_info() -> Type {
 		T::type_info()
+	}
+
+	fn wrapped_type_id() -> Option<TypeId> {
+		Some(TypeId::of::<T>())
 	}
 }
 
 impl<T> TypeInfo for &T
 where
-	T: TypeInfo + ?Sized,
+	T: TypeInfo + ?Sized + 'static,
 {
 	fn type_info() -> Type {
 		T::type_info()
+	}
+
+	fn wrapped_type_id() -> Option<TypeId> {
+		Some(TypeId::of::<T>())
 	}
 }
 
 impl<T> TypeInfo for &mut T
 where
-	T: TypeInfo + ?Sized,
+	T: TypeInfo + ?Sized + 'static,
 {
 	fn type_info() -> Type {
 		T::type_info()
+	}
+
+	fn wrapped_type_id() -> Option<TypeId> {
+		Some(TypeId::of::<T>())
 	}
 }
 

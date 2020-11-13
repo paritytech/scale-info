@@ -73,9 +73,13 @@ impl MetaType {
 	where
 		T: TypeInfo + ?Sized + 'static,
 	{
+		let type_id = match T::wrapped_type_id() {
+			None => TypeId::of::<T>(),
+			Some(id) => id,
+		};
 		Self {
 			fn_type_info: <T as TypeInfo>::type_info,
-			type_id: TypeId::of::<T>(),
+			type_id,
 		}
 	}
 
