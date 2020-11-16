@@ -88,7 +88,7 @@ impl MetaType {
 	/// ```
 	/// # use scale_info::MetaType;
 	/// // u32 and Box<u32> are encoded to the same SCALE representation
-	/// MetaType::new_wrapper::<u32, Box<u32>>();
+	/// MetaType::new_aliased::<u32, Box<u32>>();
 	/// ```
 	pub fn new_wrapper<T, U>() -> Self
 	where
