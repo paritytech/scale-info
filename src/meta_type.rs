@@ -75,7 +75,7 @@ impl MetaType {
 	{
 		Self {
 			fn_type_info: <T as TypeInfo>::type_info,
-			type_id: TypeId::of::<T>(),
+			type_id: TypeId::of::<T::MetaType>(),
 		}
 	}
 

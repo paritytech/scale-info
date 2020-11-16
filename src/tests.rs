@@ -118,6 +118,8 @@ fn struct_with_generics() {
 	where
 		T: TypeInfo + 'static,
 	{
+		type MetaType = Self;
+
 		fn type_info() -> Type {
 			Type::builder()
 				.path(Path::new("MyStruct", module_path!()))

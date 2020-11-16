@@ -211,6 +211,8 @@ mod tests {
 		}
 
 		impl TypeInfo for RecursiveRefs<'static> {
+			type MetaType = Self;
+
 			fn type_info() -> Type {
 				Type::builder()
 					.path(Path::new("RecursiveRefs", module_path!()))

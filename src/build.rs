@@ -32,6 +32,8 @@
 //! where
 //!     T: TypeInfo + 'static,
 //! {
+//! 	type MetaType = Self;
+//!
 //!     fn type_info() -> Type {
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
@@ -49,6 +51,8 @@
 //! struct Foo(u32, bool);
 //!
 //! impl TypeInfo for Foo {
+//! 	type MetaType = Self;
+//!
 //!     fn type_info() -> Type {
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
@@ -72,6 +76,8 @@
 //! where
 //!     T: TypeInfo + 'static,
 //! {
+//! 	type MetaType = Self;
+//!
 //!     fn type_info() -> Type {
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
@@ -95,6 +101,8 @@
 //! }
 //!
 //! impl TypeInfo for Foo {
+//! 	type MetaType = Self;
+//!
 //!     fn type_info() -> Type {
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
