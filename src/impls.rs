@@ -215,7 +215,8 @@ impl TypeInfo for String {
 
 	fn type_info() -> Type {
 		Self::MetaType::type_info()
-	}}
+	}
+}
 
 impl<T> TypeInfo for PhantomData<T>
 where

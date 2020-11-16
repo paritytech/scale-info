@@ -199,7 +199,7 @@ impl RegistryReadOnly {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{TypeInfo, TypeDef, Path, build::Fields, meta_type};
+	use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
 
 	#[test]
 	fn recursive_struct_with_references() {
@@ -216,10 +216,11 @@ mod tests {
 			fn type_info() -> Type {
 				Type::builder()
 					.path(Path::new("RecursiveRefs", module_path!()))
-					.composite(Fields::named()
-						.field_of::<Box<RecursiveRefs>>("boxed")
-						.field_of::<&'static RecursiveRefs<'static>>("reference")
-						.field_of::<&'static mut RecursiveRefs<'static>>("mutable_reference")
+					.composite(
+						Fields::named()
+							.field_of::<Box<RecursiveRefs>>("boxed")
+							.field_of::<&'static RecursiveRefs<'static>>("reference")
+							.field_of::<&'static mut RecursiveRefs<'static>>("mutable_reference"),
 					)
 					.into()
 			}
