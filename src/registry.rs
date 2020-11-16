@@ -215,9 +215,9 @@ mod tests {
 				Type::builder()
 					.path(Path::new("RecursiveRefs", module_path!()))
 					.composite(Fields::named()
-						.field("boxed", meta_type!(Box<RecursiveRefs>))
-						.field("reference", meta_type!(&RecursiveRefs))
-						.field("mutable_reference", meta_type!(&mut RecursiveRefs))
+						.field_of::<Box<RecursiveRefs>>("boxed")
+						.field_of::<&'static RecursiveRefs<'static>>("reference")
+						.field_of::<&'static mut RecursiveRefs<'static>>("mutable_reference")
 					)
 					.into()
 			}

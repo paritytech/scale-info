@@ -79,28 +79,6 @@ impl MetaType {
 		}
 	}
 
-	/// Creates a new meta type which is a transparent wrapper of another compile-time known type.
-	///
-	/// This should be used where [`EncodeLike`](scale::WrapperTypeEncode) is implemented.
-	///
-	/// # Example
-	///
-	/// ```
-	/// # use scale_info::MetaType;
-	/// // u32 and Box<u32> are encoded to the same SCALE representation
-	/// MetaType::new_aliased::<u32, Box<u32>>();
-	/// ```
-	pub fn new_wrapper<T, U>() -> Self
-	where
-		T: TypeInfo + ?Sized + 'static,
-		U: TypeInfo + ?Sized + 'static,
-	{
-		Self {
-			fn_type_info: <T as TypeInfo>::type_info,
-			type_id: TypeId::of::<U>(),
-		}
-	}
-
 	/// Creates a new meta types from the type of the given reference.
 	pub fn of<T>(_elem: &T) -> Self
 	where
@@ -117,68 +95,5 @@ impl MetaType {
 	/// Returns the type identifier provided by `core::any`.
 	pub fn type_id(&self) -> TypeId {
 		self.type_id
-	}
-}
-
-///
-pub struct TypeInfoTag<T>(PhantomData<T>);
-
-/// TODO: docs
-pub trait TypeInfoKind {
-	/// TODO: docs
-	type Type: TypeInfo + 'static;
-
-	/// TODO: docs
-	#[inline]
-	fn kind(&self) -> TypeInfoTag<Self::Type> {
-		TypeInfoTag(PhantomData)
-	}
-}
-
-impl<T: TypeInfo + 'static> TypeInfoTag<T> {
-	/// TODO: docs
-	#[inline]
-	pub fn new(self) -> MetaType {
-		MetaType::new::<T>()
-	}
-}
-
-// Requires one extra autoref to call! Lower priority than WrapperTypeKind.
-impl<T: TypeInfo + 'static> TypeInfoKind for &PhantomData<T> {
-	type Type = T;
-}
-
-/// TODO: docs
-pub struct WrapperTypeTag<T>(PhantomData<T>);
-
-/// TODO: docs
-pub trait WrapperTypeKind {
-	/// TODO: docs
-	type Type: scale::WrapperTypeEncode<Target = Self::Target>;
-	/// TODO: docs
-	type Target: TypeInfo + 'static;
-
-	/// TODO: docs
-	#[inline]
-	fn kind(&self) -> WrapperTypeTag<Self::Type> {
-		WrapperTypeTag(PhantomData)
-	}
-}
-
-// Does not require any autoref if called as (&error).anyhow_kind().
-impl<T: scale::WrapperTypeEncode<Target = U>, U: TypeInfo + 'static> WrapperTypeKind for PhantomData<T> {
-	type Type = T;
-	type Target = U;
-}
-
-impl<T, U> WrapperTypeTag<T>
-where
-	T: TypeInfo + scale::WrapperTypeEncode<Target = U> + 'static,
-	U: TypeInfo + 'static
-{
-	/// TODO: docs
-	#[inline]
-	pub fn new(self) -> MetaType {
-		MetaType::new_wrapper::<T, U>()
 	}
 }

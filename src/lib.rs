@@ -65,17 +65,6 @@
 #[cfg(not(feature = "std"))]
 extern crate alloc;
 
-/// TODO: docs
-#[macro_export]
-macro_rules! meta_type {
-    ($meta_type:ty) => ({
-        #[allow(unused_imports)]
-        use $crate::{TypeInfoKind, WrapperTypeKind};
-        let meta_type = core::marker::PhantomData::<$meta_type>;
-        (&meta_type).kind().new()
-    });
-}
-
 /// Takes a number of types and returns a vector that contains their respective
 /// [`MetaType`](`crate::MetaType`) instances.
 ///
@@ -113,7 +102,7 @@ macro_rules! tuple_meta_type {
 			let mut v = std::vec![];
 
 			$(
-				v.push($crate::meta_type!($ty));
+				v.push($crate::MetaType::new::<$ty>());
 			)*
 			v
 		}
@@ -135,7 +124,7 @@ mod utils;
 mod tests;
 
 pub use self::{
-	meta_type::{MetaType, TypeInfoKind, WrapperTypeKind},
+	meta_type::MetaType,
 	registry::{IntoCompact, Registry, RegistryReadOnly},
 	ty::*,
 };
