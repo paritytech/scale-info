@@ -102,7 +102,7 @@ where
 	type Identity = [T];
 
 	fn type_info() -> Type {
-		Self::UnderlyingType::type_info()
+		Self::Identity::type_info()
 	}
 }
 
@@ -165,7 +165,7 @@ where
 	type Identity = T;
 
 	fn type_info() -> Type {
-		Self::UnderlyingType::type_info()
+		Self::Identity::type_info()
 	}
 }
 
@@ -176,7 +176,7 @@ where
 	type Identity = T;
 
 	fn type_info() -> Type {
-		Self::UnderlyingType::type_info()
+		Self::Identity::type_info()
 	}
 }
 
@@ -187,7 +187,7 @@ where
 	type Identity = T;
 
 	fn type_info() -> Type {
-		Self::UnderlyingType::type_info()
+		Self::Identity::type_info()
 	}
 }
 
@@ -214,7 +214,7 @@ impl TypeInfo for String {
 	type Identity = str;
 
 	fn type_info() -> Type {
-		Self::UnderlyingType::type_info()
+		Self::Identity::type_info()
 	}
 }
 
