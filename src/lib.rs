@@ -134,14 +134,14 @@ pub use scale_info_derive::TypeInfo;
 
 /// Implementors return their meta type information.
 pub trait TypeInfo {
-	/// The type for which this trait provides type info.
+	/// The underlying type for which type info is provided.
 	///
 	/// # Note
 	///
 	/// This is used to uniquely identify a type via [`core::any::TypeId::of`]. In most cases it
 	/// will just be `Self`, but can be used to unify different types which have the same encoded
 	/// representation e.g. reference types `Box<T>`, `&T` and `&mut T`.
-	type MetaType: ?Sized + 'static;
+	type UnderlyingType: ?Sized + 'static;
 
 	/// Returns the static type identifier for `Self`.
 	fn type_info() -> Type;

@@ -118,7 +118,7 @@ fn struct_with_generics() {
 	where
 		T: TypeInfo + 'static,
 	{
-		type MetaType = Self;
+		type UnderlyingType = Self;
 
 		fn type_info() -> Type {
 			Type::builder()
