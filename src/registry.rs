@@ -237,7 +237,7 @@ mod tests {
 		}
 
 		impl TypeInfo for RecursiveRefs<'static> {
-			type UnderlyingType = Self;
+			type Identity = Self;
 
 			fn type_info() -> Type {
 				Type::builder()

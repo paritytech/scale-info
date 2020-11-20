@@ -32,7 +32,7 @@
 //! where
 //!     T: TypeInfo + 'static,
 //! {
-//!     type UnderlyingType = Self;
+//!     type Identity = Self;
 //!
 //!     fn type_info() -> Type {
 //!         Type::builder()
@@ -51,7 +51,7 @@
 //! struct Foo(u32, bool);
 //!
 //! impl TypeInfo for Foo {
-//!     type UnderlyingType = Self;
+//!     type Identity = Self;
 //!
 //!     fn type_info() -> Type {
 //!         Type::builder()
@@ -76,7 +76,7 @@
 //! where
 //!     T: TypeInfo + 'static,
 //! {
-//!     type UnderlyingType = Self;
+//!     type Identity = Self;
 //!
 //!     fn type_info() -> Type {
 //!         Type::builder()
@@ -101,7 +101,7 @@
 //! }
 //!
 //! impl TypeInfo for Foo {
-//!     type UnderlyingType = Self;
+//!     type Identity = Self;
 //!
 //!     fn type_info() -> Type {
 //!         Type::builder()
