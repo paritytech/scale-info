@@ -15,6 +15,7 @@ At its core is the `TypeInfo` trait:
 
 ```rust
 pub trait TypeInfo {
+    type Identity: ?Sized + 'static;
     fn type_info() -> Type;
 }
 ```

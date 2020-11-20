@@ -128,3 +128,26 @@ fn enum_derive() {
 
 	assert_type!(E<bool>, ty);
 }
+
+#[test]
+fn recursive_type_derive() {
+	#[allow(unused)]
+	#[derive(TypeInfo)]
+	pub enum Tree {
+		Leaf { value: i32 },
+		Node { right: Box<Tree>, left: Box<Tree> },
+	}
+
+	let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
+		Variants::with_fields()
+			.variant("Leaf", Fields::named().field_of::<i32>("value"))
+			.variant(
+				"Node",
+				Fields::named()
+					.field_of::<Box<Tree>>("right")
+					.field_of::<Box<Tree>>("left"),
+			),
+	);
+
+	assert_type!(Tree, ty);
+}

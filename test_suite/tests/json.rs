@@ -20,7 +20,7 @@
 extern crate alloc;
 
 #[cfg(not(feature = "std"))]
-use alloc::{vec, vec::Vec};
+use alloc::{boxed::Box, vec, vec::Vec};
 
 use pretty_assertions::{assert_eq, assert_ne};
 use scale_info::{form::CompactForm, meta_type, IntoCompact as _, Registry, TypeInfo};
@@ -235,6 +235,50 @@ fn test_enum() {
 			},
 		}
 	}));
+}
+
+#[test]
+fn test_recursive_type_with_box() {
+	#[derive(TypeInfo)]
+	pub enum Tree {
+		Leaf { value: i32 },
+		Node { right: Box<Tree>, left: Box<Tree> },
+	}
+
+	let mut registry = Registry::new();
+	registry.register_type(&meta_type::<Tree>());
+
+	let expected_json = json!({
+		"types": [
+			{
+				"path": ["json", "Tree"],
+				"def": {
+					"variant": {
+						"variants": [
+							{
+								"name": "Leaf",
+								"fields": [
+									{ "name": "value", "type": 2 },
+								],
+							},
+							{
+								"name": "Node",
+								"fields": [
+									{ "name": "right", "type": 1, },
+									{ "name": "left", "type": 1, },
+								],
+							}
+						],
+					},
+				}
+			},
+			{
+				"def": { "primitive": "i32" },
+			},
+		]
+	});
+
+	assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }
 
 #[test]
