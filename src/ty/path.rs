@@ -216,8 +216,7 @@ mod tests {
 
 	#[test]
 	fn path_display() {
-		let path = Path::new("Planet", "hello::world")
-			.into_compact(&mut Default::default());
+		let path = Path::new("Planet", "hello::world").into_compact(&mut Default::default());
 		assert_eq!("hello::world::Planet", format!("{}", path))
 	}
 }
