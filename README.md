@@ -193,7 +193,7 @@ All concrete `TypeInfo` structures have two forms:
 - One meta form (`MetaType`) that acts as a bridge to other forms
 - A compact form that is later to be serialized.
 
-The `IntoCompact` trait is implemented by them TODO: "them"? in order to compact a type
+The `IntoCompact` trait must also be implemented in order to compact a type
 definition using an instance of a type registry.
 
 After compactification all type definitions are stored in the type registry.
