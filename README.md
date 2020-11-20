@@ -210,5 +210,5 @@ the monomorphization of Rust generic types could potentially result in very larg
 
 ## Resources
 
-- See usage for describing types for [`ink!`](https://github.com/paritytech/ink/tree/master/abi) smart contracts metadata.
+- See usage for describing types for [`ink!`](https://github.com/paritytech/ink/blob/master/crates/metadata/src/specs.rs) smart contracts metadata.
 - [Original design draft (*outdated*)](https://hackmd.io/0wWm0ueBSF26m2pBG5NaeQ?view)
