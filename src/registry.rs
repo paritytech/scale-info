@@ -194,4 +194,35 @@ impl RegistryReadOnly {
 	pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm>> {
 		self.types.get((id.get() - 1) as usize)
 	}
+
+	/// Returns an iterator for all types paired with their associated NonZeroU32 identifier.
+	pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<CompactForm>)> {
+		self.types.iter().enumerate().map(|(i, ty)| {
+			let id = NonZeroU32::new(i as u32 + 1).expect("i + 1 > 0; qed");
+			(id, ty)
+		})
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn readonly_enumerate() {
+		let mut registry = Registry::new();
+		registry.register_type(&MetaType::new::<u32>());
+		registry.register_type(&MetaType::new::<bool>());
+		registry.register_type(&MetaType::new::<Option<(u32, bool)>>());
+
+		let readonly: RegistryReadOnly = registry.into();
+
+		assert_eq!(4, readonly.enumerate().count());
+
+		let mut expected = 1;
+		for (i, _) in readonly.enumerate() {
+			assert_eq!(NonZeroU32::new(expected).unwrap(), i);
+			expected += 1;
+		}
+	}
 }

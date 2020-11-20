@@ -58,6 +58,12 @@ impl IntoCompact for Path {
 	}
 }
 
+impl Display for Path<CompactForm> {
+	fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
+		write!(f, "{}", self.segments.join("::"))
+	}
+}
+
 impl Path {
 	/// Create a new Path
 	///
@@ -206,5 +212,11 @@ mod tests {
 	#[should_panic]
 	fn path_new_panics_with_invalid_identifiers() {
 		Path::new("Planet", "hello$!@$::world");
+	}
+
+	#[test]
+	fn path_display() {
+		let path = Path::new("Planet", "hello::world").into_compact(&mut Default::default());
+		assert_eq!("hello::world::Planet", format!("{}", path))
 	}
 }
