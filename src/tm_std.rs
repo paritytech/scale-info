@@ -37,10 +37,11 @@ pub use self::core::{
 	clone::{Clone},
 	cmp::{Eq, PartialEq, Ordering},
 	convert::{From, Into},
-	fmt::{Debug, Error as FmtError, Formatter},
+	fmt::{Debug, Display, Error as FmtError, Formatter},
 	hash::{Hash, Hasher},
 	iter,
 	mem,
+	write,
 };
 
 mod alloc {
