@@ -207,6 +207,7 @@ impl RegistryReadOnly {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
 
 	#[test]
 	fn readonly_enumerate() {
@@ -225,12 +226,6 @@ mod tests {
 			expected += 1;
 		}
 	}
-}
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
 
 	#[test]
 	fn recursive_struct_with_references() {
