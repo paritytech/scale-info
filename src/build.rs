@@ -209,7 +209,7 @@ impl Fields {
 
 /// Build a set of either all named (e.g. for a struct) or all unnamed (e.g. for a tuple struct)
 pub struct FieldsBuilder<T> {
-	fields: Vec<Field<MetaForm>>,
+	fields: Vec<FieldBuilder<T>>,
 	marker: PhantomData<fn() -> T>,
 }
 
@@ -223,42 +223,79 @@ impl<T> Default for FieldsBuilder<T> {
 }
 
 impl<T> FieldsBuilder<T> {
+	/// Add a field with the type of the type parameter `T`
+	pub fn field(mut self, field: FieldBuilder<T>) -> Self {
+		self.fields.push(field);
+		self
+	}
+
 	/// Complete building and return the set of fields
-	pub fn done(self) -> Vec<Field<MetaForm>> {
-		self.fields
+	pub fn done(mut self) -> Vec<Field<MetaForm>> {
+		self.fields.drain(..).map(|field| field.done()).collect()
 	}
 }
 
 impl FieldsBuilder<NamedFields> {
-	/// Add a named field with the given [`MetaType`](`crate::MetaType`) instance
-	pub fn field(mut self, name: &'static str, ty: MetaType) -> Self {
-		self.fields.push(Field::named(name, ty));
-		self
-	}
-
 	/// Add a named field with the type of the type parameter `T`
-	pub fn field_of<T>(mut self, name: &'static str) -> Self
+	pub fn field_of<T>(self, name: &'static str) -> Self
 	where
 		T: TypeInfo + ?Sized + 'static,
 	{
-		self.fields.push(Field::named_of::<T>(name));
-		self
+		self.field(Field::named_of::<T>(name))
 	}
 }
 
 impl FieldsBuilder<UnnamedFields> {
-	/// Add an unnamed field with the given [`MetaType`](`crate::MetaType`) instance
-	pub fn field(mut self, ty: MetaType) -> Self {
-		self.fields.push(Field::unnamed(ty));
-		self
-	}
-
 	/// Add an unnamed field with the type of the type parameter `T`
 	pub fn field_of<T>(mut self) -> Self
 	where
 		T: TypeInfo + ?Sized + 'static,
 	{
 		self.fields.push(Field::unnamed_of::<T>());
+		self
+	}
+}
+
+/// Build a field.
+pub struct FieldBuilder<T> {
+	name: Option<&'static str>,
+	ty: MetaType,
+	ty_display_name: Option<Path>,
+	marker: PhantomData<fn() -> T>,
+}
+
+impl<T> FieldBuilder<T> {
+	/// Create a new field builder for a field with the given [`MetaType`].
+	pub fn new(ty: MetaType) -> Self {
+		Self {
+			name: None,
+			ty,
+			ty_display_name: None,
+			marker: PhantomData,
+		}
+	}
+
+	/// Specify the display name of the type of the field. This can either be the type name itself
+	/// or a type alias.
+	pub fn with_type_display_name<S>(mut self, path_segments: S) -> Self
+	where
+		S: IntoIterator<Item = &'static str>,
+	{
+		let path = Path::from_segments(path_segments).expect("display name is invalid");
+		self.ty_display_name = Some(path);
+		self
+	}
+
+	/// Complete building the field.
+	pub fn done(self) -> Field {
+		Field::new(self.name, self.ty, self.ty_display_name)
+	}
+}
+
+impl FieldBuilder<NamedFields> {
+	/// Specify the name of the field.
+	pub fn with_name(mut self, name: &'static str) -> Self {
+		self.name = Some(name);
 		self
 	}
 }

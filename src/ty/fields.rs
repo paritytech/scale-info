@@ -15,8 +15,9 @@
 use crate::tm_std::*;
 
 use crate::{
+	build::{FieldBuilder, NamedFields, UnnamedFields},
 	form::{CompactForm, Form, MetaForm},
-	IntoCompact, MetaType, Registry, TypeInfo,
+	IntoCompact, MetaType, Path, Registry, TypeInfo,
 };
 use scale::{Decode, Encode};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -31,6 +32,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 	serialize = "T::Type: Serialize, T::String: Serialize",
 	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
+#[serde(rename_all = "camelCase")]
 pub struct Field<T: Form = MetaForm> {
 	/// The name of the field. None for unnamed fields.
 	#[serde(skip_serializing_if = "Option::is_none", default)]
@@ -38,6 +40,12 @@ pub struct Field<T: Form = MetaForm> {
 	/// The type of the field.
 	#[serde(rename = "type")]
 	ty: T::Type,
+	/// The compile-time known displayed representation of the type of the field. This will be the
+	/// actual name of the type or an alias of it.
+	///
+	/// Will be `None` if the type has a qualified type path e.g. `<T as Trait>::AssociatedItem`.
+	#[serde(skip_serializing_if = "Option::is_none", default)]
+	display_name: Option<Path<T>>,
 }
 
 impl IntoCompact for Field {
@@ -47,6 +55,9 @@ impl IntoCompact for Field {
 		Field {
 			name: self.name.map(|name| name.into_compact(registry)),
 			ty: registry.register_type(&self.ty),
+			display_name: self
+				.display_name
+				.map(|display_name| display_name.into_compact(registry)),
 		}
 	}
 }
@@ -55,43 +66,30 @@ impl Field {
 	/// Creates a new field.
 	///
 	/// Use this constructor if you want to instantiate from a given meta type.
-	pub fn new(name: Option<&'static str>, ty: MetaType) -> Self {
-		Self { name, ty }
-	}
-
-	/// Creates a new named field
-	pub fn named(name: &'static str, ty: MetaType) -> Self {
-		Self::new(Some(name), ty)
+	pub fn new(name: Option<&'static str>, ty: MetaType, display_name: Option<Path>) -> Self {
+		Self { name, ty, display_name }
 	}
 
 	/// Creates a new named field.
 	///
 	/// Use this constructor if you want to instantiate from a given
 	/// compile-time type.
-	pub fn named_of<T>(name: &'static str) -> Self
+	pub fn named_of<T>(name: &'static str) -> FieldBuilder<NamedFields>
 	where
 		T: TypeInfo + ?Sized + 'static,
 	{
-		Self::new(Some(name), MetaType::new::<T>())
-	}
-
-	/// Creates a new unnamed field.
-	///
-	/// Use this constructor if you want to instantiate an unnamed field from a
-	/// given meta type.
-	pub fn unnamed(meta_type: MetaType) -> Self {
-		Self::new(None, meta_type)
+		FieldBuilder::<NamedFields>::new(MetaType::new::<T>()).with_name(name)
 	}
 
 	/// Creates a new unnamed field.
 	///
 	/// Use this constructor if you want to instantiate an unnamed field from a
 	/// given compile-time type.
-	pub fn unnamed_of<T>() -> Self
+	pub fn unnamed_of<T>() -> FieldBuilder<UnnamedFields>
 	where
 		T: TypeInfo + ?Sized + 'static,
 	{
-		Self::new(None, MetaType::new::<T>())
+		FieldBuilder::<UnnamedFields>::new(MetaType::new::<T>())
 	}
 }
 

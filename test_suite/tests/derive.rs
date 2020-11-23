@@ -18,11 +18,11 @@
 extern crate alloc;
 
 #[cfg(not(feature = "std"))]
-use alloc::boxed::Box;
+use alloc::{boxed::Box, vec};
 
 use pretty_assertions::assert_eq;
 use scale_info::build::*;
-use scale_info::{tuple_meta_type, Path, Type, TypeInfo};
+use scale_info::{tuple_meta_type, Field, Path, Type, TypeInfo};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -127,4 +127,21 @@ fn enum_derive() {
 		);
 
 	assert_type!(E<bool>, ty);
+}
+
+#[test]
+fn fields_with_type_alias() {
+	type BoolAlias = bool;
+
+	#[allow(unused)]
+	#[derive(TypeInfo)]
+	struct S {
+		a: BoolAlias,
+	}
+
+	let ty = Type::builder()
+		.path(Path::new("S", "derive"))
+		.composite(Fields::named().field(Field::named_of::<BoolAlias>("a").with_type_display_name(vec!["BoolAlias"])));
+
+	assert_type!(S, ty);
 }
