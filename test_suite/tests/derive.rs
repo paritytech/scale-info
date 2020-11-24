@@ -50,7 +50,11 @@ fn struct_derive() {
 	let struct_type = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(bool, u8))
-		.composite(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
+		.composite(
+			Fields::named()
+				.field_of::<bool>("t")
+				.field_of::<u8>("u")
+		);
 
 	assert_type!(S<bool, u8>, struct_type);
 
@@ -121,8 +125,8 @@ fn enum_derive() {
 		.type_params(tuple_meta_type!(bool))
 		.variant(
 			Variants::with_fields()
-				.variant("A", Fields::unnamed().field_of::<bool>())
-				.variant("B", Fields::named().field_of::<bool>("b"))
+				.variant("A", Fields::unnamed().field(Field::unnamed_of::<bool>().with_type_display_name(vec!["T"])))
+				.variant("B", Fields::named().field(Field::named_of::<bool>("b").with_type_display_name(vec!["T"])))
 				.variant_unit("C"),
 		);
 
