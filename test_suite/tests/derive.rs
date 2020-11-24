@@ -147,12 +147,12 @@ fn recursive_type_derive() {
 
 	let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
 		Variants::with_fields()
-			.variant("Leaf", Fields::named().field_of::<i32>("value"))
+			.variant("Leaf", Fields::named().field(Field::named_of::<i32>("value").with_type_display_name(vec!["i32"])))
 			.variant(
 				"Node",
 				Fields::named()
-					.field_of::<Box<Tree>>("right")
-					.field_of::<Box<Tree>>("left"),
+					.field(Field::named_of::<Box<Tree>>("right").with_type_display_name(vec!["Box"]))
+					.field(Field::named_of::<Box<Tree>>("left").with_type_display_name(vec!["Box"])),
 			),
 	);
 

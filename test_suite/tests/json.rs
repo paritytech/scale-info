@@ -258,14 +258,14 @@ fn test_recursive_type_with_box() {
 							{
 								"name": "Leaf",
 								"fields": [
-									{ "name": "value", "type": 2 },
+									{ "name": "value", "type": 2, "displayName": ["i32"] },
 								],
 							},
 							{
 								"name": "Node",
 								"fields": [
-									{ "name": "right", "type": 1, },
-									{ "name": "left", "type": 1, },
+									{ "name": "right", "type": 1, "displayName": ["Box"] },
+									{ "name": "left", "type": 1, "displayName": ["Box"] },
 								],
 							}
 						],
