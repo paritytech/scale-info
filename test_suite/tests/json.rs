@@ -146,9 +146,9 @@ fn test_tuplestruct() {
 		"def": {
 			"composite": {
 				"fields": [
-					{ "type": 1 },
+					{ "type": 1, "displayName": ["i32"] },
 					{ "type": 2 },
-					{ "type": 4 },
+					{ "type": 4, "displayName": ["bool"] },
 				],
 			},
 		}
@@ -169,9 +169,9 @@ fn test_struct() {
 		"def": {
 			"composite": {
 				"fields": [
-					{ "name": "a", "type": 1, },
-					{ "name": "b", "type": 2, },
-					{ "name": "c", "type": 4, },
+					{ "name": "a", "type": 1, "displayName": ["i32"] },
+					{ "name": "b", "type": 2 },
+					{ "name": "c", "type": 4, "displayName": ["bool"] },
 				],
 			},
 		}
@@ -219,16 +219,16 @@ fn test_enum() {
 					{
 						"name": "TupleStructVariant",
 						"fields": [
-							{ "type": 1 },
-							{ "type": 2 },
+							{ "type": 1, "displayName": ["u32"] },
+							{ "type": 2, "displayName": ["bool"] },
 						],
 					},
 					{
 						"name": "StructVariant",
 						"fields": [
-							{ "name": "a", "type": 1, },
-							{ "name": "b", "type": 3, },
-							{ "name": "c", "type": 5, },
+							{ "name": "a", "type": 1, "displayName": ["u32"] },
+							{ "name": "b", "type": 3 },
+							{ "name": "c", "type": 5, "displayName": ["char"] },
 						],
 					}
 				],
@@ -294,8 +294,8 @@ fn test_registry() {
 				"def": {
 					"composite": {
 						"fields": [
-							{ "type": 3 },
-							{ "type": 4 },
+							{ "type": 3, "displayName": ["u8"] },
+							{ "type": 4, "displayName": ["u32"] },
 						],
 					},
 				}
@@ -316,11 +316,13 @@ fn test_registry() {
 						"fields": [
 							{
 								"name": "a",
-								"type": 3, // u8
+								"type": 3,
+								"displayName": ["u8"]
 							},
 							{
 								"name": "b",
-								"type": 4, // u32
+								"type": 4,
+								"displayName": ["u32"]
 							},
 							{
 								"name": "c",
@@ -349,6 +351,7 @@ fn test_registry() {
 							{
 								"name": "rec",
 								"type": 8, // Vec<RecursiveStruct>
+								"displayName": ["Vec"]
 							}
 						]
 					},
@@ -399,8 +402,8 @@ fn test_registry() {
 							{
 								"name": "B",
 								"fields": [
-									{ "type": 3 }, // u8
-									{ "type": 4 }, // u32
+									{ "type": 3, "displayName": ["u8"] }, // u8
+									{ "type": 4, "displayName": ["u32"] }, // u32
 								]
 							},
 							{
@@ -409,10 +412,12 @@ fn test_registry() {
 									{
 										"name": "a",
 										"type": 3, // u8
+										"displayName": ["u8"]
 									},
 									{
 										"name": "b",
 										"type": 4, // u32
+										"displayName": ["u32"]
 									},
 									{
 										"name": "c",
