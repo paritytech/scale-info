@@ -30,8 +30,11 @@
 //! Other forms, such as a compact form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
-use crate::tm_std::*;
-use crate::{interner::UntrackedSymbol, meta_type::MetaType};
+use crate::{
+    interner::UntrackedSymbol,
+    meta_type::MetaType,
+    tm_std::*,
+};
 use serde::Serialize;
 
 /// Trait to control the internal structures of type definitions.
@@ -40,10 +43,10 @@ use serde::Serialize;
 /// instantiated out of the flux and compact forms that require some sort of
 /// interning data structures.
 pub trait Form {
-	/// The type representing the type.
-	type Type: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
-	/// The string type.
-	type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+    /// The type representing the type.
+    type Type: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+    /// The string type.
+    type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
 }
 
 /// A meta meta-type.
@@ -54,8 +57,8 @@ pub trait Form {
 pub enum MetaForm {}
 
 impl Form for MetaForm {
-	type Type = MetaType;
-	type String = &'static str;
+    type Type = MetaType;
+    type String = &'static str;
 }
 
 /// Compact form that has its lifetime untracked in association to its interner.
@@ -71,6 +74,6 @@ impl Form for MetaForm {
 pub enum CompactForm {}
 
 impl Form for CompactForm {
-	type Type = UntrackedSymbol<TypeId>;
-	type String = String;
+    type Type = UntrackedSymbol<TypeId>;
+    type String = String;
 }
