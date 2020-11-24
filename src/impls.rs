@@ -19,6 +19,8 @@ use crate::*;
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
 		impl TypeInfo for $t {
+			type Identity = Self;
+
 			fn type_info() -> Type {
 				$ident_kind.into()
 			}
@@ -45,6 +47,8 @@ macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
 		$(
 			impl<T: TypeInfo + 'static> TypeInfo for [T; $n] {
+				type Identity = Self;
+
 				fn type_info() -> Type {
 					TypeDefArray::new($n, MetaType::new::<T>()).into()
 				}
@@ -70,6 +74,8 @@ macro_rules! impl_metadata_for_tuple {
 				$ty: TypeInfo+ 'static,
 			)*
 		{
+			type Identity = Self;
+
 			fn type_info() -> Type {
 				TypeDefTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
@@ -93,8 +99,10 @@ impl<T> TypeInfo for Vec<T>
 where
 	T: TypeInfo + 'static,
 {
+	type Identity = [T];
+
 	fn type_info() -> Type {
-		<[T] as TypeInfo>::type_info()
+		Self::Identity::type_info()
 	}
 }
 
@@ -102,6 +110,8 @@ impl<T> TypeInfo for Option<T>
 where
 	T: TypeInfo + 'static,
 {
+	type Identity = Self;
+
 	fn type_info() -> Type {
 		Type::builder()
 			.path(Path::prelude("Option"))
@@ -119,6 +129,8 @@ where
 	T: TypeInfo + 'static,
 	E: TypeInfo + 'static,
 {
+	type Identity = Self;
+
 	fn type_info() -> Type {
 		Type::builder()
 			.path(Path::prelude("Result"))
@@ -136,6 +148,8 @@ where
 	K: TypeInfo + 'static,
 	V: TypeInfo + 'static,
 {
+	type Identity = Self;
+
 	fn type_info() -> Type {
 		Type::builder()
 			.path(Path::prelude("BTreeMap"))
@@ -146,28 +160,34 @@ where
 
 impl<T> TypeInfo for Box<T>
 where
-	T: TypeInfo + ?Sized,
+	T: TypeInfo + ?Sized + 'static,
 {
+	type Identity = T;
+
 	fn type_info() -> Type {
-		T::type_info()
+		Self::Identity::type_info()
 	}
 }
 
 impl<T> TypeInfo for &T
 where
-	T: TypeInfo + ?Sized,
+	T: TypeInfo + ?Sized + 'static,
 {
+	type Identity = T;
+
 	fn type_info() -> Type {
-		T::type_info()
+		Self::Identity::type_info()
 	}
 }
 
 impl<T> TypeInfo for &mut T
 where
-	T: TypeInfo + ?Sized,
+	T: TypeInfo + ?Sized + 'static,
 {
+	type Identity = T;
+
 	fn type_info() -> Type {
-		T::type_info()
+		Self::Identity::type_info()
 	}
 }
 
@@ -175,20 +195,26 @@ impl<T> TypeInfo for [T]
 where
 	T: TypeInfo + 'static,
 {
+	type Identity = Self;
+
 	fn type_info() -> Type {
 		TypeDefSequence::of::<T>().into()
 	}
 }
 
 impl TypeInfo for str {
+	type Identity = Self;
+
 	fn type_info() -> Type {
 		TypeDefPrimitive::Str.into()
 	}
 }
 
 impl TypeInfo for String {
+	type Identity = str;
+
 	fn type_info() -> Type {
-		TypeDefPrimitive::Str.into()
+		Self::Identity::type_info()
 	}
 }
 
@@ -196,6 +222,8 @@ impl<T> TypeInfo for PhantomData<T>
 where
 	T: TypeInfo + ?Sized + 'static,
 {
+	type Identity = Self;
+
 	fn type_info() -> Type {
 		Type::builder()
 			.path(Path::prelude("PhantomData"))

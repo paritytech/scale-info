@@ -186,7 +186,7 @@ where
 		if idx >= self.vec.len() {
 			return None;
 		}
-		self.vec.get((sym.id.get() - 1) as usize)
+		self.vec.get(idx)
 	}
 }
 

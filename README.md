@@ -15,6 +15,7 @@ At its core is the `TypeInfo` trait:
 
 ```rust
 pub trait TypeInfo {
+    type Identity: ?Sized + 'static;
     fn type_info() -> Type;
 }
 ```
@@ -70,13 +71,13 @@ There are two kinds of user-defined types: `Composite` and `Variant`.
 
 Both make use of the `Path` and `Field` types in their definition:
 
-#### Fields
+### Fields
 
 A fundamental building block to represent user defined types is the `Field` struct which defines the `Type` of a
 field together with its optional name. Builders for the user defined types enforce the invariant that either all
 fields have a name (e.g. structs) or all fields are unnamed (e.g. tuples).
 
-#### Path
+### Path
 
 The path of a type is a unique sequence of identifiers. Rust types typically construct a path from
 the namespace and the identifier e.g. `foo::bar::Baz` is converted to the path `["foo", "bar
@@ -156,13 +157,15 @@ where
     }
 }
 ```
-If all variants contain no fields then the discriminant can be set explicitly, enforced by the
+
+If no variants contain fields then the discriminant can be set explicitly, enforced by the
 builder during construction:
+
 ```rust
 enum Foo {
-	A,
-	B,
-	C = 33,
+    A,
+    B,
+    C = 33,
 }
 
 impl TypeInfo for Foo {
@@ -183,12 +186,15 @@ impl TypeInfo for Foo {
 
 Information about types is provided within the so-called type registry (`Registry`).
 Type definitions are registered there and are associated with unique IDs that the outside
-can use to refer to them providing a lightweight way to decrease overhead instead of using type
+can refer to, providing a lightweight way to decrease overhead instead of using type
 identifiers.
 
 All concrete `TypeInfo` structures have two forms:
-One meta form (`MetaType`) that acts as a bridge to other forms and a compact form that is later
-to be serialized. The `IntoCompact` trait is implemented by them in order to compact a type
+
+- One meta form (`MetaType`) that acts as a bridge to other forms
+- A compact form that is later to be serialized.
+
+The `IntoCompact` trait must also be implemented in order to compact a type
 definition using an instance of a type registry.
 
 After compactification all type definitions are stored in the type registry.
@@ -205,6 +211,5 @@ the monomorphization of Rust generic types could potentially result in very larg
 
 ## Resources
 
-- See usage for describing types for [`ink!`](https://github.com/paritytech/ink/tree/master/abi
-) smart contracts metadata.
+- See usage for describing types for [`ink!`](https://github.com/paritytech/ink/blob/master/crates/metadata/src/specs.rs) smart contracts metadata.
 - [Original design draft (*outdated*)](https://hackmd.io/0wWm0ueBSF26m2pBG5NaeQ?view)
