@@ -93,37 +93,35 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
 		.map(|f| {
 			let (ty, ident) = (&f.ty, &f.ident);
 
-			let display_name =
-				if let syn::Type::Path(type_path) = ty {
-					if type_path.qself.is_some() || type_path.path.segments.is_empty() {
-						quote! {}
-					} else {
-						let segs = type_path
-							.path
-							.segments
-							.iter()
-							.map(|seg| seg.ident.to_string())
-							.collect::<Vec<_>>();
-						quote! {
-							.with_type_display_name(
-								vec![#(#segs),*].into_iter().map(AsRef::as_ref)
-							)
-						}
-					}
-				} else {
+			let display_name = if let syn::Type::Path(type_path) = ty {
+				if type_path.qself.is_some() || type_path.path.segments.is_empty() {
 					quote! {}
-				};
-
-			let field =
-				if let Some(i) = ident {
-					quote! {
-						_scale_info::Field::named_of::<#ty>(stringify!(#i))#display_name
-					}
 				} else {
+					let segs = type_path
+						.path
+						.segments
+						.iter()
+						.map(|seg| seg.ident.to_string())
+						.collect::<Vec<_>>();
 					quote! {
-						_scale_info::Field::unnamed_of::<#ty>()#display_name
+						.with_type_display_name(
+							vec![#(#segs),*].into_iter().map(AsRef::as_ref)
+						)
 					}
-				};
+				}
+			} else {
+				quote! {}
+			};
+
+			let field = if let Some(i) = ident {
+				quote! {
+					_scale_info::Field::named_of::<#ty>(stringify!(#i))#display_name
+				}
+			} else {
+				quote! {
+					_scale_info::Field::unnamed_of::<#ty>()#display_name
+				}
+			};
 			quote! { .field(#field) }
 		})
 		.collect()

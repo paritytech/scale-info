@@ -53,7 +53,7 @@ fn struct_derive() {
 		.composite(
 			Fields::named()
 				.field(Field::named_of::<bool>("t").with_type_display_name(vec!["T"]))
-				.field(Field::named_of::<u8>("u").with_type_display_name(vec!["U"]))
+				.field(Field::named_of::<u8>("u").with_type_display_name(vec!["U"])),
 		);
 
 	assert_type!(S<bool, u8>, struct_type);
@@ -65,9 +65,10 @@ fn struct_derive() {
 	let self_typed_type = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
-		.composite(Fields::named()
-			.field(Field::named_of::<Box<S<bool, u8>>>("t").with_type_display_name(vec!["T"]))
-			.field(Field::named_of::<bool>("u").with_type_display_name(vec!["U"]))
+		.composite(
+			Fields::named()
+				.field(Field::named_of::<Box<S<bool, u8>>>("t").with_type_display_name(vec!["T"]))
+				.field(Field::named_of::<bool>("u").with_type_display_name(vec!["U"])),
 		);
 	assert_type!(SelfTyped, self_typed_type);
 }
@@ -128,8 +129,14 @@ fn enum_derive() {
 		.type_params(tuple_meta_type!(bool))
 		.variant(
 			Variants::with_fields()
-				.variant("A", Fields::unnamed().field(Field::unnamed_of::<bool>().with_type_display_name(vec!["T"])))
-				.variant("B", Fields::named().field(Field::named_of::<bool>("b").with_type_display_name(vec!["T"])))
+				.variant(
+					"A",
+					Fields::unnamed().field(Field::unnamed_of::<bool>().with_type_display_name(vec!["T"])),
+				)
+				.variant(
+					"B",
+					Fields::named().field(Field::named_of::<bool>("b").with_type_display_name(vec!["T"])),
+				)
 				.variant_unit("C"),
 		);
 
@@ -147,7 +154,10 @@ fn recursive_type_derive() {
 
 	let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
 		Variants::with_fields()
-			.variant("Leaf", Fields::named().field(Field::named_of::<i32>("value").with_type_display_name(vec!["i32"])))
+			.variant(
+				"Leaf",
+				Fields::named().field(Field::named_of::<i32>("value").with_type_display_name(vec!["i32"])),
+			)
 			.variant(
 				"Node",
 				Fields::named()
