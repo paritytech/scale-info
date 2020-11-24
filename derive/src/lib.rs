@@ -105,7 +105,7 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
 						.collect::<Vec<_>>();
 					quote! {
 						.with_type_display_name(
-							vec![#(#segs),*].into_iter().map(AsRef::as_ref)
+							__core::vec![#(#segs),*].into_iter().map(AsRef::as_ref)
 						)
 					}
 				}
