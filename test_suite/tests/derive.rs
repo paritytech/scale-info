@@ -52,8 +52,8 @@ fn struct_derive() {
 		.type_params(tuple_meta_type!(bool, u8))
 		.composite(
 			Fields::named()
-				.field_of::<bool>("t")
-				.field_of::<u8>("u")
+				.field(Field::named_of::<bool>("t").with_type_display_name(vec!["T"]))
+				.field(Field::named_of::<u8>("u").with_type_display_name(vec!["U"]))
 		);
 
 	assert_type!(S<bool, u8>, struct_type);
@@ -65,7 +65,10 @@ fn struct_derive() {
 	let self_typed_type = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
-		.composite(Fields::named().field_of::<Box<S<bool, u8>>>("t").field_of::<bool>("u"));
+		.composite(Fields::named()
+			.field(Field::named_of::<Box<S<bool, u8>>>("t").with_type_display_name(vec!["T"]))
+			.field(Field::named_of::<bool>("u").with_type_display_name(vec!["U"]))
+		);
 	assert_type!(SelfTyped, self_typed_type);
 }
 
@@ -78,7 +81,7 @@ fn tuple_struct_derive() {
 	let ty = Type::builder()
 		.path(Path::new("S", "derive"))
 		.type_params(tuple_meta_type!(bool))
-		.composite(Fields::unnamed().field_of::<bool>());
+		.composite(Fields::unnamed().field(Field::unnamed_of::<bool>().with_type_display_name(vec!["T"])));
 
 	assert_type!(S<bool>, ty);
 }
