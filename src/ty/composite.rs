@@ -15,12 +15,25 @@
 use crate::tm_std::*;
 
 use crate::{
-	form::{CompactForm, Form, MetaForm},
-	Field, IntoCompact, Registry,
+    form::{
+        CompactForm,
+        Form,
+        MetaForm,
+    },
+    Field,
+    IntoCompact,
+    Registry,
 };
 use derive_more::From;
-use scale::{Decode, Encode};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use scale::{
+    Decode,
+    Encode,
+};
+use serde::{
+    de::DeserializeOwned,
+    Deserialize,
+    Serialize,
+};
 
 /// A composite type, consisting of either named (struct) or unnamed (tuple
 /// struct) fields
@@ -48,46 +61,58 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// ```
 /// struct JustAMarker;
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
+#[derive(
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Clone,
+    Debug,
+    From,
+    Serialize,
+    Deserialize,
+    Encode,
+    Decode,
+)]
 #[serde(bound(
-	serialize = "T::Type: Serialize, T::String: Serialize",
-	deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
+    serialize = "T::Type: Serialize, T::String: Serialize",
+    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefComposite<T: Form = MetaForm> {
-	/// The fields of the composite type.
-	#[serde(skip_serializing_if = "Vec::is_empty", default)]
-	fields: Vec<Field<T>>,
+    /// The fields of the composite type.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    fields: Vec<Field<T>>,
 }
 
 impl IntoCompact for TypeDefComposite {
-	type Output = TypeDefComposite<CompactForm>;
+    type Output = TypeDefComposite<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDefComposite {
-			fields: registry.map_into_compact(self.fields),
-		}
-	}
+    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+        TypeDefComposite {
+            fields: registry.map_into_compact(self.fields),
+        }
+    }
 }
 
 impl TypeDefComposite {
-	/// Creates a new struct definition with named fields.
-	pub fn new<I>(fields: I) -> Self
-	where
-		I: IntoIterator<Item = Field>,
-	{
-		Self {
-			fields: fields.into_iter().collect(),
-		}
-	}
+    /// Creates a new struct definition with named fields.
+    pub fn new<I>(fields: I) -> Self
+    where
+        I: IntoIterator<Item = Field>,
+    {
+        Self {
+            fields: fields.into_iter().collect(),
+        }
+    }
 }
 
 impl<T> TypeDefComposite<T>
 where
-	T: Form,
+    T: Form,
 {
-	/// Returns the fields of the composite type.
-	pub fn fields(&self) -> &[Field<T>] {
-		&self.fields
-	}
+    /// Returns the fields of the composite type.
+    pub fn fields(&self) -> &[Field<T>] {
+        &self.fields
+    }
 }
