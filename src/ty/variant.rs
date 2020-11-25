@@ -186,7 +186,7 @@ impl Variant {
     pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>) -> Self {
         Self {
             name,
-            fields: fields.done(),
+            fields: fields.finalize(),
             discriminant: None,
         }
     }

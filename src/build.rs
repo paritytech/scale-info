@@ -177,12 +177,12 @@ impl TypeBuilder<state::PathAssigned> {
 
     /// Construct a "variant" type i.e an `enum`
     pub fn variant<V>(self, builder: VariantsBuilder<V>) -> Type {
-        self.build(builder.done())
+        self.build(builder.finalize())
     }
 
     /// Construct a "composite" type i.e. a `struct`
     pub fn composite<F>(self, fields: FieldsBuilder<F>) -> Type {
-        self.build(TypeDefComposite::new(fields.done()))
+        self.build(TypeDefComposite::new(fields.finalize()))
     }
 }
 
@@ -247,8 +247,8 @@ impl<T> FieldsBuilder<T> {
     }
 
     /// Complete building and return the set of fields
-    pub fn done(mut self) -> Vec<Field<MetaForm>> {
-        self.fields.drain(..).map(|field| field.done()).collect()
+    pub fn finalize(mut self) -> Vec<Field<MetaForm>> {
+        self.fields.drain(..).map(|field| field.finalize()).collect()
     }
 }
 
@@ -304,7 +304,7 @@ impl<T> FieldBuilder<T> {
     }
 
     /// Complete building the field.
-    pub fn done(self) -> Field {
+    pub fn finalize(self) -> Field {
         Field::new(self.name, self.ty, self.ty_display_name)
     }
 }
@@ -378,7 +378,7 @@ impl<T> VariantsBuilder<T> {
         }
     }
 
-    fn done(self) -> TypeDefVariant {
+    fn finalize(self) -> TypeDefVariant {
         TypeDefVariant::new(self.variants)
     }
 }
