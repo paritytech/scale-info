@@ -39,8 +39,8 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .type_params(vec![MetaType::new::<T>()])
 //!             .composite(Fields::named()
-//!                 .field_of::<T>("bar")
-//!                 .field_of::<u64>("data")
+//!                 .field_of::<T>("bar", "T")
+//!                 .field_of::<u64>("data", "u64")
 //!             )
 //!     }
 //! }
@@ -57,8 +57,8 @@
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
 //!             .composite(Fields::unnamed()
-//!                 .field_of::<u32>()
-//!                 .field_of::<bool>()
+//!                 .field_of::<u32>("u32")
+//!                 .field_of::<bool>("bool")
 //!             )
 //!     }
 //! }
@@ -84,8 +84,8 @@
 //!                .type_params(vec![MetaType::new::<T>()])
 //!             .variant(
 //!                 Variants::with_fields()
-//!                     .variant("A", Fields::unnamed().field_of::<T>())
-//!                     .variant("B", Fields::named().field_of::<u32>("f"))
+//!                     .variant("A", Fields::unnamed().field_of::<T>("T"))
+//!                     .variant("B", Fields::named().field_of::<u32>("f", "u32"))
 //!                     .variant("C", Fields::unit())
 //!             )
 //!     }
@@ -226,7 +226,7 @@ impl Fields {
 
 /// Build a set of either all named (e.g. for a struct) or all unnamed (e.g. for a tuple struct)
 pub struct FieldsBuilder<T> {
-    fields: Vec<FieldBuilder<T>>,
+    fields: Vec<Field>,
     marker: PhantomData<fn() -> T>,
 }
 
@@ -240,79 +240,30 @@ impl<T> Default for FieldsBuilder<T> {
 }
 
 impl<T> FieldsBuilder<T> {
-    /// Add a field with the type of the type parameter `T`
-    pub fn field(mut self, field: FieldBuilder<T>) -> Self {
-        self.fields.push(field);
-        self
-    }
-
     /// Complete building and return the set of fields
-    pub fn finalize(mut self) -> Vec<Field<MetaForm>> {
-        self.fields.drain(..).map(|field| field.finalize()).collect()
+    pub fn finalize(self) -> Vec<Field<MetaForm>> {
+        self.fields
     }
 }
 
 impl FieldsBuilder<NamedFields> {
     /// Add a named field with the type of the type parameter `T`
-    pub fn field_of<T>(self, name: &'static str) -> Self
+    pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        self.field(Field::named_of::<T>(name))
+        self.fields.push(Field::named_of::<T>(name, type_name));
+        self
     }
 }
 
 impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self) -> Self
+    pub fn field_of<T>(mut self, type_name: &'static str) -> Self
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::unnamed_of::<T>());
-        self
-    }
-}
-
-/// Build a field.
-pub struct FieldBuilder<T> {
-    name: Option<&'static str>,
-    ty: MetaType,
-    ty_display_name: Option<Path>,
-    marker: PhantomData<fn() -> T>,
-}
-
-impl<T> FieldBuilder<T> {
-    /// Create a new field builder for a field with the given [`MetaType`].
-    pub fn new(ty: MetaType) -> Self {
-        Self {
-            name: None,
-            ty,
-            ty_display_name: None,
-            marker: PhantomData,
-        }
-    }
-
-    /// Specify the display name of the type of the field. This can either be the type name itself
-    /// or a type alias.
-    pub fn with_type_display_name<S>(mut self, path_segments: S) -> Self
-    where
-        S: IntoIterator<Item = &'static str>,
-    {
-        let path = Path::from_segments(path_segments).expect("display name is invalid");
-        self.ty_display_name = Some(path);
-        self
-    }
-
-    /// Complete building the field.
-    pub fn finalize(self) -> Field {
-        Field::new(self.name, self.ty, self.ty_display_name)
-    }
-}
-
-impl FieldBuilder<NamedFields> {
-    /// Specify the name of the field.
-    pub fn with_name(mut self, name: &'static str) -> Self {
-        self.name = Some(name);
+        self.fields.push(Field::unnamed_of::<T>(type_name));
         self
     }
 }

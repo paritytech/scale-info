@@ -18,16 +18,12 @@
 extern crate alloc;
 
 #[cfg(not(feature = "std"))]
-use alloc::{
-    boxed::Box,
-    vec,
-};
+use alloc::boxed::Box;
 
 use pretty_assertions::assert_eq;
 use scale_info::{
     build::*,
     tuple_meta_type,
-    Field,
     Path,
     Type,
     TypeInfo,
@@ -61,8 +57,8 @@ fn struct_derive() {
         .type_params(tuple_meta_type!(bool, u8))
         .composite(
             Fields::named()
-                .field(Field::named_of::<bool>("t").with_type_display_name(vec!["T"]))
-                .field(Field::named_of::<u8>("u").with_type_display_name(vec!["U"])),
+                .field_of::<bool>("t", "T")
+                .field_of::<u8>("u", "U"),
         );
 
     assert_type!(S<bool, u8>, struct_type);
@@ -76,11 +72,8 @@ fn struct_derive() {
         .type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
         .composite(
             Fields::named()
-                .field(
-                    Field::named_of::<Box<S<bool, u8>>>("t")
-                        .with_type_display_name(vec!["T"]),
-                )
-                .field(Field::named_of::<bool>("u").with_type_display_name(vec!["U"])),
+                .field_of::<Box<S<bool, u8>>>("t", "T")
+                .field_of::<bool>("u", "U"),
         );
     assert_type!(SelfTyped, self_typed_type);
 }
@@ -94,10 +87,7 @@ fn tuple_struct_derive() {
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool))
-        .composite(
-            Fields::unnamed()
-                .field(Field::unnamed_of::<bool>().with_type_display_name(vec!["T"])),
-        );
+        .composite(Fields::unnamed().field_of::<bool>("T"));
 
     assert_type!(S<bool>, ty);
 }
@@ -146,18 +136,8 @@ fn enum_derive() {
         .type_params(tuple_meta_type!(bool))
         .variant(
             Variants::with_fields()
-                .variant(
-                    "A",
-                    Fields::unnamed().field(
-                        Field::unnamed_of::<bool>().with_type_display_name(vec!["T"]),
-                    ),
-                )
-                .variant(
-                    "B",
-                    Fields::named().field(
-                        Field::named_of::<bool>("b").with_type_display_name(vec!["T"]),
-                    ),
-                )
+                .variant("A", Fields::unnamed().field_of::<bool>("T"))
+                .variant("B", Fields::named().field_of::<bool>("b", "T"))
                 .variant_unit("C"),
         );
 
@@ -175,23 +155,12 @@ fn recursive_type_derive() {
 
     let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
         Variants::with_fields()
-            .variant(
-                "Leaf",
-                Fields::named().field(
-                    Field::named_of::<i32>("value").with_type_display_name(vec!["i32"]),
-                ),
-            )
+            .variant("Leaf", Fields::named().field_of::<i32>("value", "i32"))
             .variant(
                 "Node",
                 Fields::named()
-                    .field(
-                        Field::named_of::<Box<Tree>>("right")
-                            .with_type_display_name(vec!["Box"]),
-                    )
-                    .field(
-                        Field::named_of::<Box<Tree>>("left")
-                            .with_type_display_name(vec!["Box"]),
-                    ),
+                    .field_of::<Box<Tree>>("right", "Box < Tree >")
+                    .field_of::<Box<Tree>>("left", "Box < Tree >"),
             ),
     );
 
@@ -208,15 +177,9 @@ fn fields_with_type_alias() {
         a: BoolAlias,
     }
 
-    let ty =
-        Type::builder()
-            .path(Path::new("S", "derive"))
-            .composite(
-                Fields::named().field(
-                    Field::named_of::<BoolAlias>("a")
-                        .with_type_display_name(vec!["BoolAlias"]),
-                ),
-            );
+    let ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .composite(Fields::named().field_of::<BoolAlias>("a", "BoolAlias"));
 
     assert_type!(S, ty);
 }

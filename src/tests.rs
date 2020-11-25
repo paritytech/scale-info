@@ -60,7 +60,7 @@ fn prelude_items() {
             .variant(
                 Variants::with_fields()
                     .variant_unit("None")
-                    .variant("Some", Fields::unnamed().field_of::<u128>())
+                    .variant("Some", Fields::unnamed().field_of::<u128>("T"))
             )
     );
     assert_type!(
@@ -70,8 +70,8 @@ fn prelude_items() {
             .type_params(tuple_meta_type!(bool, String))
             .variant(
                 Variants::with_fields()
-                    .variant("Ok", Fields::unnamed().field_of::<bool>())
-                    .variant("Err", Fields::unnamed().field_of::<String>())
+                    .variant("Ok", Fields::unnamed().field_of::<bool>("T"))
+                    .variant("Err", Fields::unnamed().field_of::<String>("E"))
             )
     );
     assert_type!(
@@ -133,7 +133,7 @@ fn struct_with_generics() {
             Type::builder()
                 .path(Path::new("MyStruct", module_path!()))
                 .type_params(tuple_meta_type!(T))
-                .composite(Fields::named().field_of::<T>("data"))
+                .composite(Fields::named().field_of::<T>("data", "T"))
                 .into()
         }
     }
@@ -142,7 +142,7 @@ fn struct_with_generics() {
     let struct_bool_type_info = Type::builder()
         .path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
         .type_params(tuple_meta_type!(bool))
-        .composite(Fields::named().field_of::<bool>("data"));
+        .composite(Fields::named().field_of::<bool>("data", "T"));
 
     assert_type!(MyStruct<bool>, struct_bool_type_info);
 
@@ -151,6 +151,6 @@ fn struct_with_generics() {
     let expected_type = Type::builder()
         .path(Path::new("MyStruct", "scale_info::tests"))
         .type_params(tuple_meta_type!(Box<MyStruct<bool>>))
-        .composite(Fields::named().field_of::<Box<MyStruct<bool>>>("data"));
+        .composite(Fields::named().field_of::<Box<MyStruct<bool>>>("data", "T"));
     assert_type!(SelfTyped, expected_type);
 }
