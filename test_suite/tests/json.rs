@@ -172,7 +172,7 @@ fn test_tuplestruct() {
             "composite": {
                 "fields": [
                     { "type": 1, "typeName": "i32" },
-                    { "type": 2, "typeName": "[u8 ; 32]" },
+                    { "type": 2, "typeName": "[u8; 32]" },
                     { "type": 4, "typeName": "bool" },
                 ],
             },
@@ -195,7 +195,7 @@ fn test_struct() {
             "composite": {
                 "fields": [
                     { "name": "a", "type": 1, "typeName": "i32" },
-                    { "name": "b", "type": 2, "typeName": "[u8 ; 32]" },
+                    { "name": "b", "type": 2, "typeName": "[u8; 32]" },
                     { "name": "c", "type": 4, "typeName": "bool" },
                 ],
             },
@@ -252,7 +252,7 @@ fn test_enum() {
                         "name": "StructVariant",
                         "fields": [
                             { "name": "a", "type": 1, "typeName": "u32" },
-                            { "name": "b", "type": 3, "typeName": "[u8 ; 32]" },
+                            { "name": "b", "type": 3, "typeName": "[u8; 32]" },
                             { "name": "c", "type": 5, "typeName": "char" },
                         ],
                     }
@@ -289,8 +289,8 @@ fn test_recursive_type_with_box() {
                             {
                                 "name": "Node",
                                 "fields": [
-                                    { "name": "right", "type": 1, "typeName": "Box < Tree >" },
-                                    { "name": "left", "type": 1, "typeName": "Box < Tree >" },
+                                    { "name": "right", "type": 1, "typeName": "Box<Tree>" },
+                                    { "name": "left", "type": 1, "typeName": "Box<Tree>" },
                                 ],
                             }
                         ],
@@ -396,7 +396,7 @@ fn test_registry() {
                             {
                                 "name": "c",
                                 "type": 6,
-                                "typeName": "[u8 ; 32]"
+                                "typeName": "[u8; 32]"
                             }
                         ]
                     },
@@ -421,7 +421,7 @@ fn test_registry() {
                             {
                                 "name": "rec",
                                 "type": 8,
-                                "typeName": "Vec < RecursiveStruct >"
+                                "typeName": "Vec<RecursiveStruct>"
                             }
                         ]
                     },
@@ -492,7 +492,7 @@ fn test_registry() {
                                     {
                                         "name": "c",
                                         "type": 6,
-                                        "typeName": "[u8 ; 32]"
+                                        "typeName": "[u8; 32]"
                                     }
                                 ]
                             }

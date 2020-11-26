@@ -159,8 +159,8 @@ fn recursive_type_derive() {
             .variant(
                 "Node",
                 Fields::named()
-                    .field_of::<Box<Tree>>("right", "Box < Tree >")
-                    .field_of::<Box<Tree>>("left", "Box < Tree >"),
+                    .field_of::<Box<Tree>>("right", "Box<Tree>")
+                    .field_of::<Box<Tree>>("left", "Box<Tree>"),
             ),
     );
 
