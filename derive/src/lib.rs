@@ -29,7 +29,6 @@ use syn::{
         Error,
         Result,
     },
-    parse_quote,
     punctuated::Punctuated,
     token::Comma,
     Data,
