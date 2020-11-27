@@ -170,9 +170,6 @@ fn get_types_to_add_trait_bound(
 				.map(Type::Path)
 				// Remove again types that do not contain any of our generic parameters
 				.filter(|ty| type_contain_idents(ty, &ty_params))
-			// todo: [AJ] can I remove this
-			// // Add back the original type, as we don't want to loose him.
-			// .chain(core::iter::once(ty))
 		})
 		// Remove all remaining types that start/contain the input ident to not have them in the where clause.
 		.filter(|ty| !type_or_sub_type_path_starts_with_ident(ty, input_ident))
