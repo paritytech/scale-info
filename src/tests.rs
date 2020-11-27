@@ -12,134 +12,145 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::build::*;
-use crate::*;
+use crate::{
+    build::*,
+    *,
+};
 use core::marker::PhantomData;
 
 #[cfg(not(feature = "std"))]
-use alloc::{boxed::Box, string::String, vec};
+use alloc::{
+    boxed::Box,
+    string::String,
+    vec,
+};
 
 fn assert_type<T, E>(expected: E)
 where
-	T: TypeInfo + ?Sized,
-	E: Into<Type>,
+    T: TypeInfo + ?Sized,
+    E: Into<Type>,
 {
-	assert_eq!(T::type_info(), expected.into());
+    assert_eq!(T::type_info(), expected.into());
 }
 
 macro_rules! assert_type {
-	( $ty:ty, $expected:expr ) => {{
-		assert_type::<$ty, _>($expected)
-		}};
+    ( $ty:ty, $expected:expr ) => {{
+        assert_type::<$ty, _>($expected)
+    }};
 }
 
 #[test]
 fn primitives() {
-	assert_type!(bool, TypeDefPrimitive::Bool);
-	assert_type!(&str, TypeDefPrimitive::Str);
-	assert_type!(i8, TypeDefPrimitive::I8);
+    assert_type!(bool, TypeDefPrimitive::Bool);
+    assert_type!(&str, TypeDefPrimitive::Str);
+    assert_type!(i8, TypeDefPrimitive::I8);
 
-	assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
+    assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
 }
 
 #[test]
 fn prelude_items() {
-	assert_type!(String, TypeDefPrimitive::Str);
+    assert_type!(String, TypeDefPrimitive::Str);
 
-	assert_type!(
-		Option<u128>,
-		Type::builder()
-			.path(Path::prelude("Option"))
-			.type_params(tuple_meta_type!(u128))
-			.variant(
-				Variants::with_fields()
-					.variant_unit("None")
-					.variant("Some", Fields::unnamed().field_of::<u128>())
-			)
-	);
-	assert_type!(
-		Result<bool, String>,
-		Type::builder()
-			.path(Path::prelude("Result"))
-			.type_params(tuple_meta_type!(bool, String))
-			.variant(
-				Variants::with_fields()
-					.variant("Ok", Fields::unnamed().field_of::<bool>())
-					.variant("Err", Fields::unnamed().field_of::<String>())
-			)
-	);
-	assert_type!(
-		PhantomData<i32>,
-		Type::builder()
-			.path(Path::prelude("PhantomData"))
-			.type_params(tuple_meta_type!(i32))
-			.composite(Fields::unit())
-	);
+    assert_type!(
+        Option<u128>,
+        Type::builder()
+            .path(Path::prelude("Option"))
+            .type_params(tuple_meta_type!(u128))
+            .variant(
+                Variants::with_fields()
+                    .variant_unit("None")
+                    .variant("Some", Fields::unnamed().field_of::<u128>())
+            )
+    );
+    assert_type!(
+        Result<bool, String>,
+        Type::builder()
+            .path(Path::prelude("Result"))
+            .type_params(tuple_meta_type!(bool, String))
+            .variant(
+                Variants::with_fields()
+                    .variant("Ok", Fields::unnamed().field_of::<bool>())
+                    .variant("Err", Fields::unnamed().field_of::<String>())
+            )
+    );
+    assert_type!(
+        PhantomData<i32>,
+        Type::builder()
+            .path(Path::prelude("PhantomData"))
+            .type_params(tuple_meta_type!(i32))
+            .composite(Fields::unit())
+    );
 }
 
 #[test]
 fn tuple_primitives() {
-	// unit
-	assert_type!((), TypeDefTuple::new(tuple_meta_type!()));
+    // unit
+    assert_type!((), TypeDefTuple::new(tuple_meta_type!()));
 
-	// tuple with one element
-	assert_type!((bool,), TypeDefTuple::new(tuple_meta_type!(bool)));
+    // tuple with one element
+    assert_type!((bool,), TypeDefTuple::new(tuple_meta_type!(bool)));
 
-	// tuple with multiple elements
-	assert_type!((bool, String), TypeDefTuple::new(tuple_meta_type!(bool, String)));
+    // tuple with multiple elements
+    assert_type!(
+        (bool, String),
+        TypeDefTuple::new(tuple_meta_type!(bool, String))
+    );
 
-	// nested tuple
-	assert_type!(
-		((i8, i16), (u32, u64)),
-		TypeDefTuple::new(vec![meta_type::<(i8, i16)>(), meta_type::<(u32, u64)>(),])
-	);
+    // nested tuple
+    assert_type!(
+        ((i8, i16), (u32, u64)),
+        TypeDefTuple::new(vec![meta_type::<(i8, i16)>(), meta_type::<(u32, u64)>(),])
+    );
 }
 
 #[test]
 fn array_primitives() {
-	// array
-	assert_type!([bool; 3], TypeDefArray::new(3, meta_type::<bool>()));
-	// nested
-	assert_type!([[i32; 5]; 5], TypeDefArray::new(5, meta_type::<[i32; 5]>()));
-	// sequence
-	assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
-	// vec
-	assert_type!(Vec<bool>, TypeDefSequence::new(meta_type::<bool>()));
+    // array
+    assert_type!([bool; 3], TypeDefArray::new(3, meta_type::<bool>()));
+    // nested
+    assert_type!([[i32; 5]; 5], TypeDefArray::new(5, meta_type::<[i32; 5]>()));
+    // sequence
+    assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
+    // vec
+    assert_type!(Vec<bool>, TypeDefSequence::new(meta_type::<bool>()));
 }
 
 #[test]
 fn struct_with_generics() {
-	#[allow(unused)]
-	struct MyStruct<T> {
-		data: T,
-	}
+    #[allow(unused)]
+    struct MyStruct<T> {
+        data: T,
+    }
 
-	impl<T> TypeInfo for MyStruct<T>
-	where
-		T: TypeInfo + 'static,
-	{
-		fn type_info() -> Type {
-			Type::builder()
-				.path(Path::new("MyStruct", module_path!()))
-				.type_params(tuple_meta_type!(T))
-				.composite(Fields::named().field_of::<T>("data"))
-				.into()
-		}
-	}
+    impl<T> TypeInfo for MyStruct<T>
+    where
+        T: TypeInfo + 'static,
+    {
+        type Identity = Self;
 
-	// Normal struct
-	let struct_bool_type_info = Type::builder()
-		.path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
-		.type_params(tuple_meta_type!(bool))
-		.composite(Fields::named().field_of::<bool>("data"));
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("MyStruct", module_path!()))
+                .type_params(tuple_meta_type!(T))
+                .composite(Fields::named().field_of::<T>("data"))
+                .into()
+        }
+    }
 
-	assert_type!(MyStruct<bool>, struct_bool_type_info);
+    // Normal struct
+    let struct_bool_type_info = Type::builder()
+        .path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
+        .type_params(tuple_meta_type!(bool))
+        .composite(Fields::named().field_of::<bool>("data"));
 
-	// With "`Self` typed" fields
-	type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-	let expected_type = Type::builder()
-		.path(Path::new("MyStruct", "scale_info::tests"))
-		.type_params(tuple_meta_type!(Box<MyStruct<bool>>))
-		.composite(Fields::named().field_of::<Box<MyStruct<bool>>>("data"));
-	assert_type!(SelfTyped, expected_type);
+    assert_type!(MyStruct<bool>, struct_bool_type_info);
+
+    // With "`Self` typed" fields
+    type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
+    let expected_type = Type::builder()
+        .path(Path::new("MyStruct", "scale_info::tests"))
+        .type_params(tuple_meta_type!(Box<MyStruct<bool>>))
+        .composite(Fields::named().field_of::<Box<MyStruct<bool>>>("data"));
+    assert_type!(SelfTyped, expected_type);
 }

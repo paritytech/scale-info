@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::build::*;
-use crate::tm_std::*;
-use crate::*;
+use crate::{
+    build::*,
+    tm_std::*,
+    *,
+};
 
 macro_rules! impl_metadata_for_primitives {
 	( $( $t:ty => $ident_kind:expr, )* ) => { $(
 		impl TypeInfo for $t {
+			type Identity = Self;
+
 			fn type_info() -> Type {
 				$ident_kind.into()
 			}
@@ -27,24 +31,26 @@ macro_rules! impl_metadata_for_primitives {
 }
 
 impl_metadata_for_primitives!(
-	bool => TypeDefPrimitive::Bool,
-	char => TypeDefPrimitive::Char,
-	u8 => TypeDefPrimitive::U8,
-	u16 => TypeDefPrimitive::U16,
-	u32 => TypeDefPrimitive::U32,
-	u64 => TypeDefPrimitive::U64,
-	u128 => TypeDefPrimitive::U128,
-	i8 => TypeDefPrimitive::I8,
-	i16 => TypeDefPrimitive::I16,
-	i32 => TypeDefPrimitive::I32,
-	i64 => TypeDefPrimitive::I64,
-	i128 => TypeDefPrimitive::I128,
+    bool => TypeDefPrimitive::Bool,
+    char => TypeDefPrimitive::Char,
+    u8 => TypeDefPrimitive::U8,
+    u16 => TypeDefPrimitive::U16,
+    u32 => TypeDefPrimitive::U32,
+    u64 => TypeDefPrimitive::U64,
+    u128 => TypeDefPrimitive::U128,
+    i8 => TypeDefPrimitive::I8,
+    i16 => TypeDefPrimitive::I16,
+    i32 => TypeDefPrimitive::I32,
+    i64 => TypeDefPrimitive::I64,
+    i128 => TypeDefPrimitive::I128,
 );
 
 macro_rules! impl_metadata_for_array {
 	( $( $n:expr )* ) => {
 		$(
 			impl<T: TypeInfo + 'static> TypeInfo for [T; $n] {
+				type Identity = Self;
+
 				fn type_info() -> Type {
 					TypeDefArray::new($n, MetaType::new::<T>()).into()
 				}
@@ -70,6 +76,8 @@ macro_rules! impl_metadata_for_tuple {
 				$ty: TypeInfo+ 'static,
 			)*
 		{
+			type Identity = Self;
+
 			fn type_info() -> Type {
 				TypeDefTuple::new(tuple_meta_type!($($ty),*)).into()
 			}
@@ -91,115 +99,137 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
 
 impl<T> TypeInfo for Vec<T>
 where
-	T: TypeInfo + 'static,
+    T: TypeInfo + 'static,
 {
-	fn type_info() -> Type {
-		<[T] as TypeInfo>::type_info()
-	}
+    type Identity = [T];
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
 }
 
 impl<T> TypeInfo for Option<T>
 where
-	T: TypeInfo + 'static,
+    T: TypeInfo + 'static,
 {
-	fn type_info() -> Type {
-		Type::builder()
-			.path(Path::prelude("Option"))
-			.type_params(tuple_meta_type![T])
-			.variant(
-				Variants::with_fields()
-					.variant_unit("None")
-					.variant("Some", Fields::unnamed().field_of::<T>()),
-			)
-	}
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("Option"))
+            .type_params(tuple_meta_type![T])
+            .variant(
+                Variants::with_fields()
+                    .variant_unit("None")
+                    .variant("Some", Fields::unnamed().field_of::<T>()),
+            )
+    }
 }
 
 impl<T, E> TypeInfo for Result<T, E>
 where
-	T: TypeInfo + 'static,
-	E: TypeInfo + 'static,
+    T: TypeInfo + 'static,
+    E: TypeInfo + 'static,
 {
-	fn type_info() -> Type {
-		Type::builder()
-			.path(Path::prelude("Result"))
-			.type_params(tuple_meta_type!(T, E))
-			.variant(
-				Variants::with_fields()
-					.variant("Ok", Fields::unnamed().field_of::<T>())
-					.variant("Err", Fields::unnamed().field_of::<E>()),
-			)
-	}
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("Result"))
+            .type_params(tuple_meta_type!(T, E))
+            .variant(
+                Variants::with_fields()
+                    .variant("Ok", Fields::unnamed().field_of::<T>())
+                    .variant("Err", Fields::unnamed().field_of::<E>()),
+            )
+    }
 }
 
 impl<K, V> TypeInfo for BTreeMap<K, V>
 where
-	K: TypeInfo + 'static,
-	V: TypeInfo + 'static,
+    K: TypeInfo + 'static,
+    V: TypeInfo + 'static,
 {
-	fn type_info() -> Type {
-		Type::builder()
-			.path(Path::prelude("BTreeMap"))
-			.type_params(tuple_meta_type![(K, V)])
-			.composite(Fields::unnamed().field_of::<[(K, V)]>())
-	}
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("BTreeMap"))
+            .type_params(tuple_meta_type![(K, V)])
+            .composite(Fields::unnamed().field_of::<[(K, V)]>())
+    }
 }
 
 impl<T> TypeInfo for Box<T>
 where
-	T: TypeInfo + ?Sized,
+    T: TypeInfo + ?Sized + 'static,
 {
-	fn type_info() -> Type {
-		T::type_info()
-	}
+    type Identity = T;
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
 }
 
 impl<T> TypeInfo for &T
 where
-	T: TypeInfo + ?Sized,
+    T: TypeInfo + ?Sized + 'static,
 {
-	fn type_info() -> Type {
-		T::type_info()
-	}
+    type Identity = T;
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
 }
 
 impl<T> TypeInfo for &mut T
 where
-	T: TypeInfo + ?Sized,
+    T: TypeInfo + ?Sized + 'static,
 {
-	fn type_info() -> Type {
-		T::type_info()
-	}
+    type Identity = T;
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
 }
 
 impl<T> TypeInfo for [T]
 where
-	T: TypeInfo + 'static,
+    T: TypeInfo + 'static,
 {
-	fn type_info() -> Type {
-		TypeDefSequence::of::<T>().into()
-	}
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        TypeDefSequence::of::<T>().into()
+    }
 }
 
 impl TypeInfo for str {
-	fn type_info() -> Type {
-		TypeDefPrimitive::Str.into()
-	}
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        TypeDefPrimitive::Str.into()
+    }
 }
 
 impl TypeInfo for String {
-	fn type_info() -> Type {
-		TypeDefPrimitive::Str.into()
-	}
+    type Identity = str;
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
 }
 
 impl<T> TypeInfo for PhantomData<T>
 where
-	T: TypeInfo + ?Sized + 'static,
+    T: TypeInfo + ?Sized + 'static,
 {
-	fn type_info() -> Type {
-		Type::builder()
-			.path(Path::prelude("PhantomData"))
-			.type_params(vec![meta_type::<T>()])
-			.composite(Fields::unit())
-	}
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("PhantomData"))
+            .type_params(vec![meta_type::<T>()])
+            .composite(Fields::unit())
+    }
 }

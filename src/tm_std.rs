@@ -15,11 +15,11 @@
 //! Exports from `std`, `core` and `alloc` crates.
 
 mod core {
-	#[cfg(not(feature = "std"))]
-	pub use core::*;
+    #[cfg(not(feature = "std"))]
+    pub use core::*;
 
-	#[cfg(feature = "std")]
-	pub use std::*;
+    #[cfg(feature = "std")]
+    pub use std::*;
 }
 
 #[rustfmt::skip]
@@ -37,18 +37,19 @@ pub use self::core::{
 	clone::{Clone},
 	cmp::{Eq, PartialEq, Ordering},
 	convert::{From, Into},
-	fmt::{Debug, Error as FmtError, Formatter},
+	fmt::{Debug, Display, Error as FmtError, Formatter},
 	hash::{Hash, Hasher},
 	iter,
 	mem,
+	write,
 };
 
 mod alloc {
-	#[cfg(not(feature = "std"))]
-	pub use ::alloc::*;
+    #[cfg(not(feature = "std"))]
+    pub use ::alloc::*;
 
-	#[cfg(feature = "std")]
-	pub use std::*;
+    #[cfg(feature = "std")]
+    pub use std::*;
 }
 
 #[rustfmt::skip]

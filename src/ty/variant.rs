@@ -15,13 +15,26 @@
 use crate::tm_std::*;
 
 use crate::{
-	build::FieldsBuilder,
-	form::{CompactForm, Form, MetaForm},
-	Field, IntoCompact, Registry,
+    build::FieldsBuilder,
+    form::{
+        CompactForm,
+        Form,
+        MetaForm,
+    },
+    Field,
+    IntoCompact,
+    Registry,
 };
 use derive_more::From;
-use scale::{Decode, Encode};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use scale::{
+    Decode,
+    Encode,
+};
+use serde::{
+    de::DeserializeOwned,
+    Deserialize,
+    Serialize,
+};
 
 /// A Enum type (consisting of variants).
 ///
@@ -61,37 +74,60 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// ```
 /// enum JustAMarker {}
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Serialize, Deserialize, Encode, Decode)]
+#[derive(
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Clone,
+    Debug,
+    From,
+    Serialize,
+    Deserialize,
+    Encode,
+    Decode,
+)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+    serialize = "T::Type: Serialize, T::String: Serialize",
+    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 #[serde(rename_all = "lowercase")]
 pub struct TypeDefVariant<T: Form = MetaForm> {
-	#[serde(skip_serializing_if = "Vec::is_empty", default)]
-	variants: Vec<Variant<T>>,
+    /// The variants of a variant type
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    variants: Vec<Variant<T>>,
 }
 
 impl IntoCompact for TypeDefVariant {
-	type Output = TypeDefVariant<CompactForm>;
+    type Output = TypeDefVariant<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		TypeDefVariant {
-			variants: registry.map_into_compact(self.variants),
-		}
-	}
+    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+        TypeDefVariant {
+            variants: registry.map_into_compact(self.variants),
+        }
+    }
 }
 
 impl TypeDefVariant {
-	/// Create a new `TypeDefVariant` with the given variants
-	pub fn new<I>(variants: I) -> Self
-	where
-		I: IntoIterator<Item = Variant>,
-	{
-		Self {
-			variants: variants.into_iter().collect(),
-		}
-	}
+    /// Create a new `TypeDefVariant` with the given variants
+    pub fn new<I>(variants: I) -> Self
+    where
+        I: IntoIterator<Item = Variant>,
+    {
+        Self {
+            variants: variants.into_iter().collect(),
+        }
+    }
+}
+
+impl<T> TypeDefVariant<T>
+where
+    T: Form,
+{
+    /// Returns the variants of a variant type
+    pub fn variants(&self) -> &[Variant<T>] {
+        &self.variants
+    }
 }
 
 /// A struct enum variant with either named (struct) or unnamed (tuple struct)
@@ -109,56 +145,78 @@ impl TypeDefVariant {
 /// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
 /// }
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode,
+)]
 #[serde(bound(
-	serialize = "T::TypeId: Serialize, T::String: Serialize",
-	deserialize = "T::TypeId: DeserializeOwned, T::String: DeserializeOwned"
+    serialize = "T::Type: Serialize, T::String: Serialize",
+    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
 ))]
 pub struct Variant<T: Form = MetaForm> {
-	/// The name of the struct variant.
-	name: T::String,
-	/// The fields of the struct variant.
-	#[serde(skip_serializing_if = "Vec::is_empty", default)]
-	fields: Vec<Field<T>>,
-	/// The discriminant of the variant.
-	///
-	/// # Note
-	///
-	/// Even though setting the discriminant is optional
-	/// every C-like enum variant has a discriminant specified
-	/// upon compile-time.
-	#[serde(skip_serializing_if = "Option::is_none", default)]
-	discriminant: Option<u64>,
+    /// The name of the variant.
+    name: T::String,
+    /// The fields of the variant.
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    fields: Vec<Field<T>>,
+    /// The discriminant of the variant.
+    ///
+    /// # Note
+    ///
+    /// Even though setting the discriminant is optional
+    /// every C-like enum variant has a discriminant specified
+    /// upon compile-time.
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    discriminant: Option<u64>,
 }
 
 impl IntoCompact for Variant {
-	type Output = Variant<CompactForm>;
+    type Output = Variant<CompactForm>;
 
-	fn into_compact(self, registry: &mut Registry) -> Self::Output {
-		Variant {
-			name: self.name.into_compact(registry),
-			fields: registry.map_into_compact(self.fields),
-			discriminant: self.discriminant,
-		}
-	}
+    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+        Variant {
+            name: self.name.into_compact(registry),
+            fields: registry.map_into_compact(self.fields),
+            discriminant: self.discriminant,
+        }
+    }
 }
 
 impl Variant {
-	/// Creates a new variant with the given fields.
-	pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>) -> Self {
-		Self {
-			name,
-			fields: fields.done(),
-			discriminant: None,
-		}
-	}
+    /// Creates a new variant with the given fields.
+    pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>) -> Self {
+        Self {
+            name,
+            fields: fields.done(),
+            discriminant: None,
+        }
+    }
 
-	/// Creates a new variant with the given discriminant.
-	pub fn with_discriminant(name: &'static str, discriminant: u64) -> Self {
-		Self {
-			name,
-			fields: Vec::new(),
-			discriminant: Some(discriminant),
-		}
-	}
+    /// Creates a new variant with the given discriminant.
+    pub fn with_discriminant(name: &'static str, discriminant: u64) -> Self {
+        Self {
+            name,
+            fields: Vec::new(),
+            discriminant: Some(discriminant),
+        }
+    }
+}
+
+impl<T> Variant<T>
+where
+    T: Form,
+{
+    /// Returns the name of the variant
+    pub fn name(&self) -> &T::String {
+        &self.name
+    }
+
+    /// Returns the fields of the struct variant.
+    pub fn fields(&self) -> &[Field<T>] {
+        &self.fields
+    }
+
+    /// Returns the discriminant of the variant.
+    pub fn discriminant(&self) -> Option<u64> {
+        self.discriminant
+    }
 }

@@ -124,9 +124,13 @@ mod utils;
 mod tests;
 
 pub use self::{
-	meta_type::MetaType,
-	registry::{IntoCompact, Registry, RegistryReadOnly},
-	ty::*,
+    meta_type::MetaType,
+    registry::{
+        IntoCompact,
+        Registry,
+        RegistryReadOnly,
+    },
+    ty::*,
 };
 
 #[cfg(feature = "derive")]
@@ -134,14 +138,23 @@ pub use scale_info_derive::TypeInfo;
 
 /// Implementors return their meta type information.
 pub trait TypeInfo {
-	/// Returns the static type identifier for `Self`.
-	fn type_info() -> Type;
+    /// The type identifying for which type info is provided.
+    ///
+    /// # Note
+    ///
+    /// This is used to uniquely identify a type via [`core::any::TypeId::of`]. In most cases it
+    /// will just be `Self`, but can be used to unify different types which have the same encoded
+    /// representation e.g. reference types `Box<T>`, `&T` and `&mut T`.
+    type Identity: ?Sized + 'static;
+
+    /// Returns the static type identifier for `Self`.
+    fn type_info() -> Type;
 }
 
 /// Returns the runtime bridge to the types compile-time type information.
 pub fn meta_type<T>() -> MetaType
 where
-	T: ?Sized + TypeInfo + 'static,
+    T: ?Sized + TypeInfo + 'static,
 {
-	MetaType::new::<T>()
+    MetaType::new::<T>()
 }

@@ -22,7 +22,10 @@
 //! elements and is later used for compact serialization within the registry.
 
 use crate::tm_std::*;
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 /// A symbol that is not lifetime tracked.
 ///
@@ -31,29 +34,37 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct UntrackedSymbol<T> {
-	id: NonZeroU32,
-	#[serde(skip)]
-	marker: PhantomData<fn() -> T>,
+    /// The index to the symbol in the interner table.
+    id: NonZeroU32,
+    #[serde(skip)]
+    marker: PhantomData<fn() -> T>,
 }
 
 impl<T> scale::Encode for UntrackedSymbol<T> {
-	fn encode_to<W: scale::Output>(&self, dest: &mut W) {
-		self.id.get().encode_to(dest)
-	}
+    fn encode_to<W: scale::Output>(&self, dest: &mut W) {
+        self.id.get().encode_to(dest)
+    }
 }
 
 impl<T> scale::Decode for UntrackedSymbol<T> {
-	fn decode<I: scale::Input>(value: &mut I) -> Result<Self, scale::Error> {
-		let id = <u32 as scale::Decode>::decode(value)?;
-		if id < 1 {
-			return Err("UntrackedSymbol::id should be a non-zero unsigned integer".into());
-		}
-		let id = NonZeroU32::new(id).expect("ID is non zero");
-		Ok(UntrackedSymbol {
-			id,
-			marker: Default::default(),
-		})
-	}
+    fn decode<I: scale::Input>(value: &mut I) -> Result<Self, scale::Error> {
+        let id = <u32 as scale::Decode>::decode(value)?;
+        if id < 1 {
+            return Err("UntrackedSymbol::id should be a non-zero unsigned integer".into())
+        }
+        let id = NonZeroU32::new(id).expect("ID is non zero");
+        Ok(UntrackedSymbol {
+            id,
+            marker: Default::default(),
+        })
+    }
+}
+
+impl<T> UntrackedSymbol<T> {
+    /// Returns the index to the symbol in the interner table.
+    pub fn id(&self) -> NonZeroU32 {
+        self.id
+    }
 }
 
 /// A symbol from an interner.
@@ -62,33 +73,33 @@ impl<T> scale::Decode for UntrackedSymbol<T> {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(transparent)]
 pub struct Symbol<'a, T> {
-	id: NonZeroU32,
-	#[serde(skip)]
-	marker: PhantomData<fn() -> &'a T>,
+    id: NonZeroU32,
+    #[serde(skip)]
+    marker: PhantomData<fn() -> &'a T>,
 }
 
 impl<T> Symbol<'_, T> {
-	/// Removes the lifetime tracking for this symbol.
-	///
-	/// # Note
-	///
-	/// - This can be useful in situations where a data structure owns all
-	///   symbols and interners and can verify accesses by itself.
-	/// - For further safety reasons an untracked symbol can no longer be used
-	///   to resolve from an interner. It is still useful for serialization
-	///   purposes.
-	///
-	/// # Safety
-	///
-	/// Although removing lifetime constraints this operation can be
-	/// considered to be safe since untracked symbols can no longer be
-	/// used to resolve their associated instance from the interner.
-	pub fn into_untracked(self) -> UntrackedSymbol<T> {
-		UntrackedSymbol {
-			id: self.id,
-			marker: PhantomData,
-		}
-	}
+    /// Removes the lifetime tracking for this symbol.
+    ///
+    /// # Note
+    ///
+    /// - This can be useful in situations where a data structure owns all
+    ///   symbols and interners and can verify accesses by itself.
+    /// - For further safety reasons an untracked symbol can no longer be used
+    ///   to resolve from an interner. It is still useful for serialization
+    ///   purposes.
+    ///
+    /// # Safety
+    ///
+    /// Although removing lifetime constraints this operation can be
+    /// considered to be safe since untracked symbols can no longer be
+    /// used to resolve their associated instance from the interner.
+    pub fn into_untracked(self) -> UntrackedSymbol<T> {
+        UntrackedSymbol {
+            id: self.id,
+            marker: PhantomData,
+        }
+    }
 }
 
 /// Interning data structure generic over the element type.
@@ -103,118 +114,124 @@ impl<T> Symbol<'_, T> {
 #[derive(Debug, PartialEq, Eq, Serialize)]
 #[serde(transparent)]
 pub struct Interner<T> {
-	/// A mapping from the interned elements to their respective compact
-	/// identifiers.
-	///
-	/// The idenfitiers can be used to retrieve information about the original
-	/// element from the interner.
-	#[serde(skip)]
-	map: BTreeMap<T, usize>,
-	/// The ordered sequence of cached elements.
-	///
-	/// This is used to efficiently provide access to the cached elements and
-	/// to establish a strict ordering upon them since each is uniquely
-	/// idenfitied later by its position in the vector.
-	vec: Vec<T>,
+    /// A mapping from the interned elements to their respective compact
+    /// identifiers.
+    ///
+    /// The idenfitiers can be used to retrieve information about the original
+    /// element from the interner.
+    #[serde(skip)]
+    map: BTreeMap<T, usize>,
+    /// The ordered sequence of cached elements.
+    ///
+    /// This is used to efficiently provide access to the cached elements and
+    /// to establish a strict ordering upon them since each is uniquely
+    /// idenfitied later by its position in the vector.
+    vec: Vec<T>,
 }
 
 impl<T> Interner<T>
 where
-	T: Ord,
+    T: Ord,
 {
-	/// Creates a new empty interner.
-	pub fn new() -> Self {
-		Self {
-			map: BTreeMap::new(),
-			vec: Vec::new(),
-		}
-	}
+    /// Creates a new empty interner.
+    pub fn new() -> Self {
+        Self {
+            map: BTreeMap::new(),
+            vec: Vec::new(),
+        }
+    }
 }
 
 impl<T: Ord> Default for Interner<T> {
-	fn default() -> Self {
-		Self::new()
-	}
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl<T> Interner<T>
 where
-	T: Ord + Clone,
+    T: Ord + Clone,
 {
-	/// Interns the given element or returns its associated symbol if it has
-	/// already been interned.
-	pub fn intern_or_get(&mut self, s: T) -> (bool, Symbol<T>) {
-		let next_id = self.vec.len();
-		let (inserted, sym_id) = match self.map.entry(s.clone()) {
-			Entry::Vacant(vacant) => {
-				vacant.insert(next_id);
-				self.vec.push(s);
-				(true, next_id)
-			}
-			Entry::Occupied(occupied) => (false, *occupied.get()),
-		};
-		(
-			inserted,
-			Symbol {
-				id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
-				marker: PhantomData,
-			},
-		)
-	}
+    /// Interns the given element or returns its associated symbol if it has
+    /// already been interned.
+    pub fn intern_or_get(&mut self, s: T) -> (bool, Symbol<T>) {
+        let next_id = self.vec.len();
+        let (inserted, sym_id) = match self.map.entry(s.clone()) {
+            Entry::Vacant(vacant) => {
+                vacant.insert(next_id);
+                self.vec.push(s);
+                (true, next_id)
+            }
+            Entry::Occupied(occupied) => (false, *occupied.get()),
+        };
+        (
+            inserted,
+            Symbol {
+                id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
+                marker: PhantomData,
+            },
+        )
+    }
 
-	/// Returns the symbol of the given element or `None` if it hasn't been
-	/// interned already.
-	pub fn get(&self, s: &T) -> Option<Symbol<T>> {
-		self.map.get(s).map(|&id| Symbol {
-			id: NonZeroU32::new(id as u32).unwrap(),
-			marker: PhantomData,
-		})
-	}
+    /// Returns the symbol of the given element or `None` if it hasn't been
+    /// interned already.
+    pub fn get(&self, s: &T) -> Option<Symbol<T>> {
+        self.map.get(s).map(|&id| {
+            Symbol {
+                id: NonZeroU32::new(id as u32).unwrap(),
+                marker: PhantomData,
+            }
+        })
+    }
 
-	/// Resolves the original element given its associated symbol or
-	/// returns `None` if it has not been interned yet.
-	pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
-		let idx = (sym.id.get() - 1) as usize;
-		if idx >= self.vec.len() {
-			return None;
-		}
-		self.vec.get((sym.id.get() - 1) as usize)
-	}
+    /// Resolves the original element given its associated symbol or
+    /// returns `None` if it has not been interned yet.
+    pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
+        let idx = (sym.id.get() - 1) as usize;
+        if idx >= self.vec.len() {
+            return None
+        }
+        self.vec.get(idx)
+    }
 }
 
 #[cfg(test)]
 mod tests {
-	use super::*;
+    use super::*;
 
-	type StringInterner = Interner<&'static str>;
+    type StringInterner = Interner<&'static str>;
 
-	fn assert_id(interner: &mut StringInterner, new_symbol: &'static str, expected_id: u32) {
-		let actual_id = interner.intern_or_get(new_symbol).1.id.get();
-		assert_eq!(actual_id, expected_id,);
-	}
+    fn assert_id(
+        interner: &mut StringInterner,
+        new_symbol: &'static str,
+        expected_id: u32,
+    ) {
+        let actual_id = interner.intern_or_get(new_symbol).1.id.get();
+        assert_eq!(actual_id, expected_id,);
+    }
 
-	fn assert_resolve<E>(interner: &mut StringInterner, symbol_id: u32, expected_str: E)
-	where
-		E: Into<Option<&'static str>>,
-	{
-		let actual_str = interner.resolve(Symbol {
-			id: NonZeroU32::new(symbol_id).unwrap(),
-			marker: PhantomData,
-		});
-		assert_eq!(actual_str.cloned(), expected_str.into(),);
-	}
+    fn assert_resolve<E>(interner: &mut StringInterner, symbol_id: u32, expected_str: E)
+    where
+        E: Into<Option<&'static str>>,
+    {
+        let actual_str = interner.resolve(Symbol {
+            id: NonZeroU32::new(symbol_id).unwrap(),
+            marker: PhantomData,
+        });
+        assert_eq!(actual_str.cloned(), expected_str.into(),);
+    }
 
-	#[test]
-	fn simple() {
-		let mut interner = StringInterner::new();
-		assert_id(&mut interner, "Hello", 1);
-		assert_id(&mut interner, ", World!", 2);
-		assert_id(&mut interner, "1 2 3", 3);
-		assert_id(&mut interner, "Hello", 1);
+    #[test]
+    fn simple() {
+        let mut interner = StringInterner::new();
+        assert_id(&mut interner, "Hello", 1);
+        assert_id(&mut interner, ", World!", 2);
+        assert_id(&mut interner, "1 2 3", 3);
+        assert_id(&mut interner, "Hello", 1);
 
-		assert_resolve(&mut interner, 1, "Hello");
-		assert_resolve(&mut interner, 2, ", World!");
-		assert_resolve(&mut interner, 3, "1 2 3");
-		assert_resolve(&mut interner, 4, None);
-	}
+        assert_resolve(&mut interner, 1, "Hello");
+        assert_resolve(&mut interner, 2, ", World!");
+        assert_resolve(&mut interner, 3, "1 2 3");
+        assert_resolve(&mut interner, 4, None);
+    }
 }
