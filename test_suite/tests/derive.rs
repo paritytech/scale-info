@@ -165,25 +165,25 @@ fn recursive_type_derive() {
 
 #[test]
 fn associated_types_derive_without_bounds() {
-	trait Types {
-		type A;
-	}
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	struct Assoc<T: Types> {
-		a: T::A,
-	}
+    trait Types {
+        type A;
+    }
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Assoc<T: Types> {
+        a: T::A,
+    }
 
-	#[derive(TypeInfo)]
-	enum ConcreteTypes {}
-	impl Types for ConcreteTypes {
-		type A = bool;
-	}
+    #[derive(TypeInfo)]
+    enum ConcreteTypes {}
+    impl Types for ConcreteTypes {
+        type A = bool;
+    }
 
-	let struct_type = Type::builder()
-		.path(Path::new("Assoc", "derive"))
-		.type_params(tuple_meta_type!(ConcreteTypes))
-		.composite(Fields::named().field_of::<bool>("a"));
+    let struct_type = Type::builder()
+        .path(Path::new("Assoc", "derive"))
+        .type_params(tuple_meta_type!(ConcreteTypes))
+        .composite(Fields::named().field_of::<bool>("a"));
 
-	assert_type!(Assoc<ConcreteTypes>, struct_type);
+    assert_type!(Assoc<ConcreteTypes>, struct_type);
 }
