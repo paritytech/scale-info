@@ -39,8 +39,8 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .type_params(vec![MetaType::new::<T>()])
 //!             .composite(Fields::named()
-//!                 .field_of::<T>("bar")
-//!                 .field_of::<u64>("data")
+//!                 .field_of::<T>("bar", "T")
+//!                 .field_of::<u64>("data", "u64")
 //!             )
 //!     }
 //! }
@@ -57,8 +57,8 @@
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
 //!             .composite(Fields::unnamed()
-//!                 .field_of::<u32>()
-//!                 .field_of::<bool>()
+//!                 .field_of::<u32>("u32")
+//!                 .field_of::<bool>("bool")
 //!             )
 //!     }
 //! }
@@ -84,8 +84,8 @@
 //!                .type_params(vec![MetaType::new::<T>()])
 //!             .variant(
 //!                 Variants::with_fields()
-//!                     .variant("A", Fields::unnamed().field_of::<T>())
-//!                     .variant("B", Fields::named().field_of::<u32>("f"))
+//!                     .variant("A", Fields::unnamed().field_of::<T>("T"))
+//!                     .variant("B", Fields::named().field_of::<u32>("f", "u32"))
 //!                     .variant("C", Fields::unit())
 //!             )
 //!     }
@@ -177,12 +177,12 @@ impl TypeBuilder<state::PathAssigned> {
 
     /// Construct a "variant" type i.e an `enum`
     pub fn variant<V>(self, builder: VariantsBuilder<V>) -> Type {
-        self.build(builder.done())
+        self.build(builder.finalize())
     }
 
     /// Construct a "composite" type i.e. a `struct`
     pub fn composite<F>(self, fields: FieldsBuilder<F>) -> Type {
-        self.build(TypeDefComposite::new(fields.done()))
+        self.build(TypeDefComposite::new(fields.finalize()))
     }
 }
 
@@ -226,7 +226,7 @@ impl Fields {
 
 /// Build a set of either all named (e.g. for a struct) or all unnamed (e.g. for a tuple struct)
 pub struct FieldsBuilder<T> {
-    fields: Vec<Field<MetaForm>>,
+    fields: Vec<Field>,
     marker: PhantomData<fn() -> T>,
 }
 
@@ -241,41 +241,29 @@ impl<T> Default for FieldsBuilder<T> {
 
 impl<T> FieldsBuilder<T> {
     /// Complete building and return the set of fields
-    pub fn done(self) -> Vec<Field<MetaForm>> {
+    pub fn finalize(self) -> Vec<Field<MetaForm>> {
         self.fields
     }
 }
 
 impl FieldsBuilder<NamedFields> {
-    /// Add a named field with the given [`MetaType`](`crate::MetaType`) instance
-    pub fn field(mut self, name: &'static str, ty: MetaType) -> Self {
-        self.fields.push(Field::named(name, ty));
-        self
-    }
-
     /// Add a named field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self, name: &'static str) -> Self
+    pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::named_of::<T>(name));
+        self.fields.push(Field::named_of::<T>(name, type_name));
         self
     }
 }
 
 impl FieldsBuilder<UnnamedFields> {
-    /// Add an unnamed field with the given [`MetaType`](`crate::MetaType`) instance
-    pub fn field(mut self, ty: MetaType) -> Self {
-        self.fields.push(Field::unnamed(ty));
-        self
-    }
-
     /// Add an unnamed field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self) -> Self
+    pub fn field_of<T>(mut self, type_name: &'static str) -> Self
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::unnamed_of::<T>());
+        self.fields.push(Field::unnamed_of::<T>(type_name));
         self
     }
 }
@@ -341,7 +329,7 @@ impl<T> VariantsBuilder<T> {
         }
     }
 
-    fn done(self) -> TypeDefVariant {
+    fn finalize(self) -> TypeDefVariant {
         TypeDefVariant::new(self.variants)
     }
 }

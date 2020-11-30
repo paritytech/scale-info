@@ -121,7 +121,7 @@ where
             .variant(
                 Variants::with_fields()
                     .variant_unit("None")
-                    .variant("Some", Fields::unnamed().field_of::<T>()),
+                    .variant("Some", Fields::unnamed().field_of::<T>("T")),
             )
     }
 }
@@ -139,8 +139,8 @@ where
             .type_params(tuple_meta_type!(T, E))
             .variant(
                 Variants::with_fields()
-                    .variant("Ok", Fields::unnamed().field_of::<T>())
-                    .variant("Err", Fields::unnamed().field_of::<E>()),
+                    .variant("Ok", Fields::unnamed().field_of::<T>("T"))
+                    .variant("Err", Fields::unnamed().field_of::<E>("E")),
             )
     }
 }
@@ -156,7 +156,7 @@ where
         Type::builder()
             .path(Path::prelude("BTreeMap"))
             .type_params(tuple_meta_type![(K, V)])
-            .composite(Fields::unnamed().field_of::<[(K, V)]>())
+            .composite(Fields::unnamed().field_of::<[(K, V)]>("[(K, V)]"))
     }
 }
 

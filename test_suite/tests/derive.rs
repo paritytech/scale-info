@@ -55,7 +55,11 @@ fn struct_derive() {
     let struct_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool, u8))
-        .composite(Fields::named().field_of::<bool>("t").field_of::<u8>("u"));
+        .composite(
+            Fields::named()
+                .field_of::<bool>("t", "T")
+                .field_of::<u8>("u", "U"),
+        );
 
     assert_type!(S<bool, u8>, struct_type);
 
@@ -68,8 +72,8 @@ fn struct_derive() {
         .type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
         .composite(
             Fields::named()
-                .field_of::<Box<S<bool, u8>>>("t")
-                .field_of::<bool>("u"),
+                .field_of::<Box<S<bool, u8>>>("t", "T")
+                .field_of::<bool>("u", "U"),
         );
     assert_type!(SelfTyped, self_typed_type);
 }
@@ -83,7 +87,7 @@ fn tuple_struct_derive() {
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool))
-        .composite(Fields::unnamed().field_of::<bool>());
+        .composite(Fields::unnamed().field_of::<bool>("T"));
 
     assert_type!(S<bool>, ty);
 }
@@ -132,8 +136,8 @@ fn enum_derive() {
         .type_params(tuple_meta_type!(bool))
         .variant(
             Variants::with_fields()
-                .variant("A", Fields::unnamed().field_of::<bool>())
-                .variant("B", Fields::named().field_of::<bool>("b"))
+                .variant("A", Fields::unnamed().field_of::<bool>("T"))
+                .variant("B", Fields::named().field_of::<bool>("b", "T"))
                 .variant_unit("C"),
         );
 
@@ -151,14 +155,31 @@ fn recursive_type_derive() {
 
     let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
         Variants::with_fields()
-            .variant("Leaf", Fields::named().field_of::<i32>("value"))
+            .variant("Leaf", Fields::named().field_of::<i32>("value", "i32"))
             .variant(
                 "Node",
                 Fields::named()
-                    .field_of::<Box<Tree>>("right")
-                    .field_of::<Box<Tree>>("left"),
+                    .field_of::<Box<Tree>>("right", "Box<Tree>")
+                    .field_of::<Box<Tree>>("left", "Box<Tree>"),
             ),
     );
 
     assert_type!(Tree, ty);
+}
+
+#[test]
+fn fields_with_type_alias() {
+    type BoolAlias = bool;
+
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct S {
+        a: BoolAlias,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .composite(Fields::named().field_of::<BoolAlias>("a", "BoolAlias"));
+
+    assert_type!(S, ty);
 }
