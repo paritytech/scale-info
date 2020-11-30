@@ -20,7 +20,13 @@ extern crate proc_macro;
 mod impl_wrapper;
 mod trait_bounds;
 
-use alloc::vec::Vec;
+use alloc::{
+    string::{
+        String,
+        ToString,
+    },
+    vec::Vec,
+};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
@@ -101,17 +107,36 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
         .iter()
         .map(|f| {
             let (ty, ident) = (&f.ty, &f.ident);
+            let type_name = clean_type_string(&quote!(#ty).to_string());
+
             if let Some(i) = ident {
                 quote! {
-                    .field_of::<#ty>(stringify!(#i))
+                    .field_of::<#ty>(stringify!(#i), #type_name)
                 }
             } else {
                 quote! {
-                    .field_of::<#ty>()
+                    .field_of::<#ty>(#type_name)
                 }
             }
         })
         .collect()
+}
+
+fn clean_type_string(input: &str) -> String {
+    input
+        .replace(" ::", "::")
+        .replace(":: ", "::")
+        .replace(" ,", ",")
+        .replace(" ;", ";")
+        .replace(" [", "[")
+        .replace("[ ", "[")
+        .replace(" ]", "]")
+        .replace(" (", "(")
+        .replace("( ", "(")
+        .replace(" )", ")")
+        .replace(" <", "<")
+        .replace("< ", "<")
+        .replace(" >", ">")
 }
 
 fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {

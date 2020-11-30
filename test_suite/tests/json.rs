@@ -103,7 +103,7 @@ fn test_builtins() {
                     },
                     {
                         "name": "Some",
-                        "fields": [ { "type": 1 } ]
+                        "fields": [ { "type": 1, "typeName": "T" } ]
                     },
                 ]
             }
@@ -117,11 +117,11 @@ fn test_builtins() {
                 "variants": [
                     {
                         "name": "Ok",
-                        "fields": [ { "type": 1 } ]
+                        "fields": [ { "type": 1, "typeName": "T" } ]
                     },
                     {
                         "name": "Err",
-                        "fields": [ { "type": 2 } ]
+                        "fields": [ { "type": 2, "typeName": "E" } ]
                     }
                 ]
             }
@@ -171,9 +171,9 @@ fn test_tuplestruct() {
         "def": {
             "composite": {
                 "fields": [
-                    { "type": 1 },
-                    { "type": 2 },
-                    { "type": 4 },
+                    { "type": 1, "typeName": "i32" },
+                    { "type": 2, "typeName": "[u8; 32]" },
+                    { "type": 4, "typeName": "bool" },
                 ],
             },
         }
@@ -194,9 +194,9 @@ fn test_struct() {
         "def": {
             "composite": {
                 "fields": [
-                    { "name": "a", "type": 1, },
-                    { "name": "b", "type": 2, },
-                    { "name": "c", "type": 4, },
+                    { "name": "a", "type": 1, "typeName": "i32" },
+                    { "name": "b", "type": 2, "typeName": "[u8; 32]" },
+                    { "name": "c", "type": 4, "typeName": "bool" },
                 ],
             },
         }
@@ -244,16 +244,16 @@ fn test_enum() {
                     {
                         "name": "TupleStructVariant",
                         "fields": [
-                            { "type": 1 },
-                            { "type": 2 },
+                            { "type": 1, "typeName": "u32" },
+                            { "type": 2, "typeName": "bool" },
                         ],
                     },
                     {
                         "name": "StructVariant",
                         "fields": [
-                            { "name": "a", "type": 1, },
-                            { "name": "b", "type": 3, },
-                            { "name": "c", "type": 5, },
+                            { "name": "a", "type": 1, "typeName": "u32" },
+                            { "name": "b", "type": 3, "typeName": "[u8; 32]" },
+                            { "name": "c", "type": 5, "typeName": "char" },
                         ],
                     }
                 ],
@@ -283,14 +283,14 @@ fn test_recursive_type_with_box() {
                             {
                                 "name": "Leaf",
                                 "fields": [
-                                    { "name": "value", "type": 2 },
+                                    { "name": "value", "type": 2, "typeName": "i32" },
                                 ],
                             },
                             {
                                 "name": "Node",
                                 "fields": [
-                                    { "name": "right", "type": 1, },
-                                    { "name": "left", "type": 1, },
+                                    { "name": "right", "type": 1, "typeName": "Box<Tree>" },
+                                    { "name": "left", "type": 1, "typeName": "Box<Tree>" },
                                 ],
                             }
                         ],
@@ -363,8 +363,8 @@ fn test_registry() {
                 "def": {
                     "composite": {
                         "fields": [
-                            { "type": 3 },
-                            { "type": 4 },
+                            { "type": 3, "typeName": "u8" },
+                            { "type": 4, "typeName": "u32" },
                         ],
                     },
                 }
@@ -385,15 +385,18 @@ fn test_registry() {
                         "fields": [
                             {
                                 "name": "a",
-                                "type": 3, // u8
+                                "type": 3,
+                                "typeName": "u8"
                             },
                             {
                                 "name": "b",
-                                "type": 4, // u32
+                                "type": 4,
+                                "typeName": "u32"
                             },
                             {
                                 "name": "c",
-                                "type": 6, // [u8; 32]
+                                "type": 6,
+                                "typeName": "[u8; 32]"
                             }
                         ]
                     },
@@ -417,7 +420,8 @@ fn test_registry() {
                         "fields": [
                             {
                                 "name": "rec",
-                                "type": 8, // Vec<RecursiveStruct>
+                                "type": 8,
+                                "typeName": "Vec<RecursiveStruct>"
                             }
                         ]
                     },
@@ -468,8 +472,8 @@ fn test_registry() {
                             {
                                 "name": "B",
                                 "fields": [
-                                    { "type": 3 }, // u8
-                                    { "type": 4 }, // u32
+                                    { "type": 3, "typeName": "u8" }, // u8
+                                    { "type": 4, "typeName": "u32" }, // u32
                                 ]
                             },
                             {
@@ -478,14 +482,17 @@ fn test_registry() {
                                     {
                                         "name": "a",
                                         "type": 3, // u8
+                                        "typeName": "u8"
                                     },
                                     {
                                         "name": "b",
                                         "type": 4, // u32
+                                        "typeName": "u32"
                                     },
                                     {
                                         "name": "c",
-                                        "type": 6, // [u8; 32]
+                                        "type": 6,
+                                        "typeName": "[u8; 32]"
                                     }
                                 ]
                             }
