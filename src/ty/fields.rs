@@ -147,7 +147,11 @@ where
         &self.ty
     }
 
-    /// The name of the type of the field as it appears in the source code.
+    /// Returns a string which is the name of the type of the field as it
+    /// appears in the source code. The exact contents and format of the type
+    /// name are not specified, but in practice will be the name of any valid
+    /// type for a field. This is intended for informational and diagnostic
+    /// purposes only.
     pub fn type_name(&self) -> &T::String {
         &self.type_name
     }
