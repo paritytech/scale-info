@@ -29,7 +29,7 @@ use syn::{
 	punctuated::Punctuated,
 	token::Comma,
 	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
-	Ident,PathArguments, AngleBracketedGenericArguments, GenericArgument, TypePath, TypeTuple,
+	Ident, PathArguments, AngleBracketedGenericArguments, GenericArgument, TypePath,
 };
 
 #[proc_macro_derive(TypeInfo)]
@@ -122,73 +122,60 @@ fn generate_fields(fields: &FieldsList) -> (Vec<TokenStream2>, Vec<Ident>) {
 	let mut phantom_params = Vec::new();
 	let field_tokens = fields
 		.iter()
-    	.filter(|f| {
-			match &f.ty {
-				// Regular types, e.g. `struct A<T> { a: PhantomData<T> }`
-				syn::Type::Path(syn::TypePath { path, ..}) => {
-					let phantoms = find_phantoms_in_path(path);
-					if  !phantoms.is_empty(){
-						phantom_params.extend(phantoms);
-						false
-					} else {
-						true
-					}
-				},
-				// Tuples, e.g. `struct A<T> { a: (u8, PhantomData<T>) }`
-				syn::Type::Tuple(TypeTuple { elems, .. }) => {
-					let phantoms =
-						elems.iter().fold(Vec::new(), |mut acc, ty| {
-							if let syn::Type::Path(syn::TypePath { path, .. }) = ty {
-								let phantoms = find_phantoms_in_path(&path);
-								if !phantoms.is_empty() {
-									acc.extend(phantoms)
+		.fold(Vec::new(), |mut acc, field| {
+			let (ty, ident) = (&field.ty, &field.ident);
+			match ty {
+					// Regular types, e.g. `struct A<T> { a: PhantomData<T>, b: u8 }`
+					// Check for phantom types and skip them; record any
+					// PhantomData type params.
+					syn::Type::Path(syn::TypePath { path, ..}) => {
+						let phantoms = find_phantoms_in_path(path);
+						if phantoms.is_empty() {
+							let tokens =
+								if let Some(i) = ident {
+									quote! {.field_of::<#ty>(stringify!(#i)) }
+								} else {
+									quote! {.field_of::<#ty>() }
+								};
+							acc.push(tokens);
+						} else {
+							phantom_params.extend(phantoms);
+						}
+					},
+					// If the type is a tuple, check it for any `PhantomData` elements and rebuild a new tuple without them.
+					syn::Type::Tuple(syn::TypeTuple { elems, paren_token }) => {
+						let mut punctuated: Punctuated<_, Comma> = Punctuated::new();
+						for tuple_element in elems {
+							if let syn::Type::Path(syn::TypePath { path, .. }) = tuple_element {
+								let phantoms = find_phantoms_in_path(path);
+								if phantoms.is_empty() {
+									punctuated.push(tuple_element.clone());
+								} else {
+									phantom_params.extend(phantoms);
 								}
 							}
-							acc
-						});
-					if !phantoms.is_empty() {
-						phantom_params.extend(phantoms);
+						}
+						let tuple = syn::Type::Tuple(syn::TypeTuple { elems: punctuated, paren_token: *paren_token });
+						let tokens =
+							if let Some(i) = ident {
+								quote! { .field_of::<#tuple>(stringify!(#i)) }
+							} else {
+								quote! { .field_of::<#tuple>()}
+							};
+						acc.push(tokens)
+					},
+					_ => {
+						let tokens =
+							if let Some(i) = ident {
+								quote! { .field_of::<#ty>(stringify!(#i)) }
+							} else {
+								quote! { .field_of::<#ty>()}
+							};
+						acc.push(tokens)
 					}
-					true
-				}
-				_ => true
 			}
-	    })
-		.map(|f| {
-			let (ty, ident) = (&f.ty, &f.ident);
-			match ty {
-				// If the type is a tuple, check it for any `PhantomData` elements and rebuild a new tuple without them.
-				// TODO: dumb to re-do this twice in the filter and here in the map. Rewrite to use `fold` and get rid of the `filter`.
-				syn::Type::Tuple(syn::TypeTuple { elems, paren_token }) => {
-					let mut punctuated: Punctuated<_, Comma> = Punctuated::new();
-					for e in elems {
-						if let syn::Type::Path(syn::TypePath { path, .. }) = e {
-							if !path.segments.iter().any(|s| s.ident == "PhantomData" ) {
-								punctuated.push(e.clone());
-							}
-						}
-					}
-					let tuple = syn::Type::Tuple(syn::TypeTuple { elems: punctuated, paren_token: *paren_token });
-					if let Some(i) = ident {
-						quote! { .field_of::<#tuple>(stringify!(#i)) }
-					} else {
-						quote! { .field_of::<#tuple>()}
-					}
-				},
-				_ => {
-					if let Some(i) = ident {
-						quote! {
-							.field_of::<#ty>(stringify!(#i))
-						}
-					} else {
-						quote! {
-							.field_of::<#ty>()
-						}
-					}
-				}
-			}
-		})
-		.collect();
+			acc
+		});
 	(field_tokens, phantom_params)
 }
 
