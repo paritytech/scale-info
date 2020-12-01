@@ -29,6 +29,7 @@ use syn::{
 	punctuated::Punctuated,
 	token::Comma,
 	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
+	Ident,PathArguments, AngleBracketedGenericArguments, GenericArgument, TypePath, TypeTuple,
 };
 
 #[proc_macro_derive(TypeInfo)]
@@ -55,19 +56,23 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
 	let ident = &ast.ident;
 	let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
-	let generic_type_ids = ast.generics.type_params().map(|ty| {
-		let ty_ident = &ty.ident;
-		quote! {
-			_scale_info::meta_type::<#ty_ident>()
-		}
-	});
 
 	let ast: DeriveInput = syn::parse2(input.clone())?;
-	let build_type = match &ast.data {
+	let (build_type, phantom_params) = match &ast.data {
 		Data::Struct(ref s) => generate_composite_type(s),
 		Data::Enum(ref e) => generate_variant_type(e),
 		Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
 	};
+
+	let generic_type_ids = ast.generics.type_params().fold(Vec::new(), |mut acc, ty| {
+		let ty_ident = &ty.ident;
+		if !phantom_params.contains(ty_ident) {
+			acc.push(quote! {
+				_scale_info::meta_type::<#ty_ident>()
+			});
+		}
+		acc
+	});
 
 	let type_info_impl = quote! {
 		impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
@@ -87,41 +92,121 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
 type FieldsList = Punctuated<Field, Comma>;
 
-fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
-	fields
+/// Given a type `Path`, find all generics params that are used in a
+/// `PhantomData` and return them as a `Vec` of `Ident`.
+/// E.g. given `utils::stuff::Thing<PhantomData<P>, Q, PhantomData<R>>`, return
+/// `vec!["P", "R"]`
+fn find_phantoms_in_path(path: &syn::Path) -> Vec<Ident> {
+	path.segments.iter()
+    	.filter(|seg| seg.ident == "PhantomData")
+		.fold(Vec::new(), |mut acc, seg| {
+			if let PathArguments::AngleBracketed(AngleBracketedGenericArguments { args, .. }) = &seg.arguments {
+				for arg in args {
+					if let GenericArgument::Type(syn::Type::Path(TypePath { path, .. })) = arg {
+						for segment in path.segments.iter() {
+							acc.push(segment.ident.clone())
+						}
+					}
+				}
+			}
+			acc
+		})
+}
+
+/// Generate code for each field of a struct (named or unnamed).
+/// Filters out `PhantomData` fields and returns the type parameters used as a
+/// `Vec` of `Ident` so that other code can match up the type parameters in the
+/// generics section to `PhantomData` (and omit them).
+fn generate_fields(fields: &FieldsList) -> (Vec<TokenStream2>, Vec<Ident>) {
+	// Collect all type params used with `PhantomData`
+	let mut phantom_params = Vec::new();
+	let field_tokens = fields
 		.iter()
+    	.filter(|f| {
+			match &f.ty {
+				// Regular types, e.g. `struct A<T> { a: PhantomData<T> }`
+				syn::Type::Path(syn::TypePath { path, ..}) => {
+					let phantoms = find_phantoms_in_path(path);
+					if  !phantoms.is_empty(){
+						phantom_params.extend(phantoms);
+						false
+					} else {
+						true
+					}
+				},
+				// Tuples, e.g. `struct A<T> { a: (u8, PhantomData<T>) }`
+				syn::Type::Tuple(TypeTuple { elems, .. }) => {
+					let phantoms =
+						elems.iter().fold(Vec::new(), |mut acc, ty| {
+							if let syn::Type::Path(syn::TypePath { path, .. }) = ty {
+								let phantoms = find_phantoms_in_path(&path);
+								if !phantoms.is_empty() {
+									acc.extend(phantoms)
+								}
+							}
+							acc
+						});
+					if !phantoms.is_empty() {
+						phantom_params.extend(phantoms);
+					}
+					true
+				}
+				_ => true
+			}
+	    })
 		.map(|f| {
 			let (ty, ident) = (&f.ty, &f.ident);
-			if let Some(i) = ident {
-				quote! {
-					.field_of::<#ty>(stringify!(#i))
-				}
-			} else {
-				quote! {
-					.field_of::<#ty>()
+			match ty {
+				// If the type is a tuple, check it for any `PhantomData` elements and rebuild a new tuple without them.
+				// TODO: dumb to re-do this twice in the filter and here in the map. Rewrite to use `fold` and get rid of the `filter`.
+				syn::Type::Tuple(syn::TypeTuple { elems, paren_token }) => {
+					let mut punctuated: Punctuated<_, Comma> = Punctuated::new();
+					for e in elems {
+						if let syn::Type::Path(syn::TypePath { path, .. }) = e {
+							if !path.segments.iter().any(|s| s.ident == "PhantomData" ) {
+								punctuated.push(e.clone());
+							}
+						}
+					}
+					let tuple = syn::Type::Tuple(syn::TypeTuple { elems: punctuated, paren_token: *paren_token });
+					if let Some(i) = ident {
+						quote! { .field_of::<#tuple>(stringify!(#i)) }
+					} else {
+						quote! { .field_of::<#tuple>()}
+					}
+				},
+				_ => {
+					if let Some(i) = ident {
+						quote! {
+							.field_of::<#ty>(stringify!(#i))
+						}
+					} else {
+						quote! {
+							.field_of::<#ty>()
+						}
+					}
 				}
 			}
 		})
-		.collect()
+		.collect();
+	(field_tokens, phantom_params)
 }
 
-fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
-	let fields = match data_struct.fields {
+/// Generate code for a composite type. Returns the token stream and all the
+/// generic types used in `PhantomData` members.
+fn generate_composite_type(data_struct: &DataStruct) -> (TokenStream2, Vec<Ident>) {
+	let (fields, phantom_params) = match data_struct.fields {
 		Fields::Named(ref fs) => {
-			let fields = generate_fields(&fs.named);
-			quote! { named()#( #fields )* }
+			let (fields, phantoms) = generate_fields(&fs.named);
+			(quote! { named()#( #fields )* }, phantoms)
 		}
 		Fields::Unnamed(ref fs) => {
-			let fields = generate_fields(&fs.unnamed);
-			quote! { unnamed()#( #fields )* }
+			let (fields, phantoms) = generate_fields(&fs.unnamed);
+			(quote! { unnamed()#( #fields )* }, phantoms)
 		}
-		Fields::Unit => quote! {
-			unit()
-		},
+		Fields::Unit => (quote! { unit() }, Vec::new()),
 	};
-	quote! {
-		composite(_scale_info::build::Fields::#fields)
-	}
+	(quote! { composite(_scale_info::build::Fields::#fields) }, phantom_params)
 }
 
 type VariantList = Punctuated<Variant, Comma>;
@@ -165,19 +250,22 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 		})
 }
 
-fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
+/// Build enum variants while keeping track of any `PhantomData` members so we can skip them later.
+fn generate_variant_type(data_enum: &DataEnum) -> (TokenStream2, Vec<Ident>) {
 	let variants = &data_enum.variants;
 
 	if is_c_like_enum(&variants) {
-		return generate_c_like_enum_def(variants);
+		return (generate_c_like_enum_def(variants), Vec::new());
 	}
 
+	let mut phantom_params = Vec::new();
 	let variants = variants.into_iter().map(|v| {
 		let ident = &v.ident;
 		let v_name = quote! {stringify!(#ident) };
 		match v.fields {
 			Fields::Named(ref fs) => {
-				let fields = generate_fields(&fs.named);
+				let (fields, phantoms) = generate_fields(&fs.named);
+				phantom_params.extend(phantoms);
 				quote! {
 					.variant(
 						#v_name,
@@ -187,7 +275,8 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 				}
 			}
 			Fields::Unnamed(ref fs) => {
-				let fields = generate_fields(&fs.unnamed);
+				let (fields, phantoms) = generate_fields(&fs.unnamed);
+				phantom_params.extend(phantoms);
 				quote! {
 					.variant(
 						#v_name,
@@ -201,10 +290,13 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
 			},
 		}
 	});
-	quote! {
-		variant(
-			_scale_info::build::Variants::with_fields()
-				#( #variants)*
-		)
-	}
+	(
+		quote! {
+			variant(
+				_scale_info::build::Variants::with_fields()
+					#( #variants)*
+			)
+		},
+		phantom_params
+	)
 }

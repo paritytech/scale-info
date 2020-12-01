@@ -22,6 +22,7 @@ extern crate alloc;
 #[cfg(not(feature = "std"))]
 use alloc::{vec, vec::Vec};
 use core::num::NonZeroU32;
+use core::marker::PhantomData;
 use pretty_assertions::{assert_eq, assert_ne};
 use scale::{Decode, Encode};
 use scale_info::{form::CompactForm, IntoCompact as _, MetaType, Registry, RegistryReadOnly, TypeInfo};

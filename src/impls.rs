@@ -225,9 +225,6 @@ where
 	type Identity = Self;
 
 	fn type_info() -> Type {
-		Type::builder()
-			.path(Path::prelude("PhantomData"))
-			.type_params(vec![meta_type::<T>()])
-			.composite(Fields::unit())
+		Type::new(Path::voldemort(), Vec::new(), TypeDefTuple::unit())
 	}
 }
