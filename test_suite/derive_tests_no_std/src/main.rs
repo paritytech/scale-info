@@ -30,23 +30,23 @@ struct TupleStruct(u128, bool);
 #[allow(unused)]
 #[derive(TypeInfo)]
 struct Struct<T> {
-	t: T,
+    t: T,
 }
 
 #[allow(unused)]
 #[derive(TypeInfo)]
 enum CLike {
-	A,
-	B,
-	C,
+    A,
+    B,
+    C,
 }
 
 #[allow(unused)]
 #[derive(TypeInfo)]
 enum E<T> {
-	A(T),
-	B { b: T },
-	C,
+    A(T),
+    B { b: T },
+    C,
 }
 
 fn main() {

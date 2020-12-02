@@ -198,11 +198,11 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 fn is_c_like_enum(variants: &VariantList) -> bool {
     // any variant has an explicit discriminant
     variants.iter().any(|v| v.discriminant.is_some()) ||
-		// all variants are unit
-		variants.iter().all(|v| match v.fields {
-			Fields::Unit => true,
-			_ => false,
-		})
+        // all variants are unit
+        variants.iter().all(|v| match v.fields {
+            Fields::Unit => true,
+            _ => false,
+        })
 }
 
 fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
