@@ -149,7 +149,6 @@ fn struct_with_generics() {
     assert_type!(SelfTyped, expected_type);
 }
 
-// TODO dp: this test doesn't seem to be very valuable.
 #[test]
 fn basic_struct_with_phantoms() {
     #[allow(unused)]
