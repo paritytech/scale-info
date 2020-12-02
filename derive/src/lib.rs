@@ -19,31 +19,49 @@ extern crate proc_macro;
 
 mod impl_wrapper;
 
-use alloc::vec::Vec;
+use alloc::{
+    string::{
+        String,
+        ToString,
+    },
+    vec::Vec,
+};
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{
-	parse::{Error, Result},
-	parse_quote,
-	punctuated::Punctuated,
-	token::Comma,
-	Data, DataEnum, DataStruct, DeriveInput, Expr, ExprLit, Field, Fields, Lit, Variant,
-	Ident, PathArguments, AngleBracketedGenericArguments, GenericArgument, TypePath,
+    parse::{
+        Error,
+        Result,
+    },
+    parse_quote,
+    punctuated::Punctuated,
+    token::Comma,
+    Data,
+    DataEnum,
+    DataStruct,
+    DeriveInput,
+    Expr,
+    ExprLit,
+    Field,
+    Fields,
+    Lit,
+    Variant,
+    Ident, PathArguments, AngleBracketedGenericArguments, GenericArgument, TypePath,
 };
 
 #[proc_macro_derive(TypeInfo)]
 pub fn type_info(input: TokenStream) -> TokenStream {
-	match generate(input.into()) {
-		Ok(output) => output.into(),
-		Err(err) => err.to_compile_error().into(),
-	}
+    match generate(input.into()) {
+        Ok(output) => output.into(),
+        Err(err) => err.to_compile_error().into(),
+    }
 }
 
 fn generate(input: TokenStream2) -> Result<TokenStream2> {
-	let mut tokens = quote! {};
-	tokens.extend(generate_type(input)?);
-	Ok(tokens)
+    let mut tokens = quote! {};
+    tokens.extend(generate_type(input)?);
+    Ok(tokens)
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
@@ -123,7 +141,8 @@ fn generate_fields(fields: &FieldsList) -> (Vec<TokenStream2>, Vec<Ident>) {
 	let field_tokens = fields
 		.iter()
 		.fold(Vec::new(), |mut acc, field| {
-			let (ty, ident) = (&field.ty, &field.ident);
+            let (ty, ident) = (&field.ty, &field.ident);
+            let type_name = clean_type_string(&quote!(#ty).to_string());
 			match ty {
 					// Regular types, e.g. `struct A<T> { a: PhantomData<T>, b: u8 }`
 					// Check for phantom types and skip them; record any
@@ -133,9 +152,9 @@ fn generate_fields(fields: &FieldsList) -> (Vec<TokenStream2>, Vec<Ident>) {
 						if phantoms.is_empty() {
 							let tokens =
 								if let Some(i) = ident {
-									quote! {.field_of::<#ty>(stringify!(#i)) }
+									quote! {.field_of::<#ty>(stringify!(#i), #type_name) }
 								} else {
-									quote! {.field_of::<#ty>() }
+									quote! {.field_of::<#ty>(#type_name) }
 								};
 							acc.push(tokens);
 						} else {
@@ -158,18 +177,18 @@ fn generate_fields(fields: &FieldsList) -> (Vec<TokenStream2>, Vec<Ident>) {
 						let tuple = syn::Type::Tuple(syn::TypeTuple { elems: punctuated, paren_token: *paren_token });
 						let tokens =
 							if let Some(i) = ident {
-								quote! { .field_of::<#tuple>(stringify!(#i)) }
+								quote! { .field_of::<#tuple>(stringify!(#i), #type_name) }
 							} else {
-								quote! { .field_of::<#tuple>()}
+								quote! { .field_of::<#tuple>(#type_name)}
 							};
 						acc.push(tokens)
 					},
 					_ => {
 						let tokens =
 							if let Some(i) = ident {
-								quote! { .field_of::<#ty>(stringify!(#i)) }
+								quote! { .field_of::<#ty>(stringify!(#i), #type_name) }
 							} else {
-								quote! { .field_of::<#ty>()}
+								quote! { .field_of::<#ty>(#type_name)}
 							};
 						acc.push(tokens)
 					}
@@ -177,6 +196,23 @@ fn generate_fields(fields: &FieldsList) -> (Vec<TokenStream2>, Vec<Ident>) {
 			acc
 		});
 	(field_tokens, phantom_params)
+}
+
+fn clean_type_string(input: &str) -> String {
+    input
+        .replace(" ::", "::")
+        .replace(":: ", "::")
+        .replace(" ,", ",")
+        .replace(" ;", ";")
+        .replace(" [", "[")
+        .replace("[ ", "[")
+        .replace(" ]", "]")
+        .replace(" (", "(")
+        .replace("( ", "(")
+        .replace(" )", ")")
+        .replace(" <", "<")
+        .replace("< ", "<")
+        .replace(" >", ">")
 }
 
 /// Generate code for a composite type. Returns the token stream and all the
@@ -199,42 +235,43 @@ fn generate_composite_type(data_struct: &DataStruct) -> (TokenStream2, Vec<Ident
 type VariantList = Punctuated<Variant, Comma>;
 
 fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
-	let variants = variants.into_iter().enumerate().map(|(i, v)| {
-		let name = &v.ident;
-		let discriminant = if let Some((
-			_,
-			Expr::Lit(ExprLit {
-				lit: Lit::Int(lit_int), ..
-			}),
-		)) = &v.discriminant
-		{
-			match lit_int.base10_parse::<u64>() {
-				Ok(i) => i,
-				Err(err) => return err.to_compile_error(),
-			}
-		} else {
-			i as u64
-		};
-		quote! {
-			.variant(stringify!(#name), #discriminant)
-		}
-	});
-	quote! {
-		variant(
-			_scale_info::build::Variants::fieldless()
-				#( #variants )*
-		)
-	}
+    let variants = variants.into_iter().enumerate().map(|(i, v)| {
+        let name = &v.ident;
+        let discriminant = if let Some((
+            _,
+            Expr::Lit(ExprLit {
+                lit: Lit::Int(lit_int),
+                ..
+            }),
+        )) = &v.discriminant
+        {
+            match lit_int.base10_parse::<u64>() {
+                Ok(i) => i,
+                Err(err) => return err.to_compile_error(),
+            }
+        } else {
+            i as u64
+        };
+        quote! {
+            .variant(stringify!(#name), #discriminant)
+        }
+    });
+    quote! {
+        variant(
+            _scale_info::build::Variants::fieldless()
+                #( #variants )*
+        )
+    }
 }
 
 fn is_c_like_enum(variants: &VariantList) -> bool {
-	// any variant has an explicit discriminant
-	variants.iter().any(|v| v.discriminant.is_some()) ||
-		// all variants are unit
-		variants.iter().all(|v| match v.fields {
-			Fields::Unit => true,
-			_ => false,
-		})
+    // any variant has an explicit discriminant
+    variants.iter().any(|v| v.discriminant.is_some()) ||
+        // all variants are unit
+        variants.iter().all(|v| match v.fields {
+            Fields::Unit => true,
+            _ => false,
+        })
 }
 
 /// Build enum variants while keeping track of any `PhantomData` members so we can skip them later.

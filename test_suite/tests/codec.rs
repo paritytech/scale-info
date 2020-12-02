@@ -20,52 +20,73 @@
 extern crate alloc;
 
 #[cfg(not(feature = "std"))]
-use alloc::{vec, vec::Vec};
+use alloc::{
+    vec,
+    vec::Vec,
+};
 use core::num::NonZeroU32;
 use core::marker::PhantomData;
-use pretty_assertions::{assert_eq, assert_ne};
-use scale::{Decode, Encode};
-use scale_info::{form::CompactForm, IntoCompact as _, MetaType, Registry, RegistryReadOnly, TypeInfo};
+use pretty_assertions::{
+    assert_eq,
+    assert_ne,
+};
+use scale::{
+    Decode,
+    Encode,
+};
+use scale_info::{
+    form::CompactForm,
+    IntoCompact as _,
+    MetaType,
+    Registry,
+    RegistryReadOnly,
+    TypeInfo,
+};
 
 #[derive(TypeInfo)]
 struct A<T> {
-	a: bool,
-	b: Result<char, u32>,
-	c: T,
+    a: bool,
+    b: Result<char, u32>,
+    c: T,
 }
 
 #[derive(TypeInfo)]
 enum B {
-	A,
-	B(A<bool>),
-	C { d: [u8; 32] },
+    A,
+    B(A<bool>),
+    C { d: [u8; 32] },
 }
 
 #[test]
 fn scale_encode_then_decode_to_readonly() {
-	let mut registry = Registry::new();
-	registry.register_type(&MetaType::new::<A<B>>());
+    let mut registry = Registry::new();
+    registry.register_type(&MetaType::new::<A<B>>());
 
-	let mut encoded = registry.encode();
-	let original_serialized = serde_json::to_value(registry).unwrap();
+    let mut encoded = registry.encode();
+    let original_serialized = serde_json::to_value(registry).unwrap();
 
-	let readonly_decoded = RegistryReadOnly::decode(&mut &encoded[..]).unwrap();
-	assert!(readonly_decoded.resolve(NonZeroU32::new(1).unwrap()).is_some());
-	let decoded_serialized = serde_json::to_value(readonly_decoded).unwrap();
+    let readonly_decoded = RegistryReadOnly::decode(&mut &encoded[..]).unwrap();
+    assert!(readonly_decoded
+        .resolve(NonZeroU32::new(1).unwrap())
+        .is_some());
+    let decoded_serialized = serde_json::to_value(readonly_decoded).unwrap();
 
-	assert_eq!(decoded_serialized, original_serialized);
+    assert_eq!(decoded_serialized, original_serialized);
 }
 
 #[test]
 fn json_serialize_then_deserialize_to_readonly() {
-	let mut registry = Registry::new();
-	registry.register_type(&MetaType::new::<A<B>>());
+    let mut registry = Registry::new();
+    registry.register_type(&MetaType::new::<A<B>>());
 
-	let original_serialized = serde_json::to_value(registry).unwrap();
-	// assert_eq!(original_serialized, serde_json::Value::Null);
-	let readonly_deserialized: RegistryReadOnly = serde_json::from_value(original_serialized.clone()).unwrap();
-	assert!(readonly_deserialized.resolve(NonZeroU32::new(1).unwrap()).is_some());
-	let readonly_serialized = serde_json::to_value(readonly_deserialized).unwrap();
+    let original_serialized = serde_json::to_value(registry).unwrap();
+    // assert_eq!(original_serialized, serde_json::Value::Null);
+    let readonly_deserialized: RegistryReadOnly =
+        serde_json::from_value(original_serialized.clone()).unwrap();
+    assert!(readonly_deserialized
+        .resolve(NonZeroU32::new(1).unwrap())
+        .is_some());
+    let readonly_serialized = serde_json::to_value(readonly_deserialized).unwrap();
 
-	assert_eq!(readonly_serialized, original_serialized);
+    assert_eq!(readonly_serialized, original_serialized);
 }
