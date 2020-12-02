@@ -138,12 +138,12 @@ fn test_builtins() {
         json!({ "def": { "primitive": "str" } }),
     );
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
-	// PhantomData
-	assert_json_for_type::<core::marker::PhantomData<bool>>(json!({
-		"def": {
-			"tuple": [],
-		}
-	}))
+    // PhantomData
+    assert_json_for_type::<core::marker::PhantomData<bool>>(json!({
+        "def": {
+            "tuple": [],
+        }
+    }))
 }
 
 #[test]

@@ -24,8 +24,10 @@ use alloc::{
     vec,
     vec::Vec,
 };
-use core::num::NonZeroU32;
-use core::marker::PhantomData;
+use core::{
+    marker::PhantomData,
+    num::NonZeroU32,
+};
 use pretty_assertions::{
     assert_eq,
     assert_ne,

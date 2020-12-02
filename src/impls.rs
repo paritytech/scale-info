@@ -224,9 +224,9 @@ impl<T> TypeInfo for PhantomData<T>
 where
     T: TypeInfo + ?Sized + 'static,
 {
-	type Identity = Self;
+    type Identity = Self;
 
-	fn type_info() -> Type {
-		Type::new(Path::voldemort(), Vec::new(), TypeDefTuple::unit())
-	}
+    fn type_info() -> Type {
+        Type::new(Path::voldemort(), Vec::new(), TypeDefTuple::unit())
+    }
 }

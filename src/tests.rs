@@ -74,7 +74,8 @@ fn prelude_items() {
                     .variant("Err", Fields::unnamed().field_of::<String>("E"))
             )
     );
-    assert_type!(PhantomData<i32>, TypeDefTuple::new(tuple_meta_type!()));}
+    assert_type!(PhantomData<i32>, TypeDefTuple::new(tuple_meta_type!()));
+}
 
 #[test]
 fn tuple_primitives() {
@@ -151,31 +152,31 @@ fn struct_with_generics() {
 // TODO dp: this test doesn't seem to be very valuable.
 #[test]
 fn basic_struct_with_phantoms() {
-	#[allow(unused)]
-	struct SomeStruct<T> {
-		a: u8,
-		marker: PhantomData<T>,
-	}
+    #[allow(unused)]
+    struct SomeStruct<T> {
+        a: u8,
+        marker: PhantomData<T>,
+    }
 
-	impl<T> TypeInfo for SomeStruct<T>
-	where
-		T: TypeInfo + 'static,
-	{
-		type Identity = Self;
+    impl<T> TypeInfo for SomeStruct<T>
+    where
+        T: TypeInfo + 'static,
+    {
+        type Identity = Self;
 
-		fn type_info() -> Type {
-			Type::builder()
-				.path(Path::new("SomeStruct", module_path!()))
-				.type_params(tuple_meta_type!(T))
-				.composite(Fields::named().field_of::<u8>("a", "T"))
-		}
-	}
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("SomeStruct", module_path!()))
+                .type_params(tuple_meta_type!(T))
+                .composite(Fields::named().field_of::<u8>("a", "T"))
+        }
+    }
 
-	// Normal struct
-	let struct_bool_type_info = Type::builder()
-		.path(Path::from_segments(vec!["scale_info", "tests", "SomeStruct"]).unwrap())
-		.type_params(tuple_meta_type!(bool))
-		.composite(Fields::named().field_of::<u8>("a", "T"));
+    // Normal struct
+    let struct_bool_type_info = Type::builder()
+        .path(Path::from_segments(vec!["scale_info", "tests", "SomeStruct"]).unwrap())
+        .type_params(tuple_meta_type!(bool))
+        .composite(Fields::named().field_of::<u8>("a", "T"));
 
-	assert_type!(SomeStruct<bool>, struct_bool_type_info);
+    assert_type!(SomeStruct<bool>, struct_bool_type_info);
 }

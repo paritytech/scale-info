@@ -80,122 +80,132 @@ fn struct_derive() {
 
 #[test]
 fn no_phantom_types_are_derived_in_structs() {
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	struct P<T> {
-		pub a: u8,
-		pub marker: PhantomData<T>,
-	}
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct P<T> {
+        pub a: u8,
+        pub marker: PhantomData<T>,
+    }
 
-	let ty = Type::builder()
-		.path(Path::new("P", "derive"))
-		.composite(Fields::named().field_of::<u8>("a", "u8"));
+    let ty = Type::builder()
+        .path(Path::new("P", "derive"))
+        .composite(Fields::named().field_of::<u8>("a", "u8"));
 
-	assert_type!(P<bool>, ty);
+    assert_type!(P<bool>, ty);
 }
 
 #[test]
 fn no_phantom_types_are_derived_in_tuple_structs() {
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	struct Tuppy<T>(u8, PhantomData<T>);
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Tuppy<T>(u8, PhantomData<T>);
 
-	let tuppy = Type::builder()
-		.path(Path::new("Tuppy", "derive"))
-		.composite(Fields::unnamed().field_of::<u8>("u8"));
+    let tuppy = Type::builder()
+        .path(Path::new("Tuppy", "derive"))
+        .composite(Fields::unnamed().field_of::<u8>("u8"));
 
-	assert_type!(Tuppy<()>, tuppy);
+    assert_type!(Tuppy<()>, tuppy);
 }
 
 #[test]
 fn no_phantoms_are_derived_in_struct_with_tuple_members() {
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	struct WithTuples<TT, UU> {
-		a: (u8, PhantomData<TT>, u32, PhantomData<UU>)
-	}
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct WithTuples<TT, UU> {
+        a: (u8, PhantomData<TT>, u32, PhantomData<UU>),
+    }
 
-	let ty = Type::builder()
-		.path(Path::new("WithTuples", "derive"))
-		.composite(Fields::named().field_of::<(u8, u32)>("a", "(u8, PhantomData<TT>, u32, PhantomData<UU>)"));
+    let ty =
+        Type::builder()
+            .path(Path::new("WithTuples", "derive"))
+            .composite(Fields::named().field_of::<(u8, u32)>(
+                "a",
+                "(u8, PhantomData<TT>, u32, PhantomData<UU>)",
+            ));
 
-	assert_type!(WithTuples<u16, u64>, ty);
+    assert_type!(WithTuples<u16, u64>, ty);
 }
 
 #[test]
 fn no_phantom_types_are_derived_in_enums() {
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	struct Chocolate<Flavour> {
-		flavour: PhantomData<Flavour>,
-	}
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	enum Choices<F> {
-		Nutella,
-		RealThing(Chocolate<F>),
-		Marshmallow(PhantomData<F>)
-	};
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Chocolate<Flavour> {
+        flavour: PhantomData<Flavour>,
+    }
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    enum Choices<F> {
+        Nutella,
+        RealThing(Chocolate<F>),
+        Marshmallow(PhantomData<F>),
+    };
 
+    let ty = Type::builder()
+        .path(Path::new("Choices", "derive"))
+        .variant(
+            Variants::with_fields()
+                .variant_unit("Nutella")
+                .variant(
+                    "RealThing",
+                    Fields::unnamed().field_of::<Chocolate<bool>>("Chocolate<F>"),
+                )
+                .variant_unit("Marshmallow"),
+        );
 
-	let ty = Type::builder()
-		.path(Path::new("Choices", "derive"))
-		.variant(
-			Variants::with_fields()
-				.variant_unit("Nutella")
-				.variant("RealThing", Fields::unnamed().field_of::<Chocolate<bool>>("Chocolate<F>"))
-				.variant_unit("Marshmallow")
-		);
-
-	assert_type!(Choices<bool>, ty);
+    assert_type!(Choices<bool>, ty);
 }
 
 #[test]
 fn complex_enum_with_phantoms() {
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	enum Cake<Icing, Topping, Filling> {
-		A((PhantomData<Icing>, u8, PhantomData<Topping>, Filling)),
-		B
-	}
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    enum Cake<Icing, Topping, Filling> {
+        A((PhantomData<Icing>, u8, PhantomData<Topping>, Filling)),
+        B,
+    }
 
-	let ty = Type::builder()
-		.path(Path::new("Cake", "derive"))
-		.type_params(tuple_meta_type!(u16))
-    	.variant(
-			Variants::with_fields()
-				.variant("A", Fields::unnamed()
-					.field_of::<(u8, u16)>("(PhantomData<Icing>, u8, PhantomData<Topping>, Filling)")
-				)
-				.variant_unit("B")
-		);
-	assert_type!(Cake<bool, bool, u16>, ty);
+    let ty = Type::builder()
+        .path(Path::new("Cake", "derive"))
+        .type_params(tuple_meta_type!(u16))
+        .variant(
+            Variants::with_fields()
+                .variant(
+                    "A",
+                    Fields::unnamed().field_of::<(u8, u16)>(
+                        "(PhantomData<Icing>, u8, PhantomData<Topping>, Filling)",
+                    ),
+                )
+                .variant_unit("B"),
+        );
+    assert_type!(Cake<bool, bool, u16>, ty);
 }
 
 #[test]
 fn no_nested_phantom_types_are_derived_structs() {
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	struct Door<Size> {
-		size: PhantomData<Size>,
-		b: u16,
-	};
-	#[allow(unused)]
-	#[derive(TypeInfo)]
-	struct House<TDoor> {
-		a: u8,
-		door: TDoor,
-	};
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Door<Size> {
+        size: PhantomData<Size>,
+        b: u16,
+    };
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct House<TDoor> {
+        a: u8,
+        door: TDoor,
+    };
 
-	let house = Type::builder()
-		.path(Path::new("House", "derive"))
-		.type_params(tuple_meta_type!(Door<bool>))
-		.composite(Fields::named()
-			.field_of::<u8>("a", "u8")
-			.field_of::<Door<bool>>("door", "TDoor")
-		);
+    let house = Type::builder()
+        .path(Path::new("House", "derive"))
+        .type_params(tuple_meta_type!(Door<bool>))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .field_of::<Door<bool>>("door", "TDoor"),
+        );
 
-	assert_type!(House<Door<bool>>, house);
+    assert_type!(House<Door<bool>>, house);
 }
 
 #[test]
