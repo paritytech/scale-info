@@ -24,24 +24,24 @@ mod core {
 
 #[rustfmt::skip]
 pub use self::core::{
-	i8, i16, i32, i64, i128,
-	u8, u16, u32, u64, u128,
+    i8, i16, i32, i64, i128,
+    u8, u16, u32, u64, u128,
 
-	marker::PhantomData,
-	num::NonZeroU32,
-	option::Option,
-	result::Result,
+    marker::PhantomData,
+    num::NonZeroU32,
+    option::Option,
+    result::Result,
 
-	any::TypeId,
+    any::TypeId,
 
-	clone::{Clone},
-	cmp::{Eq, PartialEq, Ordering},
-	convert::{From, Into},
-	fmt::{Debug, Display, Error as FmtError, Formatter},
-	hash::{Hash, Hasher},
-	iter,
-	mem,
-	write,
+    clone::{Clone},
+    cmp::{Eq, PartialEq, Ordering},
+    convert::{From, Into},
+    fmt::{Debug, Display, Error as FmtError, Formatter},
+    hash::{Hash, Hasher},
+    iter,
+    mem,
+    write,
 };
 
 mod alloc {
@@ -54,8 +54,8 @@ mod alloc {
 
 #[rustfmt::skip]
 pub use self::alloc::{
-	boxed::Box,
-	collections::btree_map::{BTreeMap, Entry},
-	string::{String, ToString},
-	vec, vec::Vec,
+    boxed::Box,
+    collections::btree_map::{BTreeMap, Entry},
+    string::{String, ToString},
+    vec, vec::Vec,
 };

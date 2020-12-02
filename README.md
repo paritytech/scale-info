@@ -24,29 +24,29 @@ Types implementing this trait build up and return a `Type` struct:
 
 ```rust
 pub struct Type<T: Form = MetaForm> {
-	/// The unique path to the type. Can be empty for built-in types
-	path: Path<T>,
-	/// The generic type parameters of the type in use. Empty for non generic types
-	type_params: Vec<T::Type>,
-	/// The actual type definition
-	type_def: TypeDef<T>,
+    /// The unique path to the type. Can be empty for built-in types
+    path: Path<T>,
+    /// The generic type parameters of the type in use. Empty for non generic types
+    type_params: Vec<T::Type>,
+    /// The actual type definition
+    type_def: TypeDef<T>,
 }
 ```
 Types are defined as one of the following variants:
 ```rust
 pub enum TypeDef<T: Form = MetaForm> {
-	/// A composite type (e.g. a struct or a tuple)
-	Composite(TypeDefComposite<T>),
-	/// A variant type (e.g. an enum)
-	Variant(TypeDefVariant<T>),
-	/// A sequence type with runtime known length.
-	Sequence(TypeDefSequence<T>),
-	/// An array type with compile-time known length.
-	Array(TypeDefArray<T>),
-	/// A tuple type.
-	Tuple(TypeDefTuple<T>),
-	/// A Rust primitive type.
-	Primitive(TypeDefPrimitive),
+    /// A composite type (e.g. a struct or a tuple)
+    Composite(TypeDefComposite<T>),
+    /// A variant type (e.g. an enum)
+    Variant(TypeDefVariant<T>),
+    /// A sequence type with runtime known length.
+    Sequence(TypeDefSequence<T>),
+    /// An array type with compile-time known length.
+    Array(TypeDefArray<T>),
+    /// A tuple type.
+    Tuple(TypeDefTuple<T>),
+    /// A Rust primitive type.
+    Primitive(TypeDefPrimitive),
 }
 ```
 
