@@ -214,16 +214,17 @@ fn no_phantoms_in_nested_tuples() {
     #[derive(TypeInfo)]
     struct A<T> {
         is_a: bool,
-        teeth: (u8, u16, (u32, (PhantomData<T>, bool)))
+        teeth: (u8, u16, (u32, (PhantomData<T>, bool))),
     }
 
-    let ty = Type::builder()
-        .path(Path::new("A", "derive"))
-        .composite(
-            Fields::named()
-                .field_of::<bool>("is_a", "bool")
-                .field_of::<(u8, u16, (u32, (bool)))>("teeth", "(u8, u16, (u32, (PhantomData<T>, bool)))")
-        );
+    let ty = Type::builder().path(Path::new("A", "derive")).composite(
+        Fields::named()
+            .field_of::<bool>("is_a", "bool")
+            .field_of::<(u8, u16, (u32, (bool)))>(
+                "teeth",
+                "(u8, u16, (u32, (PhantomData<T>, bool)))",
+            ),
+    );
 
     assert_type!(A<u64>, ty);
 }

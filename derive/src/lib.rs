@@ -147,9 +147,8 @@ fn find_phantoms_in_path(path: &syn::Path) -> Vec<Ident> {
 /// tuple along with any type parameters used in `PhantomData`.
 fn scrub_phantoms_from_tuple(
     tuple_elements: &Punctuated<syn::Type, Comma>,
-    paren_token: &syn::token::Paren
-) -> (syn::Type, Vec<Ident>)
-{
+    paren_token: &syn::token::Paren,
+) -> (syn::Type, Vec<Ident>) {
     let mut phantom_params = Vec::new();
     let mut punctuated: Punctuated<_, Comma> = Punctuated::new();
     for tuple_element in tuple_elements {
@@ -166,9 +165,9 @@ fn scrub_phantoms_from_tuple(
                 let (sub_tuple, phantoms) = scrub_phantoms_from_tuple(elems, paren_token);
                 punctuated.push(sub_tuple);
                 phantom_params.extend(phantoms);
-            },
+            }
             // TODO: (dp) can there be anything but types and tuples in a tuple?
-            _ => unreachable!("Only types and tuples can appear in tuples")
+            _ => unreachable!("Only types and tuples can appear in tuples"),
         }
     }
     let tuple = syn::Type::Tuple(syn::TypeTuple {
