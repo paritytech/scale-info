@@ -17,21 +17,21 @@ use crate::prelude::{
     collections::BTreeMap,
     marker::PhantomData,
     string::String,
-    vec::Vec,
     vec,
+    vec::Vec,
 };
 
 use crate::{
     build::*,
-    TypeInfo,
+    meta_type,
+    MetaType,
+    Path,
     Type,
     TypeDefArray,
     TypeDefPrimitive,
     TypeDefSequence,
     TypeDefTuple,
-    Path,
-    MetaType,
-    meta_type,
+    TypeInfo,
 };
 
 macro_rules! impl_metadata_for_primitives {

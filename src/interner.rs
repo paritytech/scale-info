@@ -22,7 +22,10 @@
 //! elements and is later used for compact serialization within the registry.
 
 use crate::prelude::{
-    collections::btree_map::{BTreeMap, Entry},
+    collections::btree_map::{
+        BTreeMap,
+        Entry,
+    },
     marker::PhantomData,
     num::NonZeroU32,
     vec::Vec,

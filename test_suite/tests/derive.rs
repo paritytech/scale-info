@@ -14,9 +14,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use scale_info::prelude::{
-    boxed::Box,
-};
+use scale_info::prelude::boxed::Box;
 
 use pretty_assertions::assert_eq;
 use scale_info::{

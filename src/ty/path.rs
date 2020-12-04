@@ -13,7 +13,11 @@
 // limitations under the License.
 
 use crate::prelude::{
-    fmt::{Formatter, Display, Error as FmtError},
+    fmt::{
+        Display,
+        Error as FmtError,
+        Formatter,
+    },
     vec,
     vec::Vec,
 };

@@ -16,11 +16,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-use scale_info::prelude::{
-    num::NonZeroU32,
-    vec,
-    vec::Vec,
-};
 use pretty_assertions::{
     assert_eq,
     assert_ne,
@@ -31,6 +26,11 @@ use scale::{
 };
 use scale_info::{
     form::CompactForm,
+    prelude::{
+        num::NonZeroU32,
+        vec,
+        vec::Vec,
+    },
     IntoCompact as _,
     MetaType,
     Registry,

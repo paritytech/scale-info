@@ -127,13 +127,9 @@ fn test_builtins() {
     // references
     assert_json_for_type::<&bool>(json!({ "def": { "primitive": "bool" } }));
     assert_json_for_type::<&mut str>(json!({ "def": { "primitive": "str" } }));
-    assert_json_for_type::<Box<u32>>(
-        json!({ "def": { "primitive": "u32" } }),
-    );
+    assert_json_for_type::<Box<u32>>(json!({ "def": { "primitive": "u32" } }));
     // strings
-    assert_json_for_type::<String>(
-        json!({ "def": { "primitive": "str" } }),
-    );
+    assert_json_for_type::<String>(json!({ "def": { "primitive": "str" } }));
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
     // PhantomData
     assert_json_for_type::<core::marker::PhantomData<bool>>(json!({

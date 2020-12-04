@@ -15,8 +15,15 @@
 use crate::prelude::{
     any::TypeId,
     cmp::Ordering,
-    fmt::{Debug, Formatter, Error as FmtError},
-    hash::{Hash, Hasher},
+    fmt::{
+        Debug,
+        Error as FmtError,
+        Formatter,
+    },
+    hash::{
+        Hash,
+        Hasher,
+    },
 };
 
 use crate::{
