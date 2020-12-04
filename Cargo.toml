@@ -14,6 +14,7 @@ categories = ["no-std", "encoding"]
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 
 [dependencies]
+cfg-if = "1.0"
 scale-info-derive = { version = "0.2.1", path = "derive", default-features = false, optional = true }
 serde = { version = "1", default-features = false, features = ["derive", "alloc"] }
 derive_more = { version = "0.99.1", default-features = false, features = ["from"] }
