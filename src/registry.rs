@@ -49,7 +49,7 @@ use scale::{
     Decode,
     Encode,
 };
-#[cfg(feature = "std")]
+#[cfg(feature = "serde")]
 use serde::{
     Deserialize,
     Serialize,
@@ -85,24 +85,24 @@ impl IntoCompact for &'static str {
 /// A type can be a sub-type of itself. In this case the registry has a builtin
 /// mechanism to stop recursion before going into an infinite loop.
 #[derive(Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Registry {
     /// The cache for already registered types.
     ///
     /// This is just an accessor to the actual database
     /// for all types found in the `types` field.
-    #[cfg_attr(feature = "std", serde(skip))]
+    #[cfg_attr(feature = "serde", serde(skip))]
     type_table: Interner<TypeId>,
     /// The database where registered types actually reside.
     ///
     /// This is going to be serialized upon serlialization.
-    #[cfg_attr(feature = "std", serde(serialize_with = "serialize_registry_types"))]
+    #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_registry_types"))]
     types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs
 /// and instead serialize them in order of their removed unique ID.
-#[cfg(feature = "std")]
+#[cfg(feature = "serde")]
 fn serialize_registry_types<S>(
     types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
     serializer: S,
@@ -203,7 +203,7 @@ impl Registry {
 }
 
 /// A read-only registry, to be used for decoding/deserializing
-#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Decode)]
 pub struct RegistryReadOnly {
     types: Vec<Type<CompactForm<String>>>,

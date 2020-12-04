@@ -41,7 +41,7 @@ use crate::{
     meta_type::MetaType,
 };
 
-#[cfg(feature = "std")]
+#[cfg(feature = "serde")]
 use serde::Serialize;
 
 /// Trait to control the internal structures of type definitions.
@@ -61,7 +61,7 @@ pub trait Form {
 /// Allows to be converted into other forms such as compact form
 /// through the registry and `IntoCompact`.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub enum MetaForm {}
 
 impl Form for MetaForm {
@@ -79,7 +79,7 @@ impl Form for MetaForm {
 ///
 /// `type String` is owned in order to enable decoding
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-#[cfg_attr(feature = "std", derive(Serialize))]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct CompactForm<S = &'static str>(PhantomData<S>);
 
 impl<S> Form for CompactForm<S>
