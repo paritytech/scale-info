@@ -62,9 +62,6 @@
 //! A usage example can be found in ink! here:
 //! https://github.com/paritytech/ink/blob/master/abi/src/specs.rs
 
-#[cfg(not(feature = "std"))]
-extern crate alloc;
-
 /// Takes a number of types and returns a vector that contains their respective
 /// [`MetaType`](`crate::MetaType`) instances.
 ///
@@ -91,16 +88,8 @@ extern crate alloc;
 macro_rules! tuple_meta_type {
     ( $($ty:ty),* ) => {
         {
-            #[cfg(not(feature = "std"))]
-            extern crate alloc as _alloc;
-            #[cfg(not(feature = "std"))]
             #[allow(unused_mut)]
-            let mut v = _alloc::vec![];
-
-            #[cfg(feature = "std")]
-            #[allow(unused_mut)]
-            let mut v = std::vec![];
-
+            let mut v = $crate::prelude::vec![];
             $(
                 v.push($crate::MetaType::new::<$ty>());
             )*
@@ -109,7 +98,7 @@ macro_rules! tuple_meta_type {
     }
 }
 
-mod tm_std;
+pub mod prelude;
 
 pub mod build;
 pub mod form;

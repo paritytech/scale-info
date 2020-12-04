@@ -14,11 +14,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(not(feature = "std"))]
-extern crate alloc;
-
-#[cfg(not(feature = "std"))]
-use alloc::boxed::Box;
+use scale_info::prelude::boxed::Box;
 
 use pretty_assertions::assert_eq;
 use scale_info::{

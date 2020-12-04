@@ -116,9 +116,13 @@
 //! }
 //! ```
 
+use crate::prelude::{
+    marker::PhantomData,
+    vec::Vec,
+};
+
 use crate::{
     form::MetaForm,
-    tm_std::*,
     Field,
     MetaType,
     Path,

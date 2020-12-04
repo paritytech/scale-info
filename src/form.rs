@@ -30,10 +30,15 @@
 //! Other forms, such as a compact form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
+use crate::prelude::{
+    any::TypeId,
+    fmt::Debug,
+    string::String,
+};
+
 use crate::{
     interner::UntrackedSymbol,
     meta_type::MetaType,
-    tm_std::*,
 };
 use serde::Serialize;
 
@@ -44,9 +49,9 @@ use serde::Serialize;
 /// interning data structures.
 pub trait Form {
     /// The type representing the type.
-    type Type: PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+    type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
     /// The string type.
-    type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + core::fmt::Debug;
+    type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
 }
 
 /// A meta meta-type.
