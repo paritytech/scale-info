@@ -109,7 +109,7 @@ macro_rules! tuple_meta_type {
     }
 }
 
-mod prelude;
+pub mod prelude;
 
 pub mod build;
 pub mod form;

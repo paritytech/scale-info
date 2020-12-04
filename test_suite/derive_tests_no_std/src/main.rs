@@ -15,7 +15,7 @@
 
 #![no_std]
 
-extern crate alloc;
+// extern crate alloc;
 
 use scale_info::TypeInfo;
 

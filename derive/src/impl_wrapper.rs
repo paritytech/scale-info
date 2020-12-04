@@ -37,25 +37,10 @@ pub fn wrap(
     quote! {
         #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
         const #dummy_const: () = {
-            #[allow(unknown_lints)]
-            #[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
-            #[allow(rust_2018_idioms)]
-            use scale_info as _scale_info;
-
-            #[cfg(not(feature = "std"))]
-            extern crate alloc;
-
-            #[cfg(feature = "std")]
-            mod __core {
-                pub use ::core::*;
-                pub use ::std::{vec, vec::Vec};
-            }
-
-            #[cfg(not(feature = "std"))]
-            mod __core {
-                pub use ::core::*;
-                pub use ::alloc::{vec, vec::Vec};
-            }
+            // #[allow(unknown_lints)]
+            // #[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
+            // #[allow(rust_2018_idioms)]
+            // use scale_info as _scale_info;
 
             #impl_quote;
         };
