@@ -29,8 +29,8 @@ use crate::prelude::{
     collections::BTreeMap,
     mem,
     num::NonZeroU32,
-    string::ToString,
     vec::Vec,
+    string::String,
 };
 
 use crate::{
@@ -49,6 +49,7 @@ use scale::{
     Decode,
     Encode,
 };
+#[cfg(feature = "std")]
 use serde::{
     Deserialize,
     Serialize,
@@ -67,7 +68,7 @@ impl IntoCompact for &'static str {
     type Output = <CompactForm as Form>::String;
 
     fn into_compact(self, _registry: &mut Registry) -> Self::Output {
-        self.to_string()
+        self
     }
 }
 
@@ -83,23 +84,25 @@ impl IntoCompact for &'static str {
 ///
 /// A type can be a sub-type of itself. In this case the registry has a builtin
 /// mechanism to stop recursion before going into an infinite loop.
-#[derive(Debug, PartialEq, Eq, Serialize)]
+#[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "std", derive(Serialize))]
 pub struct Registry {
     /// The cache for already registered types.
     ///
     /// This is just an accessor to the actual database
     /// for all types found in the `types` field.
-    #[serde(skip)]
+    #[cfg_attr(feature = "std", serde(skip))]
     type_table: Interner<TypeId>,
     /// The database where registered types actually reside.
     ///
     /// This is going to be serialized upon serlialization.
-    #[serde(serialize_with = "serialize_registry_types")]
+    #[cfg_attr(feature = "std", serde(serialize_with = "serialize_registry_types"))]
     types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs
 /// and instead serialize them in order of their removed unique ID.
+#[cfg(feature = "std")]
 fn serialize_registry_types<S>(
     types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
     serializer: S,
@@ -200,27 +203,28 @@ impl Registry {
 }
 
 /// A read-only registry, to be used for decoding/deserializing
-#[derive(Debug, PartialEq, Eq, Serialize, Deserialize, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[derive(Debug, PartialEq, Eq, Decode)]
 pub struct RegistryReadOnly {
-    types: Vec<Type<CompactForm>>,
+    types: Vec<Type<CompactForm<String>>>,
 }
 
 impl From<Registry> for RegistryReadOnly {
     fn from(registry: Registry) -> Self {
-        RegistryReadOnly {
-            types: registry.types.values().cloned().collect::<Vec<_>>(),
-        }
+        let encoded = registry.encode();
+        Decode::decode(&mut &encoded[..])
+            .expect("Encoded registry should be decodable as a read-only version")
     }
 }
 
 impl RegistryReadOnly {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
-    pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm>> {
+    pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm<String>>> {
         self.types.get((id.get() - 1) as usize)
     }
 
     /// Returns an iterator for all types paired with their associated NonZeroU32 identifier.
-    pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<CompactForm>)> {
+    pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<CompactForm<String>>)> {
         self.types.iter().enumerate().map(|(i, ty)| {
             let id = NonZeroU32::new(i as u32 + 1).expect("i + 1 > 0; qed");
             (id, ty)

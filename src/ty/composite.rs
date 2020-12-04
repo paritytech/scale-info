@@ -29,6 +29,7 @@ use scale::{
     Decode,
     Encode,
 };
+#[cfg(feature = "std")]
 use serde::{
     de::DeserializeOwned,
     Deserialize,
@@ -69,19 +70,18 @@ use serde::{
     Clone,
     Debug,
     From,
-    Serialize,
-    Deserialize,
     Encode,
     Decode,
 )]
-#[serde(bound(
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "std", serde(bound(
     serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
-))]
-#[serde(rename_all = "lowercase")]
+    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+)))]
+#[cfg_attr(feature = "std", serde(rename_all = "lowercase"))]
 pub struct TypeDefComposite<T: Form = MetaForm> {
     /// The fields of the composite type.
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[cfg_attr(feature = "std", serde(skip_serializing_if = "Vec::is_empty", default))]
     fields: Vec<Field<T>>,
 }
 

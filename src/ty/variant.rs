@@ -30,6 +30,7 @@ use scale::{
     Decode,
     Encode,
 };
+#[cfg(feature = "std")]
 use serde::{
     de::DeserializeOwned,
     Deserialize,
@@ -82,19 +83,18 @@ use serde::{
     Clone,
     Debug,
     From,
-    Serialize,
-    Deserialize,
     Encode,
     Decode,
 )]
-#[serde(bound(
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "std", serde(bound(
     serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
-))]
-#[serde(rename_all = "lowercase")]
+    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+)))]
+#[cfg_attr(feature = "std", serde(rename_all = "lowercase"))]
 pub struct TypeDefVariant<T: Form = MetaForm> {
     /// The variants of a variant type
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[cfg_attr(feature = "std", serde(skip_serializing_if = "Vec::is_empty", default))]
     variants: Vec<Variant<T>>,
 }
 
@@ -145,18 +145,17 @@ where
 /// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
 /// }
 /// ```
-#[derive(
-    PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode,
-)]
-#[serde(bound(
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "std", serde(bound(
     serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
-))]
+    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+)))]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
     name: T::String,
     /// The fields of the variant.
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[cfg_attr(feature = "std", serde(skip_serializing_if = "Vec::is_empty", default))]
     fields: Vec<Field<T>>,
     /// The discriminant of the variant.
     ///
@@ -165,7 +164,7 @@ pub struct Variant<T: Form = MetaForm> {
     /// Even though setting the discriminant is optional
     /// every C-like enum variant has a discriminant specified
     /// upon compile-time.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
+    #[cfg_attr(feature = "std", serde(skip_serializing_if = "Option::is_none", default))]
     discriminant: Option<u64>,
 }
 
