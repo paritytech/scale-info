@@ -62,9 +62,6 @@
 //! A usage example can be found in ink! here:
 //! https://github.com/paritytech/ink/blob/master/abi/src/specs.rs
 
-#[cfg(not(feature = "std"))]
-extern crate alloc;
-
 /// Takes a number of types and returns a vector that contains their respective
 /// [`MetaType`](`crate::MetaType`) instances.
 ///

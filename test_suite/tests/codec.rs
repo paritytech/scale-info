@@ -16,15 +16,11 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-#[cfg(not(feature = "std"))]
-extern crate alloc;
-
-#[cfg(not(feature = "std"))]
-use alloc::{
+use scale_info::prelude::{
+    num::NonZeroU32,
     vec,
     vec::Vec,
 };
-use core::num::NonZeroU32;
 use pretty_assertions::{
     assert_eq,
     assert_ne,

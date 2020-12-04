@@ -16,12 +16,9 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-#[cfg(not(feature = "std"))]
-extern crate alloc;
-
-#[cfg(not(feature = "std"))]
-use alloc::{
+use scale_info::prelude::{
     boxed::Box,
+    string::String,
     vec,
     vec::Vec,
 };
@@ -130,11 +127,11 @@ fn test_builtins() {
     // references
     assert_json_for_type::<&bool>(json!({ "def": { "primitive": "bool" } }));
     assert_json_for_type::<&mut str>(json!({ "def": { "primitive": "str" } }));
-    assert_json_for_type::<alloc::boxed::Box<u32>>(
+    assert_json_for_type::<Box<u32>>(
         json!({ "def": { "primitive": "u32" } }),
     );
     // strings
-    assert_json_for_type::<alloc::string::String>(
+    assert_json_for_type::<String>(
         json!({ "def": { "primitive": "str" } }),
     );
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
