@@ -15,8 +15,6 @@
 
 #![no_std]
 
-// extern crate alloc;
-
 use scale_info::TypeInfo;
 
 #[allow(unused)]

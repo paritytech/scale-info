@@ -37,11 +37,6 @@ pub fn wrap(
     quote! {
         #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
         const #dummy_const: () = {
-            // #[allow(unknown_lints)]
-            // #[cfg_attr(feature = "cargo-clippy", allow(useless_attribute))]
-            // #[allow(rust_2018_idioms)]
-            // use scale_info as _scale_info;
-
             #impl_quote;
         };
     }
