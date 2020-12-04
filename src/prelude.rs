@@ -14,6 +14,9 @@
 
 //! Exports from `std`, `core` and `alloc` crates.
 
+// #[cfg(not(feature = "std"))]
+// extern crate alloc;
+
 mod core {
     #[cfg(not(feature = "std"))]
     pub use core::*;

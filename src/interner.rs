@@ -21,7 +21,7 @@
 //! The interners provide a strict ordered sequence of cached (aka interned)
 //! elements and is later used for compact serialization within the registry.
 
-use crate::tm_std::*;
+use crate::prelude::*;
 use serde::{
     Deserialize,
     Serialize,

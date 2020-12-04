@@ -18,7 +18,7 @@ use crate::{
         Form,
         MetaForm,
     },
-    tm_std::*,
+    prelude::*,
     utils::is_rust_identifier,
     IntoCompact,
     Registry,
