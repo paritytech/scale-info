@@ -67,7 +67,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
     ast.generics.type_params_mut().for_each(|p| {
-        p.bounds.push(parse_quote!(_scale_info::TypeInfo));
+        p.bounds.push(parse_quote!(::scale_info::TypeInfo));
         p.bounds.push(parse_quote!('static));
     });
 
@@ -93,7 +93,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             fn type_info() -> ::scale_info::Type {
                 ::scale_info::Type::builder()
                     .path(::scale_info::Path::new(stringify!(#ident), module_path!()))
-                    .type_params(::scale_info::prelude::alloc::vec![ #( #generic_type_ids ),* ])
+                    .type_params(::scale_info::prelude::vec![ #( #generic_type_ids ),* ])
                     .#build_type
                     .into()
             }
