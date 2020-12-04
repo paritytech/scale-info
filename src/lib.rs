@@ -91,16 +91,8 @@ extern crate alloc;
 macro_rules! tuple_meta_type {
     ( $($ty:ty),* ) => {
         {
-            #[cfg(not(feature = "std"))]
-            extern crate alloc as _alloc;
-            #[cfg(not(feature = "std"))]
             #[allow(unused_mut)]
-            let mut v = _alloc::vec![];
-
-            #[cfg(feature = "std")]
-            #[allow(unused_mut)]
-            let mut v = std::vec![];
-
+            let mut v = $crate::prelude::vec![];
             $(
                 v.push($crate::MetaType::new::<$ty>());
             )*
