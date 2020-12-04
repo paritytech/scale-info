@@ -24,6 +24,15 @@
 //! has been defined. Rust prelude types live within the so-called root
 //! namespace that is just empty.
 
+use crate::prelude::{
+    any::TypeId,
+    collections::BTreeMap,
+    mem,
+    num::NonZeroU32,
+    string::ToString,
+    vec::Vec,
+};
+
 use crate::{
     form::{
         CompactForm,
@@ -34,7 +43,6 @@ use crate::{
         UntrackedSymbol,
     },
     meta_type::MetaType,
-    tm_std::*,
     Type,
 };
 use scale::{

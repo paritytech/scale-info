@@ -72,7 +72,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
     ast.generics.type_params_mut().for_each(|p| {
-        p.bounds.push(parse_quote!(_scale_info::TypeInfo));
+        p.bounds.push(parse_quote!(::scale_info::TypeInfo));
         p.bounds.push(parse_quote!('static));
     });
 
@@ -90,19 +90,19 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         let ty_ident = &ty.ident;
         if !phantom_params.contains(ty_ident) {
             acc.push(quote! {
-                _scale_info::meta_type::<#ty_ident>()
+                ::scale_info::meta_type::<#ty_ident>()
             });
         }
         acc
     });
 
     let type_info_impl = quote! {
-        impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
+        impl #impl_generics ::scale_info::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
-            fn type_info() -> _scale_info::Type {
-                _scale_info::Type::builder()
-                    .path(_scale_info::Path::new(stringify!(#ident), module_path!()))
-                    .type_params(__core::vec![ #( #generic_type_ids ),* ])
+            fn type_info() -> ::scale_info::Type {
+                ::scale_info::Type::builder()
+                    .path(::scale_info::Path::new(stringify!(#ident), module_path!()))
+                    .type_params(::scale_info::prelude::vec![ #( #generic_type_ids ),* ])
                     .#build_type
                     .into()
             }
@@ -264,7 +264,7 @@ fn generate_composite_type(data_struct: &DataStruct) -> (TokenStream2, Vec<Ident
         Fields::Unit => (quote! { unit() }, Vec::new()),
     };
     (
-        quote! { composite(_scale_info::build::Fields::#fields) },
+        quote! { composite(::scale_info::build::Fields::#fields) },
         phantom_params,
     )
 }
@@ -295,7 +295,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
     });
     quote! {
         variant(
-            _scale_info::build::Variants::fieldless()
+            ::scale_info::build::Variants::fieldless()
                 #( #variants )*
         )
     }
@@ -330,7 +330,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> (TokenStream2, Vec<Ident>) {
                 quote! {
                     .variant(
                         #v_name,
-                        _scale_info::build::Fields::named()
+                        ::scale_info::build::Fields::named()
                             #( #fields)*
                     )
                 }
@@ -341,7 +341,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> (TokenStream2, Vec<Ident>) {
                 quote! {
                     .variant(
                         #v_name,
-                        _scale_info::build::Fields::unnamed()
+                        ::scale_info::build::Fields::unnamed()
                             #( #fields)*
                     )
                 }
@@ -356,7 +356,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> (TokenStream2, Vec<Ident>) {
     (
         quote! {
             variant(
-                _scale_info::build::Variants::with_fields()
+                ::scale_info::build::Variants::with_fields()
                     #( #variants)*
             )
         },

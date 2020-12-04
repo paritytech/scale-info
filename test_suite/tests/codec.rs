@@ -16,18 +16,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-#[cfg(not(feature = "std"))]
-extern crate alloc;
-
-#[cfg(not(feature = "std"))]
-use alloc::{
-    vec,
-    vec::Vec,
-};
-use core::{
-    marker::PhantomData,
-    num::NonZeroU32,
-};
 use pretty_assertions::{
     assert_eq,
     assert_ne,
@@ -38,6 +26,11 @@ use scale::{
 };
 use scale_info::{
     form::CompactForm,
+    prelude::{
+        num::NonZeroU32,
+        vec,
+        vec::Vec,
+    },
     IntoCompact as _,
     MetaType,
     Registry,
