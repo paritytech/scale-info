@@ -147,7 +147,7 @@ fn find_phantoms_in_path(path: &syn::Path) -> Vec<Ident> {
 /// tuple along with any type parameters used in `PhantomData`.
 fn scrub_phantoms_from_tuple(
     tuple_elements: &Punctuated<syn::Type, Comma>,
-    paren_token: &syn::token::Paren,
+    paren_token: syn::token::Paren,
 ) -> (syn::Type, Vec<Ident>) {
     let mut phantom_params = Vec::new();
     let mut punctuated: Punctuated<_, Comma> = Punctuated::new();
@@ -162,7 +162,7 @@ fn scrub_phantoms_from_tuple(
                 }
             }
             syn::Type::Tuple(syn::TypeTuple { elems, paren_token }) => {
-                let (sub_tuple, phantoms) = scrub_phantoms_from_tuple(elems, paren_token);
+                let (sub_tuple, phantoms) = scrub_phantoms_from_tuple(elems, *paren_token);
                 punctuated.push(sub_tuple);
                 phantom_params.extend(phantoms);
             }
@@ -172,7 +172,7 @@ fn scrub_phantoms_from_tuple(
     }
     let tuple = syn::Type::Tuple(syn::TypeTuple {
         elems: punctuated,
-        paren_token: *paren_token,
+        paren_token: paren_token,
     });
 
     (tuple, phantom_params)
@@ -207,7 +207,7 @@ fn generate_fields(fields: &FieldsList) -> (Vec<TokenStream2>, Vec<Ident>) {
             }
             // If the type is a tuple, check it for any `PhantomData` elements and rebuild a new tuple without them.
             syn::Type::Tuple(syn::TypeTuple { elems, paren_token }) => {
-                let (tuple, phantoms) = scrub_phantoms_from_tuple(elems, paren_token);
+                let (tuple, phantoms) = scrub_phantoms_from_tuple(elems, *paren_token);
                 let tokens = if let Some(i) = ident {
                     quote! { .field_of::<#tuple>(stringify!(#i), #type_name) }
                 } else {
