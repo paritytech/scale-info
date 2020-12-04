@@ -162,7 +162,8 @@ fn scrub_phantoms_from_tuple(
                 }
             }
             syn::Type::Tuple(syn::TypeTuple { elems, paren_token }) => {
-                let (sub_tuple, phantoms) = scrub_phantoms_from_tuple(elems, *paren_token);
+                let (sub_tuple, phantoms) =
+                    scrub_phantoms_from_tuple(elems, *paren_token);
                 punctuated.push(sub_tuple);
                 phantom_params.extend(phantoms);
             }
@@ -172,7 +173,7 @@ fn scrub_phantoms_from_tuple(
     }
     let tuple = syn::Type::Tuple(syn::TypeTuple {
         elems: punctuated,
-        paren_token: paren_token,
+        paren_token,
     });
 
     (tuple, phantom_params)

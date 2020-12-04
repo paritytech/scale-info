@@ -14,8 +14,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use scale_info::prelude::{
-    marker::PhantomData,
     boxed::Box,
+    marker::PhantomData,
 };
 
 use pretty_assertions::assert_eq;
