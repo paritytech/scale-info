@@ -209,6 +209,26 @@ fn no_nested_phantom_types_are_derived_structs() {
 }
 
 #[test]
+fn no_phantoms_in_nested_tuples() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct A<T> {
+        is_a: bool,
+        teeth: (u8, u16, (u32, (PhantomData<T>, bool)))
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("A", "derive"))
+        .composite(
+            Fields::named()
+                .field_of::<bool>("is_a", "bool")
+                .field_of::<(u8, u16, (u32, (bool)))>("teeth", "(u8, u16, (u32, (PhantomData<T>, bool)))") // TODO: bad whitespace here
+        );
+
+    assert_type!(A<u64>, ty);
+}
+
+#[test]
 fn tuple_struct_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
