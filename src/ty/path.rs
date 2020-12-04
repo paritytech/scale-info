@@ -12,13 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::prelude::{
+    fmt::{Formatter, Display, Error as FmtError},
+    vec,
+    vec::Vec,
+};
+
 use crate::{
     form::{
         CompactForm,
         Form,
         MetaForm,
     },
-    prelude::*,
     utils::is_rust_identifier,
     IntoCompact,
     Registry,

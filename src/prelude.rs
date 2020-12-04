@@ -13,52 +13,47 @@
 // limitations under the License.
 
 //! Exports from `std`, `core` and `alloc` crates.
+//!
+//! Guarantees a stable interface between `std` and `no_std` modes.
 
-// #[cfg(not(feature = "std"))]
-// extern crate alloc;
+#[cfg(not(feature = "std"))]
+extern crate alloc;
 
-mod core {
-    #[cfg(not(feature = "std"))]
-    pub use core::*;
+use cfg_if::cfg_if;
 
-    #[cfg(feature = "std")]
-    pub use std::*;
+cfg_if! {
+    if #[cfg(feature = "std")] {
+        pub use std::{
+            any,
+            boxed,
+            cmp,
+            collections,
+            fmt,
+            format,
+            hash,
+            marker,
+            mem,
+            num,
+            string,
+            vec,
+        };
+    } else {
+        pub use alloc::{
+            boxed,
+            collections,
+            format,
+            string,
+            vec,
+        };
+
+        pub use core::{
+            any,
+            cmp,
+            fmt,
+            hash,
+            marker,
+            mem,
+            num,
+        };
+    }
 }
-
-#[rustfmt::skip]
-pub use self::core::{
-    i8, i16, i32, i64, i128,
-    u8, u16, u32, u64, u128,
-
-    marker::PhantomData,
-    num::NonZeroU32,
-    option::Option,
-    result::Result,
-
-    any::TypeId,
-
-    clone::{Clone},
-    cmp::{Eq, PartialEq, Ordering},
-    convert::{From, Into},
-    fmt::{Debug, Display, Error as FmtError, Formatter},
-    hash::{Hash, Hasher},
-    iter,
-    mem,
-    write,
-};
-
-mod alloc {
-    #[cfg(not(feature = "std"))]
-    pub use ::alloc::*;
-
-    #[cfg(feature = "std")]
-    pub use std::*;
-}
-
-#[rustfmt::skip]
-pub use self::alloc::{
-    boxed::Box,
-    collections::btree_map::{BTreeMap, Entry},
-    string::{String, ToString},
-    vec, vec::Vec,
-};

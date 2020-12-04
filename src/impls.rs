@@ -12,10 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::prelude::{
+    boxed::Box,
+    collections::BTreeMap,
+    marker::PhantomData,
+    string::String,
+    vec::Vec,
+    vec,
+};
+
 use crate::{
     build::*,
-    prelude::*,
-    *,
+    TypeInfo,
+    Type,
+    TypeDefArray,
+    TypeDefPrimitive,
+    TypeDefSequence,
+    TypeDefTuple,
+    Path,
+    MetaType,
+    meta_type,
 };
 
 macro_rules! impl_metadata_for_primitives {

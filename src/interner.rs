@@ -21,7 +21,13 @@
 //! The interners provide a strict ordered sequence of cached (aka interned)
 //! elements and is later used for compact serialization within the registry.
 
-use crate::prelude::*;
+use crate::prelude::{
+    collections::btree_map::{BTreeMap, Entry},
+    marker::PhantomData,
+    num::NonZeroU32,
+    vec::Vec,
+};
+
 use serde::{
     Deserialize,
     Serialize,
