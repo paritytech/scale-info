@@ -166,7 +166,7 @@ fn scrub_phantoms_from_tuple(
                 punctuated.push(sub_tuple);
                 phantom_params.extend(phantoms);
             }
-            // TODO: (dp) can there be anything but types and tuples in a tuple?
+            // REVIEW: (dp) can there be anything but types and tuples in a tuple?
             _ => unreachable!("Only types and tuples can appear in tuples"),
         }
     }
