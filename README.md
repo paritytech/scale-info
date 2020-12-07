@@ -221,7 +221,7 @@ The type registry can be encoded as:
 The following optional `cargo` features are available:
 
 - **serde** includes support for json serialization/deserialization of the type registry. See example [here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/json.rs).
-- **derive** reexports the [`scale-info-derive`](https://crates.io/crates/scale-info-derive) crate
+- **derive** reexports the [`scale-info-derive`](https://crates.io/crates/scale-info-derive) crate.
 
 ## Resources
 
