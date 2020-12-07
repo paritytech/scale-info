@@ -209,13 +209,19 @@ After compactification all type definitions are stored in the type registry.
 Note that the type registry should be serialized as part of the metadata structure where the
 registered types are utilized to allow consumers to resolve the types.
 
-## Serialization
+## Encoding
 
-Currently the only supported serialization format is JSON, an example of which can be found
-[here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/json.rs).
+The type registry can be encoded as:
 
-Future support for binary formats is planned, either SCALE itself or a more compressed format where
-the monomorphization of Rust generic types could potentially result in very large files.
+- JSON (with the "serde" feature enabled)
+- SCALE itself (using `parity-scale-codec`)
+
+## Features
+
+The following optional `cargo` features are available:
+
+- **serde** includes support for json serialization/deserialization of the type registry. See example [here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/json.rs).
+- **derive** reexports the [`scale-info-derive`](https://crates.io/crates/scale-info-derive) crate
 
 ## Resources
 
