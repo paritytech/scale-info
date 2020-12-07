@@ -33,7 +33,7 @@
 use crate::prelude::{
     any::TypeId,
     fmt::Debug,
-    marker::PhantomData,
+    string::String,
 };
 
 use crate::{
@@ -80,12 +80,9 @@ impl Form for MetaForm {
 /// `type String` is owned in order to enable decoding
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
-pub struct CompactForm<S = &'static str>(PhantomData<S>);
+pub enum CompactForm {}
 
-impl<S> Form for CompactForm<S>
-where
-    S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug
-{
+impl Form for CompactForm {
     type Type = UntrackedSymbol<TypeId>;
-    type String = S;
+    type String = String;
 }
