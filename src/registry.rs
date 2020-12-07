@@ -30,6 +30,7 @@ use crate::prelude::{
     mem,
     num::NonZeroU32,
     vec::Vec,
+    string::ToString,
 };
 
 use crate::{
