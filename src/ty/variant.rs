@@ -75,7 +75,6 @@ use serde::{
 /// ```
 /// enum JustAMarker {}
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -85,6 +84,7 @@ use serde::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, Decode)]
 pub struct TypeDefVariant<T: Form = MetaForm> {
     /// The variants of a variant type
     #[cfg_attr(
@@ -141,7 +141,6 @@ where
 /// //  ^^^^^^^^^^^^^^^^^^^^^ this is a struct enum variant
 /// }
 /// ```
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -150,6 +149,7 @@ where
         deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
     ))
 )]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
     name: T::String,

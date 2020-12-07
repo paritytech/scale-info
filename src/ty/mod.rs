@@ -54,7 +54,6 @@ pub use self::{
 };
 
 /// A [`Type`] definition with optional metadata.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -64,6 +63,7 @@ pub use self::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
 pub struct Type<T: Form = MetaForm> {
     /// The unique path to the type. Can be empty for built-in types
     #[cfg_attr(
@@ -158,7 +158,6 @@ where
 }
 
 /// The possible types a SCALE encodable Rust value could have.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -168,6 +167,7 @@ where
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
     Composite(TypeDefComposite<T>),
@@ -199,8 +199,8 @@ impl IntoCompact for TypeDef {
 }
 
 /// A primitive Rust type.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub enum TypeDefPrimitive {
     /// `bool` type
@@ -236,6 +236,7 @@ pub enum TypeDefPrimitive {
 }
 
 /// An array type.
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -244,7 +245,6 @@ pub enum TypeDefPrimitive {
         deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
     ))
 )]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
     len: u32,
@@ -341,7 +341,6 @@ where
 }
 
 /// A type to refer to a sequence of elements of the same type.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -350,6 +349,7 @@ where
         deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
     ))
 )]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]

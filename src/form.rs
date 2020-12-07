@@ -60,8 +60,8 @@ pub trait Form {
 ///
 /// Allows to be converted into other forms such as compact form
 /// through the registry and `IntoCompact`.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
 
 impl Form for MetaForm {
