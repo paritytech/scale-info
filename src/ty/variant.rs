@@ -75,26 +75,22 @@ use serde::{
 /// ```
 /// enum JustAMarker {}
 /// ```
-#[derive(
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Clone,
-    Debug,
-    From,
-    Encode,
-    Decode,
-)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(bound(
-    serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-)))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub struct TypeDefVariant<T: Form = MetaForm> {
     /// The variants of a variant type
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
     variants: Vec<Variant<T>>,
 }
 
@@ -147,15 +143,21 @@ where
 /// ```
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(bound(
-    serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-)))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
     name: T::String,
     /// The fields of the variant.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
     fields: Vec<Field<T>>,
     /// The discriminant of the variant.
     ///
@@ -164,7 +166,10 @@ pub struct Variant<T: Form = MetaForm> {
     /// Even though setting the discriminant is optional
     /// every C-like enum variant has a discriminant specified
     /// upon compile-time.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Option::is_none", default)
+    )]
     discriminant: Option<u64>,
 }
 

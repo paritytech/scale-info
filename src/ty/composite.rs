@@ -62,26 +62,22 @@ use serde::{
 /// ```
 /// struct JustAMarker;
 /// ```
-#[derive(
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Clone,
-    Debug,
-    From,
-    Encode,
-    Decode,
-)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(bound(
-    serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-)))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 pub struct TypeDefComposite<T: Form = MetaForm> {
     /// The fields of the composite type.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
     fields: Vec<Field<T>>,
 }
 

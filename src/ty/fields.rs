@@ -64,14 +64,20 @@ use serde::{
 /// there are no guarantees provided, and the type name representation may change.
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(bound(
-    serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-)))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Field<T: Form = MetaForm> {
     /// The name of the field. None for unnamed fields.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Option::is_none", default)
+    )]
     name: Option<T::String>,
     /// The type of the field.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
