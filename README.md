@@ -99,13 +99,15 @@ impl<T> TypeInfo for Foo<T>
 where
     T: TypeInfo + 'static,
 {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .type_params(vec![MetaType::new::<T>()])
             .composite(Fields::named()
-                .field_of::<T>("bar")
-                .field_of::<u64>("data")
+                .field_of::<T>("bar", "T")
+                .field_of::<u64>("data", "u64")
             )
     }
 }
@@ -117,12 +119,14 @@ where
 struct Foo(u32, bool);
 
 impl TypeInfo for Foo {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .composite(Fields::unnamed()
-                .field_of::<u32>()
-                .field_of::<bool>()
+                .field_of::<u32>("u32")
+                .field_of::<bool>("bool")
             )
     }
 }
@@ -144,14 +148,16 @@ impl<T> TypeInfo for Foo<T>
 where
     T: TypeInfo + 'static,
 {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .type_params(vec![MetaType::new::<T>()])
             .variant(
                 Variants::with_fields()
-                    .variant("A", Fields::unnamed().field_of::<T>())
-                    .variant("B", Fields::named().field_of::<u32>("f"))
+                    .variant("A", Fields::unnamed().field_of::<T>("T"))
+                    .variant("B", Fields::named().field_of::<u32>("f", "u32"))
                     .variant("C", Fields::unit())
             )
     }
@@ -169,6 +175,8 @@ enum Foo {
 }
 
 impl TypeInfo for Foo {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
