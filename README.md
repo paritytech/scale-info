@@ -213,8 +213,8 @@ registered types are utilized to allow consumers to resolve the types.
 
 The type registry can be encoded as:
 
-- JSON (with the "serde" feature enabled)
-- SCALE itself (using `parity-scale-codec`)
+- JSON (with the "serde" feature enabled).
+- SCALE itself (using `parity-scale-codec`).
 
 ## Features
 
