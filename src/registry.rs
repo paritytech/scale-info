@@ -210,9 +210,9 @@ pub struct RegistryReadOnly {
 
 impl From<Registry> for RegistryReadOnly {
     fn from(registry: Registry) -> Self {
-        let encoded = registry.encode();
-        Decode::decode(&mut &encoded[..])
-            .expect("Encoded registry should be decodable as a read-only version")
+        RegistryReadOnly {
+            types: registry.types.values().cloned().collect::<Vec<_>>(),
+        }
     }
 }
 
