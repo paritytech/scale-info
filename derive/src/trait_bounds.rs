@@ -42,7 +42,7 @@ impl<'a, 'ast> Visit<'ast> for ContainIdents<'a> {
 }
 
 /// Checks if the given type contains one of the given idents.
-fn type_contain_idents(ty: &Type, idents: &[Ident]) -> bool {
+fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
     let mut visitor = ContainIdents {
         result: false,
         idents,
@@ -70,7 +70,7 @@ impl<'a, 'ast> Visit<'ast> for TypePathStartsWithIdent<'a> {
     }
 }
 
-/// Checks if the given type path or any containing type path starts with the given ident.
+/// Checks if the given `TypePath` or any contained `TypePath`s start with the given ident.
 fn type_path_or_sub_starts_with_ident(ty: &TypePath, ident: &Ident) -> bool {
     let mut visitor = TypePathStartsWithIdent {
         result: false,
@@ -80,7 +80,7 @@ fn type_path_or_sub_starts_with_ident(ty: &TypePath, ident: &Ident) -> bool {
     visitor.result
 }
 
-/// Checks if the given type or any containing type path starts with the given ident.
+/// Checks if the given `Type` or any contained `TypePath`s start with the given ident.
 fn type_or_sub_type_path_starts_with_ident(ty: &Type, ident: &Ident) -> bool {
     let mut visitor = TypePathStartsWithIdent {
         result: false,
@@ -108,9 +108,13 @@ impl<'a, 'ast> Visit<'ast> for FindTypePathsNotStartOrContainIdent<'a> {
     }
 }
 
-/// Collects all type paths that do not start or contain the given ident in the given type.
+/// Collects all type paths that do not start or contain the given ident in the
+/// given type.
 ///
-/// Returns `T`, `N`, `A` for `Vec<(Recursive<T, N>, A)>` with `Recursive` as ident.
+/// E.g. given the type `Vec<(Recursive<T, N>, A)>` and `Recursive` as the
+/// ident, first find all child idents (in this case: `Recursive`, `T`, `N` and
+/// `A`) and then filter out the undesired ident (`Recursive` in this case). Finally,
+/// return the rest in a `Vec` (in this case: `T`, `N`, and `A`).
 fn find_type_paths_not_start_or_contain_ident(ty: &Type, ident: &Ident) -> Vec<TypePath> {
     let mut visitor = FindTypePathsNotStartOrContainIdent {
         result: Vec::new(),
@@ -120,7 +124,8 @@ fn find_type_paths_not_start_or_contain_ident(ty: &Type, ident: &Ident) -> Vec<T
     visitor.result
 }
 
-/// Add required trait bounds to all generic types.
+/// Adds a `TypeInfo + 'static` bound to all relevant generic types, correctly
+/// dealing with self-referential types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
     generics.type_params_mut().for_each(|p| {
         p.bounds.push(parse_quote!(::scale_info::TypeInfo));
@@ -135,12 +140,12 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
         return Ok(())
     }
 
-    let codec_types = get_types_to_add_trait_bound(input_ident, data, &ty_params)?;
+    let types = get_types_to_add_trait_bound(input_ident, data, &ty_params)?;
 
-    if !codec_types.is_empty() {
+    if !types.is_empty() {
         let where_clause = generics.make_where_clause();
 
-        codec_types.into_iter().for_each(|ty| {
+        types.into_iter().for_each(|ty| {
             where_clause
                 .predicates
                 .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
@@ -156,26 +161,24 @@ fn get_types_to_add_trait_bound(
     data: &syn::Data,
     ty_params: &[Ident],
 ) -> Result<Vec<Type>> {
-    let res = collect_types(&data, |_| true, |_| true)?
-		.into_iter()
+    let types = collect_types(&data, |_| true, |_| true)?
+		.iter()
 		// Only add a bound if the type uses a generic
-		.filter(|ty| type_contain_idents(ty, &ty_params))
-		// If a struct is containing itself as field type, we can not add this type into the where clause.
-		// This is required to work a round the following compiler bug: https://github.com/rust-lang/rust/issues/47032
+		.filter(|ty| type_contains_idents(ty, &ty_params))
+		// If a struct is containing itself as field type, we can not add it to the where clause.
+		// This is required to work a round this compiler bug: https://github.com/rust-lang/rust/issues/47032
 		.flat_map(|ty| {
 			find_type_paths_not_start_or_contain_ident(&ty, input_ident)
 				.into_iter()
-				// Add this back if we add the .chain line below back
-				// .map(|ty| Type::Path(ty.clone()))
 				.map(Type::Path)
-				// Remove again types that do not contain any of our generic parameters
-				.filter(|ty| type_contain_idents(ty, &ty_params))
+				// Filter again to remove types that do not contain any of our generic parameters
+				.filter(|ty| type_contains_idents(ty, &ty_params))
 		})
 		// Remove all remaining types that start/contain the input ident to not have them in the where clause.
 		.filter(|ty| !type_or_sub_type_path_starts_with_ident(ty, input_ident))
 		.collect();
 
-    Ok(res)
+    Ok(types)
 }
 
 fn collect_types(
