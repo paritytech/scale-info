@@ -73,7 +73,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
         quote! {
-            _scale_info::meta_type::<#ty_ident>()
+            ::scale_info::meta_type::<#ty_ident>()
         }
     });
 
@@ -85,12 +85,12 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     };
 
     let type_info_impl = quote! {
-        impl #impl_generics _scale_info::TypeInfo for #ident #ty_generics #where_clause {
+        impl #impl_generics ::scale_info::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
-            fn type_info() -> _scale_info::Type {
-                _scale_info::Type::builder()
-                    .path(_scale_info::Path::new(stringify!(#ident), module_path!()))
-                    .type_params(__core::vec![ #( #generic_type_ids ),* ])
+            fn type_info() -> ::scale_info::Type {
+                ::scale_info::Type::builder()
+                    .path(::scale_info::Path::new(stringify!(#ident), module_path!()))
+                    .type_params(::scale_info::prelude::vec![ #( #generic_type_ids ),* ])
                     .#build_type
                     .into()
             }
@@ -156,7 +156,7 @@ fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {
         }
     };
     quote! {
-        composite(_scale_info::build::Fields::#fields)
+        composite(::scale_info::build::Fields::#fields)
     }
 }
 
@@ -186,7 +186,7 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
     });
     quote! {
         variant(
-            _scale_info::build::Variants::fieldless()
+            ::scale_info::build::Variants::fieldless()
                 #( #variants )*
         )
     }
@@ -195,11 +195,11 @@ fn generate_c_like_enum_def(variants: &VariantList) -> TokenStream2 {
 fn is_c_like_enum(variants: &VariantList) -> bool {
     // any variant has an explicit discriminant
     variants.iter().any(|v| v.discriminant.is_some()) ||
-		// all variants are unit
-		variants.iter().all(|v| match v.fields {
-			Fields::Unit => true,
-			_ => false,
-		})
+        // all variants are unit
+        variants.iter().all(|v| match v.fields {
+            Fields::Unit => true,
+            _ => false,
+        })
 }
 
 fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
@@ -218,7 +218,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
                 quote! {
                     .variant(
                         #v_name,
-                        _scale_info::build::Fields::named()
+                        ::scale_info::build::Fields::named()
                             #( #fields)*
                     )
                 }
@@ -228,7 +228,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
                 quote! {
                     .variant(
                         #v_name,
-                        _scale_info::build::Fields::unnamed()
+                        ::scale_info::build::Fields::unnamed()
                             #( #fields)*
                     )
                 }
@@ -242,7 +242,7 @@ fn generate_variant_type(data_enum: &DataEnum) -> TokenStream2 {
     });
     quote! {
         variant(
-            _scale_info::build::Variants::with_fields()
+            ::scale_info::build::Variants::with_fields()
                 #( #variants)*
         )
     }

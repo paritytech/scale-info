@@ -12,9 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::prelude::{
+    any::TypeId,
+    cmp::Ordering,
+    fmt::{
+        Debug,
+        Error as FmtError,
+        Formatter,
+    },
+    hash::{
+        Hash,
+        Hasher,
+    },
+};
+
 use crate::{
     form::MetaForm,
-    tm_std::*,
     Type,
     TypeInfo,
 };

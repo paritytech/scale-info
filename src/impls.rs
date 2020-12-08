@@ -12,22 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use crate::prelude::{
+    boxed::Box,
+    collections::BTreeMap,
+    marker::PhantomData,
+    string::String,
+    vec,
+    vec::Vec,
+};
+
 use crate::{
     build::*,
-    tm_std::*,
-    *,
+    meta_type,
+    MetaType,
+    Path,
+    Type,
+    TypeDefArray,
+    TypeDefPrimitive,
+    TypeDefSequence,
+    TypeDefTuple,
+    TypeInfo,
 };
 
 macro_rules! impl_metadata_for_primitives {
-	( $( $t:ty => $ident_kind:expr, )* ) => { $(
-		impl TypeInfo for $t {
-			type Identity = Self;
+    ( $( $t:ty => $ident_kind:expr, )* ) => { $(
+        impl TypeInfo for $t {
+            type Identity = Self;
 
-			fn type_info() -> Type {
-				$ident_kind.into()
-			}
-		}
-	)* }
+            fn type_info() -> Type {
+                $ident_kind.into()
+            }
+        }
+    )* }
 }
 
 impl_metadata_for_primitives!(
@@ -46,17 +62,17 @@ impl_metadata_for_primitives!(
 );
 
 macro_rules! impl_metadata_for_array {
-	( $( $n:expr )* ) => {
-		$(
-			impl<T: TypeInfo + 'static> TypeInfo for [T; $n] {
-				type Identity = Self;
+    ( $( $n:expr )* ) => {
+        $(
+            impl<T: TypeInfo + 'static> TypeInfo for [T; $n] {
+                type Identity = Self;
 
-				fn type_info() -> Type {
-					TypeDefArray::new($n, MetaType::new::<T>()).into()
-				}
-			}
-		)*
-	}
+                fn type_info() -> Type {
+                    TypeDefArray::new($n, MetaType::new::<T>()).into()
+                }
+            }
+        )*
+    }
 }
 
 #[rustfmt::skip]
@@ -65,23 +81,23 @@ impl_metadata_for_array!(
     10 11 12 13 14 15 16 17 18 19
     20 21 22 23 24 25 26 27 28 29
     30 31 32
-	40 48 56 64 72 96 128 160 192 224 256
+    40 48 56 64 72 96 128 160 192 224 256
 );
 
 macro_rules! impl_metadata_for_tuple {
     ( $($ty:ident),* ) => {
-		impl<$($ty),*> TypeInfo for ($($ty,)*)
-		where
-			$(
-				$ty: TypeInfo+ 'static,
-			)*
-		{
-			type Identity = Self;
+        impl<$($ty),*> TypeInfo for ($($ty,)*)
+        where
+            $(
+                $ty: TypeInfo+ 'static,
+            )*
+        {
+            type Identity = Self;
 
-			fn type_info() -> Type {
-				TypeDefTuple::new(tuple_meta_type!($($ty),*)).into()
-			}
-		}
+            fn type_info() -> Type {
+                TypeDefTuple::new(tuple_meta_type!($($ty),*)).into()
+            }
+        }
     }
 }
 

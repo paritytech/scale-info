@@ -123,7 +123,7 @@ fn find_type_paths_not_start_or_contain_ident(ty: &Type, ident: &Ident) -> Vec<T
 /// Add required trait bounds to all generic types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
     generics.type_params_mut().for_each(|p| {
-        p.bounds.push(parse_quote!(_scale_info::TypeInfo));
+        p.bounds.push(parse_quote!(::scale_info::TypeInfo));
         p.bounds.push(parse_quote!('static));
     });
 
@@ -143,7 +143,7 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
         codec_types.into_iter().for_each(|ty| {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : _scale_info::TypeInfo + 'static))
+                .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
         });
     }
 

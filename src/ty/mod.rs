@@ -12,7 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::tm_std::*;
+use crate::prelude::{
+    vec,
+    vec::Vec,
+};
 
 use crate::{
     build::TypeBuilder,
