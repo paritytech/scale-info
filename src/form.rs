@@ -40,6 +40,8 @@ use crate::{
     interner::UntrackedSymbol,
     meta_type::MetaType,
 };
+
+#[cfg(feature = "serde")]
 use serde::Serialize;
 
 /// Trait to control the internal structures of type definitions.
@@ -51,14 +53,15 @@ pub trait Form {
     /// The type representing the type.
     type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
     /// The string type.
-    type String: Serialize + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+    type String: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
 }
 
 /// A meta meta-type.
 ///
 /// Allows to be converted into other forms such as compact form
 /// through the registry and `IntoCompact`.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
 
 impl Form for MetaForm {
@@ -75,7 +78,8 @@ impl Form for MetaForm {
 /// underlying data.
 ///
 /// `type String` is owned in order to enable decoding
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub enum CompactForm {}
 
 impl Form for CompactForm {

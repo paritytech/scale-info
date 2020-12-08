@@ -29,6 +29,7 @@ use scale::{
     Decode,
     Encode,
 };
+#[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
     Deserialize,
@@ -61,27 +62,22 @@ use serde::{
 /// ```
 /// struct JustAMarker;
 /// ```
-#[derive(
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Clone,
-    Debug,
-    From,
-    Serialize,
-    Deserialize,
-    Encode,
-    Decode,
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
 )]
-#[serde(bound(
-    serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
-))]
-#[serde(rename_all = "lowercase")]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, Decode)]
 pub struct TypeDefComposite<T: Form = MetaForm> {
     /// The fields of the composite type.
-    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
     fields: Vec<Field<T>>,
 }
 

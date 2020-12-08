@@ -31,6 +31,7 @@ use crate::prelude::{
     vec::Vec,
 };
 
+#[cfg(feature = "serde")]
 use serde::{
     Deserialize,
     Serialize,
@@ -40,12 +41,13 @@ use serde::{
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(transparent)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
     id: NonZeroU32,
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> T>,
 }
 
@@ -79,11 +81,12 @@ impl<T> UntrackedSymbol<T> {
 /// A symbol from an interner.
 ///
 /// Can be used to resolve to the associated instance.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize)]
-#[serde(transparent)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct Symbol<'a, T> {
     id: NonZeroU32,
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> &'a T>,
 }
 
@@ -120,15 +123,16 @@ impl<T> Symbol<'_, T> {
 ///
 /// This is used in order to quite efficiently cache strings and type
 /// definitions uniquely identified by their associated type identifiers.
-#[derive(Debug, PartialEq, Eq, Serialize)]
-#[serde(transparent)]
+#[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct Interner<T> {
     /// A mapping from the interned elements to their respective compact
     /// identifiers.
     ///
     /// The idenfitiers can be used to retrieve information about the original
     /// element from the interner.
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde", serde(skip))]
     map: BTreeMap<T, usize>,
     /// The ordered sequence of cached elements.
     ///
