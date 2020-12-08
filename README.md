@@ -99,13 +99,15 @@ impl<T> TypeInfo for Foo<T>
 where
     T: TypeInfo + 'static,
 {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .type_params(vec![MetaType::new::<T>()])
             .composite(Fields::named()
-                .field_of::<T>("bar")
-                .field_of::<u64>("data")
+                .field_of::<T>("bar", "T")
+                .field_of::<u64>("data", "u64")
             )
     }
 }
@@ -117,12 +119,14 @@ where
 struct Foo(u32, bool);
 
 impl TypeInfo for Foo {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .composite(Fields::unnamed()
-                .field_of::<u32>()
-                .field_of::<bool>()
+                .field_of::<u32>("u32")
+                .field_of::<bool>("bool")
             )
     }
 }
@@ -144,14 +148,16 @@ impl<T> TypeInfo for Foo<T>
 where
     T: TypeInfo + 'static,
 {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .type_params(vec![MetaType::new::<T>()])
             .variant(
                 Variants::with_fields()
-                    .variant("A", Fields::unnamed().field_of::<T>())
-                    .variant("B", Fields::named().field_of::<u32>("f"))
+                    .variant("A", Fields::unnamed().field_of::<T>("T"))
+                    .variant("B", Fields::named().field_of::<u32>("f", "u32"))
                     .variant("C", Fields::unit())
             )
     }
@@ -169,6 +175,8 @@ enum Foo {
 }
 
 impl TypeInfo for Foo {
+    type Identity = Self;
+
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
@@ -201,13 +209,19 @@ After compactification all type definitions are stored in the type registry.
 Note that the type registry should be serialized as part of the metadata structure where the
 registered types are utilized to allow consumers to resolve the types.
 
-## Serialization
+## Encoding
 
-Currently the only supported serialization format is JSON, an example of which can be found
-[here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/json.rs).
+The type registry can be encoded as:
 
-Future support for binary formats is planned, either SCALE itself or a more compressed format where
-the monomorphization of Rust generic types could potentially result in very large files.
+- JSON (with the "serde" feature enabled).
+- SCALE itself (using `parity-scale-codec`).
+
+## Features
+
+The following optional `cargo` features are available:
+
+- **serde** includes support for json serialization/deserialization of the type registry. See example [here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/json.rs).
+- **derive** reexports the [`scale-info-derive`](https://crates.io/crates/scale-info-derive) crate.
 
 ## Resources
 

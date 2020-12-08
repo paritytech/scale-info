@@ -27,6 +27,7 @@ use scale::{
     Decode,
     Encode,
 };
+#[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
     Deserialize,
@@ -61,20 +62,25 @@ use serde::{
 /// This is intended for informational and diagnostic purposes only. Although it
 /// is possible to infer certain properties e.g. whether a type name is a type alias,
 /// there are no guarantees provided, and the type name representation may change.
-#[derive(
-    PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Serialize, Deserialize, Encode, Decode,
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
 )]
-#[serde(bound(
-    serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
-))]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
 pub struct Field<T: Form = MetaForm> {
     /// The name of the field. None for unnamed fields.
-    #[serde(skip_serializing_if = "Option::is_none", default)]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Option::is_none", default)
+    )]
     name: Option<T::String>,
     /// The type of the field.
-    #[serde(rename = "type")]
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
     ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     type_name: T::String,
