@@ -108,7 +108,7 @@ impl<'a, 'ast> Visit<'ast> for FindTypePathsNotStartOrContainIdent<'a> {
     }
 }
 
-/// Collects all type paths that do not start or contain the given ident in the
+/// Collects all type paths that do not start with or contain the given ident in the
 /// given type.
 ///
 /// E.g. given the type `Vec<(Recursive<T, N>, A)>` and `Recursive` as the
