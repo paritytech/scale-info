@@ -15,6 +15,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use scale_info::prelude::boxed::Box;
+use scale_info::prelude::vec::Vec;
 
 use pretty_assertions::assert_eq;
 use scale_info::{
@@ -203,4 +204,116 @@ fn associated_types_derive_without_bounds() {
         .composite(Fields::named().field_of::<bool>("a", "T::A"));
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
+}
+
+#[test]
+fn adds_proper_trait_bounds() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Cat {
+        tail: bool,
+        ears: u8,
+    }
+    fn assert_type_info<T: TypeInfo + 'static>() {};
+
+    assert_type_info::<Cat>();
+}
+
+#[test]
+fn adds_type_info_trait_bounds_for_all_generics() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    enum PawType<Paw> {
+        Big(Paw),
+        Small(Paw),
+    }
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Cat<Tail, Ear, Paw> {
+        tail: Tail,
+        ears: [Ear; 3],
+        paws: PawType<Paw>,
+    }
+
+    fn assert_type_info<T: TypeInfo + 'static>() {};
+    assert_type_info::<Cat<bool, u8, u16>>();
+}
+
+#[test]
+fn self_referential_type_adds_correct_bounds() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Nested<P> { pos: P };
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Is<N> { nexted: N };
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct That<I, S> { is: I, selfie: S };
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Thing<T> { that: T };
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Other<T> { thing: T };
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Selfie<Pos> {
+        another: Box<Selfie<Pos>>,
+        pos: Pos,
+        nested: Box<
+                    Other<
+                        Thing<
+                            That<
+                                Is<
+                                    Nested<Pos>
+                                >,
+                                Selfie<Pos>
+                            >
+                        >
+                    >
+                >,
+    }
+
+    fn assert_type_info<T: TypeInfo + 'static>() {};
+    assert_type_info::<Selfie<bool>>();
+}
+#[test]
+fn self_referential() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Meee {
+        me: Box<Meee>,
+    }
+    fn assert_type_info<T: TypeInfo + 'static>() {};
+    assert_type_info::<Meee>();
+
+}
+
+#[test]
+fn user_error_is_compilation_error() {
+    let t = trybuild::TestCases::new();
+    t.compile_fail("tests/ui/fail_missing_derive.rs");
+    t.compile_fail("tests/ui/fail_non_static_lifetime.rs");
+    // TODO: add a test for unions
+}
+
+// TODO: figure out if this test is valuable, lifted from parity-scale-codec
+#[test]
+fn recursive_variant_2_encode_works() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Struct<A, B, C> {
+        pub a: A,
+        pub b: B,
+        pub c: C,
+    }
+    #[allow(unused)]
+	#[derive(TypeInfo)]
+	struct Recursive<A, B, N> {
+		data: N,
+		other: Vec<Struct<A, B, Recursive<A, B, N>>>,
+	}
+    fn assert_type_info<T: TypeInfo + 'static>() {};
+    assert_type_info::<Recursive<u8, u16, u32>>();
 }

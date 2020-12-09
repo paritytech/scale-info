@@ -66,9 +66,9 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
-    trait_bounds::add(&ast.ident, &mut ast.generics, &ast.data)?;
-
     let ident = &ast.ident;
+    trait_bounds::add(ident, &mut ast.generics, &ast.data)?;
+
     let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
