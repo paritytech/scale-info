@@ -288,6 +288,7 @@ fn self_referential() {
     assert_type_info::<Meee>();
 }
 
+#[rustversion::nightly]
 #[test]
 fn user_error_is_compilation_error() {
     let t = trybuild::TestCases::new();
