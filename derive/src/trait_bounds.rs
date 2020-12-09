@@ -77,14 +77,15 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
     Ok(())
 }
 
-/// Returns all types that must be added to the where clause with the respective trait bound.
+/// Returns all types that must be added to the where clause with the respective
+/// trait bound.
 fn collect_types_to_bind(
     input_ident: &Ident,
     data: &syn::Data,
     ty_params: &[Ident],
 ) -> Result<Vec<Type>> {
     let type_filter = |field: &syn::Field| {
-        // Only add a bound if the type uses a generic
+        // Only add a bound if the type uses a generic.
         type_contains_idents(&field.ty, &ty_params)
         &&
         // Remove all remaining types that start/contain the input ident
@@ -94,7 +95,8 @@ fn collect_types_to_bind(
     collect_types(
         &data,
         type_filter,
-        // TODO: dp double check we don't need to filter anything here
+        // All types that show up in enum variants are filtered with the same
+        // type filter as regular types.
         |_| true
     )
 }
