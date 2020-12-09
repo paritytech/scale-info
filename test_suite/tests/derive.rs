@@ -14,10 +14,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use scale_info::prelude::{
-    boxed::Box,
-    vec::Vec,
-};
+use scale_info::prelude::boxed::Box;
 
 use pretty_assertions::assert_eq;
 use scale_info::{
@@ -242,7 +239,7 @@ fn adds_type_info_trait_bounds_for_all_generics() {
 }
 
 #[test]
-fn self_referential_type_adds_correct_bounds() {
+fn adds_correct_bounds_to_self_referential_types() {
     #[allow(unused)]
     #[derive(TypeInfo)]
     struct Nested<P> {
@@ -296,25 +293,5 @@ fn user_error_is_compilation_error() {
     let t = trybuild::TestCases::new();
     t.compile_fail("tests/ui/fail_missing_derive.rs");
     t.compile_fail("tests/ui/fail_non_static_lifetime.rs");
-    // TODO: add a test for unions
-}
-
-// TODO: figure out if this test is valuable, lifted from parity-scale-codec
-#[test]
-fn recursive_variant_2_encode_works() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Struct<A, B, C> {
-        pub a: A,
-        pub b: B,
-        pub c: C,
-    }
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Recursive<A, B, N> {
-        data: N,
-        other: Vec<Struct<A, B, Recursive<A, B, N>>>,
-    }
-    fn assert_type_info<T: TypeInfo + 'static>() {};
-    assert_type_info::<Recursive<u8, u16, u32>>();
+    t.compile_fail("tests/ui/fail_unions.rs");
 }
