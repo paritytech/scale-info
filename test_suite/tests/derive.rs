@@ -14,8 +14,10 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use scale_info::prelude::boxed::Box;
-use scale_info::prelude::vec::Vec;
+use scale_info::prelude::{
+    boxed::Box,
+    vec::Vec,
+};
 
 use pretty_assertions::assert_eq;
 use scale_info::{
@@ -243,36 +245,36 @@ fn adds_type_info_trait_bounds_for_all_generics() {
 fn self_referential_type_adds_correct_bounds() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct Nested<P> { pos: P };
+    struct Nested<P> {
+        pos: P,
+    };
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct Is<N> { nexted: N };
+    struct Is<N> {
+        nexted: N,
+    };
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct That<I, S> { is: I, selfie: S };
+    struct That<I, S> {
+        is: I,
+        selfie: S,
+    };
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct Thing<T> { that: T };
+    struct Thing<T> {
+        that: T,
+    };
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct Other<T> { thing: T };
+    struct Other<T> {
+        thing: T,
+    };
     #[allow(unused)]
     #[derive(TypeInfo)]
     struct Selfie<Pos> {
         another: Box<Selfie<Pos>>,
         pos: Pos,
-        nested: Box<
-                    Other<
-                        Thing<
-                            That<
-                                Is<
-                                    Nested<Pos>
-                                >,
-                                Selfie<Pos>
-                            >
-                        >
-                    >
-                >,
+        nested: Box<Other<Thing<That<Is<Nested<Pos>>, Selfie<Pos>>>>>,
     }
 
     fn assert_type_info<T: TypeInfo + 'static>() {};
@@ -287,7 +289,6 @@ fn self_referential() {
     }
     fn assert_type_info<T: TypeInfo + 'static>() {};
     assert_type_info::<Meee>();
-
 }
 
 #[test]
@@ -309,11 +310,11 @@ fn recursive_variant_2_encode_works() {
         pub c: C,
     }
     #[allow(unused)]
-	#[derive(TypeInfo)]
-	struct Recursive<A, B, N> {
-		data: N,
-		other: Vec<Struct<A, B, Recursive<A, B, N>>>,
-	}
+    #[derive(TypeInfo)]
+    struct Recursive<A, B, N> {
+        data: N,
+        other: Vec<Struct<A, B, Recursive<A, B, N>>>,
+    }
     fn assert_type_info<T: TypeInfo + 'static>() {};
     assert_type_info::<Recursive<u8, u16, u32>>();
 }
