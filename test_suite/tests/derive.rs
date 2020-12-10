@@ -205,19 +205,6 @@ fn associated_types_derive_without_bounds() {
     assert_type!(Assoc<ConcreteTypes>, struct_type);
 }
 
-#[test]
-fn adds_proper_trait_bounds() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Cat {
-        tail: bool,
-        ears: u8,
-    }
-    fn assert_type_info<T: TypeInfo + 'static>() {};
-
-    assert_type_info::<Cat>();
-}
-
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {

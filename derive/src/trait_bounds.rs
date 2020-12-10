@@ -24,30 +24,6 @@ use syn::{
     Type,
 };
 
-/// Visits the ast and checks if one of the given idents is found.
-struct ContainIdents<'a> {
-    result: bool,
-    idents: &'a [Ident],
-}
-
-impl<'a, 'ast> Visit<'ast> for ContainIdents<'a> {
-    fn visit_ident(&mut self, i: &'ast Ident) {
-        if self.idents.iter().any(|id| id == i) {
-            self.result = true;
-        }
-    }
-}
-
-/// Checks if the given type contains one of the given idents.
-fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
-    let mut visitor = ContainIdents {
-        result: false,
-        idents,
-    };
-    visitor.visit_type(ty);
-    visitor.result
-}
-
 /// Adds a `TypeInfo + 'static` bound to all relevant generic types including
 /// associated types, correctly dealing with self-referential types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
@@ -75,6 +51,30 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
     }
 
     Ok(())
+}
+
+/// Visits the ast and checks if one of the given idents is found.
+struct ContainIdents<'a> {
+    result: bool,
+    idents: &'a [Ident],
+}
+
+impl<'a, 'ast> Visit<'ast> for ContainIdents<'a> {
+    fn visit_ident(&mut self, i: &'ast Ident) {
+        if self.idents.iter().any(|id| id == i) {
+            self.result = true;
+        }
+    }
+}
+
+/// Checks if the given type contains one of the given idents.
+fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
+    let mut visitor = ContainIdents {
+        result: false,
+        idents,
+    };
+    visitor.visit_type(ty);
+    visitor.result
 }
 
 /// Returns all types that must be added to the where clause with the respective
