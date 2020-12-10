@@ -16,8 +16,8 @@ use alloc::vec::Vec;
 use proc_macro2::Ident;
 use syn::{
     parse_quote,
-    spanned::Spanned,
     punctuated::Punctuated,
+    spanned::Spanned,
     visit::Visit,
     Generics,
     Result,
@@ -53,7 +53,6 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
 
     Ok(())
 }
-
 
 /// Visits the ast and checks if the given type contains one of the given
 /// idents.
@@ -117,9 +116,12 @@ fn collect_types_to_bind(
                 .iter()
                 .flat_map(|variant| {
                     match &variant.fields {
-                        syn::Fields::Named(syn::FieldsNamed { named: fields, .. })
+                        syn::Fields::Named(syn::FieldsNamed {
+                            named: fields, ..
+                        })
                         | syn::Fields::Unnamed(syn::FieldsUnnamed {
-                            unnamed: fields, ..
+                            unnamed: fields,
+                            ..
                         }) => types_from_fields(fields),
                         syn::Fields::Unit => Vec::new(),
                     }
