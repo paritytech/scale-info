@@ -25,7 +25,8 @@ use syn::{
 };
 
 /// Adds a `TypeInfo + 'static` bound to all relevant generic types including
-/// associated types, correctly dealing with self-referential types.
+/// associated types (e.g. `T::A: TypeInfo`), correctly dealing with
+/// self-referential types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
     let ty_params = generics.type_params_mut().fold(Vec::new(), |mut acc, p| {
         p.bounds.push(parse_quote!(::scale_info::TypeInfo));
@@ -53,22 +54,23 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
     Ok(())
 }
 
-/// Visits the ast and checks if one of the given idents is found.
-struct ContainIdents<'a> {
-    result: bool,
-    idents: &'a [Ident],
-}
 
-impl<'a, 'ast> Visit<'ast> for ContainIdents<'a> {
-    fn visit_ident(&mut self, i: &'ast Ident) {
-        if self.idents.iter().any(|id| id == i) {
-            self.result = true;
+/// Visits the ast and checks if the given type contains one of the given
+/// idents.
+fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
+    struct ContainIdents<'a> {
+        result: bool,
+        idents: &'a [Ident],
+    }
+
+    impl<'a, 'ast> Visit<'ast> for ContainIdents<'a> {
+        fn visit_ident(&mut self, i: &'ast Ident) {
+            if self.idents.iter().any(|id| id == i) {
+                self.result = true;
+            }
         }
     }
-}
 
-/// Checks if the given type contains one of the given idents.
-fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
     let mut visitor = ContainIdents {
         result: false,
         idents,
