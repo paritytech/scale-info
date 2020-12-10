@@ -48,8 +48,8 @@ fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
     visitor.result
 }
 
-/// Adds a `TypeInfo + 'static` bound to all relevant generic types, correctly
-/// dealing with self-referential types.
+/// Adds a `TypeInfo + 'static` bound to all relevant generic types including
+/// associated types, correctly dealing with self-referential types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
     let ty_params = generics.type_params_mut().fold(Vec::new(), |mut acc, p| {
         p.bounds.push(parse_quote!(::scale_info::TypeInfo));

@@ -218,81 +218,14 @@ fn adds_proper_trait_bounds() {
     assert_type_info::<Cat>();
 }
 
-#[test]
-fn adds_type_info_trait_bounds_for_all_generics() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    enum PawType<Paw> {
-        Big(Paw),
-        Small(Paw),
-    }
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Cat<Tail, Ear, Paw> {
-        tail: Tail,
-        ears: [Ear; 3],
-        paws: PawType<Paw>,
-    }
-
-    fn assert_type_info<T: TypeInfo + 'static>() {};
-    assert_type_info::<Cat<bool, u8, u16>>();
-}
-
-#[test]
-fn adds_correct_bounds_to_self_referential_types() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Nested<P> {
-        pos: P,
-    };
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Is<N> {
-        nexted: N,
-    };
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct That<I, S> {
-        is: I,
-        selfie: S,
-    };
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Thing<T> {
-        that: T,
-    };
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Other<T> {
-        thing: T,
-    };
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Selfie<Pos> {
-        another: Box<Selfie<Pos>>,
-        pos: Pos,
-        nested: Box<Other<Thing<That<Is<Nested<Pos>>, Selfie<Pos>>>>>,
-    }
-
-    fn assert_type_info<T: TypeInfo + 'static>() {};
-    assert_type_info::<Selfie<bool>>();
-}
-#[test]
-fn self_referential() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Meee {
-        me: Box<Meee>,
-    }
-    fn assert_type_info<T: TypeInfo + 'static>() {};
-    assert_type_info::<Meee>();
-}
-
 #[rustversion::nightly]
 #[test]
-fn user_error_is_compilation_error() {
+fn ui_tests() {
     let t = trybuild::TestCases::new();
     t.compile_fail("tests/ui/fail_missing_derive.rs");
     t.compile_fail("tests/ui/fail_non_static_lifetime.rs");
     t.compile_fail("tests/ui/fail_unions.rs");
+    t.pass("tests/ui/pass_self_referential.rs");
+    t.pass("tests/ui/pass_basic_generic_type.rs");
+    t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
 }
