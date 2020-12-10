@@ -17,6 +17,7 @@ use proc_macro2::Ident;
 use syn::{
     parse_quote,
     spanned::Spanned,
+    punctuated::Punctuated,
     visit::Visit,
     Generics,
     Result,
@@ -83,73 +84,49 @@ fn collect_types_to_bind(
     data: &syn::Data,
     ty_params: &[Ident],
 ) -> Result<Vec<Type>> {
-    let type_filter = |field: &syn::Field| {
-        // Only add a bound if the type uses a generic.
-        type_contains_idents(&field.ty, &ty_params)
-        &&
-        // Remove all remaining types that start/contain the input ident
-        // to not have them in the where clause.
-        !type_contains_idents(&field.ty, &[input_ident.clone()])
+    let types_from_fields = |fields: &Punctuated<syn::Field, _>| -> Vec<syn::Type> {
+        fields
+            .iter()
+            .filter(|field| {
+                // Only add a bound if the type uses a generic.
+                type_contains_idents(&field.ty, &ty_params)
+                &&
+                // Remove all remaining types that start/contain the input ident
+                // to not have them in the where clause.
+                !type_contains_idents(&field.ty, &[input_ident.clone()])
+            })
+            .map(|f| f.ty.clone())
+            .collect()
     };
-    collect_types(
-        &data,
-        type_filter,
-        // All types that show up in enum variants are filtered with the same
-        // type filter as regular types.
-        |_| true,
-    )
-}
-
-fn collect_types(
-    data: &syn::Data,
-    type_filter: impl Fn(&syn::Field) -> bool,
-    variant_filter: impl Fn(&syn::Variant) -> bool,
-) -> Result<Vec<syn::Type>> {
-    use syn::*;
 
     let types = match *data {
-        Data::Struct(ref data) => {
+        syn::Data::Struct(ref data) => {
             match &data.fields {
-                Fields::Named(FieldsNamed { named: fields, .. })
-                | Fields::Unnamed(FieldsUnnamed {
+                syn::Fields::Named(syn::FieldsNamed { named: fields, .. })
+                | syn::Fields::Unnamed(syn::FieldsUnnamed {
                     unnamed: fields, ..
-                }) => {
-                    fields
-                        .iter()
-                        .filter(|f| type_filter(f))
-                        .map(|f| f.ty.clone())
-                        .collect()
-                }
-
-                Fields::Unit => Vec::new(),
+                }) => types_from_fields(fields),
+                syn::Fields::Unit => Vec::new(),
             }
         }
 
-        Data::Enum(ref data) => {
+        syn::Data::Enum(ref data) => {
             data.variants
                 .iter()
-                .filter(|variant| variant_filter(variant))
                 .flat_map(|variant| {
                     match &variant.fields {
-                        Fields::Named(FieldsNamed { named: fields, .. })
-                        | Fields::Unnamed(FieldsUnnamed {
+                        syn::Fields::Named(syn::FieldsNamed { named: fields, .. })
+                        | syn::Fields::Unnamed(syn::FieldsUnnamed {
                             unnamed: fields, ..
-                        }) => {
-                            fields
-                                .iter()
-                                .filter(|f| type_filter(f))
-                                .map(|f| f.ty.clone())
-                                .collect()
-                        }
-
-                        Fields::Unit => Vec::new(),
+                        }) => types_from_fields(fields),
+                        syn::Fields::Unit => Vec::new(),
                     }
                 })
                 .collect()
         }
 
-        Data::Union(ref data) => {
-            return Err(Error::new(
+        syn::Data::Union(ref data) => {
+            return Err(syn::Error::new(
                 data.union_token.span(),
                 "Union types are not supported.",
             ))
