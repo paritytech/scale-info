@@ -13,21 +13,17 @@
 // limitations under the License.
 
 use scale_info::{
-	form::{CompactForm},
-	RegistryReadOnly,
-	TypeDef,
+    form::CompactForm,
+    RegistryReadOnly,
+    TypeDef,
 };
 
 // trait GenerateTypes
 
 impl RegistryReadOnly {
-	fn generate_typescript_definitions(&self) -> String {
-
-	}
+    fn generate_typescript_definitions(&self) -> String {}
 }
 
 impl TypeDef {
-	fn generate_type(&self, registry: &RegistryReadOnly) -> String {
-
-	}
+    fn generate_type(&self, registry: &RegistryReadOnly) -> String {}
 }
