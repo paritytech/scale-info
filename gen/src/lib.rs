@@ -14,10 +14,10 @@
 
 mod types;
 
-use proc_macro::TokenStream;
-use syn::{parse_macro_input, Result, ExprArray};
-use syn::parse::{Parse, ParseStream};
 use std::io::Read;
+use proc_macro::TokenStream;
+use scale_info::RegistryReadOnly;
+use scale::Decode;
 
 #[proc_macro]
 pub fn generate_types(input: TokenStream) -> TokenStream {
@@ -27,13 +27,13 @@ pub fn generate_types(input: TokenStream) -> TokenStream {
     let root = std::env::var("CARGO_MANIFEST_DIR").unwrap_or(".".into());
     let root_path = std::path::Path::new(&root);
     let path = root_path.join(input);
-    println!("HHHHHHHHH {}", path.display());
 
     let mut file = std::fs::File::open(&path).expect("Error opening file");
     let mut bytes = Vec::new();
     file.read_to_end(&mut bytes).unwrap();
 
-    let registry: scale_info::RegistryReadOnly = scale::Decode::decode(&mut &bytes[..]).unwrap();
+    let registry: RegistryReadOnly = Decode::decode(&mut &bytes[..])
+        .expect("Failed to decode type registry");
     types::generate("root", &registry).into()
     // TokenStream::default()
 }

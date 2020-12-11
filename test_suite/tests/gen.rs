@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use scale_info::TypeInfo;
+use scale::Encode;
+
+
+
 #[test]
 fn gen() {
     // let encoded= std::include_bytes!("./encoded_types");

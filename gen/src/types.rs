@@ -19,6 +19,7 @@ use quote::{
     format_ident,
 };
 
+// todo: [AJ] this could be a separate crate so can be used from other macros to generate e.g. all runtime types
 pub fn generate(root_mod: &str, registry: &RegistryReadOnly) -> TokenStream2 {
     let mut tokens = TokenStream2::new();
     for (_, ty) in registry.enumerate() {
