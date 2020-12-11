@@ -17,7 +17,6 @@ use proc_macro2::{TokenStream as TokenStream2, TokenStream};
 use quote::{
     quote,
     format_ident,
-    TokenStreamExt,
 };
 
 pub fn generate_types(root_mod: &str, registry: &RegistryReadOnly) -> TokenStream2 {
@@ -122,7 +121,7 @@ impl GenerateType for TypeDefComposite<CompactForm> {
 }
 
 impl GenerateType for TypeDefPrimitive {
-    fn type_name(&self, ty: &Type<CompactForm>) -> String {
+    fn type_name(&self, _ty: &Type<CompactForm>) -> String {
         match self {
             TypeDefPrimitive::Bool => "bool",
             TypeDefPrimitive::Char => "char",
@@ -172,6 +171,40 @@ mod tests {
                     pub a: bool,
                     pub b: u32,
                     pub c: char,
+                }
+            }
+        }.to_string())
+    }
+
+    #[test]
+    fn generate_struct_with_a_struct_field() {
+        #[allow(unused)]
+        #[derive(TypeInfo)]
+        struct Parent {
+            a: bool,
+            b: Child,
+        }
+
+        #[allow(unused)]
+        #[derive(TypeInfo)]
+        struct Child {
+            a: i32,
+        }
+
+        let mut registry = Registry::new();
+        registry.register_type(&meta_type::<Parent>());
+
+        let types = generate_types("root",&registry.into());
+
+        assert_eq!(types.to_string(), quote! {
+            mod root {
+                pub struct Parent {
+                    pub a: bool,
+                    pub b: Child,
+                }
+
+                pub struct Child {
+                    pub a: i32,
                 }
             }
         }.to_string())
