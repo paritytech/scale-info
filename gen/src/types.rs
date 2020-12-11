@@ -112,7 +112,7 @@ impl GenerateType for TypeDefComposite<CompactForm> {
                 quote! {
                     pub struct #type_name (
                         #( #fields, )*
-                    )
+                    );
                 }
             } else {
                 panic!("Fields must be either all named or all unnamed")
@@ -207,6 +207,29 @@ mod tests {
                 pub struct Child {
                     pub a: i32,
                 }
+            }
+        }.to_string())
+    }
+
+    #[test]
+    fn generate_tuple_struct() {
+        #[allow(unused)]
+        #[derive(TypeInfo)]
+        struct Parent(bool, Child);
+
+        #[allow(unused)]
+        #[derive(TypeInfo)]
+        struct Child(i32);
+
+        let mut registry = Registry::new();
+        registry.register_type(&meta_type::<Parent>());
+
+        let types = generate("root",&registry.into());
+
+        assert_eq!(types.to_string(), quote! {
+            mod root {
+                pub struct Parent(pub bool, pub Child,);
+                pub struct Child(pub i32,);
             }
         }.to_string())
     }

@@ -12,13 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use scale_info::TypeInfo;
-use scale::Encode;
-
-
-
 #[test]
 fn gen() {
-    // let encoded= std::include_bytes!("./encoded_types");
+    // todo: make the module name the same name as the file prefix e.g types in this case
+    // todo: prove that encoding the source types and decoding into the dest types works
     scale_info_gen::generate_types!("encoded/types.scale");
+
+    let _ = root::Combined (
+        root::S { a: true, b: 10 },
+        root::Parent {
+            a: false,
+            b: root::Child { a: 3 },
+        }
+    );
 }

@@ -36,7 +36,7 @@ mod source_types {
 
     #[allow(unused)]
     #[derive(TypeInfo, Encode)]
-    struct Parent {
+    pub struct Parent {
         a: bool,
         b: Child,
     }

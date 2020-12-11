@@ -35,5 +35,4 @@ pub fn generate_types(input: TokenStream) -> TokenStream {
     let registry: RegistryReadOnly = Decode::decode(&mut &bytes[..])
         .expect("Failed to decode type registry");
     types::generate("root", &registry).into()
-    // TokenStream::default()
 }
