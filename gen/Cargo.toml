@@ -11,4 +11,12 @@ homepage = "https://www.parity.io/"
 description = "Generate types from TypeInfo instances"
 
 [dependencies]
-scale-info = { version = "0.3.0", path = "..", default-features = false, features = ["dogfood"] }
+proc-macro2 = "1.0"
+quote = "1"
+scale-info = { version = "0.4", path = "..", default-features = false }
+
+[features]
+default = ["std"]
+std = [
+	"scale-info/std",
+]

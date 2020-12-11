@@ -12,18 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use scale_info::{
-    form::CompactForm,
-    RegistryReadOnly,
-    TypeDef,
-};
+use scale_info::{form::CompactForm, RegistryReadOnly, TypeDef};
+use proc_macro2::TokenStream as TokenStream2;
+use quote::quote;
 
-// trait GenerateTypes
+pub fn generate_types(registry: &RegistryReadOnly) -> TokenStream2 {
+	quote! {
+		// required that this be placed at crate root so can do ::registry_types.
+		// alternatively use relative paths? more complicated
+		mod registry_types {
 
-impl RegistryReadOnly {
-    fn generate_typescript_definitions(&self) -> String {}
+		}
+	}
 }
 
-impl TypeDef {
-    fn generate_type(&self, registry: &RegistryReadOnly) -> String {}
+trait GenerateType {
+	fn generate_type(&self, registry: &RegistryReadOnly); // todo add some state here
+}
+
+impl GenerateType for TypeDef<CompactForm> {
+	fn generate_type(&self, registry: &RegistryReadOnly) {
+
+	}
 }
