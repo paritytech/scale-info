@@ -28,17 +28,16 @@ use syn::{
 /// associated types (e.g. `T::A: TypeInfo`), correctly dealing with
 /// self-referential types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
-    // TODO cleanup
-    let ty_params = generics.type_params().fold(Vec::new(), |mut acc, p| {
-        acc.push(p.ident.clone());
-        acc
-    });
+    let ty_params_ids = generics
+        .type_params()
+        .map(|type_param| type_param.ident.clone())
+        .collect::<Vec<Ident>>();
 
-    if ty_params.is_empty() {
+    if ty_params_ids.is_empty() {
         return Ok(())
     }
 
-    let types = collect_types_to_bind(input_ident, data, &ty_params)?;
+    let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
     let generics_clone = generics.clone();
     let where_clause = generics.make_where_clause();
 
@@ -48,9 +47,9 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
             .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
     });
 
-    generics_clone.type_params().for_each(|x| {
-        let ident = x.ident.clone();
-        let mut bounds = x.bounds.clone();
+    generics_clone.type_params().for_each(|type_param| {
+        let ident = type_param.ident.clone();
+        let mut bounds = type_param.bounds.clone();
         bounds.push(parse_quote!(::scale_info::TypeInfo));
         bounds.push(parse_quote!('static));
         where_clause
