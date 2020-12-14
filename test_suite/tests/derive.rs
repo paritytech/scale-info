@@ -182,20 +182,20 @@ fn fields_with_type_alias() {
 
 #[test]
 fn associated_types_derive_without_bounds() {
-    trait TTTypes {
-        type AAA;
+    trait Types {
+        type A;
     }
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct Assoc<'bar, T: TTTypes> {
-        a: T::AAA,
+    struct Assoc<'bar, T: Types> {
+        a: T::A,
         b: &'bar u64,
     }
 
     #[derive(TypeInfo)]
     enum ConcreteTypes {}
-    impl TTTypes for ConcreteTypes {
-        type AAA = bool;
+    impl Types for ConcreteTypes {
+        type A = bool;
     }
 
     let struct_type = Type::builder()
@@ -203,52 +203,12 @@ fn associated_types_derive_without_bounds() {
         .type_params(tuple_meta_type!(ConcreteTypes))
         .composite(
             Fields::named()
-                .field_of::<bool>("a", "T::AAA")
+                .field_of::<bool>("a", "T::A")
                 .field_of::<u64>("b", "& \'static u64"),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
 }
-
-#[test]
-fn nono() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct A<'apa> {
-        a: &'apa u64,
-    }
-
-    fn assert_type_info<T: TypeInfo + 'static>() {};
-    assert_type_info::<A<'static>>();
-}
-
-// use scale_info::prelude::vec::Vec;
-// #[allow(unused)]
-// fn nono_expand() {
-//     #[allow(unused)]
-//     struct A<'apa> {
-//         a: &'apa u64,
-//     }
-//     // use scale_info::prelude::vec::Vec;
-//     #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
-//     const _IMPL_TYPE_INFO_FOR_A: () = {
-//         impl<'anything> ::scale_info::TypeInfo for A<'static> {
-//             type Identity = Self;
-//             fn type_info() -> ::scale_info::Type {
-//                 ::scale_info::Type::builder()
-//                     .path(::scale_info::Path::new("A", "derive"))
-//                     .type_params(Vec::new())
-//                     .composite(
-//                         ::scale_info::build::Fields::named()
-//                             .field_of::<&'static u64>("a", "& \'static u64"),
-//                     )
-//                     .into()
-//             }
-//         };
-//     };
-//     fn assert_type_info<T: TypeInfo + 'static>() {};
-//     assert_type_info::<A<'static>>();
-// }
 
 #[rustversion::nightly]
 #[test]
