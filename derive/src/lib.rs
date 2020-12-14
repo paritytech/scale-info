@@ -114,6 +114,7 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
         .iter()
         .map(|f| {
             let (ty, ident) = (&f.ty, &f.ident);
+            // TODO: why not use the same technique as above to clear out the statics? What's the advantage of using a visitor?
             // Replace any field lifetime params with `static to prevent "unnecessary lifetime parameter"
             // warning. Any lifetime parameters are specified as 'static in the type of the impl.
             struct StaticLifetimesReplace;

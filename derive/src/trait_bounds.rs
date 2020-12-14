@@ -28,9 +28,8 @@ use syn::{
 /// associated types (e.g. `T::A: TypeInfo`), correctly dealing with
 /// self-referential types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
+    // TODO cleanup
     let ty_params = generics.type_params().fold(Vec::new(), |mut acc, p| {
-        // p.bounds.push(parse_quote!(::scale_info::TypeInfo));
-        // p.bounds.push(parse_quote!('static));
         acc.push(p.ident.clone());
         acc
     });
