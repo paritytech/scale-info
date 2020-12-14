@@ -1,0 +1,10 @@
+error[E0277]: the trait bound `PawType<u16>: TypeInfo` is not satisfied
+  --> $DIR/fail_missing_derive.rs:17:5
+   |
+14 | fn assert_type_info<T: TypeInfo + 'static>() {}
+   |                        -------- required by this bound in `assert_type_info`
+...
+17 |     assert_type_info::<Cat<bool, u8, u16>>();
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `TypeInfo` is not implemented for `PawType<u16>`
+   |
+   = note: required because of the requirements on the impl of `TypeInfo` for `Cat<bool, u8, u16>`

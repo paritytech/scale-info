@@ -179,3 +179,40 @@ fn fields_with_type_alias() {
 
     assert_type!(S, ty);
 }
+
+#[test]
+fn associated_types_derive_without_bounds() {
+    trait Types {
+        type A;
+    }
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Assoc<T: Types> {
+        a: T::A,
+    }
+
+    #[derive(TypeInfo)]
+    enum ConcreteTypes {}
+    impl Types for ConcreteTypes {
+        type A = bool;
+    }
+
+    let struct_type = Type::builder()
+        .path(Path::new("Assoc", "derive"))
+        .type_params(tuple_meta_type!(ConcreteTypes))
+        .composite(Fields::named().field_of::<bool>("a", "T::A"));
+
+    assert_type!(Assoc<ConcreteTypes>, struct_type);
+}
+
+#[rustversion::nightly]
+#[test]
+fn ui_tests() {
+    let t = trybuild::TestCases::new();
+    t.compile_fail("tests/ui/fail_missing_derive.rs");
+    t.compile_fail("tests/ui/fail_non_static_lifetime.rs");
+    t.compile_fail("tests/ui/fail_unions.rs");
+    t.pass("tests/ui/pass_self_referential.rs");
+    t.pass("tests/ui/pass_basic_generic_type.rs");
+    t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
+}

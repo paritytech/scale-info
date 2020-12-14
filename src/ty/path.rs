@@ -36,6 +36,7 @@ use scale::{
     Decode,
     Encode,
 };
+#[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
     Deserialize,
@@ -49,14 +50,16 @@ use serde::{
 /// has been defined. The last
 ///
 /// Rust prelude type may have an empty namespace definition.
-#[derive(
-    Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Serialize, Deserialize, Encode, Decode,
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
 )]
-#[serde(transparent)]
-#[serde(bound(
-    serialize = "T::Type: Serialize, T::String: Serialize",
-    deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned"
-))]
+#[cfg_attr(feature = "serde", serde(transparent))]
 pub struct Path<T: Form = MetaForm> {
     /// The segments of the namespace.
     segments: Vec<T::String>,

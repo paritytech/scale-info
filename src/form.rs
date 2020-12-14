@@ -40,6 +40,8 @@ use crate::{
     interner::UntrackedSymbol,
     meta_type::MetaType,
 };
+
+#[cfg(feature = "serde")]
 use serde::Serialize;
 
 /// Trait to control the internal structures of type definitions.
@@ -58,7 +60,8 @@ pub trait Form {
 ///
 /// Allows to be converted into other forms such as compact form
 /// through the registry and `IntoCompact`.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
 
 impl Form for MetaForm {
