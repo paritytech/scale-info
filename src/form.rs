@@ -78,7 +78,8 @@ impl Form for MetaForm {
 /// underlying data.
 ///
 /// `type String` is owned in order to enable decoding
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Serialize, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub struct CompactForm<S = &'static str>(PhantomData<S>);
 
 impl<S> Form for CompactForm<S>
