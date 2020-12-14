@@ -54,7 +54,9 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
         let mut bounds = x.bounds.clone();
         bounds.push(parse_quote!(::scale_info::TypeInfo));
         bounds.push(parse_quote!('static));
-        where_clause.predicates.push(parse_quote!( #ident : #bounds));
+        where_clause
+            .predicates
+            .push(parse_quote!( #ident : #bounds));
     });
     Ok(())
 }

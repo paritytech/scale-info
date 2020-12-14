@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 extern crate proc_macro;
@@ -35,8 +35,10 @@ use syn::{
         Error,
         Result,
     },
+    parse_quote,
     punctuated::Punctuated,
     token::Comma,
+    visit_mut::VisitMut,
     Data,
     DataEnum,
     DataStruct,
@@ -45,6 +47,7 @@ use syn::{
     ExprLit,
     Field,
     Fields,
+    Lifetime,
     Lit,
     Variant,
 };
@@ -66,62 +69,21 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
-    use syn::parse_quote;
-    // impl_generics.lifetimes
-    // let mut static_lifetime_generics = ast.generics.clone();
-    // static_lifetime_generics.lifetimes_mut().fold(Vec::new(), |mut acc, l| {
-    //     if l.lifetime.ident != "'static" {
-    //         println!("[{}] non 'static lifetime: {:?}", ast.ident, l);
-    //         acc.push(l);
-    //     } else {
-    //         println!("[{}] 'static lifetime: {:?}", ast.ident, l);
-    //     }
-    //     acc
-    // });
-	// static_lifetime_generics
-	// 	.lifetimes_mut()
-    //     .for_each(|l| *l = parse_quote!('sstatic));
-    // let generics2 = ast.generics.clone();
-    // let impl_generics_no_lifetimes = generics2.type_params();
-
     let ident = &ast.ident;
-    // trait_bounds::add(ident, &mut static_lifetime_generics, &ast.data)?;
     trait_bounds::add(ident, &mut ast.generics, &ast.data)?;
 
-    ast.generics.lifetimes_mut().for_each(|l| *l = parse_quote!('static));
-    // let x = ast.generics.lifetimes().fold(Vec::new(), |mut acc, l| {
-    //     if l.lifetime.ident != "'static" {
-    //         println!("[{}] non 'static lifetime: {:?}", ast.ident, l);
-    //         acc.push(l);
-    //     } else {
-    //         println!("[{}] 'static lifetime: {:?}", ast.ident, l);
-    //     }
-    //     acc
-    // });
-    // let mut wh = ast.generics.where_clause;
-    // wh.and_then(|mut w| {w.predicates.push(parse_quote!("value")); Some(w) });
-    // let where_clause =
-    // {
-    // let where_clause = ast.generics.make_where_clause();
-    // where_clause.predicates.push(parse_quote!("value"));
-    // &*where_clause
-    // };
+    ast.generics
+        .lifetimes_mut()
+        .for_each(|l| *l = parse_quote!('static));
 
-    let (_impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
+    let (_, ty_generics, where_clause) = ast.generics.split_for_impl();
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
         quote! {
             ::scale_info::meta_type::<#ty_ident>()
         }
     });
-    // where_clause.and_then(|&mut wh| {wh.predicates.push(parse_quote!("value")); Some(wh) });
 
-    // println!("VANILLA impl_generics: {:?}", impl_generics);
-    // let (impl_generics, _, _) = static_lifetime_generics.split_for_impl();
-    // println!("STATIC impl_generics: {:?}", impl_generics);
-    // println!("[{}] impl_generics: {:?}\n", ident, impl_generics);
-    // println!("[{}] ty_generics: {:?}\n", ident, ty_generics);
-    // println!("[{}] where_clause: {:?}\n", ident, where_clause);
     let ast: DeriveInput = syn::parse2(input.clone())?;
     let build_type = match &ast.data {
         Data::Struct(ref s) => generate_composite_type(s),
@@ -131,8 +93,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let generic_types = ast.generics.type_params();
     let type_info_impl = quote! {
         impl <#( #generic_types ),*> ::scale_info::TypeInfo for #ident #ty_generics #where_clause {
-        // impl #impl_generics ::scale_info::TypeInfo for #ident #ty_generics #where_clause {
-        // impl <#( #impl_generics_no_lifetimes ),*> ::scale_info::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
             fn type_info() -> ::scale_info::Type {
                 ::scale_info::Type::builder()
@@ -157,8 +117,6 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             // Replace any field lifetime params with `static to prevent "unnecessary lifetime parameter"
             // warning. Any lifetime parameters are specified as 'static in the type of the impl.
             struct StaticLifetimesReplace;
-            use syn::visit_mut::VisitMut;
-            use syn::{Lifetime, parse_quote};
             impl VisitMut for StaticLifetimesReplace {
                 fn visit_lifetime_mut(&mut self, lifetime: &mut Lifetime) {
                     *lifetime = parse_quote!('static)

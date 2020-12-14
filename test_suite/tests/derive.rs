@@ -201,9 +201,10 @@ fn associated_types_derive_without_bounds() {
     let struct_type = Type::builder()
         .path(Path::new("Assoc", "derive"))
         .type_params(tuple_meta_type!(ConcreteTypes))
-        .composite(Fields::named()
-            .field_of::<bool>("a", "T::AAA")
-            .field_of::<u64>("b", "& \'static u64")
+        .composite(
+            Fields::named()
+                .field_of::<bool>("a", "T::AAA")
+                .field_of::<u64>("b", "& \'static u64"),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
@@ -214,7 +215,7 @@ fn nono() {
     #[allow(unused)]
     #[derive(TypeInfo)]
     struct A<'apa> {
-        a: &'apa u64
+        a: &'apa u64,
     }
 
     fn assert_type_info<T: TypeInfo + 'static>() {};
@@ -254,8 +255,8 @@ fn nono() {
 fn ui_tests() {
     let t = trybuild::TestCases::new();
     t.compile_fail("tests/ui/fail_missing_derive.rs");
-    t.compile_fail("tests/ui/fail_non_static_lifetime.rs");
     t.compile_fail("tests/ui/fail_unions.rs");
+    t.pass("tests/ui/pass_non_static_lifetime.rs");
     t.pass("tests/ui/pass_self_referential.rs");
     t.pass("tests/ui/pass_basic_generic_type.rs");
     t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
