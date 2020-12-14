@@ -18,6 +18,7 @@ extern crate alloc;
 extern crate proc_macro;
 
 mod impl_wrapper;
+mod trait_bounds;
 
 use alloc::{
     string::{
@@ -34,7 +35,6 @@ use syn::{
         Error,
         Result,
     },
-    parse_quote,
     punctuated::Punctuated,
     token::Comma,
     Data,
@@ -66,12 +66,9 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
-    ast.generics.type_params_mut().for_each(|p| {
-        p.bounds.push(parse_quote!(::scale_info::TypeInfo));
-        p.bounds.push(parse_quote!('static));
-    });
-
     let ident = &ast.ident;
+    trait_bounds::add(ident, &mut ast.generics, &ast.data)?;
+
     let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
