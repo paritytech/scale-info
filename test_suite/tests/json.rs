@@ -32,6 +32,7 @@ use scale_info::{
     meta_type,
     IntoCompact as _,
     Registry,
+    RegistryReadOnly,
     TypeInfo,
 };
 use serde_json::json;
@@ -296,6 +297,7 @@ fn test_recursive_type_with_box() {
         ]
     });
 
+    let registry: RegistryReadOnly = registry.into();
     assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }
 
@@ -496,5 +498,6 @@ fn test_registry() {
         ]
     });
 
+    let registry: RegistryReadOnly = registry.into();
     assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }

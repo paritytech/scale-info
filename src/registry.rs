@@ -87,55 +87,21 @@ impl IntoCompact for &'static str {
 /// A type can be a sub-type of itself. In this case the registry has a builtin
 /// mechanism to stop recursion before going into an infinite loop.
 #[derive(Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Registry {
     /// The cache for already registered types.
     ///
     /// This is just an accessor to the actual database
     /// for all types found in the `types` field.
-    #[cfg_attr(feature = "serde", serde(skip))]
     type_table: Interner<TypeId>,
     /// The database where registered types actually reside.
     ///
     /// This is going to be serialized upon serlialization.
-    #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_registry_types"))]
     types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
-}
-
-/// Serializes the types of the registry by removing their unique IDs
-/// and instead serialize them in order of their removed unique ID.
-#[cfg(feature = "serde")]
-fn serialize_registry_types<S>(
-    types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<CompactForm>>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let types = types.values().collect::<Vec<_>>();
-    types.serialize(serializer)
 }
 
 impl Default for Registry {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl Encode for Registry {
-    fn size_hint(&self) -> usize {
-        mem::size_of::<u32>() + mem::size_of::<Type<CompactForm>>() * self.types.len()
-    }
-
-    fn encode_to<W: scale::Output>(&self, dest: &mut W) {
-        if self.types.len() > u32::max_value() as usize {
-            panic!("Attempted to encode too many elements.");
-        }
-        scale::Compact(self.types.len() as u32).encode_to(dest);
-
-        for ty in self.types.values() {
-            ty.encode_to(dest);
-        }
     }
 }
 

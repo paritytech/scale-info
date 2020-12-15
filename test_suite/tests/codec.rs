@@ -58,6 +58,7 @@ fn scale_encode_then_decode_to_readonly() {
     let mut registry = Registry::new();
     registry.register_type(&MetaType::new::<A<B>>());
 
+    let registry: RegistryReadOnly = registry.into();
     let mut encoded = registry.encode();
     let original_serialized = serde_json::to_value(registry).unwrap();
 
@@ -75,6 +76,7 @@ fn json_serialize_then_deserialize_to_readonly() {
     let mut registry = Registry::new();
     registry.register_type(&MetaType::new::<A<B>>());
 
+    let registry: RegistryReadOnly = registry.into();
     let original_serialized = serde_json::to_value(registry).unwrap();
     // assert_eq!(original_serialized, serde_json::Value::Null);
     let readonly_deserialized: RegistryReadOnly<String> =
