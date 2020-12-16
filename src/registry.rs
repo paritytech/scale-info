@@ -37,6 +37,7 @@ use crate::{
     form::{
         CompactForm,
         Form,
+        FormString,
     },
     interner::{
         Interner,
@@ -212,7 +213,7 @@ impl Registry {
 )]
 pub struct RegistryReadOnly<S = &'static str>
 where
-    S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug,
+    S: FormString,
 {
     types: Vec<Type<CompactForm<S>>>,
 }
@@ -227,7 +228,7 @@ impl From<Registry> for RegistryReadOnly {
 
 impl<S> RegistryReadOnly<S>
 where
-    S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug,
+    S: FormString,
 {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
     pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<CompactForm<S>>> {
