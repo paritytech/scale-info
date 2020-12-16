@@ -22,7 +22,7 @@
 //! It uses `MetaType` for communicating type identifiers and thus acts as
 //! a bridge from runtime to compile time type information.
 //!
-//! The compact form is `CompactForm` and represents a compact form
+//! The compact form is `FrozenForm` and represents a compact form
 //! that no longer has any connections to the interning registry and thus
 //! can no longer be used in order to retrieve information from the
 //! original registry easily. Its sole purpose is for compact serialization.
@@ -80,9 +80,9 @@ impl Form for MetaForm {
 /// `type String` is owned in order to enable decoding
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-pub struct CompactForm<S = &'static str>(PhantomData<S>);
+pub struct FrozenForm<S = &'static str>(PhantomData<S>);
 
-impl<S> Form for CompactForm<S>
+impl<S> Form for FrozenForm<S>
 where
     S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug,
 {

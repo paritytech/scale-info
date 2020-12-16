@@ -14,11 +14,11 @@
 
 use crate::{
     form::{
-        CompactForm,
+        FrozenForm,
         Form,
         MetaForm,
     },
-    IntoCompact,
+    IntoFrozen,
     MetaType,
     Registry,
     TypeInfo,
@@ -34,11 +34,12 @@ use serde::{
     Serialize,
 };
 
-/// A field of a struct like data type.
+/// A field of a struct-like data type.
 ///
 /// Name is optional so it can represent both named and unnamed fields.
 ///
-/// This can be a named field of a struct type or an enum struct variant.
+/// This can be a named field of a struct type or an enum struct variant, or an
+/// unnamed field of a tuple struct.
 ///
 /// # Type name
 ///
@@ -60,8 +61,9 @@ use serde::{
 /// aliases.
 ///
 /// This is intended for informational and diagnostic purposes only. Although it
-/// is possible to infer certain properties e.g. whether a type name is a type alias,
-/// there are no guarantees provided, and the type name representation may change.
+/// is possible to infer certain properties e.g. whether a type name is a type
+/// alias, there are no guarantees provided, and the type name representation
+/// may change.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -84,16 +86,29 @@ pub struct Field<T: Form = MetaForm> {
     ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     type_name: T::String,
+    /// Should be encode/decoded as a [`Compact`](parity_scale_codec::Compact) field
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "is_false", default)
+    )]
+    compact: bool,
 }
 
-impl IntoCompact for Field {
-    type Output = Field<CompactForm>;
+/// TODO: There must be a better way than this
+#[allow(unused)]
+fn is_false(v: &bool) -> bool {
+    !v
+}
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+impl IntoFrozen for Field {
+    type Output = Field<FrozenForm>;
+
+    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
         Field {
-            name: self.name.map(|name| name.into_compact(registry)),
+            name: self.name.map(|name| name.into_frozen(registry)),
             ty: registry.register_type(&self.ty),
-            type_name: self.type_name.into_compact(registry),
+            type_name: self.type_name.into_frozen(registry),
+            compact: false,
         }
     }
 }
@@ -106,11 +121,13 @@ impl Field {
         name: Option<&'static str>,
         ty: MetaType,
         type_name: &'static str,
+        // TODO: dp add compact arg (and use it)
     ) -> Self {
         Self {
             name,
             ty,
             type_name,
+            compact: false,
         }
     }
 

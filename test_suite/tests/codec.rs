@@ -25,14 +25,14 @@ use scale::{
     Encode,
 };
 use scale_info::{
-    form::CompactForm,
+    form::FrozenForm,
     prelude::{
         num::NonZeroU32,
         string::String,
         vec,
         vec::Vec,
     },
-    IntoCompact as _,
+    IntoFrozen as _,
     MetaType,
     Registry,
     RegistryReadOnly,

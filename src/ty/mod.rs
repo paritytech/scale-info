@@ -20,11 +20,11 @@ use crate::prelude::{
 use crate::{
     build::TypeBuilder,
     form::{
-        CompactForm,
+        FrozenForm,
         Form,
         MetaForm,
     },
-    IntoCompact,
+    IntoFrozen,
     MetaType,
     Registry,
     TypeInfo,
@@ -80,16 +80,17 @@ pub struct Type<T: Form = MetaForm> {
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
     type_def: TypeDef<T>,
+    // TODO: dp Should we have a `compact` flag here too? Or only here?
 }
 
-impl IntoCompact for Type {
-    type Output = Type<CompactForm>;
+impl IntoFrozen for Type {
+    type Output = Type<FrozenForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
         Type {
-            path: self.path.into_compact(registry),
+            path: self.path.into_frozen(registry),
             type_params: registry.register_types(self.type_params),
-            type_def: self.type_def.into_compact(registry),
+            type_def: self.type_def.into_frozen(registry),
         }
     }
 }
@@ -183,16 +184,16 @@ pub enum TypeDef<T: Form = MetaForm> {
     Primitive(TypeDefPrimitive),
 }
 
-impl IntoCompact for TypeDef {
-    type Output = TypeDef<CompactForm>;
+impl IntoFrozen for TypeDef {
+    type Output = TypeDef<FrozenForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
         match self {
-            TypeDef::Composite(composite) => composite.into_compact(registry).into(),
-            TypeDef::Variant(variant) => variant.into_compact(registry).into(),
-            TypeDef::Sequence(sequence) => sequence.into_compact(registry).into(),
-            TypeDef::Array(array) => array.into_compact(registry).into(),
-            TypeDef::Tuple(tuple) => tuple.into_compact(registry).into(),
+            TypeDef::Composite(composite) => composite.into_frozen(registry).into(),
+            TypeDef::Variant(variant) => variant.into_frozen(registry).into(),
+            TypeDef::Sequence(sequence) => sequence.into_frozen(registry).into(),
+            TypeDef::Array(array) => array.into_frozen(registry).into(),
+            TypeDef::Tuple(tuple) => tuple.into_frozen(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
         }
     }
@@ -253,10 +254,10 @@ pub struct TypeDefArray<T: Form = MetaForm> {
     type_param: T::Type,
 }
 
-impl IntoCompact for TypeDefArray {
-    type Output = TypeDefArray<CompactForm>;
+impl IntoFrozen for TypeDefArray {
+    type Output = TypeDefArray<FrozenForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
         TypeDefArray {
             len: self.len,
             type_param: registry.register_type(&self.type_param),
@@ -303,10 +304,10 @@ pub struct TypeDefTuple<T: Form = MetaForm> {
     fields: Vec<T::Type>,
 }
 
-impl IntoCompact for TypeDefTuple {
-    type Output = TypeDefTuple<CompactForm>;
+impl IntoFrozen for TypeDefTuple {
+    type Output = TypeDefTuple<FrozenForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
         TypeDefTuple {
             fields: registry.register_types(self.fields),
         }
@@ -356,10 +357,10 @@ pub struct TypeDefSequence<T: Form = MetaForm> {
     type_param: T::Type,
 }
 
-impl IntoCompact for TypeDefSequence {
-    type Output = TypeDefSequence<CompactForm>;
+impl IntoFrozen for TypeDefSequence {
+    type Output = TypeDefSequence<FrozenForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
         TypeDefSequence {
             type_param: registry.register_type(&self.type_param),
         }
