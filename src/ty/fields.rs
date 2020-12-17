@@ -92,6 +92,7 @@ pub struct Field<T: Form = MetaForm> {
     compact: bool,
 }
 
+#[allow(dead_code)]
 fn is_false(v: &bool) -> bool {
     !v
 }

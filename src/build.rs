@@ -251,9 +251,9 @@ impl<T> FieldsBuilder<T> {
 
     /// Mark last field as compact, meaning that encoding/decoding should be in the [`scale_codec::Compact`] format.
     pub fn compact(mut self) -> Self {
-        self.fields.iter_mut().last().and_then(|f| {
+        self.fields.iter_mut().last().map(|f| {
             f.compact();
-            Some(f)
+            f
         });
         self
     }
