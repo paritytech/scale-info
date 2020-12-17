@@ -154,34 +154,3 @@ fn struct_with_generics() {
         .composite(Fields::named().field_of::<Box<MyStruct<bool>>>("data", "T"));
     assert_type!(SelfTyped, expected_type);
 }
-
-// TODO: dp remove this or make it actually test something
-#[test]
-fn struct_with_compact() {
-    use scale::Encode;
-    // use scale::Compact;
-    #[allow(unused)]
-    #[derive(Encode)]
-    struct Thicc {
-        #[codec(compact)]
-        stuff: u8,
-        moar: u16,
-    }
-
-    impl TypeInfo for Thicc {
-        type Identity = Self;
-
-        fn type_info() -> Type {
-            Type::builder()
-                .path(Path::new("Thicc", module_path!()))
-                .composite(
-                    Fields::named()
-                        .field_of::<u8>("stuff", "u8").compact()
-                        .field_of::<u16>("moar", "u16")
-                )
-        }
-    }
-
-    fn assert_type_info<T: TypeInfo + 'static>() {}
-    assert_type_info::<Thicc>();
-}
