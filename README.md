@@ -200,12 +200,12 @@ identifiers.
 All concrete `TypeInfo` structures have two forms:
 
 - One meta form (`MetaType`) that acts as a bridge to other forms
-- A compact form that is later to be serialized.
+- A frozen form suitable for serialization.
 
-The `IntoCompact` trait must also be implemented in order to compact a type
-definition using an instance of a type registry.
+The `IntoFrozen` trait must also be implemented in order prepare a type
+definition for serialization using an instance of the type registry.
 
-After compactification all type definitions are stored in the type registry.
+After transformation all type definitions are stored in the type registry.
 Note that the type registry should be serialized as part of the metadata structure where the
 registered types are utilized to allow consumers to resolve the types.
 
