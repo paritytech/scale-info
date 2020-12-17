@@ -92,9 +92,11 @@ pub struct Field<T: Form = MetaForm> {
     compact: bool,
 }
 
+// Need to obey the required serde signature here
+#[allow(clippy::trivially_copy_pass_by_ref)]
 #[allow(dead_code)]
-fn is_false(v: &bool) -> bool {
-    !v
+const fn is_false(v: &bool) -> bool {
+    !(*v)
 }
 
 impl IntoFrozen for Field {
