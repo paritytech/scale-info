@@ -33,6 +33,7 @@ use crate::prelude::{
     any::TypeId,
     fmt::Debug,
     marker::PhantomData,
+    string::String,
 };
 
 use crate::{
@@ -52,8 +53,17 @@ pub trait Form {
     /// The type representing the type.
     type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
     /// The string type.
-    type String: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+    type String: FormString;
 }
+
+/// Trait for types which can be used to represent strings in type definitions.
+pub trait FormString:
+    AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug
+{
+}
+
+impl FormString for &'static str {}
+impl FormString for String {}
 
 /// A meta meta-type.
 ///
@@ -83,7 +93,7 @@ pub struct FrozenForm<S = &'static str>(PhantomData<S>);
 
 impl<S> Form for FrozenForm<S>
 where
-    S: PartialEq + Eq + PartialOrd + Ord + Clone + Debug,
+    S: FormString,
 {
     type Type = UntrackedSymbol<TypeId>;
     type String = S;
