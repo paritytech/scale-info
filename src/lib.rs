@@ -29,38 +29,39 @@
 //!
 //! # Type Information
 //!
-//! Information about types is provided via the [`TypeInfo`](`crate::TypeInfo`) trait.
+//! Information about types is provided via the [`TypeInfo`](`crate::TypeInfo`)
+//! trait.
 //!
 //! This trait should be implemented for all types that are serializable.
 //! `scale-info` provides implementations for all commonly used Rust standard
 //! types and a derive macro for implementing of custom types.
 //!
-//! # Compaction Forms
+//! # Forms
 //!
-//! There is an expanded form, called [`MetaForm`](`crate::form::MetaForm`) that acts as a bridge
-//! between compile-time type information and runtime, in order to easily retrieve all information needed
-//! to uniquely identify types.
+//! There is an expanded form, called [`MetaForm`](`crate::form::MetaForm`) that
+//! acts as a bridge between compile-time type information and runtime, in order
+//! to easily retrieve all information needed to uniquely identify types.
 //!
 //! The `MetaForm` and its associated `Registry` can be transformed into the
-//! space-efficient and universal form by the
-//! [`IntoFrozen`](`crate::IntoFrozen`) trait and internally used by the
-//! [`Registry`](`crate::Registry`) in order to convert the expanded types into
-//! their space-efficient form.
+//! space-efficient form by the [`IntoFrozen`](`crate::IntoFrozen`) trait; it is
+//! used internally by the [`Registry`](`crate::Registry`) in order to convert
+//! the expanded types into their space-efficient form.
 //!
 //! # Symbols and Namespaces
 //!
 //! To differentiate two types sharing the same name, namespaces are used.
-//! Commonly the namespace is equal to the one where the type has been defined in. For Rust prelude
-//! types such as [`Option`](`std::option::Option`) and [`Result`](`std::result::Result`) the root
-//! namespace (empty namespace) is used.
+//! Commonly the namespace is equal to the one where the type has been defined
+//! in. For Rust prelude types such as [`Option`](`std::option::Option`) and
+//! [`Result`](`std::result::Result`) the root namespace (empty namespace) is
+//! used.
 //!
 //! To use this library simply use the [`MetaForm`](`crate::form::MetaForm`)
 //! initially with your own data structures; make them generic over the
 //! [`Form`](`crate::form::Form`) trait just as has been done in this crate with
 //! [`TypeInfo`](`crate::TypeInfo`) in order to get a simple implementation of
-//! [`IntoFrozen`](`crate::IntoFrozen`).
-//! Use a single instance of the [`Registry`](`crate::Registry`) for compaction
-//! and provide this registry instance upon serialization. Done.
+//! [`IntoFrozen`](`crate::IntoFrozen`). Use a single instance of the
+//! [`Registry`](`crate::Registry`) for compaction and provide this registry
+//! instance upon serialization.
 //!
 //! A usage example can be found in ink! here:
 //! https://github.com/paritytech/ink/blob/master/abi/src/specs.rs

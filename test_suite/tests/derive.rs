@@ -217,6 +217,7 @@ fn ui_tests() {
     t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
 }
 
+// TODO: dp Make useful or remove
 #[test]
 fn substrate_example() {
     use scale::{

@@ -197,6 +197,49 @@ fn test_struct() {
 }
 
 #[test]
+fn test_struct_with_some_fields_marked_as_compact() {
+    use scale::Encode;
+
+    // #[derive(TypeInfo, Encode)]
+    #[derive(Encode)]
+    struct Dense {
+        #[codec(compact)]
+        a: u128,
+        b: [u8; 32],
+        #[codec(compact)]
+        c: u64,
+    }
+    use scale_info::{Type, Path, build::Fields};
+    impl TypeInfo for Dense {
+        type Identity = Self;
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("Dense", module_path!()))
+                .composite(
+                    Fields::named()
+                        .field_of::<u8>("a", "i32").compact()
+                        .field_of::<[u8; 32]>("b", "[u8; 32]")
+                        .field_of::<u64>("c", "u64").compact()
+                )
+                // .into() // <–– TODO: dp I don't think we need these `.into()`s anymore.
+        }
+    }
+
+    assert_json_for_type::<Dense>(json![{
+        "path": ["json", "Dense"],
+        "def": {
+            "composite": {
+                "fields": [
+                    { "name": "a", "type": 1, "typeName": "i32", "compact": true },
+                    { "name": "b", "type": 2, "typeName": "[u8; 32]" },
+                    { "name": "c", "type": 3, "typeName": "u64", "compact": true },
+                ],
+            },
+        }
+    }]);
+}
+
+#[test]
 fn test_clike_enum() {
     #[derive(TypeInfo)]
     enum ClikeEnum {

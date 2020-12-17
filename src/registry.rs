@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! The registry has the purpose to compactify types found in type definitions.
+//! The registry stores type definitions in a space-efficient manner.
 //!
-//! This is done by deduplicating common types in order to reuse
-//! their definitions which can grow arbitrarily large. A type is uniquely
+//! This is done by deduplicating common types in order to reuse their
+//! definitions which otherwise can grow arbitrarily large. A type is uniquely
 //! identified by its type identifier that is therefore used to refer to types
 //! and their definitions.
 //!
 //! Types with the same name are uniquely identifiable by introducing
-//! namespaces. For this the normal Rust namespace of a type is used where it
-//! has been defined. Rust prelude types live within the so-called root
-//! namespace that is just empty.
+//! namespaces. The normal Rust namespace of a type is used, except for the Rust
+//! prelude types that live in the so-called root namespace which is empty.
 
 use crate::prelude::{
     any::TypeId,
@@ -61,7 +60,7 @@ pub trait IntoFrozen {
     /// The frozen version of `Self`.
     type Output;
 
-    /// "Freezes" `self` by using the registry for caching and compaction.
+    /// "Freezes" `self` by using the registry for caching.
     fn into_frozen(self, registry: &mut Registry) -> Self::Output;
 }
 
@@ -73,18 +72,19 @@ impl IntoFrozen for &'static str {
     }
 }
 
-/// The registry for compaction of type identifiers and definitions.
+/// The registry for space-efficient storage of type identifiers and
+/// definitions.
 ///
-/// The registry consists of a cache for already compactified type identifiers and definitions.
+/// The registry consists of a cache for type identifiers and definitions.
 ///
-/// Whenever using the registry to compact a type all of its sub-types
-/// are going to be registered recursively as well. A type is a sub-type
-/// of another type if it is used by its identifier or structure.
+/// When adding a type to  the registry, all of its sub-types are registered
+/// recursively as well. A type is considered a sub-type of another type if it
+/// is used by its identifier or structure.
 ///
 /// # Note
 ///
 /// A type can be a sub-type of itself. In this case the registry has a builtin
-/// mechanism to stop recursion before going into an infinite loop.
+/// mechanism to stop recursion and avoid going into an infinite loop.
 #[derive(Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Registry {
@@ -94,15 +94,15 @@ pub struct Registry {
     /// for all types found in the `types` field.
     #[cfg_attr(feature = "serde", serde(skip))]
     type_table: Interner<TypeId>,
-    /// The database where registered types actually reside.
+    /// The database where registered types reside.
     ///
-    /// This is going to be serialized upon serlialization.
+    /// The contents herein is used for serlialization.
     #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_registry_types"))]
     types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<FrozenForm>>,
 }
 
-/// Serializes the types of the registry by removing their unique IDs
-/// and instead serialize them in order of their removed unique ID.
+/// Serializes the types of the registry by removing their unique IDs and
+/// serializes them in order of their removed unique ID.
 #[cfg(feature = "serde")]
 fn serialize_registry_types<S>(
     types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<FrozenForm>>,
@@ -174,13 +174,13 @@ impl Registry {
     pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
         let (inserted, symbol) = self.intern_type_id(ty.type_id());
         if inserted {
-            let compact_id = ty.type_info().into_frozen(self);
-            self.types.insert(symbol, compact_id);
+            let frozen_id = ty.type_info().into_frozen(self);
+            self.types.insert(symbol, frozen_id);
         }
         symbol
     }
 
-    /// Calls `register_type` for each `MetaType` in the given `iter`
+    /// Calls `register_type` for each `MetaType` in the given `iter`.
     pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeId>>
     where
         I: IntoIterator<Item = MetaType>,
@@ -190,8 +190,8 @@ impl Registry {
             .collect::<Vec<_>>()
     }
 
-    /// Converts an iterator into a Vec of the equivalent compact
-    /// representations
+    /// Converts an iterator into a Vec of the equivalent frozen
+    /// representations.
     pub fn map_into_frozen<I, T>(&mut self, iter: I) -> Vec<T::Output>
     where
         I: IntoIterator<Item = T>,

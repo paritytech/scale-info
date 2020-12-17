@@ -80,7 +80,6 @@ pub struct Type<T: Form = MetaForm> {
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
     type_def: TypeDef<T>,
-    // TODO: dp Should we have a `compact` flag here too? Or only here?
 }
 
 impl IntoFrozen for Type {

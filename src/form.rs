@@ -12,22 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Provides some form definitions.
+//! Provides form definitions.
 //!
-//! The forms provided here are used to generically communicate the
-//! compaction mode a type identifier, type definition or structures
-//! that are using these.
+//! The forms provided here are used to generically communicate the mode a type
+//! identifier, type definition or structure is using.
 //!
 //! The default form is the `MetaForm`.
 //! It uses `MetaType` for communicating type identifiers and thus acts as
 //! a bridge from runtime to compile time type information.
 //!
-//! The compact form is `FrozenForm` and represents a compact form
+//! The `FrozenForm` is a space-efficient representation
 //! that no longer has any connections to the interning registry and thus
-//! can no longer be used in order to retrieve information from the
-//! original registry easily. Its sole purpose is for compact serialization.
+//! can no longer be used to retrieve information from the
+//! original registry. Its sole purpose is for space-efficient serialization.
 //!
-//! Other forms, such as a compact form that is still bound to the registry
+//! Other forms, such as a frozen form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
 use crate::prelude::{
@@ -47,7 +46,7 @@ use serde::Serialize;
 /// Trait to control the internal structures of type definitions.
 ///
 /// This allows for type-level separation between free forms that can be
-/// instantiated out of the flux and compact forms that require some sort of
+/// instantiated out of the flux and frozen forms that require some sort of
 /// interning data structures.
 pub trait Form {
     /// The type representing the type.
@@ -58,8 +57,8 @@ pub trait Form {
 
 /// A meta meta-type.
 ///
-/// Allows to be converted into other forms such as compact form
-/// through the registry and `IntoCompact`.
+/// Allows to be converted into other forms such as frozen form
+/// through the registry and `IntoFrozen`.
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
@@ -69,7 +68,7 @@ impl Form for MetaForm {
     type String = &'static str;
 }
 
-/// Compact form that has its lifetime untracked in association to its interner.
+/// Frozen form that has its lifetime untracked in association to its interner.
 ///
 /// # Note
 ///
