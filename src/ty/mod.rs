@@ -20,8 +20,8 @@ use crate::prelude::{
 use crate::{
     build::TypeBuilder,
     form::{
-        FrozenForm,
         Form,
+        FrozenForm,
         MetaForm,
     },
     IntoFrozen,

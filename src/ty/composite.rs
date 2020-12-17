@@ -16,8 +16,8 @@ use crate::prelude::vec::Vec;
 
 use crate::{
     form::{
-        FrozenForm,
         Form,
+        FrozenForm,
         MetaForm,
     },
     Field,

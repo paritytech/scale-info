@@ -34,9 +34,9 @@ use crate::prelude::{
 
 use crate::{
     form::{
-        FrozenForm,
         Form,
         FormString,
+        FrozenForm,
     },
     interner::{
         Interner,

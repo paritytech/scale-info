@@ -17,8 +17,8 @@ use crate::prelude::vec::Vec;
 use crate::{
     build::FieldsBuilder,
     form::{
-        FrozenForm,
         Form,
+        FrozenForm,
         MetaForm,
     },
     Field,

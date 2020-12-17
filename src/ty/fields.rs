@@ -14,8 +14,8 @@
 
 use crate::{
     form::{
-        FrozenForm,
         Form,
+        FrozenForm,
         MetaForm,
     },
     IntoFrozen,

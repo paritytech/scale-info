@@ -24,8 +24,8 @@ use crate::prelude::{
 
 use crate::{
     form::{
-        FrozenForm,
         Form,
+        FrozenForm,
         MetaForm,
     },
     utils::is_rust_identifier,
