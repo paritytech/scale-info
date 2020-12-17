@@ -134,7 +134,6 @@ fn struct_with_generics() {
                 .path(Path::new("MyStruct", module_path!()))
                 .type_params(tuple_meta_type!(T))
                 .composite(Fields::named().field_of::<T>("data", "T"))
-                .into()
         }
     }
 

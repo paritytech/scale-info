@@ -86,6 +86,14 @@ pub struct Field<T: Form = MetaForm> {
     ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     type_name: T::String,
+    /// This field should be encode/decoded as a
+    /// [`Compact`](parity_scale_codec::Compact) field
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "is_false", default))]
+    compact: bool,
+}
+
+fn is_false(v: &bool) -> bool {
+    !v
 }
 
 impl IntoFrozen for Field {
@@ -96,6 +104,7 @@ impl IntoFrozen for Field {
             name: self.name.map(|name| name.into_frozen(registry)),
             ty: registry.register_type(&self.ty),
             type_name: self.type_name.into_frozen(registry),
+            compact: self.compact,
         }
     }
 }
@@ -108,11 +117,13 @@ impl Field {
         name: Option<&'static str>,
         ty: MetaType,
         type_name: &'static str,
+        compact: bool,
     ) -> Self {
         Self {
             name,
             ty,
             type_name,
+            compact,
         }
     }
 
@@ -124,7 +135,7 @@ impl Field {
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        Self::new(Some(name), MetaType::new::<T>(), type_name)
+        Self::new(Some(name), MetaType::new::<T>(), type_name, false)
     }
 
     /// Creates a new unnamed field.
@@ -135,7 +146,7 @@ impl Field {
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        Self::new(None, MetaType::new::<T>(), type_name)
+        Self::new(None, MetaType::new::<T>(), type_name, false)
     }
 }
 
@@ -160,5 +171,11 @@ where
     /// purposes only.
     pub fn type_name(&self) -> &T::String {
         &self.type_name
+    }
+
+    /// Set the `compact` property to true, signalling that this type is to be
+    /// encoded/decoded as a [`parity_scale_codec::Compact`].
+    pub fn compact(&mut self) {
+        self.compact = true;
     }
 }

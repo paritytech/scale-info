@@ -248,6 +248,15 @@ impl<T> FieldsBuilder<T> {
     pub fn finalize(self) -> Vec<Field<MetaForm>> {
         self.fields
     }
+
+    /// Mark last field as compact, meaning that encoding/decoding should be in the [`scale_codec::Compact`] format.
+    pub fn compact(mut self) -> Self {
+        self.fields.iter_mut().last().and_then(|f| {
+            f.compact();
+            Some(f)
+        });
+        self
+    }
 }
 
 impl FieldsBuilder<NamedFields> {

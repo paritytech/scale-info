@@ -92,7 +92,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
                     .path(::scale_info::Path::new(stringify!(#ident), module_path!()))
                     .type_params(::scale_info::prelude::vec![ #( #generic_type_ids ),* ])
                     .#build_type
-                    .into()
             }
         }
     };
