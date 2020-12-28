@@ -37,6 +37,7 @@ use syn::{
     },
     punctuated::Punctuated,
     token::Comma,
+    AttrStyle,
     Data,
     DataEnum,
     DataStruct,
@@ -46,6 +47,9 @@ use syn::{
     Field,
     Fields,
     Lit,
+    Meta,
+    MetaList,
+    NestedMeta,
     Variant,
 };
 
@@ -107,18 +111,41 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
         .map(|f| {
             let (ty, ident) = (&f.ty, &f.ident);
             let type_name = clean_type_string(&quote!(#ty).to_string());
-
+            let compact = if is_compact(f) {
+                quote! {
+                    .compact()
+                }
+            } else {
+                quote! {}
+            };
             if let Some(i) = ident {
                 quote! {
-                    .field_of::<#ty>(stringify!(#i), #type_name)
+                    .field_of::<#ty>(stringify!(#i), #type_name) #compact
                 }
             } else {
                 quote! {
-                    .field_of::<#ty>(#type_name)
+                    .field_of::<#ty>(#type_name) #compact
                 }
             }
         })
         .collect()
+}
+
+/// Look for a `#[codec(compact)]` outer attribute.
+fn is_compact(f: &Field) -> bool {
+    f.attrs.iter().any(|attr| {
+        let mut is_compact = false;
+        if attr.style == AttrStyle::Outer && attr.path.is_ident("codec") {
+            if let Ok(Meta::List(MetaList { nested, .. })) = attr.parse_meta() {
+                if let Some(NestedMeta::Meta(Meta::Path(path))) = nested.iter().next() {
+                    if path.is_ident("compact") {
+                        is_compact = true;
+                    }
+                }
+            }
+        }
+        is_compact
+    })
 }
 
 fn clean_type_string(input: &str) -> String {
