@@ -56,12 +56,12 @@ use serde::{
     Serialize,
 };
 
-/// Freezes the type definition using a registry.
+/// Convert the type definition into the portable form using a registry.
 pub trait IntoPortable {
     /// The portable version of `Self`.
     type Output;
 
-    /// "Freezes" `self` by using the registry for caching.
+    /// Convert `self` to the portable form by using the registry for caching.
     fn into_portable(self, registry: &mut Registry) -> Self::Output;
 }
 
