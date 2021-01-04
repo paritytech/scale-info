@@ -25,8 +25,8 @@ use crate::prelude::{
 use crate::{
     form::{
         Form,
-        PortableForm,
         MetaForm,
+        PortableForm,
     },
     utils::is_rust_identifier,
     IntoPortable,

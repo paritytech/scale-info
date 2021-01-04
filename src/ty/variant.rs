@@ -18,8 +18,8 @@ use crate::{
     build::FieldsBuilder,
     form::{
         Form,
-        PortableForm,
         MetaForm,
+        PortableForm,
     },
     Field,
     IntoPortable,

@@ -15,8 +15,8 @@
 use crate::{
     form::{
         Form,
-        PortableForm,
         MetaForm,
+        PortableForm,
     },
     IntoPortable,
     MetaType,

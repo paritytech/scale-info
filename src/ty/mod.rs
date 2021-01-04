@@ -21,8 +21,8 @@ use crate::{
     build::TypeBuilder,
     form::{
         Form,
-        PortableForm,
         MetaForm,
+        PortableForm,
     },
     IntoPortable,
     MetaType,

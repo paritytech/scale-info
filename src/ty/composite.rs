@@ -17,8 +17,8 @@ use crate::prelude::vec::Vec;
 use crate::{
     form::{
         Form,
-        PortableForm,
         MetaForm,
+        PortableForm,
     },
     Field,
     IntoPortable,
