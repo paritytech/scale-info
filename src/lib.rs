@@ -38,9 +38,9 @@
 //!
 //! # Forms
 //!
-//! There is an expanded form, called [`MetaForm`](`crate::form::MetaForm`) that
-//! acts as a bridge between compile-time type information and runtime, in order
-//! to easily retrieve all information needed to uniquely identify types.
+//! To bridge between compile-time type information and runtime the
+//! [`MetaForm`](`crate::form::MetaForm`) is used to easily retrieve all
+//! information needed to uniquely identify types.
 //!
 //! The `MetaForm` and its associated `Registry` can be transformed into the
 //! space-efficient form by the [`IntoPortable`](`crate::IntoPortable`) trait; it is
