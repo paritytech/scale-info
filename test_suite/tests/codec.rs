@@ -25,13 +25,14 @@ use scale::{
     Encode,
 };
 use scale_info::{
-    form::CompactForm,
+    form::PortableForm,
     prelude::{
         num::NonZeroU32,
+        string::String,
         vec,
         vec::Vec,
     },
-    IntoCompact as _,
+    IntoPortable as _,
     MetaType,
     Registry,
     RegistryReadOnly,
@@ -60,7 +61,7 @@ fn scale_encode_then_decode_to_readonly() {
     let mut encoded = registry.encode();
     let original_serialized = serde_json::to_value(registry).unwrap();
 
-    let readonly_decoded = RegistryReadOnly::decode(&mut &encoded[..]).unwrap();
+    let readonly_decoded = RegistryReadOnly::<String>::decode(&mut &encoded[..]).unwrap();
     assert!(readonly_decoded
         .resolve(NonZeroU32::new(1).unwrap())
         .is_some());
@@ -76,7 +77,7 @@ fn json_serialize_then_deserialize_to_readonly() {
 
     let original_serialized = serde_json::to_value(registry).unwrap();
     // assert_eq!(original_serialized, serde_json::Value::Null);
-    let readonly_deserialized: RegistryReadOnly =
+    let readonly_deserialized: RegistryReadOnly<String> =
         serde_json::from_value(original_serialized.clone()).unwrap();
     assert!(readonly_deserialized
         .resolve(NonZeroU32::new(1).unwrap())
