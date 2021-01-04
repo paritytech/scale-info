@@ -28,7 +28,6 @@ use crate::prelude::{
     any::TypeId,
     collections::BTreeMap,
     fmt::Debug,
-    mem,
     num::NonZeroU32,
     vec::Vec,
 };
@@ -172,7 +171,7 @@ impl Registry {
 
 /// A read-only registry, to be used for decoding/deserializing
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, PartialEq, Eq, Decode)]
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(
     feature = "serde",
     serde(bound(serialize = "S: Serialize", deserialize = "S: DeserializeOwned"))
