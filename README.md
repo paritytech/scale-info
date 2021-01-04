@@ -200,9 +200,9 @@ identifiers.
 All concrete `TypeInfo` structures have two forms:
 
 - One meta form (`MetaType`) that acts as a bridge to other forms
-- A frozen form suitable for serialization.
+- A portable form suitable for serialization.
 
-The `IntoFrozen` trait must also be implemented in order prepare a type
+The `IntoPortable` trait must also be implemented in order prepare a type
 definition for serialization using an instance of the type registry.
 
 After transformation all type definitions are stored in the type registry.

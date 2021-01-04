@@ -28,9 +28,9 @@ use pretty_assertions::{
     assert_ne,
 };
 use scale_info::{
-    form::FrozenForm,
+    form::PortableForm,
     meta_type,
-    IntoFrozen as _,
+    IntoPortable as _,
     Registry,
     TypeInfo,
 };
@@ -42,7 +42,7 @@ where
 {
     let mut registry = Registry::new();
 
-    let ty = T::type_info().into_frozen(&mut registry);
+    let ty = T::type_info().into_portable(&mut registry);
 
     assert_eq!(serde_json::to_value(ty).unwrap(), expected_json,);
 }

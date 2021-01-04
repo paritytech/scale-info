@@ -25,11 +25,11 @@ use crate::prelude::{
 use crate::{
     form::{
         Form,
-        FrozenForm,
         MetaForm,
+        PortableForm,
     },
     utils::is_rust_identifier,
-    IntoFrozen,
+    IntoPortable,
     Registry,
 };
 use scale::{
@@ -76,17 +76,17 @@ where
     }
 }
 
-impl IntoFrozen for Path {
-    type Output = Path<FrozenForm>;
+impl IntoPortable for Path {
+    type Output = Path<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Path {
-            segments: registry.map_into_frozen(self.segments),
+            segments: registry.map_into_portable(self.segments),
         }
     }
 }
 
-impl Display for Path<FrozenForm> {
+impl Display for Path<PortableForm> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), FmtError> {
         write!(f, "{}", self.segments.join("::"))
     }
@@ -254,7 +254,7 @@ mod tests {
     #[test]
     fn path_display() {
         let path =
-            Path::new("Planet", "hello::world").into_frozen(&mut Default::default());
+            Path::new("Planet", "hello::world").into_portable(&mut Default::default());
         assert_eq!("hello::world::Planet", format!("{}", path))
     }
 }
