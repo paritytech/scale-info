@@ -21,10 +21,10 @@ use crate::{
     build::TypeBuilder,
     form::{
         Form,
-        FrozenForm,
+        PortableForm,
         MetaForm,
     },
-    IntoFrozen,
+    IntoPortable,
     MetaType,
     Registry,
     TypeInfo,
@@ -82,14 +82,14 @@ pub struct Type<T: Form = MetaForm> {
     type_def: TypeDef<T>,
 }
 
-impl IntoFrozen for Type {
-    type Output = Type<FrozenForm>;
+impl IntoPortable for Type {
+    type Output = Type<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Type {
-            path: self.path.into_frozen(registry),
+            path: self.path.into_portable(registry),
             type_params: registry.register_types(self.type_params),
-            type_def: self.type_def.into_frozen(registry),
+            type_def: self.type_def.into_portable(registry),
         }
     }
 }
@@ -183,16 +183,16 @@ pub enum TypeDef<T: Form = MetaForm> {
     Primitive(TypeDefPrimitive),
 }
 
-impl IntoFrozen for TypeDef {
-    type Output = TypeDef<FrozenForm>;
+impl IntoPortable for TypeDef {
+    type Output = TypeDef<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         match self {
-            TypeDef::Composite(composite) => composite.into_frozen(registry).into(),
-            TypeDef::Variant(variant) => variant.into_frozen(registry).into(),
-            TypeDef::Sequence(sequence) => sequence.into_frozen(registry).into(),
-            TypeDef::Array(array) => array.into_frozen(registry).into(),
-            TypeDef::Tuple(tuple) => tuple.into_frozen(registry).into(),
+            TypeDef::Composite(composite) => composite.into_portable(registry).into(),
+            TypeDef::Variant(variant) => variant.into_portable(registry).into(),
+            TypeDef::Sequence(sequence) => sequence.into_portable(registry).into(),
+            TypeDef::Array(array) => array.into_portable(registry).into(),
+            TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
         }
     }
@@ -253,10 +253,10 @@ pub struct TypeDefArray<T: Form = MetaForm> {
     type_param: T::Type,
 }
 
-impl IntoFrozen for TypeDefArray {
-    type Output = TypeDefArray<FrozenForm>;
+impl IntoPortable for TypeDefArray {
+    type Output = TypeDefArray<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefArray {
             len: self.len,
             type_param: registry.register_type(&self.type_param),
@@ -303,10 +303,10 @@ pub struct TypeDefTuple<T: Form = MetaForm> {
     fields: Vec<T::Type>,
 }
 
-impl IntoFrozen for TypeDefTuple {
-    type Output = TypeDefTuple<FrozenForm>;
+impl IntoPortable for TypeDefTuple {
+    type Output = TypeDefTuple<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefTuple {
             fields: registry.register_types(self.fields),
         }
@@ -356,10 +356,10 @@ pub struct TypeDefSequence<T: Form = MetaForm> {
     type_param: T::Type,
 }
 
-impl IntoFrozen for TypeDefSequence {
-    type Output = TypeDefSequence<FrozenForm>;
+impl IntoPortable for TypeDefSequence {
+    type Output = TypeDefSequence<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefSequence {
             type_param: registry.register_type(&self.type_param),
         }

@@ -21,12 +21,12 @@
 //! It uses `MetaType` for communicating type identifiers and thus acts as
 //! a bridge from runtime to compile time type information.
 //!
-//! The `FrozenForm` is a space-efficient representation
+//! The `PortableForm` is a space-efficient representation
 //! that no longer has any connections to the interning registry and thus
 //! can no longer be used to retrieve information from the
 //! original registry. Its sole purpose is for space-efficient serialization.
 //!
-//! Other forms, such as a frozen form that is still bound to the registry
+//! Other forms, such as a portable form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
 use crate::prelude::{
@@ -47,7 +47,7 @@ use serde::Serialize;
 /// Trait to control the internal structures of type definitions.
 ///
 /// This allows for type-level separation between free forms that can be
-/// instantiated out of the flux and frozen forms that require some sort of
+/// instantiated out of the flux and portable forms that require some sort of
 /// interning data structures.
 pub trait Form {
     /// The type representing the type.
@@ -67,8 +67,8 @@ impl FormString for String {}
 
 /// A meta meta-type.
 ///
-/// Allows to be converted into other forms such as frozen form
-/// through the registry and `IntoFrozen`.
+/// Allows to be converted into other forms such as portable form
+/// through the registry and `IntoPortable`.
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
@@ -78,7 +78,7 @@ impl Form for MetaForm {
     type String = &'static str;
 }
 
-/// Frozen form that has its lifetime untracked in association to its interner.
+/// Portable form that has its lifetime untracked in association to its interner.
 ///
 /// # Note
 ///
@@ -89,9 +89,9 @@ impl Form for MetaForm {
 /// `type String` is owned in order to enable decoding
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-pub struct FrozenForm<S = &'static str>(PhantomData<S>);
+pub struct PortableForm<S = &'static str>(PhantomData<S>);
 
-impl<S> Form for FrozenForm<S>
+impl<S> Form for PortableForm<S>
 where
     S: FormString,
 {

@@ -36,7 +36,7 @@ use crate::{
     form::{
         Form,
         FormString,
-        FrozenForm,
+        PortableForm,
     },
     interner::{
         Interner,
@@ -57,18 +57,18 @@ use serde::{
 };
 
 /// Freezes the type definition using a registry.
-pub trait IntoFrozen {
-    /// The frozen version of `Self`.
+pub trait IntoPortable {
+    /// The portable version of `Self`.
     type Output;
 
     /// "Freezes" `self` by using the registry for caching.
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output;
+    fn into_portable(self, registry: &mut Registry) -> Self::Output;
 }
 
-impl IntoFrozen for &'static str {
-    type Output = <FrozenForm as Form>::String;
+impl IntoPortable for &'static str {
+    type Output = <PortableForm as Form>::String;
 
-    fn into_frozen(self, _registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, _registry: &mut Registry) -> Self::Output {
         self
     }
 }
@@ -99,14 +99,14 @@ pub struct Registry {
     ///
     /// The contents herein is used for serlialization.
     #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_registry_types"))]
-    types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<FrozenForm>>,
+    types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<PortableForm>>,
 }
 
 /// Serializes the types of the registry by removing their unique IDs and
 /// serializes them in order of their removed unique ID.
 #[cfg(feature = "serde")]
 fn serialize_registry_types<S>(
-    types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<FrozenForm>>,
+    types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<PortableForm>>,
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
@@ -124,7 +124,7 @@ impl Default for Registry {
 
 impl Encode for Registry {
     fn size_hint(&self) -> usize {
-        mem::size_of::<u32>() + mem::size_of::<Type<FrozenForm>>() * self.types.len()
+        mem::size_of::<u32>() + mem::size_of::<Type<PortableForm>>() * self.types.len()
     }
 
     fn encode_to<W: scale::Output>(&self, dest: &mut W) {
@@ -175,8 +175,8 @@ impl Registry {
     pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
         let (inserted, symbol) = self.intern_type_id(ty.type_id());
         if inserted {
-            let frozen_id = ty.type_info().into_frozen(self);
-            self.types.insert(symbol, frozen_id);
+            let portable_id = ty.type_info().into_portable(self);
+            self.types.insert(symbol, portable_id);
         }
         symbol
     }
@@ -191,15 +191,15 @@ impl Registry {
             .collect::<Vec<_>>()
     }
 
-    /// Converts an iterator into a Vec of the equivalent frozen
+    /// Converts an iterator into a Vec of the equivalent portable
     /// representations.
-    pub fn map_into_frozen<I, T>(&mut self, iter: I) -> Vec<T::Output>
+    pub fn map_into_portable<I, T>(&mut self, iter: I) -> Vec<T::Output>
     where
         I: IntoIterator<Item = T>,
-        T: IntoFrozen,
+        T: IntoPortable,
     {
         iter.into_iter()
-            .map(|i| i.into_frozen(self))
+            .map(|i| i.into_portable(self))
             .collect::<Vec<_>>()
     }
 }
@@ -215,7 +215,7 @@ pub struct RegistryReadOnly<S = &'static str>
 where
     S: FormString,
 {
-    types: Vec<Type<FrozenForm<S>>>,
+    types: Vec<Type<PortableForm<S>>>,
 }
 
 impl From<Registry> for RegistryReadOnly {
@@ -231,12 +231,12 @@ where
     S: FormString,
 {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
-    pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<FrozenForm<S>>> {
+    pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<PortableForm<S>>> {
         self.types.get((id.get() - 1) as usize)
     }
 
     /// Returns an iterator for all types paired with their associated NonZeroU32 identifier.
-    pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<FrozenForm<S>>)> {
+    pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<PortableForm<S>>)> {
         self.types.iter().enumerate().map(|(i, ty)| {
             let id = NonZeroU32::new(i as u32 + 1).expect("i + 1 > 0; qed");
             (id, ty)

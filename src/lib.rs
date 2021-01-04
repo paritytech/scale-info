@@ -19,7 +19,7 @@
 //!
 //! This library provides structures to easily retrieve compile-time type
 //! information at runtime and also to serialize this information in a
-//! space-efficient form, aka `FrozenForm`.
+//! space-efficient form, aka `PortableForm`.
 //!
 //! # Registry
 //!
@@ -43,7 +43,7 @@
 //! to easily retrieve all information needed to uniquely identify types.
 //!
 //! The `MetaForm` and its associated `Registry` can be transformed into the
-//! space-efficient form by the [`IntoFrozen`](`crate::IntoFrozen`) trait; it is
+//! space-efficient form by the [`IntoPortable`](`crate::IntoPortable`) trait; it is
 //! used internally by the [`Registry`](`crate::Registry`) in order to convert
 //! the expanded types into their space-efficient form.
 //!
@@ -59,7 +59,7 @@
 //! initially with your own data structures; make them generic over the
 //! [`Form`](`crate::form::Form`) trait just as has been done in this crate with
 //! [`TypeInfo`](`crate::TypeInfo`) in order to get a simple implementation of
-//! [`IntoFrozen`](`crate::IntoFrozen`). Use a single instance of the
+//! [`IntoPortable`](`crate::IntoPortable`). Use a single instance of the
 //! [`Registry`](`crate::Registry`) for compaction and provide this registry
 //! instance upon serialization.
 //!
@@ -119,7 +119,7 @@ mod tests;
 pub use self::{
     meta_type::MetaType,
     registry::{
-        IntoFrozen,
+        IntoPortable,
         Registry,
         RegistryReadOnly,
     },

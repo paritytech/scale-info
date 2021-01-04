@@ -18,11 +18,11 @@ use crate::{
     build::FieldsBuilder,
     form::{
         Form,
-        FrozenForm,
+        PortableForm,
         MetaForm,
     },
     Field,
-    IntoFrozen,
+    IntoPortable,
     Registry,
 };
 use derive_more::From;
@@ -94,12 +94,12 @@ pub struct TypeDefVariant<T: Form = MetaForm> {
     variants: Vec<Variant<T>>,
 }
 
-impl IntoFrozen for TypeDefVariant {
-    type Output = TypeDefVariant<FrozenForm>;
+impl IntoPortable for TypeDefVariant {
+    type Output = TypeDefVariant<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefVariant {
-            variants: registry.map_into_frozen(self.variants),
+            variants: registry.map_into_portable(self.variants),
         }
     }
 }
@@ -173,13 +173,13 @@ pub struct Variant<T: Form = MetaForm> {
     discriminant: Option<u64>,
 }
 
-impl IntoFrozen for Variant {
-    type Output = Variant<FrozenForm>;
+impl IntoPortable for Variant {
+    type Output = Variant<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Variant {
-            name: self.name.into_frozen(registry),
-            fields: registry.map_into_frozen(self.fields),
+            name: self.name.into_portable(registry),
+            fields: registry.map_into_portable(self.fields),
             discriminant: self.discriminant,
         }
     }

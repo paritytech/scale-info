@@ -15,10 +15,10 @@
 use crate::{
     form::{
         Form,
-        FrozenForm,
+        PortableForm,
         MetaForm,
     },
-    IntoFrozen,
+    IntoPortable,
     MetaType,
     Registry,
     TypeInfo,
@@ -88,14 +88,14 @@ pub struct Field<T: Form = MetaForm> {
     type_name: T::String,
 }
 
-impl IntoFrozen for Field {
-    type Output = Field<FrozenForm>;
+impl IntoPortable for Field {
+    type Output = Field<PortableForm>;
 
-    fn into_frozen(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Field {
-            name: self.name.map(|name| name.into_frozen(registry)),
+            name: self.name.map(|name| name.into_portable(registry)),
             ty: registry.register_type(&self.ty),
-            type_name: self.type_name.into_frozen(registry),
+            type_name: self.type_name.into_portable(registry),
         }
     }
 }
