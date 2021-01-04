@@ -14,11 +14,11 @@
 
 use crate::{
     form::{
-        CompactForm,
         Form,
         MetaForm,
+        PortableForm,
     },
-    IntoCompact,
+    IntoPortable,
     MetaType,
     Registry,
     TypeInfo,
@@ -34,11 +34,12 @@ use serde::{
     Serialize,
 };
 
-/// A field of a struct like data type.
+/// A field of a struct-like data type.
 ///
 /// Name is optional so it can represent both named and unnamed fields.
 ///
-/// This can be a named field of a struct type or an enum struct variant.
+/// This can be a named field of a struct type or an enum struct variant, or an
+/// unnamed field of a tuple struct.
 ///
 /// # Type name
 ///
@@ -60,8 +61,9 @@ use serde::{
 /// aliases.
 ///
 /// This is intended for informational and diagnostic purposes only. Although it
-/// is possible to infer certain properties e.g. whether a type name is a type alias,
-/// there are no guarantees provided, and the type name representation may change.
+/// is possible to infer certain properties e.g. whether a type name is a type
+/// alias, there are no guarantees provided, and the type name representation
+/// may change.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -86,14 +88,14 @@ pub struct Field<T: Form = MetaForm> {
     type_name: T::String,
 }
 
-impl IntoCompact for Field {
-    type Output = Field<CompactForm>;
+impl IntoPortable for Field {
+    type Output = Field<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Field {
-            name: self.name.map(|name| name.into_compact(registry)),
+            name: self.name.map(|name| name.into_portable(registry)),
             ty: registry.register_type(&self.ty),
-            type_name: self.type_name.into_compact(registry),
+            type_name: self.type_name.into_portable(registry),
         }
     }
 }

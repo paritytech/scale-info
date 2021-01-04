@@ -17,12 +17,12 @@ use crate::prelude::vec::Vec;
 use crate::{
     build::FieldsBuilder,
     form::{
-        CompactForm,
         Form,
         MetaForm,
+        PortableForm,
     },
     Field,
-    IntoCompact,
+    IntoPortable,
     Registry,
 };
 use derive_more::From;
@@ -94,12 +94,12 @@ pub struct TypeDefVariant<T: Form = MetaForm> {
     variants: Vec<Variant<T>>,
 }
 
-impl IntoCompact for TypeDefVariant {
-    type Output = TypeDefVariant<CompactForm>;
+impl IntoPortable for TypeDefVariant {
+    type Output = TypeDefVariant<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefVariant {
-            variants: registry.map_into_compact(self.variants),
+            variants: registry.map_into_portable(self.variants),
         }
     }
 }
@@ -173,13 +173,13 @@ pub struct Variant<T: Form = MetaForm> {
     discriminant: Option<u64>,
 }
 
-impl IntoCompact for Variant {
-    type Output = Variant<CompactForm>;
+impl IntoPortable for Variant {
+    type Output = Variant<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Variant {
-            name: self.name.into_compact(registry),
-            fields: registry.map_into_compact(self.fields),
+            name: self.name.into_portable(registry),
+            fields: registry.map_into_portable(self.fields),
             discriminant: self.discriminant,
         }
     }

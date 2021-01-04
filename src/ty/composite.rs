@@ -16,12 +16,12 @@ use crate::prelude::vec::Vec;
 
 use crate::{
     form::{
-        CompactForm,
         Form,
         MetaForm,
+        PortableForm,
     },
     Field,
-    IntoCompact,
+    IntoPortable,
     Registry,
 };
 use derive_more::From;
@@ -81,12 +81,12 @@ pub struct TypeDefComposite<T: Form = MetaForm> {
     fields: Vec<Field<T>>,
 }
 
-impl IntoCompact for TypeDefComposite {
-    type Output = TypeDefComposite<CompactForm>;
+impl IntoPortable for TypeDefComposite {
+    type Output = TypeDefComposite<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefComposite {
-            fields: registry.map_into_compact(self.fields),
+            fields: registry.map_into_portable(self.fields),
         }
     }
 }
