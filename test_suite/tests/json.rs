@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,6 +31,7 @@ use scale_info::{
     form::PortableForm,
     meta_type,
     IntoPortable as _,
+    PortableRegistry,
     Registry,
     TypeInfo,
 };
@@ -344,6 +345,7 @@ fn test_recursive_type_with_box() {
         ]
     });
 
+    let registry: PortableRegistry = registry.into();
     assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }
 
@@ -544,5 +546,6 @@ fn test_registry() {
         ]
     });
 
+    let registry: PortableRegistry = registry.into();
     assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
 }
