@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ use scale_info::{
     },
     IntoPortable as _,
     MetaType,
+    PortableRegistry,
     Registry,
-    RegistryReadOnly,
     TypeInfo,
 };
 
@@ -58,10 +58,11 @@ fn scale_encode_then_decode_to_readonly() {
     let mut registry = Registry::new();
     registry.register_type(&MetaType::new::<A<B>>());
 
+    let registry: PortableRegistry = registry.into();
     let mut encoded = registry.encode();
     let original_serialized = serde_json::to_value(registry).unwrap();
 
-    let readonly_decoded = RegistryReadOnly::<String>::decode(&mut &encoded[..]).unwrap();
+    let readonly_decoded = PortableRegistry::<String>::decode(&mut &encoded[..]).unwrap();
     assert!(readonly_decoded
         .resolve(NonZeroU32::new(1).unwrap())
         .is_some());
@@ -75,9 +76,10 @@ fn json_serialize_then_deserialize_to_readonly() {
     let mut registry = Registry::new();
     registry.register_type(&MetaType::new::<A<B>>());
 
+    let registry: PortableRegistry = registry.into();
     let original_serialized = serde_json::to_value(registry).unwrap();
     // assert_eq!(original_serialized, serde_json::Value::Null);
-    let readonly_deserialized: RegistryReadOnly<String> =
+    let readonly_deserialized: PortableRegistry<String> =
         serde_json::from_value(original_serialized.clone()).unwrap();
     assert!(readonly_deserialized
         .resolve(NonZeroU32::new(1).unwrap())
