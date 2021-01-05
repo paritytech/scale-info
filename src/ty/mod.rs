@@ -20,11 +20,11 @@ use crate::prelude::{
 use crate::{
     build::TypeBuilder,
     form::{
-        CompactForm,
         Form,
         MetaForm,
+        PortableForm,
     },
-    IntoCompact,
+    IntoPortable,
     MetaType,
     Registry,
     TypeInfo,
@@ -82,14 +82,14 @@ pub struct Type<T: Form = MetaForm> {
     type_def: TypeDef<T>,
 }
 
-impl IntoCompact for Type {
-    type Output = Type<CompactForm>;
+impl IntoPortable for Type {
+    type Output = Type<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Type {
-            path: self.path.into_compact(registry),
+            path: self.path.into_portable(registry),
             type_params: registry.register_types(self.type_params),
-            type_def: self.type_def.into_compact(registry),
+            type_def: self.type_def.into_portable(registry),
         }
     }
 }
@@ -183,16 +183,16 @@ pub enum TypeDef<T: Form = MetaForm> {
     Primitive(TypeDefPrimitive),
 }
 
-impl IntoCompact for TypeDef {
-    type Output = TypeDef<CompactForm>;
+impl IntoPortable for TypeDef {
+    type Output = TypeDef<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         match self {
-            TypeDef::Composite(composite) => composite.into_compact(registry).into(),
-            TypeDef::Variant(variant) => variant.into_compact(registry).into(),
-            TypeDef::Sequence(sequence) => sequence.into_compact(registry).into(),
-            TypeDef::Array(array) => array.into_compact(registry).into(),
-            TypeDef::Tuple(tuple) => tuple.into_compact(registry).into(),
+            TypeDef::Composite(composite) => composite.into_portable(registry).into(),
+            TypeDef::Variant(variant) => variant.into_portable(registry).into(),
+            TypeDef::Sequence(sequence) => sequence.into_portable(registry).into(),
+            TypeDef::Array(array) => array.into_portable(registry).into(),
+            TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
         }
     }
@@ -253,10 +253,10 @@ pub struct TypeDefArray<T: Form = MetaForm> {
     type_param: T::Type,
 }
 
-impl IntoCompact for TypeDefArray {
-    type Output = TypeDefArray<CompactForm>;
+impl IntoPortable for TypeDefArray {
+    type Output = TypeDefArray<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefArray {
             len: self.len,
             type_param: registry.register_type(&self.type_param),
@@ -303,10 +303,10 @@ pub struct TypeDefTuple<T: Form = MetaForm> {
     fields: Vec<T::Type>,
 }
 
-impl IntoCompact for TypeDefTuple {
-    type Output = TypeDefTuple<CompactForm>;
+impl IntoPortable for TypeDefTuple {
+    type Output = TypeDefTuple<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefTuple {
             fields: registry.register_types(self.fields),
         }
@@ -356,10 +356,10 @@ pub struct TypeDefSequence<T: Form = MetaForm> {
     type_param: T::Type,
 }
 
-impl IntoCompact for TypeDefSequence {
-    type Output = TypeDefSequence<CompactForm>;
+impl IntoPortable for TypeDefSequence {
+    type Output = TypeDefSequence<PortableForm>;
 
-    fn into_compact(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefSequence {
             type_param: registry.register_type(&self.type_param),
         }

@@ -14,12 +14,13 @@
 
 //! Interning data structure and associated symbol definitions.
 //!
-//! The interner is used by the registry in order to compact strings and type
+//! The interner is used by the registry in order to deduplicate strings and type
 //! definitions. Strings are uniquely identified by their contents while types
 //! are uniquely identified by their respective type identifiers.
 //!
-//! The interners provide a strict ordered sequence of cached (aka interned)
-//! elements and is later used for compact serialization within the registry.
+//! The interners provide a strict ordered sequence of cached (interned)
+//! elements and is later used for space-efficient serialization within the
+//! registry.
 
 use crate::prelude::{
     collections::btree_map::{
@@ -127,7 +128,7 @@ impl<T> Symbol<'_, T> {
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct Interner<T> {
-    /// A mapping from the interned elements to their respective compact
+    /// A mapping from the interned elements to their respective space-efficient
     /// identifiers.
     ///
     /// The idenfitiers can be used to retrieve information about the original
