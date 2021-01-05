@@ -252,7 +252,6 @@ impl<T> FieldsBuilder<T> {
 
 impl FieldsBuilder<NamedFields> {
     /// Add a named field with the type of the type parameter `T`
-    // pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
     pub fn field_of<T, F>(mut self, name: &'static str, type_name: &'static str, mut builder: F) -> Self
     where
         F: FnMut(&mut Field),
