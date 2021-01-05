@@ -31,8 +31,8 @@ use scale_info::{
     form::PortableForm,
     meta_type,
     IntoPortable as _,
-    Registry,
     PortableRegistry,
+    Registry,
     TypeInfo,
 };
 use serde_json::json;

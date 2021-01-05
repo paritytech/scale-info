@@ -34,8 +34,8 @@ use scale_info::{
     },
     IntoPortable as _,
     MetaType,
-    Registry,
     PortableRegistry,
+    Registry,
     TypeInfo,
 };
 
