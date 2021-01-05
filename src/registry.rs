@@ -27,7 +27,6 @@ use crate::prelude::{
     any::TypeId,
     collections::BTreeMap,
     fmt::Debug,
-    mem,
     num::NonZeroU32,
     vec::Vec,
 };
@@ -87,55 +86,21 @@ impl IntoPortable for &'static str {
 /// A type can be a sub-type of itself. In this case the registry has a builtin
 /// mechanism to stop recursion and avoid going into an infinite loop.
 #[derive(Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Registry {
     /// The cache for already registered types.
     ///
     /// This is just an accessor to the actual database
     /// for all types found in the `types` field.
-    #[cfg_attr(feature = "serde", serde(skip))]
     type_table: Interner<TypeId>,
     /// The database where registered types reside.
     ///
     /// The contents herein is used for serlialization.
-    #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_registry_types"))]
     types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<PortableForm>>,
-}
-
-/// Serializes the types of the registry by removing their unique IDs and
-/// serializes them in order of their removed unique ID.
-#[cfg(feature = "serde")]
-fn serialize_registry_types<S>(
-    types: &BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<PortableForm>>,
-    serializer: S,
-) -> Result<S::Ok, S::Error>
-where
-    S: serde::Serializer,
-{
-    let types = types.values().collect::<Vec<_>>();
-    types.serialize(serializer)
 }
 
 impl Default for Registry {
     fn default() -> Self {
         Self::new()
-    }
-}
-
-impl Encode for Registry {
-    fn size_hint(&self) -> usize {
-        mem::size_of::<u32>() + mem::size_of::<Type<PortableForm>>() * self.types.len()
-    }
-
-    fn encode_to<W: scale::Output>(&self, dest: &mut W) {
-        if self.types.len() > u32::max_value() as usize {
-            panic!("Attempted to encode too many elements.");
-        }
-        scale::Compact(self.types.len() as u32).encode_to(dest);
-
-        for ty in self.types.values() {
-            ty.encode_to(dest);
-        }
     }
 }
 
@@ -204,29 +169,29 @@ impl Registry {
     }
 }
 
-/// A read-only registry, to be used for decoding/deserializing
+/// A read-only registry containing types in their portable form for serialization.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, PartialEq, Eq, Decode)]
+#[derive(Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(
     feature = "serde",
     serde(bound(serialize = "S: Serialize", deserialize = "S: DeserializeOwned"))
 )]
-pub struct RegistryReadOnly<S = &'static str>
+pub struct PortableRegistry<S = &'static str>
 where
     S: FormString,
 {
     types: Vec<Type<PortableForm<S>>>,
 }
 
-impl From<Registry> for RegistryReadOnly {
+impl From<Registry> for PortableRegistry {
     fn from(registry: Registry) -> Self {
-        RegistryReadOnly {
+        PortableRegistry {
             types: registry.types.values().cloned().collect::<Vec<_>>(),
         }
     }
 }
 
-impl<S> RegistryReadOnly<S>
+impl<S> PortableRegistry<S>
 where
     S: FormString,
 {
@@ -264,7 +229,7 @@ mod tests {
         registry.register_type(&MetaType::new::<bool>());
         registry.register_type(&MetaType::new::<Option<(u32, bool)>>());
 
-        let readonly: RegistryReadOnly = registry.into();
+        let readonly: PortableRegistry = registry.into();
 
         assert_eq!(4, readonly.enumerate().count());
 

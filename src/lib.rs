@@ -120,8 +120,8 @@ pub use self::{
     meta_type::MetaType,
     registry::{
         IntoPortable,
+        PortableRegistry,
         Registry,
-        RegistryReadOnly,
     },
     ty::*,
 };
