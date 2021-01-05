@@ -169,29 +169,29 @@ impl Registry {
     }
 }
 
-/// A read-only registry, to be used for decoding/deserializing
+/// A read-only registry containing types in their portable form for serialization.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(
     feature = "serde",
     serde(bound(serialize = "S: Serialize", deserialize = "S: DeserializeOwned"))
 )]
-pub struct RegistryReadOnly<S = &'static str>
+pub struct PortableRegistry<S = &'static str>
 where
     S: FormString,
 {
     types: Vec<Type<PortableForm<S>>>,
 }
 
-impl From<Registry> for RegistryReadOnly {
+impl From<Registry> for PortableRegistry {
     fn from(registry: Registry) -> Self {
-        RegistryReadOnly {
+        PortableRegistry {
             types: registry.types.values().cloned().collect::<Vec<_>>(),
         }
     }
 }
 
-impl<S> RegistryReadOnly<S>
+impl<S> PortableRegistry<S>
 where
     S: FormString,
 {
@@ -229,7 +229,7 @@ mod tests {
         registry.register_type(&MetaType::new::<bool>());
         registry.register_type(&MetaType::new::<Option<(u32, bool)>>());
 
-        let readonly: RegistryReadOnly = registry.into();
+        let readonly: PortableRegistry = registry.into();
 
         assert_eq!(4, readonly.enumerate().count());
 

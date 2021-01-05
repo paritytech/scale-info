@@ -121,7 +121,7 @@ pub use self::{
     registry::{
         IntoPortable,
         Registry,
-        RegistryReadOnly,
+        PortableRegistry,
     },
     ty::*,
 };
