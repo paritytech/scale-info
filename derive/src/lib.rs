@@ -108,19 +108,19 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             let type_name = clean_type_string(&quote!(#ty).to_string());
             let compact = if utils::is_compact(f) {
                 quote! {
-                    .compact()
+                    |f| f.compact()
                 }
             } else {
-                quote! {}
+                quote! { |_| {} }
             };
 
             if let Some(i) = ident {
                 quote! {
-                    .field_of::<#ty, _>(stringify!(#i), #type_name, |_| {}) #compact
+                    .field_of::<#ty, _>(stringify!(#i), #type_name, #compact)
                 }
             } else {
                 quote! {
-                    .field_of::<#ty, _>(#type_name, |_| {}) #compact
+                    .field_of::<#ty, _>(#type_name, #compact)
                 }
             }
         })
