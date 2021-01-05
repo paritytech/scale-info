@@ -106,8 +106,8 @@ where
             .path(Path::new("Foo", module_path!()))
             .type_params(vec![MetaType::new::<T>()])
             .composite(Fields::named()
-                .field_of::<T>("bar", "T")
-                .field_of::<u64>("data", "u64")
+                .field_of::<T, _>("bar", "T", |_| {})
+                .field_of::<u64, _>("data", "u64", |_| {})
             )
     }
 }
@@ -125,8 +125,8 @@ impl TypeInfo for Foo {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .composite(Fields::unnamed()
-                .field_of::<u32>("u32")
-                .field_of::<bool>("bool")
+                .field_of::<u32, _>("u32", |_| {})
+                .field_of::<bool, _>("bool", |_| {})
             )
     }
 }
@@ -156,8 +156,8 @@ where
             .type_params(vec![MetaType::new::<T>()])
             .variant(
                 Variants::with_fields()
-                    .variant("A", Fields::unnamed().field_of::<T>("T"))
-                    .variant("B", Fields::named().field_of::<u32>("f", "u32"))
+                    .variant("A", Fields::unnamed().field_of::<T, _>("T", |_| {}))
+                    .variant("B", Fields::named().field_of::<u32, _>("f", "u32", |_| {}))
                     .variant("C", Fields::unit())
             )
     }

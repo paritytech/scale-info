@@ -39,8 +39,8 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .type_params(vec![MetaType::new::<T>()])
 //!             .composite(Fields::named()
-//!                 .field_of::<T>("bar", "T")
-//!                 .field_of::<u64>("data", "u64")
+//!                 .field_of::<T, _>("bar", "T", |_| {})
+//!                 .field_of::<u64, _>("data", "u64", |_| {})
 //!             )
 //!     }
 //! }
@@ -57,8 +57,8 @@
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
 //!             .composite(Fields::unnamed()
-//!                 .field_of::<u32>("u32")
-//!                 .field_of::<bool>("bool")
+//!                 .field_of::<u32, _>("u32", |_| {})
+//!                 .field_of::<bool, _>("bool", |_| {})
 //!             )
 //!     }
 //! }
@@ -84,8 +84,8 @@
 //!                .type_params(vec![MetaType::new::<T>()])
 //!             .variant(
 //!                 Variants::with_fields()
-//!                     .variant("A", Fields::unnamed().field_of::<T>("T"))
-//!                     .variant("B", Fields::named().field_of::<u32>("f", "u32"))
+//!                     .variant("A", Fields::unnamed().field_of::<T, _>("T", |_| {}))
+//!                     .variant("B", Fields::named().field_of::<u32, _>("f", "u32", |_| {}))
 //!                     .variant("C", Fields::unit())
 //!             )
 //!     }
@@ -261,22 +261,29 @@ impl<T> FieldsBuilder<T> {
 
 impl FieldsBuilder<NamedFields> {
     /// Add a named field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
+    // pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
+    pub fn field_of<T, F>(mut self, name: &'static str, type_name: &'static str, mut builder: F) -> Self
     where
+        F: FnMut(&mut Field),
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::named_of::<T>(name, type_name));
+        let mut field = Field::named_of::<T>(name, type_name);
+        builder(&mut field);
+        self.fields.push(field);
         self
     }
 }
 
 impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self, type_name: &'static str) -> Self
+    pub fn field_of<T, F>(mut self, type_name: &'static str, mut builder: F) -> Self
     where
+        F: FnMut(&mut Field),
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::unnamed_of::<T>(type_name));
+        let mut field = Field::unnamed_of::<T>(type_name);
+        builder(&mut field);
+        self.fields.push(field);
         self
     }
 }
