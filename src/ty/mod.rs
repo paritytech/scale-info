@@ -123,7 +123,7 @@ impl From<TypeDefPhantom> for Type {
         Self::new(
             Path::prelude("PhantomData"),
             vec![phantom.type_param],
-            phantom
+            phantom,
         )
     }
 }
