@@ -209,7 +209,7 @@ fn whitespace_scrubbing_works() {
     #[allow(unused)]
     #[derive(TypeInfo)]
     struct A {
-        a: (u8, (bool, u8))
+        a: (u8, (bool, u8)),
     }
 
     let ty = Type::builder()
