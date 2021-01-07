@@ -13,7 +13,10 @@
 // limitations under the License.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use scale_info::prelude::boxed::Box;
+use scale_info::prelude::{
+    boxed::Box,
+    marker::PhantomData,
+};
 
 use pretty_assertions::assert_eq;
 use scale_info::{
@@ -71,6 +74,180 @@ fn struct_derive() {
                 .field_of::<bool>("u", "U"),
         );
     assert_type!(SelfTyped, self_typed_type);
+}
+
+// TODO: dp – no need to keep all of these tests; pick one and toss the rest.
+#[test]
+fn phantom_types_in_structs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct P<T> {
+        a: u8,
+        m: PhantomData<T>,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("P", "derive"))
+        .type_params(tuple_meta_type!(bool))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .field_of::<bool>("m", "PhantomData<T>"),
+        );
+
+    assert_type!(P<bool>, ty);
+}
+
+#[test]
+fn phantom_types_are_derived_in_tuple_structs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Tuppy<T>(u8, PhantomData<T>);
+
+    let tuppy = Type::builder()
+        .path(Path::new("Tuppy", "derive"))
+        .type_params(tuple_meta_type!(()))
+        .composite(
+            Fields::unnamed()
+                .field_of::<u8>("u8")
+                .field_of::<()>("PhantomData<T>"),
+        );
+
+    assert_type!(Tuppy<()>, tuppy);
+}
+
+#[test]
+fn phantoms_are_derived_in_struct_with_tuple_members() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct WithTuples<TT, UU> {
+        a: (u8, PhantomData<TT>, u32, PhantomData<UU>),
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("WithTuples", "derive"))
+        .type_params(tuple_meta_type!(u16, u64))
+        .composite(
+            Fields::named().field_of::<(u8, PhantomData<u16>, u32, PhantomData<u64>)>(
+                "a",
+                "(u8, PhantomData<TT>, u32, PhantomData<UU>)",
+            ),
+        );
+
+    assert_type!(WithTuples<u16, u64>, ty);
+}
+
+#[test]
+fn phantom_types_are_derived_in_enums() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Chocolate<Flavour> {
+        flavour: PhantomData<Flavour>,
+    }
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    enum Choices<F> {
+        Nutella,
+        RealThing(Chocolate<F>),
+        Marshmallow(PhantomData<F>),
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Choices", "derive"))
+        .type_params(tuple_meta_type!(bool))
+        .variant(
+            Variants::with_fields()
+                .variant_unit("Nutella")
+                .variant(
+                    "RealThing",
+                    Fields::unnamed().field_of::<Chocolate<bool>>("Chocolate<F>"),
+                )
+                .variant(
+                    "Marshmallow",
+                    Fields::unnamed().field_of::<bool>("PhantomData<F>"),
+                ),
+        );
+
+    assert_type!(Choices<bool>, ty);
+}
+
+#[test]
+fn complex_enum_with_phantoms() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    enum Cake<Icing, Topping, Filling> {
+        A((PhantomData<Icing>, u8, PhantomData<Topping>, Filling)),
+        B,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Cake", "derive"))
+        .type_params(tuple_meta_type!(bool, bool, u16))
+        .variant(
+            Variants::with_fields()
+                .variant(
+                    "A",
+                    Fields::unnamed()
+                        .field_of::<(PhantomData<bool>, u8, PhantomData<bool>, u16)>(
+                            "(PhantomData<Icing>, u8, PhantomData<Topping>, Filling)",
+                        ),
+                )
+                .variant_unit("B"),
+        );
+    assert_type!(Cake<bool, bool, u16>, ty);
+}
+
+#[test]
+fn nested_phantom_types_are_derived_in_structs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Door<Size> {
+        size: PhantomData<Size>,
+        b: u16,
+    }
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct House<TDoor> {
+        a: u8,
+        door: TDoor,
+    }
+
+    let house = Type::builder()
+        .path(Path::new("House", "derive"))
+        .type_params(tuple_meta_type!(Door<u16>))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .field_of::<Door<u16>>("door", "TDoor"),
+        );
+
+    assert_type!(House<Door<u16>>, house);
+}
+
+#[test]
+fn phantoms_in_nested_tuples() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct A<T> {
+        is_a: bool,
+        teeth: (u8, u16, (u32, (PhantomData<T>, bool))),
+    }
+
+    // rustc thinks `(u32, (bool))` is the same as `(u32, bool)`
+    #[allow(unused_parens)]
+    let ty = Type::builder()
+        .path(Path::new("A", "derive"))
+        .type_params(tuple_meta_type!(u64))
+        .composite(
+            Fields::named()
+                .field_of::<bool>("is_a", "bool")
+                .field_of::<(u8, u16, (u32, (PhantomData<u64>, bool)))>(
+                    "teeth",
+                    "(u8, u16,(u32,(PhantomData<T>, bool)))",
+                ),
+        );
+
+    assert_type!(A<u64>, ty);
 }
 
 #[test]

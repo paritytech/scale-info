@@ -17,17 +17,16 @@ use crate::prelude::{
     collections::BTreeMap,
     marker::PhantomData,
     string::String,
-    vec,
     vec::Vec,
 };
 
 use crate::{
     build::*,
-    meta_type,
     MetaType,
     Path,
     Type,
     TypeDefArray,
+    TypeDefPhantom,
     TypeDefPrimitive,
     TypeDefSequence,
     TypeDefTuple,
@@ -240,12 +239,9 @@ impl<T> TypeInfo for PhantomData<T>
 where
     T: TypeInfo + ?Sized + 'static,
 {
-    type Identity = Self;
+    type Identity = T;
 
     fn type_info() -> Type {
-        Type::builder()
-            .path(Path::prelude("PhantomData"))
-            .type_params(vec![meta_type::<T>()])
-            .composite(Fields::unit())
+        TypeDefPhantom::new(MetaType::new::<T>()).into()
     }
 }
