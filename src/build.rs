@@ -254,7 +254,6 @@ impl<T> FieldsBuilder<T> {
     pub fn finalize(self) -> Vec<Field<MetaForm>> {
         self.fields
     }
-
 }
 
 impl FieldsBuilder<NamedFields> {
@@ -272,7 +271,8 @@ impl FieldsBuilder<NamedFields> {
     where
         T: TypeInfo + 'static,
     {
-        self.fields.push(Field::compact_of::<T>(Some(name), type_name));
+        self.fields
+            .push(Field::compact_of::<T>(Some(name), type_name));
         self
     }
 }

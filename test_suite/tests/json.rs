@@ -27,6 +27,7 @@ use pretty_assertions::{
     assert_eq,
     assert_ne,
 };
+use scale::Encode;
 use scale_info::{
     form::PortableForm,
     meta_type,
@@ -206,6 +207,7 @@ fn test_struct_with_some_fields_marked_as_compact() {
     struct Dense {
         #[codec(compact)]
         a: u128,
+        a_not_compact: u128,
         b: [u8; 32],
         #[codec(compact)]
         c: u64,
@@ -222,21 +224,22 @@ fn test_struct_with_some_fields_marked_as_compact() {
                 .path(Path::new("Dense", module_path!()))
                 .composite(
                     Fields::named()
-                        .compact_of::<u8>("a", "i32")
+                        .compact_of::<u128>("a", "u128")
+                        .field_of::<u128>("a_not_compact", "u128")
                         .field_of::<[u8; 32]>("b", "[u8; 32]")
-                        .compact_of::<u64>("c", "u64")
+                        .compact_of::<u64>("c", "u64"),
                 )
         }
     }
-    // TODO: this is the correct JSON imo, but this fails.
     assert_json_for_type::<Dense>(json![{
-    "path": ["json", "Dense"],
+        "path": ["json", "Dense"],
         "def": {
             "composite": {
                 "fields": [
-                    { "name": "a", "type": 1, "typeName": "i32", "compact": true },
-                    { "name": "b", "type": 2, "typeName": "[u8; 32]" },
-                    { "name": "c", "type": 3, "typeName": "u64", "compact": true },
+                    { "name": "a", "type": 1, "typeName": "u128" },
+                    { "name": "a_not_compact", "type": 2, "typeName": "u128" },
+                    { "name": "b", "type": 3, "typeName": "[u8; 32]" },
+                    { "name": "c", "type": 5, "typeName": "u64" },
                 ],
             },
         }
@@ -339,6 +342,65 @@ fn test_recursive_type_with_box() {
             },
             {
                 "def": { "primitive": "i32" },
+            },
+        ]
+    });
+
+    let registry: PortableRegistry = registry.into();
+    assert_eq!(serde_json::to_value(registry).unwrap(), expected_json,);
+}
+
+#[test]
+fn registry_knows_about_compact_types() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    struct Dense {
+        #[codec(compact)]
+        a: u128,
+        a_not_compact: u128,
+        b: [u8; 32],
+        #[codec(compact)]
+        c: u64,
+    }
+    let mut registry = Registry::new();
+    let type_id = registry.register_type(&meta_type::<Dense>());
+
+    let expected_json = json!({
+        "types": [
+            { // type 1
+                "path": ["json", "Dense"],
+                "def": {
+                    "composite": {
+                        "fields": [
+                            { "name": "a", "type": 2, "typeName": "u128" },
+                            { "name": "a_not_compact", "type": 3, "typeName": "u128" },
+                            { "name": "b", "type": 4, "typeName": "[u8; 32]" },
+                            { "name": "c", "type": 6, "typeName": "u64" }
+                        ]
+                    }
+                }
+            },
+            { // type 2, the `Compact<u128>` of field `a`.
+                "path": ["scale", "Compact"],
+                "def": { "compact": { "type": 3 } },
+                "params": [3]
+            },
+            { // type 3, the `u128` used by type 2 and field `a_not_compact`.
+                "def": { "primitive": "u128" }
+            },
+            { // type 4, the `[u8; 32]` of field `b`.
+                "def": { "array": { "len": 32, "type": 5 }}
+            },
+            { // type 5, the `u8` in `[u8; 32]`
+                "def": { "primitive": "u8" }
+            },
+            { // type 6, the `Compact<u64>` of field `c`
+                "path": ["scale", "Compact"],
+                "def": { "compact": { "type": 7 } },
+                "params": [7]
+            },
+            { // type 7, the `u64` in `Compact<u64>` of field `c`
+                "def": { "primitive": "u64" }
             },
         ]
     });

@@ -219,7 +219,7 @@ fn scale_compact_types_work_in_structs() {
         .composite(
             Fields::named()
                 .field_of::<u8>("a", "u8")
-                .field_of::<scale::Compact<u16>>("b", "u16")
+                .field_of::<scale::Compact<u16>>("b", "u16"),
         );
 
     assert_type!(Dense, dense);
@@ -245,6 +245,7 @@ fn wip() {
         );
     assert_type!(A, ty);
 }
+
 #[test]
 fn scale_compact_types_work_in_enums() {
     #[allow(unused)]
@@ -261,10 +262,7 @@ fn scale_compact_types_work_in_enums() {
         .variant(
             Variants::with_fields()
                 .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
-                .variant(
-                    "Index",
-                    Fields::unnamed().compact_of::<u16>("AccountIndex"),
-                )
+                .variant("Index", Fields::unnamed().compact_of::<u16>("AccountIndex"))
                 .variant(
                     "Address32",
                     Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"),

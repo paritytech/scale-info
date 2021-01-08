@@ -121,8 +121,8 @@ impl From<TypeDefTuple> for Type {
 impl From<TypeDefCompact> for Type {
     fn from(compact: TypeDefCompact) -> Self {
         Self::new(
-            // TODO: should the path be empty? Doesn't seem to be used anywhere.
-            Path::from_segments(vec!["what", "goes", "here"]).expect("TODO proof here"),
+            // TODO: put `Compact` in the prelude
+            Path::new("Compact", "scale"),
             vec![compact.type_param],
             compact,
         )
