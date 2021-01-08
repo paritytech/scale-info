@@ -132,6 +132,8 @@ fn clean_type_string(input: &str) -> String {
         .replace("[ ", "[")
         .replace(" ]", "]")
         .replace(" (", "(")
+        // put back a space so that `a: (u8, (bool, u8))` isn't turned into `a: (u8,(bool, u8))`
+        .replace(",(", ", (")
         .replace("( ", "(")
         .replace(" )", ")")
         .replace(" <", "<")

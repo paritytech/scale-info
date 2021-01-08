@@ -279,6 +279,21 @@ fn associated_types_derive_without_bounds() {
     assert_type!(Assoc<ConcreteTypes>, struct_type);
 }
 
+#[test]
+fn whitespace_scrubbing_works() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct A {
+        a: (u8, (bool, u8)),
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("A", "derive"))
+        .composite(Fields::named().field_of::<(u8, (bool, u8))>("a", "(u8, (bool, u8))"));
+
+    assert_type!(A, ty);
+}
+
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {
