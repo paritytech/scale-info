@@ -211,7 +211,6 @@ fn test_struct_with_phantom() {
         "def": {
             "composite": {
                 "fields": [
-                    // TODO: dp – I was expecting "a" to be type 1 and "b" to be type 2; what am I missing?
                     { "name": "a", "type": 2, "typeName": "i32" },
                     { "name": "b", "type": 1, "typeName": "PhantomData<T>" },
                 ],
