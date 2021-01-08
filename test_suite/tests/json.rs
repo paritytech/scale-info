@@ -222,15 +222,13 @@ fn test_struct_with_some_fields_marked_as_compact() {
                 .path(Path::new("Dense", module_path!()))
                 .composite(
                     Fields::named()
-                        .field_of::<u8>("a", "i32")
-                        .compact()
+                        .compact_of::<u8>("a", "i32")
                         .field_of::<[u8; 32]>("b", "[u8; 32]")
-                        .field_of::<u64>("c", "u64")
-                        .compact(),
+                        .compact_of::<u64>("c", "u64")
                 )
         }
     }
-
+    // TODO: this is the correct JSON imo, but this fails.
     assert_json_for_type::<Dense>(json![{
     "path": ["json", "Dense"],
         "def": {

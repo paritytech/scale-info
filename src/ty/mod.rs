@@ -118,6 +118,17 @@ impl From<TypeDefTuple> for Type {
     }
 }
 
+impl From<TypeDefCompact> for Type {
+    fn from(compact: TypeDefCompact) -> Self {
+        Self::new(
+            // TODO: should the path be empty? Doesn't seem to be used anywhere.
+            Path::from_segments(vec!["what", "goes", "here"]).expect("TODO proof here"),
+            vec![compact.type_param],
+            compact,
+        )
+    }
+}
+
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
     pub fn builder() -> TypeBuilder {
@@ -181,6 +192,8 @@ pub enum TypeDef<T: Form = MetaForm> {
     Tuple(TypeDefTuple<T>),
     /// A Rust primitive type.
     Primitive(TypeDefPrimitive),
+    /// A type using the [`Compact`] encoding
+    Compact(TypeDefCompact<T>),
 }
 
 impl IntoPortable for TypeDef {
@@ -194,6 +207,7 @@ impl IntoPortable for TypeDef {
             TypeDef::Array(array) => array.into_portable(registry).into(),
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
+            TypeDef::Compact(compact) => compact.into_portable(registry).into(),
         }
     }
 }
@@ -391,6 +405,49 @@ where
     T: Form,
 {
     /// Returns the element type of the sequence type.
+    pub fn type_param(&self) -> &T::Type {
+        &self.type_param
+    }
+}
+
+/// A type wrapped in [`Compact`].
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
+pub struct TypeDefCompact<T: Form = MetaForm> {
+    /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    type_param: T::Type,
+}
+
+impl IntoPortable for TypeDefCompact {
+    type Output = TypeDefCompact<PortableForm>;
+
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+        TypeDefCompact {
+            type_param: registry.register_type(&self.type_param),
+        }
+    }
+}
+
+impl TypeDefCompact {
+    /// Creates a new type wrapped in [`Compact`].
+    pub fn new(type_param: MetaType) -> Self {
+        Self { type_param }
+    }
+}
+
+impl<T> TypeDefCompact<T>
+where
+    T: Form,
+{
+    /// Returns the [`Compact`] wrapped type, i.e. the `T` in `Compact<T>`.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }

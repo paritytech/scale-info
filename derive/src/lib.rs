@@ -111,20 +111,26 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
         .map(|f| {
             let (ty, ident) = (&f.ty, &f.ident);
             let type_name = clean_type_string(&quote!(#ty).to_string());
-            let compact = if is_compact(f) {
-                quote! {
-                    .compact()
-                }
-            } else {
-                quote! {}
-            };
+            // TODO: make this prettier
             if let Some(i) = ident {
-                quote! {
-                    .field_of::<#ty>(stringify!(#i), #type_name) #compact
+                if is_compact(f) {
+                    quote! {
+                        .compact_of::<#ty>(stringify!(#i), #type_name)
+                    }
+                } else {
+                    quote! {
+                        .field_of::<#ty>(stringify!(#i), #type_name)
+                    }
                 }
             } else {
-                quote! {
-                    .field_of::<#ty>(#type_name) #compact
+                if is_compact(f) {
+                    quote! {
+                        .compact_of::<#ty>(#type_name)
+                    }
+                } else {
+                    quote! {
+                        .field_of::<#ty>(#type_name)
+                    }
                 }
             }
         })

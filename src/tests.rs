@@ -84,6 +84,17 @@ fn prelude_items() {
 }
 
 #[test]
+fn compact_types() {
+    assert_type!(
+        scale::Compact<i32>,
+        Type::builder()
+            .path(Path::from_segments(vec!["scale", "Compact"]).unwrap())
+            .type_params(tuple_meta_type!(i32))
+            .compact::<i32>()
+    );
+}
+
+#[test]
 fn tuple_primitives() {
     // unit
     assert_type!((), TypeDefTuple::new(tuple_meta_type!()));

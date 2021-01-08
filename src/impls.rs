@@ -249,3 +249,17 @@ where
             .composite(Fields::unit())
     }
 }
+
+impl<T> TypeInfo for scale::Compact<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        Type::builder()
+            // TODO: do we need `Compact` in the prelude perhaps?
+            .path(Path::from_segments(vec!["scale", "Compact"]).expect("TODO proof"))
+            .type_params(tuple_meta_type!(T))
+            .compact::<T>()
+    }
+}

@@ -128,6 +128,7 @@ use crate::{
     Path,
     Type,
     TypeDef,
+    TypeDefCompact,
     TypeDefComposite,
     TypeDefVariant,
     TypeInfo,
@@ -187,6 +188,11 @@ impl TypeBuilder<state::PathAssigned> {
     /// Construct a "composite" type i.e. a `struct`
     pub fn composite<F>(self, fields: FieldsBuilder<F>) -> Type {
         self.build(TypeDefComposite::new(fields.finalize()))
+    }
+
+    /// Construct a [`Compact`] type, i.e. a `scale::Compact<T>`
+    pub fn compact<T: TypeInfo + ?Sized + 'static>(self) -> Type {
+        self.build(TypeDefCompact::new(MetaType::new::<T>()))
     }
 }
 
@@ -249,14 +255,6 @@ impl<T> FieldsBuilder<T> {
         self.fields
     }
 
-    /// Mark last field as compact, meaning that encoding/decoding should be in the [`scale_codec::Compact`] format.
-    pub fn compact(mut self) -> Self {
-        self.fields.iter_mut().last().map(|f| {
-            f.compact();
-            f
-        });
-        self
-    }
 }
 
 impl FieldsBuilder<NamedFields> {
@@ -268,6 +266,15 @@ impl FieldsBuilder<NamedFields> {
         self.fields.push(Field::named_of::<T>(name, type_name));
         self
     }
+
+    /// Add a named, [`Compact`] field of type `T`.
+    pub fn compact_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
+    where
+        T: TypeInfo + 'static,
+    {
+        self.fields.push(Field::compact_of::<T>(Some(name), type_name));
+        self
+    }
 }
 
 impl FieldsBuilder<UnnamedFields> {
@@ -277,6 +284,15 @@ impl FieldsBuilder<UnnamedFields> {
         T: TypeInfo + ?Sized + 'static,
     {
         self.fields.push(Field::unnamed_of::<T>(type_name));
+        self
+    }
+
+    /// Add an unnamed, [`Compact`] field of type `T`.
+    pub fn compact_of<T>(mut self, type_name: &'static str) -> Self
+    where
+        T: TypeInfo + 'static,
+    {
+        self.fields.push(Field::compact_of::<T>(None, type_name));
         self
     }
 }

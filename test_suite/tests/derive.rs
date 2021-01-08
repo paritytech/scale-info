@@ -219,13 +219,32 @@ fn scale_compact_types_work_in_structs() {
         .composite(
             Fields::named()
                 .field_of::<u8>("a", "u8")
-                .field_of::<u16>("b", "u16")
-                .compact(),
+                .field_of::<scale::Compact<u16>>("b", "u16")
         );
 
     assert_type!(Dense, dense);
 }
 
+// TODO: both this test and the one above pass, which means something's not
+// right.
+#[test]
+fn wip() {
+    #[allow(unused)]
+    #[derive(Encode, TypeInfo)]
+    struct A {
+        a: u8,
+        #[codec(compact)]
+        b: u16,
+    }
+    let ty = Type::builder()
+        .path(Path::new("A", "derive"))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .compact_of::<u16>("b", "u16")
+        );
+    assert_type!(A, ty);
+}
 #[test]
 fn scale_compact_types_work_in_enums() {
     #[allow(unused)]
@@ -244,7 +263,7 @@ fn scale_compact_types_work_in_enums() {
                 .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
                 .variant(
                     "Index",
-                    Fields::unnamed().field_of::<u16>("AccountIndex").compact(),
+                    Fields::unnamed().compact_of::<u16>("AccountIndex"),
                 )
                 .variant(
                     "Address32",
