@@ -234,11 +234,13 @@ fn scale_compact_types_work_in_structs() {
     // `Compact<T>`.
     // Maybe this is fine, maybe it's not, just not sure.
 
-    let ty_alt = Type::builder().path(Path::new("Dense", "derive")).composite(
-        Fields::named()
-            .field_of::<u8>("a", "u8")
-            .compact_of::<u16>("b", "u16"),
-    );
+    let ty_alt = Type::builder()
+        .path(Path::new("Dense", "derive"))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .compact_of::<u16>("b", "u16"),
+        );
     assert_type!(Dense, ty_alt);
 }
 
