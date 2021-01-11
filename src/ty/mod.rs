@@ -121,8 +121,7 @@ impl From<TypeDefTuple> for Type {
 impl From<TypeDefCompact> for Type {
     fn from(compact: TypeDefCompact) -> Self {
         Self::new(
-            // TODO: put `Compact` in the prelude
-            Path::new("Compact", "scale"),
+            Path::prelude("Compact"),
             vec![compact.type_param],
             compact,
         )

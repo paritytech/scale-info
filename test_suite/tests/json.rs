@@ -381,7 +381,7 @@ fn registry_knows_about_compact_types() {
                 }
             },
             { // type 2, the `Compact<u128>` of field `a`.
-                "path": ["scale", "Compact"],
+                "path": ["Compact"],
                 "def": { "compact": { "type": 3 } },
                 "params": [3]
             },
@@ -395,7 +395,7 @@ fn registry_knows_about_compact_types() {
                 "def": { "primitive": "u8" }
             },
             { // type 6, the `Compact<u64>` of field `c`
-                "path": ["scale", "Compact"],
+                "path": ["Compact"],
                 "def": { "compact": { "type": 7 } },
                 "params": [7]
             },

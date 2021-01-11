@@ -17,7 +17,10 @@ use pretty_assertions::assert_eq;
 use scale::Encode;
 use scale_info::{
     build::*,
-    prelude::boxed::Box,
+    prelude::{
+        boxed::Box,
+        Compact,
+    },
     tuple_meta_type,
     Path,
     Type,
@@ -214,36 +217,29 @@ fn scale_compact_types_work_in_structs() {
         b: u16,
     }
 
-    let dense = Type::builder()
+    let ty = Type::builder()
         .path(Path::new("Dense", "derive"))
         .composite(
             Fields::named()
                 .field_of::<u8>("a", "u8")
-                .field_of::<scale::Compact<u16>>("b", "u16"),
+                .field_of::<Compact<u16>>("b", "u16"),
         );
 
-    assert_type!(Dense, dense);
-}
+    assert_type!(Dense, ty);
 
-// TODO: both this test and the one above pass, which means something's not
-// right.
-#[test]
-fn wip() {
-    #[allow(unused)]
-    #[derive(Encode, TypeInfo)]
-    struct A {
-        a: u8,
-        #[codec(compact)]
-        b: u16,
-    }
-    let ty = Type::builder()
-        .path(Path::new("A", "derive"))
-        .composite(
-            Fields::named()
-                .field_of::<u8>("a", "u8")
-                .compact_of::<u16>("b", "u16")
-        );
-    assert_type!(A, ty);
+    // TODO: These two tests both pass. This illustrates a doubt I have that
+    // this is the right way to go. With this PR we take `#[codec(compact)]` to
+    // mean that the type is encoded/decoded as `Compact<T>` but in reality the
+    // output of the `Encode` macro is something quite different and not
+    // `Compact<T>`.
+    // Maybe this is fine, maybe it's not, just not sure.
+
+    let ty_alt = Type::builder().path(Path::new("Dense", "derive")).composite(
+        Fields::named()
+            .field_of::<u8>("a", "u8")
+            .compact_of::<u16>("b", "u16"),
+    );
+    assert_type!(Dense, ty_alt);
 }
 
 #[test]

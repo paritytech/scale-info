@@ -96,7 +96,6 @@ impl MetaType {
         }
     }
 
-    // TODO: is this used anywhere?
     /// Creates a new meta type from the type of the given reference.
     pub fn of<T>(_elem: &T) -> Self
     where

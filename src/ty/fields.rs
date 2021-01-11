@@ -143,9 +143,6 @@ impl Field {
     where
         T: TypeInfo + 'static,
     {
-        // TODO: using `scale::Compact` here like this makes the `impl<T>
-        // TypeInfo for Compact<T>` kick in, but not sure that is the right
-        // thing to do. :/
         Self::new(name, MetaType::new::<scale::Compact<T>>(), type_name)
     }
 }

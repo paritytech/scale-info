@@ -81,14 +81,11 @@ fn prelude_items() {
             .type_params(tuple_meta_type!(i32))
             .composite(Fields::unit())
     );
-}
 
-#[test]
-fn compact_types() {
     assert_type!(
-        scale::Compact<i32>,
+        prelude::Compact<i32>,
         Type::builder()
-            .path(Path::from_segments(vec!["scale", "Compact"]).unwrap())
+            .path(Path::prelude("Compact"))
             .type_params(tuple_meta_type!(i32))
             .compact::<i32>()
     );
