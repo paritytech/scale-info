@@ -212,7 +212,8 @@ fn test_struct_with_phantom() {
             "composite": {
                 "fields": [
                     { "name": "a", "type": 2, "typeName": "i32" },
-                    { "name": "b", "type": 1, "typeName": "PhantomData<T>" },
+                    // type 1 is the `u8` in the `PhantomData`
+                    { "name": "b", "type": 3, "typeName": "PhantomData<T>" },
                 ],
             },
         }

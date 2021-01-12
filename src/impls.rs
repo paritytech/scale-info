@@ -245,7 +245,7 @@ impl<T> TypeInfo for PhantomData<T>
 where
     T: TypeInfo + ?Sized + 'static,
 {
-    type Identity = T;
+    type Identity = Self;
 
     fn type_info() -> Type {
         TypeDefPhantom::new(MetaType::new::<T>()).into()

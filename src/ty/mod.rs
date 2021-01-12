@@ -414,8 +414,8 @@ where
 #[cfg_attr(
     feature = "serde",
     serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+        serialize = "T::Type: Serialize",
+        deserialize = "T::Type: DeserializeOwned",
     ))
 )]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]

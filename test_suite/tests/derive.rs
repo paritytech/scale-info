@@ -91,7 +91,7 @@ fn phantom_types_in_structs() {
         .composite(
             Fields::named()
                 .field_of::<u8>("a", "u8")
-                .field_of::<bool>("m", "PhantomData<T>"),
+                .field_of::<PhantomData<bool>>("m", "PhantomData<T>"),
         );
 
     assert_type!(P<bool>, ty);
