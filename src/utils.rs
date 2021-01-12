@@ -29,9 +29,6 @@ pub fn is_rust_identifier(s: &str) -> bool {
                 || (b'a'..=b'z').contains(&ch)
                 || (b'A'..=b'Z').contains(&ch)
                 || (b'0'..=b'9').contains(&ch)
-            // || ch >= b'a' && ch <= b'z'
-            // || ch >= b'A' && ch <= b'Z'
-            // || ch >= b'0' && ch <= b'9'
         });
         head_ok && tail_ok
     } else {
