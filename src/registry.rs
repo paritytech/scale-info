@@ -171,7 +171,7 @@ impl Registry {
 
 /// A read-only registry containing types in their portable form for serialization.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Debug, PartialEq, Eq, Encode, Decode)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
 #[cfg_attr(
     feature = "serde",
     serde(bound(serialize = "S: Serialize", deserialize = "S: DeserializeOwned"))

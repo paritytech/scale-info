@@ -112,6 +112,12 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
 
 impl<T> TypeInfo for Vec<T>
 where
