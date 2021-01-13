@@ -41,6 +41,8 @@ use crate::{
     meta_type::MetaType,
 };
 
+use scale::Decode;
+
 #[cfg(feature = "serde")]
 use serde::Serialize;
 
@@ -88,7 +90,7 @@ impl Form for MetaForm {
 ///
 /// `type String` is owned in order to enable decoding
 #[cfg_attr(feature = "serde", derive(Serialize))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Decode)]
 pub struct PortableForm<S = &'static str>(PhantomData<S>);
 
 impl<S> Form for PortableForm<S>
