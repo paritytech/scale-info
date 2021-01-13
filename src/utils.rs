@@ -21,13 +21,14 @@ pub fn is_rust_identifier(s: &str) -> bool {
     }
     if let Some((&head, tail)) = s.as_bytes().split_first() {
         // Check if head and tail make up a proper Rust identifier.
-        let head_ok =
-            head == b'_' || head >= b'a' && head <= b'z' || head >= b'A' && head <= b'Z';
+        let head_ok = head == b'_'
+            || (b'a'..=b'z').contains(&head)
+            || (b'A'..=b'Z').contains(&head);
         let tail_ok = tail.iter().all(|&ch| {
             ch == b'_'
-                || ch >= b'a' && ch <= b'z'
-                || ch >= b'A' && ch <= b'Z'
-                || ch >= b'0' && ch <= b'9'
+                || (b'a'..=b'z').contains(&ch)
+                || (b'A'..=b'Z').contains(&ch)
+                || (b'0'..=b'9').contains(&ch)
         });
         head_ok && tail_ok
     } else {
