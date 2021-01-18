@@ -47,9 +47,9 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
             .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
     });
 
-    type_params.iter().for_each(|type_param| {
-        let ident = type_param.ident.clone();
-        let mut bounds = type_param.bounds.clone();
+    type_params.into_iter().for_each(|type_param| {
+        let ident = type_param.ident;
+        let mut bounds = type_param.bounds;
         bounds.push(parse_quote!(::scale_info::TypeInfo));
         bounds.push(parse_quote!('static));
         where_clause
