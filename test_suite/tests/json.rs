@@ -134,11 +134,7 @@ fn test_builtins() {
     assert_json_for_type::<String>(json!({ "def": { "primitive": "str" } }));
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
     // PhantomData
-    assert_json_for_type::<PhantomData<bool>>(json!({
-        "path": ["PhantomData"],
-        "def": { "phantom": { "type": 1 } },
-        "params": [1]
-    }))
+    assert_json_for_type::<PhantomData<bool>>(json!({ "def": { "phantom": { "type": 1 } }, }))
 }
 
 #[test]

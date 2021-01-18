@@ -77,7 +77,7 @@ fn struct_derive() {
 }
 
 #[test]
-fn phantom_types_in_structs() {
+fn phantom_data_is_part_of_the_type_info() {
     #[allow(unused)]
     #[derive(TypeInfo)]
     struct P<T> {
@@ -95,57 +95,6 @@ fn phantom_types_in_structs() {
         );
 
     assert_type!(P<bool>, ty);
-}
-
-#[test]
-fn nested_phantom_types_are_derived_in_structs() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct Door<Size> {
-        size: PhantomData<Size>,
-        b: u16,
-    }
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct House<TDoor> {
-        a: u8,
-        door: TDoor,
-    }
-
-    let house = Type::builder()
-        .path(Path::new("House", "derive"))
-        .type_params(tuple_meta_type!(Door<u16>))
-        .composite(
-            Fields::named()
-                .field_of::<u8>("a", "u8")
-                .field_of::<Door<u16>>("door", "TDoor"),
-        );
-
-    assert_type!(House<Door<u16>>, house);
-}
-
-#[test]
-fn phantoms_in_nested_tuples() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct A<T> {
-        is_a: bool,
-        teeth: (u8, u16, (u32, (PhantomData<T>, bool))),
-    }
-
-    let ty = Type::builder()
-        .path(Path::new("A", "derive"))
-        .type_params(tuple_meta_type!(u64))
-        .composite(
-            Fields::named()
-                .field_of::<bool>("is_a", "bool")
-                .field_of::<(u8, u16, (u32, (PhantomData<u64>, bool)))>(
-                    "teeth",
-                    "(u8, u16, (u32, (PhantomData<T>, bool)))",
-                ),
-        );
-
-    assert_type!(A<u64>, ty);
 }
 
 #[test]

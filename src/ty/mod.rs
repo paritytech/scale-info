@@ -120,11 +120,7 @@ impl From<TypeDefTuple> for Type {
 
 impl From<TypeDefPhantom> for Type {
     fn from(phantom: TypeDefPhantom) -> Self {
-        Self::new(
-            Path::prelude("PhantomData"),
-            vec![phantom.type_param],
-            phantom,
-        )
+        Self::new(Path::voldemort(), Vec::new(), phantom)
     }
 }
 
