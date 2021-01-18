@@ -445,7 +445,7 @@ impl IntoPortable for TypeDefPhantom {
 }
 
 impl TypeDefPhantom {
-    /// Creates a new phantom type.
+    /// Creates a new phantom type definition.
     pub fn new(type_param: MetaType) -> Self {
         Self { type_param }
     }
