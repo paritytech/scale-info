@@ -14,6 +14,7 @@
 
 use crate::{
     build::*,
+    prelude::Compact,
     *,
 };
 use core::marker::PhantomData;
@@ -75,14 +76,7 @@ fn prelude_items() {
             )
     );
     assert_type!(PhantomData<i32>, TypeDefPhantom::new(meta_type::<i32>()));
-    // TODO: this should look like the rest of them
-    assert_type!(
-        prelude::Compact<i32>,
-        Type::builder()
-            .path(Path::prelude("Compact"))
-            .type_params(tuple_meta_type!(i32))
-            .compact::<i32>()
-    );
+    assert_type!(Compact<i32>, TypeDefCompact::new(meta_type::<i32>()))
 }
 
 #[test]

@@ -94,43 +94,24 @@ impl IntoPortable for Type {
     }
 }
 
-impl From<TypeDefPrimitive> for Type {
-    fn from(primitive: TypeDefPrimitive) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), primitive)
-    }
+macro_rules! impl_from_type_def_for_type {
+    ( $( $t:ty  ), + $(,)?) => { $(
+        impl From<$t> for Type {
+            fn from(item: $t) -> Self {
+                Self::new(Path::voldemort(), Vec::new(), item)
+            }
+        }
+    )* }
 }
 
-impl From<TypeDefArray> for Type {
-    fn from(array: TypeDefArray) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), array)
-    }
-}
-
-impl From<TypeDefSequence> for Type {
-    fn from(sequence: TypeDefSequence) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), sequence)
-    }
-}
-
-impl From<TypeDefTuple> for Type {
-    fn from(tuple: TypeDefTuple) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), tuple)
-    }
-}
-
-impl From<TypeDefCompact> for Type {
-    fn from(compact: TypeDefCompact) -> Self {
-        // TODO: should be like the others
-        // TODO: write macro for these
-        Self::new(Path::prelude("Compact"), vec![compact.type_param], compact)
-    }
-}
-
-impl From<TypeDefPhantom> for Type {
-    fn from(phantom: TypeDefPhantom) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), phantom)
-    }
-}
+impl_from_type_def_for_type!(
+    TypeDefPrimitive,
+    TypeDefArray,
+    TypeDefSequence,
+    TypeDefTuple,
+    TypeDefCompact,
+    TypeDefPhantom,
+);
 
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
@@ -422,6 +403,7 @@ where
 #[cfg_attr(
     feature = "serde",
     serde(bound(
+        // TODO: check these bounds
         serialize = "T::Type: Serialize",
         deserialize = "T::Type: DeserializeOwned",
     ))
@@ -468,16 +450,15 @@ where
 /// Instead we take the same approach as `parity-scale-codec` where users are
 /// required to explicitly skip fields that cannot be represented in SCALE
 /// encoding, using the `#[codec(skip)]` attribute.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
-    // TODO: check these bounds
     serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+        serialize = "T::Type: Serialize",
+        deserialize = "T::Type: DeserializeOwned",
     ))
 )]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 pub struct TypeDefPhantom<T: Form = MetaForm> {
     /// The PhantomData type parameter
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
