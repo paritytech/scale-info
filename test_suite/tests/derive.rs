@@ -203,7 +203,7 @@ fn associated_types_derive_without_bounds() {
         .composite(
             Fields::named()
                 .field_of::<bool>("a", "T::A")
-                .field_of::<u64>("b", "& \'static u64"),
+                .field_of::<u64>("b", "&'static u64"),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
