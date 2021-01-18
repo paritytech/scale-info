@@ -410,6 +410,15 @@ where
 }
 
 /// A type describing a `PhantomData<T>` type.
+///
+/// In the context of SCALE encoded types, including `PhantomData<T>` types in
+/// the type info  might seem surprising. The reason to include this information
+/// is that there could be situations where it's useful and because removing
+/// `PhantomData` items from the derive input quickly becomes a messy
+/// syntax-level hack (see PR https://github.com/paritytech/scale-info/pull/31).
+/// Instead we take the same approach as `parity-scale-codec` where users are
+/// required to explicitly skip fields that cannot be represented in SCALE
+/// encoding, using the `#[codec(skip)]` attribute.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
