@@ -20,8 +20,8 @@ use scale_info::{
     build::*,
     prelude::{
         boxed::Box,
-        Compact,
         marker::PhantomData,
+        Compact,
     },
     tuple_meta_type,
     Path,

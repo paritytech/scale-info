@@ -422,9 +422,9 @@ where
 #[cfg_attr(
     feature = "serde",
     serde(bound(
-    serialize = "T::Type: Serialize",
-    deserialize = "T::Type: DeserializeOwned",
-))
+        serialize = "T::Type: Serialize",
+        deserialize = "T::Type: DeserializeOwned",
+    ))
 )]
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
@@ -437,7 +437,7 @@ impl IntoPortable for TypeDefCompact {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefCompact {
-                type_param: registry.register_type(&self.type_param),
+            type_param: registry.register_type(&self.type_param),
         }
     }
 }
