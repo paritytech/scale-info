@@ -18,6 +18,7 @@
 
 use scale_info::prelude::{
     boxed::Box,
+    marker::PhantomData,
     string::String,
     vec,
     vec::Vec,
@@ -133,13 +134,9 @@ fn test_builtins() {
     assert_json_for_type::<String>(json!({ "def": { "primitive": "str" } }));
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
     // PhantomData
-    assert_json_for_type::<core::marker::PhantomData<bool>>(json!({
-        "path": ["PhantomData"],
-        "params": [1],
-        "def": {
-            "composite": {},
-        }
-    }))
+    assert_json_for_type::<PhantomData<bool>>(
+        json!({ "def": { "phantom": { "type": 1 } }, }),
+    )
 }
 
 #[test]
@@ -191,6 +188,30 @@ fn test_struct() {
                     { "name": "a", "type": 1, "typeName": "i32" },
                     { "name": "b", "type": 2, "typeName": "[u8; 32]" },
                     { "name": "c", "type": 4, "typeName": "bool" },
+                ],
+            },
+        }
+    }));
+}
+
+#[test]
+fn test_struct_with_phantom() {
+    use scale_info::prelude::marker::PhantomData;
+    #[derive(TypeInfo)]
+    struct Struct<T> {
+        a: i32,
+        b: PhantomData<T>,
+    }
+
+    assert_json_for_type::<Struct<u8>>(json!({
+        "path": ["json", "Struct"],
+        "params": [1],
+        "def": {
+            "composite": {
+                "fields": [
+                    { "name": "a", "type": 2, "typeName": "i32" },
+                    // type 1 is the `u8` in the `PhantomData`
+                    { "name": "b", "type": 3, "typeName": "PhantomData<T>" },
                 ],
             },
         }

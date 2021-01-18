@@ -13,7 +13,10 @@
 // limitations under the License.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use scale_info::prelude::boxed::Box;
+use scale_info::prelude::{
+    boxed::Box,
+    marker::PhantomData,
+};
 
 use pretty_assertions::assert_eq;
 use scale_info::{
@@ -71,6 +74,27 @@ fn struct_derive() {
                 .field_of::<bool>("u", "U"),
         );
     assert_type!(SelfTyped, self_typed_type);
+}
+
+#[test]
+fn phantom_data_is_part_of_the_type_info() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct P<T> {
+        a: u8,
+        m: PhantomData<T>,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("P", "derive"))
+        .type_params(tuple_meta_type!(bool))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .field_of::<PhantomData<bool>>("m", "PhantomData<T>"),
+        );
+
+    assert_type!(P<bool>, ty);
 }
 
 #[test]
