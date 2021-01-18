@@ -96,14 +96,6 @@ impl MetaType {
         }
     }
 
-    /// Creates a new meta type from the type of the given reference.
-    pub fn of<T>(_elem: &T) -> Self
-    where
-        T: TypeInfo + ?Sized + 'static,
-    {
-        Self::new::<T>()
-    }
-
     /// Returns the meta type information.
     pub fn type_info(&self) -> Type<MetaForm> {
         (self.fn_type_info)()

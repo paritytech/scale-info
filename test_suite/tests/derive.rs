@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use pretty_assertions::assert_eq;
@@ -20,6 +21,7 @@ use scale_info::{
     prelude::{
         boxed::Box,
         Compact,
+        marker::PhantomData,
     },
     tuple_meta_type,
     Path,
@@ -74,6 +76,27 @@ fn struct_derive() {
                 .field_of::<bool>("u", "U"),
         );
     assert_type!(SelfTyped, self_typed_type);
+}
+
+#[test]
+fn phantom_data_is_part_of_the_type_info() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct P<T> {
+        a: u8,
+        m: PhantomData<T>,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("P", "derive"))
+        .type_params(tuple_meta_type!(bool))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .field_of::<PhantomData<bool>>("m", "PhantomData<T>"),
+        );
+
+    assert_type!(P<bool>, ty);
 }
 
 #[test]
@@ -189,8 +212,9 @@ fn associated_types_derive_without_bounds() {
     }
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct Assoc<T: Types> {
+    struct Assoc<'bar, T: Types> {
         a: T::A,
+        b: &'bar u64,
     }
 
     #[derive(TypeInfo)]
@@ -202,7 +226,11 @@ fn associated_types_derive_without_bounds() {
     let struct_type = Type::builder()
         .path(Path::new("Assoc", "derive"))
         .type_params(tuple_meta_type!(ConcreteTypes))
-        .composite(Fields::named().field_of::<bool>("a", "T::A"));
+        .composite(
+            Fields::named()
+                .field_of::<bool>("a", "T::A")
+                .field_of::<u64>("b", "&'static u64"),
+        );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
 }
@@ -270,13 +298,28 @@ fn scale_compact_types_work_in_enums() {
     assert_type!(MutilatedMultiAddress<u8, u16>, ty);
 }
 
+#[test]
+fn whitespace_scrubbing_works() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct A {
+        a: (u8, (bool, u8)),
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("A", "derive"))
+        .composite(Fields::named().field_of::<(u8, (bool, u8))>("a", "(u8, (bool, u8))"));
+
+    assert_type!(A, ty);
+}
+
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {
     let t = trybuild::TestCases::new();
     t.compile_fail("tests/ui/fail_missing_derive.rs");
-    t.compile_fail("tests/ui/fail_non_static_lifetime.rs");
     t.compile_fail("tests/ui/fail_unions.rs");
+    t.pass("tests/ui/pass_non_static_lifetime.rs");
     t.pass("tests/ui/pass_self_referential.rs");
     t.pass("tests/ui/pass_basic_generic_type.rs");
     t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
