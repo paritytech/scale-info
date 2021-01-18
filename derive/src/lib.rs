@@ -35,8 +35,10 @@ use syn::{
         Error,
         Result,
     },
+    parse_quote,
     punctuated::Punctuated,
     token::Comma,
+    visit_mut::VisitMut,
     Data,
     DataEnum,
     DataStruct,
@@ -45,6 +47,7 @@ use syn::{
     ExprLit,
     Field,
     Fields,
+    Lifetime,
     Lit,
     Variant,
 };
@@ -69,7 +72,11 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let ident = &ast.ident;
     trait_bounds::add(ident, &mut ast.generics, &ast.data)?;
 
-    let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
+    ast.generics
+        .lifetimes_mut()
+        .for_each(|l| *l = parse_quote!('static));
+
+    let (_, ty_generics, where_clause) = ast.generics.split_for_impl();
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
         quote! {
@@ -83,9 +90,9 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         Data::Enum(ref e) => generate_variant_type(e),
         Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
     };
-
+    let generic_types = ast.generics.type_params();
     let type_info_impl = quote! {
-        impl #impl_generics ::scale_info::TypeInfo for #ident #ty_generics #where_clause {
+        impl <#( #generic_types ),*> ::scale_info::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
             fn type_info() -> ::scale_info::Type {
                 ::scale_info::Type::builder()
@@ -107,6 +114,17 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
         .iter()
         .map(|f| {
             let (ty, ident) = (&f.ty, &f.ident);
+            // Replace any field lifetime params with `static to prevent "unnecessary lifetime parameter"
+            // warning. Any lifetime parameters are specified as 'static in the type of the impl.
+            struct StaticLifetimesReplace;
+            impl VisitMut for StaticLifetimesReplace {
+                fn visit_lifetime_mut(&mut self, lifetime: &mut Lifetime) {
+                    *lifetime = parse_quote!('static)
+                }
+            }
+            let mut ty = ty.clone();
+            StaticLifetimesReplace.visit_type_mut(&mut ty);
+
             let type_name = clean_type_string(&quote!(#ty).to_string());
 
             if let Some(i) = ident {
@@ -139,6 +157,7 @@ fn clean_type_string(input: &str) -> String {
         .replace(" <", "<")
         .replace("< ", "<")
         .replace(" >", ">")
+        .replace("& \'", "&'")
 }
 
 fn generate_composite_type(data_struct: &DataStruct) -> TokenStream2 {

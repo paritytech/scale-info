@@ -28,29 +28,34 @@ use syn::{
 /// associated types (e.g. `T::A: TypeInfo`), correctly dealing with
 /// self-referential types.
 pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
-    let ty_params = generics.type_params_mut().fold(Vec::new(), |mut acc, p| {
-        p.bounds.push(parse_quote!(::scale_info::TypeInfo));
-        p.bounds.push(parse_quote!('static));
-        acc.push(p.ident.clone());
-        acc
-    });
+    let ty_params_ids = generics
+        .type_params()
+        .map(|type_param| type_param.ident.clone())
+        .collect::<Vec<Ident>>();
 
-    if ty_params.is_empty() {
+    if ty_params_ids.is_empty() {
         return Ok(())
     }
 
-    let types = collect_types_to_bind(input_ident, data, &ty_params)?;
+    let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
+    let type_params = generics.type_params().cloned().collect::<Vec<_>>();
+    let where_clause = generics.make_where_clause();
 
-    if !types.is_empty() {
-        let where_clause = generics.make_where_clause();
+    types.into_iter().for_each(|ty| {
+        where_clause
+            .predicates
+            .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
+    });
 
-        types.into_iter().for_each(|ty| {
-            where_clause
-                .predicates
-                .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
-        });
-    }
-
+    type_params.into_iter().for_each(|type_param| {
+        let ident = type_param.ident;
+        let mut bounds = type_param.bounds;
+        bounds.push(parse_quote!(::scale_info::TypeInfo));
+        bounds.push(parse_quote!('static));
+        where_clause
+            .predicates
+            .push(parse_quote!( #ident : #bounds));
+    });
     Ok(())
 }
 
