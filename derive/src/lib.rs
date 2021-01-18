@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -150,6 +150,8 @@ fn clean_type_string(input: &str) -> String {
         .replace("[ ", "[")
         .replace(" ]", "]")
         .replace(" (", "(")
+        // put back a space so that `a: (u8, (bool, u8))` isn't turned into `a: (u8,(bool, u8))`
+        .replace(",(", ", (")
         .replace("( ", "(")
         .replace(" )", ")")
         .replace(" <", "<")

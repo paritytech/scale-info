@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -112,6 +112,12 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
 
 impl<T> TypeInfo for Vec<T>
 where

@@ -1,4 +1,4 @@
-// Copyright 2019-2020 Parity Technologies (UK) Ltd.
+// Copyright 2019-2021 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -94,14 +94,6 @@ impl MetaType {
             fn_type_info: <T as TypeInfo>::type_info,
             type_id: TypeId::of::<T::Identity>(),
         }
-    }
-
-    /// Creates a new meta types from the type of the given reference.
-    pub fn of<T>(_elem: &T) -> Self
-    where
-        T: TypeInfo + ?Sized + 'static,
-    {
-        Self::new::<T>()
     }
 
     /// Returns the meta type information.
