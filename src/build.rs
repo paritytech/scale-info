@@ -128,7 +128,6 @@ use crate::{
     Path,
     Type,
     TypeDef,
-    TypeDefCompact,
     TypeDefComposite,
     TypeDefVariant,
     TypeInfo,
@@ -188,11 +187,6 @@ impl TypeBuilder<state::PathAssigned> {
     /// Construct a "composite" type i.e. a `struct`
     pub fn composite<F>(self, fields: FieldsBuilder<F>) -> Type {
         self.build(TypeDefComposite::new(fields.finalize()))
-    }
-
-    /// Construct a [`Compact`] type, i.e. a `scale::Compact<T>`
-    pub fn compact<T: TypeInfo + ?Sized + 'static>(self) -> Type {
-        self.build(TypeDefCompact::new(MetaType::new::<T>()))
     }
 }
 
