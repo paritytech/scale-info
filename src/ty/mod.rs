@@ -118,6 +118,12 @@ impl From<TypeDefTuple> for Type {
     }
 }
 
+impl From<TypeDefPhantom> for Type {
+    fn from(phantom: TypeDefPhantom) -> Self {
+        Self::new(Path::voldemort(), Vec::new(), phantom)
+    }
+}
+
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
     pub fn builder() -> TypeBuilder {
@@ -181,6 +187,8 @@ pub enum TypeDef<T: Form = MetaForm> {
     Tuple(TypeDefTuple<T>),
     /// A Rust primitive type.
     Primitive(TypeDefPrimitive),
+    /// A PhantomData type.
+    Phantom(TypeDefPhantom<T>),
 }
 
 impl IntoPortable for TypeDef {
@@ -194,6 +202,7 @@ impl IntoPortable for TypeDef {
             TypeDef::Array(array) => array.into_portable(registry).into(),
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
+            TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
         }
     }
 }
@@ -391,6 +400,58 @@ where
     T: Form,
 {
     /// Returns the element type of the sequence type.
+    pub fn type_param(&self) -> &T::Type {
+        &self.type_param
+    }
+}
+
+/// A type describing a `PhantomData<T>` type.
+///
+/// In the context of SCALE encoded types, including `PhantomData<T>` types in
+/// the type info  might seem surprising. The reason to include this information
+/// is that there could be situations where it's useful and because removing
+/// `PhantomData` items from the derive input quickly becomes a messy
+/// syntax-level hack (see PR https://github.com/paritytech/scale-info/pull/31).
+/// Instead we take the same approach as `parity-scale-codec` where users are
+/// required to explicitly skip fields that cannot be represented in SCALE
+/// encoding, using the `#[codec(skip)]` attribute.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize",
+        deserialize = "T::Type: DeserializeOwned",
+    ))
+)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+pub struct TypeDefPhantom<T: Form = MetaForm> {
+    /// The PhantomData type parameter
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    type_param: T::Type,
+}
+
+impl IntoPortable for TypeDefPhantom {
+    type Output = TypeDefPhantom<PortableForm>;
+
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+        TypeDefPhantom {
+            type_param: registry.register_type(&self.type_param),
+        }
+    }
+}
+
+impl TypeDefPhantom {
+    /// Creates a new phantom type definition.
+    pub fn new(type_param: MetaType) -> Self {
+        Self { type_param }
+    }
+}
+
+impl<T> TypeDefPhantom<T>
+where
+    T: Form,
+{
+    /// Returns the type parameter type of the phantom type.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }

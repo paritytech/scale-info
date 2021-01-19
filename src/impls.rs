@@ -17,17 +17,16 @@ use crate::prelude::{
     collections::BTreeMap,
     marker::PhantomData,
     string::String,
-    vec,
     vec::Vec,
 };
 
 use crate::{
     build::*,
-    meta_type,
     MetaType,
     Path,
     Type,
     TypeDefArray,
+    TypeDefPhantom,
     TypeDefPrimitive,
     TypeDefSequence,
     TypeDefTuple,
@@ -112,6 +111,12 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
 
 impl<T> TypeInfo for Vec<T>
 where
@@ -243,9 +248,6 @@ where
     type Identity = Self;
 
     fn type_info() -> Type {
-        Type::builder()
-            .path(Path::prelude("PhantomData"))
-            .type_params(vec![meta_type::<T>()])
-            .composite(Fields::unit())
+        TypeDefPhantom::new(MetaType::new::<T>()).into()
     }
 }
