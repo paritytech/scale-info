@@ -60,28 +60,13 @@ impl_metadata_for_primitives!(
     i128 => TypeDefPrimitive::I128,
 );
 
-macro_rules! impl_metadata_for_array {
-    ( $( $n:expr )* ) => {
-        $(
-            impl<T: TypeInfo + 'static> TypeInfo for [T; $n] {
-                type Identity = Self;
+impl<T: TypeInfo + 'static, const N: usize> TypeInfo for [T; N] {
+    type Identity = Self;
 
-                fn type_info() -> Type {
-                    TypeDefArray::new($n, MetaType::new::<T>()).into()
-                }
-            }
-        )*
+    fn type_info() -> Type {
+        TypeDefArray::new(N as u32, MetaType::new::<T>()).into()
     }
 }
-
-#[rustfmt::skip]
-impl_metadata_for_array!(
-        1  2  3  4  5  6  7  8  9
-    10 11 12 13 14 15 16 17 18 19
-    20 21 22 23 24 25 26 27 28 29
-    30 31 32
-    40 48 56 64 72 96 128 160 192 224 256
-);
 
 macro_rules! impl_metadata_for_tuple {
     ( $($ty:ident),* ) => {
