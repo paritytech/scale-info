@@ -70,13 +70,13 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
     let ident = &ast.ident;
-    trait_bounds::add(ident, &mut ast.generics, &ast.data)?;
 
     ast.generics
         .lifetimes_mut()
         .for_each(|l| *l = parse_quote!('static));
 
-    let (_, ty_generics, where_clause) = ast.generics.split_for_impl();
+    let (ty_generics, where_clause) = trait_bounds::add(ident, &ast.generics, &ast.data)?;
+
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
         quote! {
