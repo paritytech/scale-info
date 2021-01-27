@@ -53,7 +53,7 @@ pub struct UntrackedSymbol<T> {
 }
 
 impl<T> scale::Encode for UntrackedSymbol<T> {
-    fn encode_to<W: scale::Output>(&self, dest: &mut W) {
+    fn encode_to<W: scale::Output + ?Sized>(&self, dest: &mut W) {
         self.id.get().encode_to(dest)
     }
 }
