@@ -1,3 +1,7 @@
+# Version 0.5.0 (2021-01-27)
+
+* Bump `parity-scale-codec` from 1.0 to 2.0 [(#55)](https://github.com/paritytech/scale-info/pull/55)
+
 # Version 0.4.1 (2020-10-11)
 
 * Add missing `extern crate proc_macro;` [(#22)](https://github.com/paritytech/scale-info/pull/24)
