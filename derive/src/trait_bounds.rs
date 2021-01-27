@@ -22,20 +22,18 @@ use syn::{
     Generics,
     Result,
     Type,
-    TypeGenerics,
     WhereClause,
 };
 
-/// Adds a `TypeInfo + 'static` bound to all relevant generic types including
-/// associated types (e.g. `T::A: TypeInfo`), correctly dealing with
-/// self-referential types.
-pub fn add<'a>(
+/// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
+/// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
+/// with self-referential types.
+pub fn make_where_clause<'a>(
     input_ident: &'a Ident,
     generics: &'a Generics,
     data: &'a syn::Data,
-) -> Result<(TypeGenerics<'a>, WhereClause)> {
-    let (_, ty_generics, where_clause) = generics.split_for_impl();
-    let mut where_clause = where_clause.cloned().unwrap_or_else(|| {
+) -> Result<WhereClause> {
+    let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
         WhereClause {
             where_token: <syn::Token![where]>::default(),
             predicates: Punctuated::new(),
@@ -48,7 +46,7 @@ pub fn add<'a>(
         .collect::<Vec<Ident>>();
 
     if ty_params_ids.is_empty() {
-        return Ok((ty_generics, where_clause))
+        return Ok(where_clause)
     }
 
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
@@ -69,7 +67,7 @@ pub fn add<'a>(
             .push(parse_quote!( #ident : #bounds));
     });
 
-    Ok((ty_generics, where_clause))
+    Ok(where_clause)
 }
 
 /// Visits the ast and checks if the given type contains one of the given
