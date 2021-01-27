@@ -92,12 +92,11 @@
 macro_rules! tuple_meta_type {
     ( $($ty:ty),* ) => {
         {
-            #[allow(unused_mut)]
-            let mut v = $crate::prelude::vec![];
-            $(
-                v.push($crate::MetaType::new::<$ty>());
-            )*
-            v
+            $crate::prelude::vec![
+                $(
+                    $crate::MetaType::new::<$ty>(),
+                )*
+            ]
         }
     }
 }
