@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Consolidate common prelude for std and no_std and usage - [(#33)](https://github.com/paritytech/scale-info/pull/33)
 - Add informational field type name - [(#30)](https://github.com/paritytech/scale-info/pull/30)
 - Unify transparent wrapper types e.g. references - [(#26)](https://github.com/paritytech/scale-info/pull/26)
+- Bump `parity-scale-codec` from 1.0 to 2.0 [(#55)](https://github.com/paritytech/scale-info/pull/55)
 
 ## Fixed
 - Fix type name scrubbing to handle nested tuples - [(#47)](https://github.com/paritytech/scale-info/pull/47)
