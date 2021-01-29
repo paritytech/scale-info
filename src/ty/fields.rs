@@ -29,7 +29,6 @@ use scale::{
 };
 #[cfg(feature = "serde")]
 use serde::{
-    de::DeserializeOwned,
     Deserialize,
     Serialize,
 };
@@ -65,13 +64,6 @@ use serde::{
 /// alias, there are no guarantees provided, and the type name representation
 /// may change.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-    ))
-)]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
 pub struct Field<T: Form = MetaForm> {
