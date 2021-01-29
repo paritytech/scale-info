@@ -51,10 +51,20 @@ pub fn make_where_clause<'a>(
 
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
 
-    types.into_iter().for_each(|ty| {
-        where_clause
-            .predicates
-            .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
+    types.into_iter().for_each(|(ty, is_compact)| {
+        // Compact types need extra bounds, T: HasCompact and <T as HasCompact>::Type: TypeInfo + 'static
+        if is_compact {
+            where_clause
+                .predicates
+                .push(parse_quote!(#ty : ::scale::HasCompact));
+            where_clause
+                .predicates
+                .push(parse_quote!(<#ty as ::scale::HasCompact>::Type : ::scale_info::TypeInfo + 'static));
+        } else {
+            where_clause
+                .predicates
+                .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static));
+        }
     });
 
     generics.type_params().into_iter().for_each(|type_param| {
@@ -94,14 +104,14 @@ fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
     visitor.result
 }
 
-/// Returns all types that must be added to the where clause with the respective
-/// trait bound.
+/// Returns all types that must be added to the where clause with a boolean
+/// indicating if the field is [`scale::Compact`] or not.
 fn collect_types_to_bind(
     input_ident: &Ident,
     data: &syn::Data,
     ty_params: &[Ident],
-) -> Result<Vec<Type>> {
-    let types_from_fields = |fields: &Punctuated<syn::Field, _>| -> Vec<syn::Type> {
+) -> Result<Vec<(Type, bool)>> {
+    let types_from_fields = |fields: &Punctuated<syn::Field, _>| -> Vec<(Type, bool)> {
         fields
             .iter()
             .filter(|field| {
@@ -112,7 +122,7 @@ fn collect_types_to_bind(
                 // to not have them in the where clause.
                 !type_contains_idents(&field.ty, &[input_ident.clone()])
             })
-            .map(|f| f.ty.clone())
+            .map(|f| (f.ty.clone(), super::is_compact(f)))
             .collect()
     };
 

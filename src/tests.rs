@@ -76,6 +76,10 @@ fn prelude_items() {
             )
     );
     assert_type!(PhantomData<i32>, TypeDefPhantom::new(meta_type::<i32>()));
+}
+
+#[test]
+fn scale_compact_types() {
     assert_type!(Compact<i32>, TypeDefCompact::new(meta_type::<i32>()))
 }
 
