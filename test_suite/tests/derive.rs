@@ -244,23 +244,6 @@ fn scale_compact_types_work_in_structs() {
         b: u16,
     }
 
-    let ty = Type::builder()
-        .path(Path::new("Dense", "derive"))
-        .composite(
-            Fields::named()
-                .field_of::<u8>("a", "u8")
-                .field_of::<Compact<u16>>("b", "u16"),
-        );
-
-    assert_type!(Dense, ty);
-
-    // TODO: These two tests both pass. This illustrates a doubt I have that
-    // this is the right way to go. With this PR we take `#[codec(compact)]` to
-    // mean that the type is encoded/decoded as `Compact<T>` but in reality the
-    // output of the `Encode` macro is something quite different and not
-    // `Compact<T>`.
-    // Maybe this is fine, maybe it's not, just not sure.
-
     let ty_alt = Type::builder()
         .path(Path::new("Dense", "derive"))
         .composite(
