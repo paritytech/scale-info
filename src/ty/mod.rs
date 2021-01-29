@@ -386,14 +386,6 @@ where
 /// A type wrapped in [`Compact`].
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        // TODO: check these bounds
-        serialize = "T::Type: Serialize",
-        deserialize = "T::Type: DeserializeOwned",
-    ))
-)]
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
