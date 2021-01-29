@@ -189,9 +189,7 @@ impl PortableRegistry {
     }
 
     /// Returns an iterator for all types paired with their associated NonZeroU32 identifier.
-    pub fn enumerate(
-        &self,
-    ) -> impl Iterator<Item = (NonZeroU32, &Type<PortableForm>)> {
+    pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<PortableForm>)> {
         self.types.iter().enumerate().map(|(i, ty)| {
             let id = NonZeroU32::new(i as u32 + 1).expect("i + 1 > 0; qed");
             (id, ty)
