@@ -22,24 +22,34 @@ use syn::{
     Generics,
     Result,
     Type,
+    WhereClause,
 };
 
-/// Adds a `TypeInfo + 'static` bound to all relevant generic types including
-/// associated types (e.g. `T::A: TypeInfo`), correctly dealing with
-/// self-referential types.
-pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
-    let ty_params_ids = generics
-        .type_params()
+/// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
+/// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
+/// with self-referential types.
+pub fn make_where_clause<'a>(
+    input_ident: &'a Ident,
+    generics: &'a Generics,
+    data: &'a syn::Data,
+) -> Result<WhereClause> {
+    let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
+        WhereClause {
+            where_token: <syn::Token![where]>::default(),
+            predicates: Punctuated::new(),
+        }
+    });
+
+    let type_params = generics.type_params();
+    let ty_params_ids = type_params
         .map(|type_param| type_param.ident.clone())
         .collect::<Vec<Ident>>();
 
     if ty_params_ids.is_empty() {
-        return Ok(())
+        return Ok(where_clause)
     }
 
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
-    let type_params = generics.type_params().cloned().collect::<Vec<_>>();
-    let where_clause = generics.make_where_clause();
 
     types.into_iter().for_each(|ty| {
         where_clause
@@ -47,16 +57,17 @@ pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Re
             .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
     });
 
-    type_params.into_iter().for_each(|type_param| {
-        let ident = type_param.ident;
-        let mut bounds = type_param.bounds;
+    generics.type_params().into_iter().for_each(|type_param| {
+        let ident = type_param.ident.clone();
+        let mut bounds = type_param.bounds.clone();
         bounds.push(parse_quote!(::scale_info::TypeInfo));
         bounds.push(parse_quote!('static));
         where_clause
             .predicates
             .push(parse_quote!( #ident : #bounds));
     });
-    Ok(())
+
+    Ok(where_clause)
 }
 
 /// Visits the ast and checks if the given type contains one of the given
