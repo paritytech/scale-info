@@ -14,10 +14,10 @@
 
 use crate::{
     build::*,
-    prelude::Compact,
     *,
 };
 use core::marker::PhantomData;
+use scale::Compact;
 
 #[cfg(not(feature = "std"))]
 use alloc::{

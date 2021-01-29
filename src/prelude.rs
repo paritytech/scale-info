@@ -57,5 +57,3 @@ cfg_if! {
         };
     }
 }
-
-pub use scale::Compact;

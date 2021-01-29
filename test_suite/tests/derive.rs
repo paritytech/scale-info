@@ -15,13 +15,12 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use pretty_assertions::assert_eq;
-use scale::Encode;
+use scale::{Compact, Encode};
 use scale_info::{
     build::*,
     prelude::{
         boxed::Box,
         marker::PhantomData,
-        Compact,
     },
     tuple_meta_type,
     Path,
