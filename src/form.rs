@@ -32,7 +32,6 @@
 use crate::prelude::{
     any::TypeId,
     fmt::Debug,
-    string::String,
 };
 
 use crate::{
@@ -84,7 +83,7 @@ cfg_if::cfg_if! {
         impl Form for PortableForm {
             type Type = UntrackedSymbol<TypeId>;
             // Owned string required for decoding/deserialization
-            type String = String;
+            type String = crate::prelude::string::String;
         }
     } else {
         impl Form for PortableForm {
