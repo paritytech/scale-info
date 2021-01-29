@@ -62,7 +62,7 @@ fn scale_encode_then_decode_to_readonly() {
     let mut encoded = registry.encode();
     let original_serialized = serde_json::to_value(registry).unwrap();
 
-    let readonly_decoded = PortableRegistry::<String>::decode(&mut &encoded[..]).unwrap();
+    let readonly_decoded = PortableRegistry::decode(&mut &encoded[..]).unwrap();
     assert!(readonly_decoded
         .resolve(NonZeroU32::new(1).unwrap())
         .is_some());
@@ -79,7 +79,7 @@ fn json_serialize_then_deserialize_to_readonly() {
     let registry: PortableRegistry = registry.into();
     let original_serialized = serde_json::to_value(registry).unwrap();
     // assert_eq!(original_serialized, serde_json::Value::Null);
-    let readonly_deserialized: PortableRegistry<String> =
+    let readonly_deserialized: PortableRegistry =
         serde_json::from_value(original_serialized.clone()).unwrap();
     assert!(readonly_deserialized
         .resolve(NonZeroU32::new(1).unwrap())

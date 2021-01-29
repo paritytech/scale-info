@@ -32,7 +32,6 @@
 use crate::prelude::{
     any::TypeId,
     fmt::Debug,
-    marker::PhantomData,
     string::String,
 };
 
@@ -53,17 +52,8 @@ pub trait Form {
     /// The type representing the type.
     type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
     /// The string type.
-    type String: FormString;
+    type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
 }
-
-/// Trait for types which can be used to represent strings in type definitions.
-pub trait FormString:
-    AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug
-{
-}
-
-impl FormString for &'static str {}
-impl FormString for String {}
 
 /// A meta meta-type.
 ///
@@ -85,16 +75,21 @@ impl Form for MetaForm {
 /// This resolves some lifetime issues with self-referential structs (such as
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
-///
-/// `type String` is owned in order to enable decoding
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-pub struct PortableForm<S = &'static str>(PhantomData<S>);
+pub enum PortableForm {}
 
-impl<S> Form for PortableForm<S>
-where
-    S: FormString,
-{
-    type Type = UntrackedSymbol<TypeId>;
-    type String = S;
+cfg_if::cfg_if! {
+    if #[cfg(any(feature = "std", feature = "decode"))] {
+        impl Form for PortableForm {
+            type Type = UntrackedSymbol<TypeId>;
+            // Owned string required for decoding/deserialization
+            type String = String;
+        }
+    } else {
+        impl Form for PortableForm {
+            type Type = UntrackedSymbol<TypeId>;
+            type String = &'static str;
+        }
+    }
 }
