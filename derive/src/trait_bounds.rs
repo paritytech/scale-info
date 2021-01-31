@@ -52,7 +52,8 @@ pub fn make_where_clause<'a>(
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
 
     types.into_iter().for_each(|(ty, is_compact)| {
-        // Compact types need extra bounds, T: HasCompact and <T as HasCompact>::Type: TypeInfo + 'static
+        // Compact types need extra bounds, T: HasCompact and <T as
+        // HasCompact>::Type: TypeInfo + 'static
         if is_compact {
             where_clause
                 .predicates
