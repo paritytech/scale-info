@@ -57,21 +57,21 @@ pub fn make_where_clause<'a>(
         if is_compact {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : ::scale::HasCompact));
+                .push(parse_quote!(#ty : _scale::HasCompact));
             where_clause
                 .predicates
-                .push(parse_quote!(<#ty as ::scale::HasCompact>::Type : ::scale_info::TypeInfo + 'static));
+                .push(parse_quote!(<#ty as _scale::HasCompact>::Type : _scale_info::TypeInfo + 'static));
         } else {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static));
+                .push(parse_quote!(#ty : _scale_info::TypeInfo + 'static));
         }
     });
 
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        bounds.push(parse_quote!(::scale_info::TypeInfo));
+        bounds.push(parse_quote!(_scale_info::TypeInfo));
         bounds.push(parse_quote!('static));
         where_clause
             .predicates
