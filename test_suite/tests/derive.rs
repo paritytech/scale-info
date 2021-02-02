@@ -15,10 +15,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use pretty_assertions::assert_eq;
-use scale::{
-    Compact,
-    Encode,
-};
+use scale::Encode;
 use scale_info::{
     build::*,
     prelude::{

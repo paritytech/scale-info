@@ -12,12 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#[cfg(not(feature = "std"))]
-use alloc::{
-    format,
-    string::ToString,
-};
-
 use proc_macro2::{
     Span,
     TokenStream as TokenStream2,
@@ -26,12 +20,10 @@ use quote::quote;
 use syn::Ident;
 
 pub fn wrap(
-    ident: &Ident,
-    trait_name: &'static str,
     impl_quote: TokenStream2,
 ) -> TokenStream2 {
     let include_scale_info = include_crate("scale-info", "_scale_info");
-    let include_parity_scale_codec = include_crate("parity_scale_codec", "_scale");
+    let include_parity_scale_codec = include_crate("parity-scale-codec", "_scale");
 
     quote! {
         #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]

@@ -108,7 +108,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         }
     };
 
-    Ok(impl_wrapper::wrap(ident, "TYPE_INFO", type_info_impl))
+    Ok(impl_wrapper::wrap(type_info_impl))
 }
 
 type FieldsList = Punctuated<Field, Comma>;
