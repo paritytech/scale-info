@@ -30,14 +30,32 @@ pub fn wrap(
     trait_name: &'static str,
     impl_quote: TokenStream2,
 ) -> TokenStream2 {
-    let mut renamed = format!("_IMPL_{}_FOR_", trait_name);
-    renamed.push_str(ident.to_string().trim_start_matches("r#"));
-    let dummy_const = Ident::new(&renamed, Span::call_site());
+    let include_scale_info = include_crate("scale-info", "_scale_info");
+    let include_parity_scale_codec = include_crate("parity_scale_codec", "_scale");
 
     quote! {
         #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
-        const #dummy_const: () = {
+        const _: () = {
+            #include_scale_info
+            #include_parity_scale_codec
+
             #impl_quote;
         };
+    }
+}
+
+/// Include a crate under a known alias, to be robust against renamed dependencies.
+fn include_crate(name: &str, alias: &str) -> proc_macro2::TokenStream {
+    // This "hack" is required for the tests.
+    if Some(std::env::var("CARGO_PKG_NAME")) == name {
+        quote!( extern crate #name as #alias; )
+    } else {
+        match proc_macro_crate::crate_name(name) {
+            Ok(crate_name) => {
+                let ident = Ident::new(&crate_name, Span::call_site());
+                quote!( extern crate #ident as #alias; )
+            },
+            Err(e) => syn::Error::new(Span::call_site(), &e).to_compile_error(),
+        }
     }
 }
