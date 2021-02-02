@@ -19,9 +19,7 @@ use proc_macro2::{
 use quote::quote;
 use syn::Ident;
 
-pub fn wrap(
-    impl_quote: TokenStream2,
-) -> TokenStream2 {
+pub fn wrap(impl_quote: TokenStream2) -> TokenStream2 {
     let include_scale_info = include_crate("scale-info", "_scale_info");
     let include_parity_scale_codec = include_crate("parity-scale-codec", "_scale");
 
@@ -43,7 +41,7 @@ fn include_crate(name: &str, alias: &str) -> proc_macro2::TokenStream {
             let crate_name_ident = Ident::new(&crate_name, Span::call_site());
             let crate_alias_ident = Ident::new(&alias, Span::call_site());
             quote!( extern crate #crate_name_ident as #crate_alias_ident; )
-        },
+        }
         Err(e) => syn::Error::new(Span::call_site(), &e).to_compile_error(),
     }
 }
