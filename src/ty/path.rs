@@ -32,10 +32,7 @@ use crate::{
     IntoPortable,
     Registry,
 };
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
@@ -59,7 +56,7 @@ use serde::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode)]
 pub struct Path<T: Form = MetaForm> {
     /// The segments of the namespace.
