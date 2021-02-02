@@ -63,7 +63,8 @@ pub use self::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct Type<T: Form = MetaForm> {
     /// The unique path to the type. Can be empty for built-in types
     #[cfg_attr(
@@ -173,7 +174,8 @@ where
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
     Composite(TypeDefComposite<T>),
@@ -208,9 +210,10 @@ impl IntoPortable for TypeDef {
 }
 
 /// A primitive Rust type.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub enum TypeDefPrimitive {
     /// `bool` type
     Bool,
@@ -245,7 +248,6 @@ pub enum TypeDefPrimitive {
 }
 
 /// An array type.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -254,6 +256,8 @@ pub enum TypeDefPrimitive {
         deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
     ))
 )]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
     len: u32,
@@ -306,7 +310,8 @@ where
     ))
 )]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
     fields: Vec<T::Type>,
@@ -358,7 +363,8 @@ where
         deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
     ))
 )]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
@@ -423,7 +429,8 @@ where
         deserialize = "T::Type: DeserializeOwned",
     ))
 )]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefPhantom<T: Form = MetaForm> {
     /// The PhantomData type parameter
     #[cfg_attr(feature = "serde", serde(rename = "type"))]

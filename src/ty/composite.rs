@@ -71,7 +71,8 @@ use serde::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode)]
 pub struct TypeDefComposite<T: Form = MetaForm> {
     /// The fields of the composite type.
     #[cfg_attr(
