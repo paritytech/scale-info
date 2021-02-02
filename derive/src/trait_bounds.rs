@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use super::{
+    CODEC,
+    SCALE_INFO,
+};
 use alloc::vec::Vec;
 use proc_macro2::Ident;
 use syn::{
@@ -24,7 +28,6 @@ use syn::{
     Type,
     WhereClause,
 };
-use super::{SCALE_INFO, CODEC};
 
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing

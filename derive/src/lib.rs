@@ -103,11 +103,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         .for_each(|l| *l = parse_quote!('static));
 
     let (_, ty_generics, _) = ast.generics.split_for_impl();
-    let where_clause = trait_bounds::make_where_clause(
-        ident,
-        &ast.generics,
-        &ast.data,
-    )?;
+    let where_clause = trait_bounds::make_where_clause(ident, &ast.generics, &ast.data)?;
 
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
