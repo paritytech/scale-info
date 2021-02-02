@@ -46,16 +46,11 @@ pub fn wrap(
 
 /// Include a crate under a known alias, to be robust against renamed dependencies.
 fn include_crate(name: &str, alias: &str) -> proc_macro2::TokenStream {
-    // This "hack" is required for the tests.
-    if Some(std::env::var("CARGO_PKG_NAME")) == name {
-        quote!( extern crate #name as #alias; )
-    } else {
-        match proc_macro_crate::crate_name(name) {
-            Ok(crate_name) => {
-                let ident = Ident::new(&crate_name, Span::call_site());
-                quote!( extern crate #ident as #alias; )
-            },
-            Err(e) => syn::Error::new(Span::call_site(), &e).to_compile_error(),
-        }
+    match proc_macro_crate::crate_name(name) {
+        Ok(crate_name) => {
+            let ident = Ident::new(&crate_name, Span::call_site());
+            quote!( extern crate #ident as #alias; )
+        },
+        Err(e) => syn::Error::new(Span::call_site(), &e).to_compile_error(),
     }
 }
