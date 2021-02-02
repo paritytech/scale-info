@@ -11,16 +11,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use scale_info::prelude::{
-    boxed::Box,
-    marker::PhantomData,
-};
-
 use pretty_assertions::assert_eq;
+use scale::{
+    Compact,
+    Encode,
+};
 use scale_info::{
     build::*,
+    prelude::{
+        boxed::Box,
+        marker::PhantomData,
+    },
     tuple_meta_type,
     Path,
     Type,
@@ -231,6 +235,52 @@ fn associated_types_derive_without_bounds() {
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
+}
+
+#[test]
+fn scale_compact_types_work_in_structs() {
+    #[allow(unused)]
+    #[derive(Encode, TypeInfo)]
+    struct Dense {
+        a: u8,
+        #[codec(compact)]
+        b: u16,
+    }
+
+    let ty_alt = Type::builder()
+        .path(Path::new("Dense", "derive"))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .compact_of::<u16>("b", "u16"),
+        );
+    assert_type!(Dense, ty_alt);
+}
+
+#[test]
+fn scale_compact_types_work_in_enums() {
+    #[allow(unused)]
+    #[derive(Encode, TypeInfo)]
+    enum MutilatedMultiAddress<AccountId, AccountIndex> {
+        Id(AccountId),
+        Index(#[codec(compact)] AccountIndex),
+        Address32([u8; 32]),
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("MutilatedMultiAddress", "derive"))
+        .type_params(tuple_meta_type!(u8, u16))
+        .variant(
+            Variants::with_fields()
+                .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
+                .variant("Index", Fields::unnamed().compact_of::<u16>("AccountIndex"))
+                .variant(
+                    "Address32",
+                    Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"),
+                ),
+        );
+
+    assert_type!(MutilatedMultiAddress<u8, u16>, ty);
 }
 
 #[test]

@@ -254,7 +254,6 @@ mod tests {
                                 "&mut RecursiveRefs",
                             ),
                     )
-                    .into()
             }
         }
 

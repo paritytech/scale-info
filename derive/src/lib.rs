@@ -39,6 +39,7 @@ use syn::{
     punctuated::Punctuated,
     token::Comma,
     visit_mut::VisitMut,
+    AttrStyle,
     Data,
     DataEnum,
     DataStruct,
@@ -49,6 +50,9 @@ use syn::{
     Fields,
     Lifetime,
     Lit,
+    Meta,
+    MetaList,
+    NestedMeta,
     Variant,
 };
 
@@ -100,7 +104,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
                     .path(::scale_info::Path::new(stringify!(#ident), module_path!()))
                     .type_params(::scale_info::prelude::vec![ #( #generic_type_ids ),* ])
                     .#build_type
-                    .into()
             }
         }
     };
@@ -127,18 +130,35 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             StaticLifetimesReplace.visit_type_mut(&mut ty);
 
             let type_name = clean_type_string(&quote!(#ty).to_string());
-
-            if let Some(i) = ident {
-                quote! {
-                    .field_of::<#ty>(stringify!(#i), #type_name)
-                }
+            let method_call = if is_compact(f) {
+                quote!(.compact_of::<#ty>)
             } else {
-                quote! {
-                    .field_of::<#ty>(#type_name)
-                }
+                quote!(.field_of::<#ty>)
+            };
+            if let Some(ident) = ident {
+                quote!(#method_call(stringify!(#ident), #type_name))
+            } else {
+                quote!(#method_call(#type_name))
             }
         })
         .collect()
+}
+
+/// Look for a `#[codec(compact)]` outer attribute.
+fn is_compact(f: &Field) -> bool {
+    f.attrs.iter().any(|attr| {
+        let mut is_compact = false;
+        if attr.style == AttrStyle::Outer && attr.path.is_ident("codec") {
+            if let Ok(Meta::List(MetaList { nested, .. })) = attr.parse_meta() {
+                if let Some(NestedMeta::Meta(Meta::Path(path))) = nested.iter().next() {
+                    if path.is_ident("compact") {
+                        is_compact = true;
+                    }
+                }
+            }
+        }
+        is_compact
+    })
 }
 
 fn clean_type_string(input: &str) -> String {
