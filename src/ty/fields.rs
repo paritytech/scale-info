@@ -26,6 +26,7 @@ use crate::{
 use scale::{
     Decode,
     Encode,
+    HasCompact,
 };
 #[cfg(feature = "serde")]
 use serde::{
@@ -128,6 +129,15 @@ impl Field {
         T: TypeInfo + ?Sized + 'static,
     {
         Self::new(None, MetaType::new::<T>(), type_name)
+    }
+
+    /// Creates a new [`Compact`] field.
+    pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str) -> Field
+    where
+        T: HasCompact,
+        <T as HasCompact>::Type: TypeInfo + 'static,
+    {
+        Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name)
     }
 }
 

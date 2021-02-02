@@ -17,6 +17,7 @@ use crate::{
     *,
 };
 use core::marker::PhantomData;
+use scale::Compact;
 
 #[cfg(not(feature = "std"))]
 use alloc::{
@@ -78,6 +79,11 @@ fn prelude_items() {
 }
 
 #[test]
+fn scale_compact_types() {
+    assert_type!(Compact<i32>, TypeDefCompact::new(meta_type::<i32>()))
+}
+
+#[test]
 fn tuple_primitives() {
     // unit
     assert_type!((), TypeDefTuple::new(tuple_meta_type!()));
@@ -128,7 +134,6 @@ fn struct_with_generics() {
                 .path(Path::new("MyStruct", module_path!()))
                 .type_params(tuple_meta_type!(T))
                 .composite(Fields::named().field_of::<T>("data", "T"))
-                .into()
         }
     }
 
