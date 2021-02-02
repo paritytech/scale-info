@@ -48,8 +48,9 @@ pub fn wrap(
 fn include_crate(name: &str, alias: &str) -> proc_macro2::TokenStream {
     match proc_macro_crate::crate_name(name) {
         Ok(crate_name) => {
-            let ident = Ident::new(&crate_name, Span::call_site());
-            quote!( extern crate #ident as #alias; )
+            let crate_name_ident = Ident::new(&crate_name, Span::call_site());
+            let crate_alias_ident = Ident::new(&alias, Span::call_site());
+            quote!( extern crate #crate_name_ident as #crate_alias_ident; )
         },
         Err(e) => syn::Error::new(Span::call_site(), &e).to_compile_error(),
     }
