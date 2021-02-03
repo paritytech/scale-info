@@ -1,0 +1,5 @@
+error: cannot find attribute `codec` in this scope
+ --> $DIR/fail_use_codec_attrs_without_deriving_encode.rs:6:7
+  |
+6 |     #[codec(skip)]
+  |       ^^^^^
