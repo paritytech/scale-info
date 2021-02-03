@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+// #![cfg_attr(not(feature = "std"), no_std)]
 
 use pretty_assertions::assert_eq;
 use scale::Encode;
@@ -254,30 +254,119 @@ fn scale_compact_types_work_in_structs() {
     assert_type!(Dense, ty_alt);
 }
 
+// #[test]
+// fn scale_compact_types_work_in_enums() {
+//     #[allow(unused)]
+//     #[derive(Encode, TypeInfo)]
+//     enum MutilatedMultiAddress<AccountId, AccountIndex> {
+//         Id(AccountId),
+//         Index(#[codec(compact)] AccountIndex),
+//         Address32([u8; 32]),
+//     }
+
+//     let ty = Type::builder()
+//         .path(Path::new("MutilatedMultiAddress", "derive"))
+//         .type_params(tuple_meta_type!(u8, u16))
+//         .variant(
+//             Variants::with_fields()
+//                 .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
+//                 .variant("Index", Fields::unnamed().compact_of::<u16>("AccountIndex"))
+//                 .variant(
+//                     "Address32",
+//                     Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"),
+//                 ),
+//         );
+
+//     assert_type!(MutilatedMultiAddress<u8, u16>, ty);
+// }
+
 #[test]
-fn scale_compact_types_work_in_enums() {
+fn bah() {
+    use scale::Decode;
     #[allow(unused)]
-    #[derive(Encode, TypeInfo)]
-    enum MutilatedMultiAddress<AccountId, AccountIndex> {
+    #[derive(Encode, TypeInfo, Decode, PartialEq, Clone, Hash)]
+    // #[derive(Encode, Decode, PartialEq, Clone, Hash)]
+    pub enum MultiAddress<AccountId, AccountIndex> {
+        /// It's an account ID (pubkey).
         Id(AccountId),
+        /// It's an account index.
         Index(#[codec(compact)] AccountIndex),
+        /// It's some arbitrary raw bytes.
+        Raw(Vec<u8>),
+        /// It's a 32 byte representation.
         Address32([u8; 32]),
+        /// Its a 20 byte representation.
+        Address20([u8; 20]),
     }
 
+    // use scale::HasCompact;
+    // impl<AccountId, AccountIndex> TypeInfo for MultiAddress<AccountId, AccountIndex>
+    // where
+    //     AccountId: ::scale_info::TypeInfo + 'static,
+    //     AccountIndex: ::scale::HasCompact + 'static,
+    //     <AccountIndex as ::scale::HasCompact>::Type: ::scale_info::TypeInfo + 'static,
+    // {
+    //     type Identity = Self;
+    //     fn type_info() -> ::scale_info::Type {
+    //         ::scale_info::Type::builder()
+    //             .path(::scale_info::Path::new("MultiAddress", "derive"))
+    //             .type_params(vec![
+    //                 ::scale_info::meta_type::<AccountId>(),
+    //                 ::scale_info::meta_type::<<AccountIndex as HasCompact>::Type>(),
+    //             ])
+    //             .variant(
+    //                 ::scale_info::build::Variants::with_fields()
+    //                     .variant(
+    //                         "Id",
+    //                         ::scale_info::build::Fields::unnamed()
+    //                             .field_of::<AccountId>("AccountId"),
+    //                     )
+    //                     .variant(
+    //                         "Index",
+    //                         ::scale_info::build::Fields::unnamed()
+    //                             .compact_of::<AccountIndex>("AccountIndex"),
+    //                     )
+    //                     .variant(
+    //                         "Raw",
+    //                         ::scale_info::build::Fields::unnamed()
+    //                             .field_of::<Vec<u8>>("Vec<u8>"),
+    //                     )
+    //                     .variant(
+    //                         "Address32",
+    //                         ::scale_info::build::Fields::unnamed()
+    //                             .field_of::<[u8; 32]>("[u8; 32]"),
+    //                     )
+    //                     .variant(
+    //                         "Address20",
+    //                         ::scale_info::build::Fields::unnamed()
+    //                             .field_of::<[u8; 20]>("[u8; 20]"),
+    //                     ),
+    //             )
+    //     }
+    // }
     let ty = Type::builder()
-        .path(Path::new("MutilatedMultiAddress", "derive"))
-        .type_params(tuple_meta_type!(u8, u16))
+        .path(Path::new("MultiAddress", "derive"))
+        // .type_params(tuple_meta_type!(u8, u16))
+        .type_params(vec![
+            ::scale_info::meta_type::<u8>(),
+            ::scale_info::meta_type::<<u16 as ::scale::HasCompact>::Type>(),
+        ])
         .variant(
             Variants::with_fields()
                 .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
                 .variant("Index", Fields::unnamed().compact_of::<u16>("AccountIndex"))
+                .variant("Raw", Fields::unnamed().field_of::<Vec<u8>>("Vec<u8>"))
                 .variant(
                     "Address32",
                     Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"),
-                ),
+                )
+                .variant(
+                    "Address20",
+                    Fields::unnamed().field_of::<[u8; 20]>("[u8; 20]"),
+                )
         );
 
-    assert_type!(MutilatedMultiAddress<u8, u16>, ty);
+    assert_type!(MultiAddress<u8, u16>, ty);
 }
 
 #[test]
@@ -295,14 +384,14 @@ fn whitespace_scrubbing_works() {
     assert_type!(A, ty);
 }
 
-#[rustversion::nightly]
-#[test]
-fn ui_tests() {
-    let t = trybuild::TestCases::new();
-    t.compile_fail("tests/ui/fail_missing_derive.rs");
-    t.compile_fail("tests/ui/fail_unions.rs");
-    t.pass("tests/ui/pass_non_static_lifetime.rs");
-    t.pass("tests/ui/pass_self_referential.rs");
-    t.pass("tests/ui/pass_basic_generic_type.rs");
-    t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
-}
+// #[rustversion::nightly]
+// #[test]
+// fn ui_tests() {
+//     let t = trybuild::TestCases::new();
+//     t.compile_fail("tests/ui/fail_missing_derive.rs");
+//     t.compile_fail("tests/ui/fail_unions.rs");
+//     t.pass("tests/ui/pass_non_static_lifetime.rs");
+//     t.pass("tests/ui/pass_self_referential.rs");
+//     t.pass("tests/ui/pass_basic_generic_type.rs");
+//     t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
+// }

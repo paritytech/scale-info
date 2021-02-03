@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+// #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 extern crate proc_macro;
@@ -86,7 +86,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         .for_each(|l| *l = parse_quote!('static));
 
     let (_, ty_generics, _) = ast.generics.split_for_impl();
-    let where_clause = trait_bounds::make_where_clause(
+    let (where_clause, types) = trait_bounds::make_where_clause(
         ident,
         &ast.generics,
         &ast.data,
@@ -95,9 +95,19 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     )?;
 
     let generic_type_ids = ast.generics.type_params().map(|ty| {
+        // If this is used in a Compact field, then the call must be: ::scale_info::meta_type::<<#ty_ident as HasCompact>::Type>()
         let ty_ident = &ty.ident;
-        quote! {
-            :: #scale_info ::meta_type::<#ty_ident>()
+        let is_compact = types.as_ref().unwrap().iter().filter(|infos| if let Some(i) = &infos.2 { i == ty_ident } else {false}).any(|infos| infos.1 );
+        if is_compact {
+            println!("[DDDD] Adding call to meta_type with as HasCompact");
+            quote! {
+                :: #scale_info ::meta_type::<<#ty_ident as :: #parity_scale_codec :: HasCompact>::Type>()
+            }
+        } else {
+            println!("[DDDD] Adding normal call to meta_type");
+            quote! {
+                :: #scale_info ::meta_type::<#ty_ident>()
+            }
         }
     });
 

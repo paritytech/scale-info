@@ -34,7 +34,7 @@ pub fn make_where_clause<'a>(
     data: &'a syn::Data,
     scale_info: &Ident,
     parity_scale_codec: &Ident,
-) -> Result<WhereClause> {
+) -> Result<(WhereClause, Option<Vec<(Type, bool, Option<Ident>)>>)> {
     let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
         WhereClause {
             where_token: <syn::Token![where]>::default(),
@@ -48,15 +48,17 @@ pub fn make_where_clause<'a>(
         .collect::<Vec<Ident>>();
 
     if ty_params_ids.is_empty() {
-        return Ok(where_clause)
+        return Ok((where_clause, None))
     }
 
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
-
-    types.into_iter().for_each(|(ty, is_compact)| {
+    let types2 = types.clone();
+    println!("[DDD] nr types appearing in source={:?}", types.len());
+    types.into_iter().for_each(|(ty, is_compact, _)| {
         // Compact types need extra bounds, T: HasCompact and <T as
         // HasCompact>::Type: TypeInfo + 'static
         if is_compact {
+            println!("[DDD] ty={:?} is Compact, adding HasCompact bounds", ty);
             where_clause
                 .predicates
                 .push(parse_quote!(#ty : :: #parity_scale_codec ::HasCompact));
@@ -64,43 +66,57 @@ pub fn make_where_clause<'a>(
                 .predicates
                 .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : :: #scale_info ::TypeInfo + 'static));
         } else {
+            println!("[DDD] ty={:?} is NOT Compact, adding TypeInfo bound", ty);
             where_clause
                 .predicates
                 .push(parse_quote!(#ty : :: #scale_info ::TypeInfo + 'static));
         }
     });
-
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
-        let mut bounds = type_param.bounds.clone();
-        bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
-        bounds.push(parse_quote!('static));
-        where_clause
-            .predicates
-            .push(parse_quote!( #ident : #bounds));
+        // Find `ident` in `types`, check if it is Compact. If yes, skip, else add bounds
+        let is_compact = types2.iter().filter(|ty| if let Some(i) = &ty.2 { i == &ident } else {false}).any(|ty| ty.1 );
+        if is_compact {
+            println!("[DDD] ident {:?} is used for a field that is Compact; not adding TypeInfo bound", ident);
+            let mut bounds = type_param.bounds.clone();
+            bounds.push(parse_quote!('static));
+            where_clause
+                .predicates
+                .push(parse_quote!( #ident : #bounds));
+
+        } else {
+            // I wonder if we need further checks. As is this leads to double bounds, as the bound is added as part of the generics too. Investigate.
+            println!("[DDD] ident {:?} is used for a field that is NOT Compact. Adding bounds", ident);
+            let mut bounds = type_param.bounds.clone();
+            bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
+            bounds.push(parse_quote!('static));
+            where_clause
+                .predicates
+                .push(parse_quote!( #ident : #bounds));
+        }
     });
 
-    Ok(where_clause)
+    Ok((where_clause, Some(types2)))
 }
 
 /// Visits the ast and checks if the given type contains one of the given
 /// idents.
-fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
+fn type_contains_idents(ty: &Type, idents: &[Ident]) -> (bool, Option<Ident>) {
     struct ContainIdents<'a> {
-        result: bool,
+        result: (bool, Option<Ident>),
         idents: &'a [Ident],
     }
 
     impl<'a, 'ast> Visit<'ast> for ContainIdents<'a> {
         fn visit_ident(&mut self, i: &'ast Ident) {
             if self.idents.iter().any(|id| id == i) {
-                self.result = true;
+                self.result = (true, Some(i.clone()));
             }
         }
     }
 
     let mut visitor = ContainIdents {
-        result: false,
+        result: (false, None),
         idents,
     };
     visitor.visit_type(ty);
@@ -113,19 +129,19 @@ fn collect_types_to_bind(
     input_ident: &Ident,
     data: &syn::Data,
     ty_params: &[Ident],
-) -> Result<Vec<(Type, bool)>> {
-    let types_from_fields = |fields: &Punctuated<syn::Field, _>| -> Vec<(Type, bool)> {
+) -> Result<Vec<(Type, bool, Option<Ident>)>> {
+    let types_from_fields = |fields: &Punctuated<syn::Field, _>| -> Vec<(Type, bool, Option<Ident>)> {
         fields
             .iter()
             .filter(|field| {
                 // Only add a bound if the type uses a generic.
-                type_contains_idents(&field.ty, &ty_params)
+                type_contains_idents(&field.ty, &ty_params).0
                 &&
                 // Remove all remaining types that start/contain the input ident
                 // to not have them in the where clause.
-                !type_contains_idents(&field.ty, &[input_ident.clone()])
+                !type_contains_idents(&field.ty, &[input_ident.clone()]).0
             })
-            .map(|f| (f.ty.clone(), super::is_compact(f)))
+            .map(|f| (f.ty.clone(), super::is_compact(f), type_contains_idents(&f.ty, &ty_params).1))
             .collect()
     };
 
