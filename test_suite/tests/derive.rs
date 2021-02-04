@@ -308,4 +308,5 @@ fn ui_tests() {
     t.pass("tests/ui/pass_self_referential.rs");
     t.pass("tests/ui/pass_basic_generic_type.rs");
     t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
+    t.pass("tests/ui/pass_compact_generic_with_unbounded_trait_impl.rs");
 }
