@@ -24,7 +24,6 @@ use crate::{
     TypeInfo,
 };
 use scale::{
-    Decode,
     Encode,
     HasCompact,
 };
@@ -66,7 +65,8 @@ use serde::{
 /// may change.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub struct Field<T: Form = MetaForm> {
     /// The name of the field. None for unnamed fields.
     #[cfg_attr(
