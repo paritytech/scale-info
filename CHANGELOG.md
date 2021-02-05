@@ -11,8 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a TypeDef to handle Compact types [(#53)](https://github.com/paritytech/scale-info/pull/53)
 - Add feature for enabling decoding [(#59)](https://github.com/paritytech/scale-info/pull/59)
 
-### Changed
-
 ### Fixed
 - Derive: use known crate name aliases [(#61)](https://github.com/paritytech/scale-info/pull/61)
 
