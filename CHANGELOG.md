@@ -5,7 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.0] - 2021-02-05
 ### Added
+- Add a TypeDef to handle Compact types [(#53)](https://github.com/paritytech/scale-info/pull/53)
+- Add feature for enabling decoding [(#59)](https://github.com/paritytech/scale-info/pull/59)
 
 ### Changed
 
