@@ -22,41 +22,65 @@ use syn::{
     Generics,
     Result,
     Type,
+    WhereClause,
 };
 
-/// Adds a `TypeInfo + 'static` bound to all relevant generic types including
-/// associated types (e.g. `T::A: TypeInfo`), correctly dealing with
-/// self-referential types.
-pub fn add(input_ident: &Ident, generics: &mut Generics, data: &syn::Data) -> Result<()> {
-    let ty_params_ids = generics
-        .type_params()
+/// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
+/// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
+/// with self-referential types.
+pub fn make_where_clause<'a>(
+    input_ident: &'a Ident,
+    generics: &'a Generics,
+    data: &'a syn::Data,
+    scale_info: &Ident,
+    parity_scale_codec: &Ident,
+) -> Result<WhereClause> {
+    let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
+        WhereClause {
+            where_token: <syn::Token![where]>::default(),
+            predicates: Punctuated::new(),
+        }
+    });
+
+    let type_params = generics.type_params();
+    let ty_params_ids = type_params
         .map(|type_param| type_param.ident.clone())
         .collect::<Vec<Ident>>();
 
     if ty_params_ids.is_empty() {
-        return Ok(())
+        return Ok(where_clause)
     }
 
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
-    let type_params = generics.type_params().cloned().collect::<Vec<_>>();
-    let where_clause = generics.make_where_clause();
 
-    types.into_iter().for_each(|ty| {
-        where_clause
-            .predicates
-            .push(parse_quote!(#ty : ::scale_info::TypeInfo + 'static))
+    types.into_iter().for_each(|(ty, is_compact)| {
+        // Compact types need extra bounds, T: HasCompact and <T as
+        // HasCompact>::Type: TypeInfo + 'static
+        if is_compact {
+            where_clause
+                .predicates
+                .push(parse_quote!(#ty : :: #parity_scale_codec ::HasCompact));
+            where_clause
+                .predicates
+                .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : :: #scale_info ::TypeInfo + 'static));
+        } else {
+            where_clause
+                .predicates
+                .push(parse_quote!(#ty : :: #scale_info ::TypeInfo + 'static));
+        }
     });
 
-    type_params.into_iter().for_each(|type_param| {
-        let ident = type_param.ident;
-        let mut bounds = type_param.bounds;
-        bounds.push(parse_quote!(::scale_info::TypeInfo));
+    generics.type_params().into_iter().for_each(|type_param| {
+        let ident = type_param.ident.clone();
+        let mut bounds = type_param.bounds.clone();
+        bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
         bounds.push(parse_quote!('static));
         where_clause
             .predicates
             .push(parse_quote!( #ident : #bounds));
     });
-    Ok(())
+
+    Ok(where_clause)
 }
 
 /// Visits the ast and checks if the given type contains one of the given
@@ -83,14 +107,14 @@ fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
     visitor.result
 }
 
-/// Returns all types that must be added to the where clause with the respective
-/// trait bound.
+/// Returns all types that must be added to the where clause with a boolean
+/// indicating if the field is [`scale::Compact`] or not.
 fn collect_types_to_bind(
     input_ident: &Ident,
     data: &syn::Data,
     ty_params: &[Ident],
-) -> Result<Vec<Type>> {
-    let types_from_fields = |fields: &Punctuated<syn::Field, _>| -> Vec<syn::Type> {
+) -> Result<Vec<(Type, bool)>> {
+    let types_from_fields = |fields: &Punctuated<syn::Field, _>| -> Vec<(Type, bool)> {
         fields
             .iter()
             .filter(|field| {
@@ -101,7 +125,7 @@ fn collect_types_to_bind(
                 // to not have them in the where clause.
                 !type_contains_idents(&field.ty, &[input_ident.clone()])
             })
-            .map(|f| f.ty.clone())
+            .map(|f| (f.ty.clone(), super::is_compact(f)))
             .collect()
     };
 

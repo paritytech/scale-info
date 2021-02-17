@@ -13,36 +13,39 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    
+
     - name: setup
-      run: |
-        rustup install nightly-2020-03-11
-        rustup component add rustfmt --toolchain nightly-2020-03-11
-        rustup component add clippy --toolchain nightly-2020-03-11
-        
+      uses: actions-rs/toolchain@v1
+      with:
+          profile: minimal
+          toolchain: nightly
+          override: true
+          components: rustfmt, clippy
+          target: wasm32-unknown-unknown
+
     - name: fmt
       run: |
-        cargo +nightly-2020-03-11 fmt --version
-        cargo +nightly-2020-03-11 fmt --all -- --check
-        
+        cargo fmt --version
+        cargo fmt --all -- --check
+
     - name: clippy
       run: |
-        cargo +nightly-2020-03-11 clippy --version
-        cargo +nightly-2020-03-11 clippy --all -- -D warnings
-        
+        cargo clippy --version
+        cargo clippy --all -- -D warnings
+
     - name: build
       run: |
         cargo --version --verbose
         cargo build --all
         cargo build --all --no-default-features
-        
+
     - name: test
       run: |
         cargo test --all
-        
+
     - name: test no-std
       run: |
         cd ./test_suite/derive_tests_no_std
-        cargo +nightly-2020-03-11 build --no-default-features
-  
-    
+        cargo build --no-default-features
+
+

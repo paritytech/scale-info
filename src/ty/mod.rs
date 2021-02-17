@@ -30,10 +30,7 @@ use crate::{
     TypeInfo,
 };
 use derive_more::From;
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
@@ -63,7 +60,8 @@ pub use self::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct Type<T: Form = MetaForm> {
     /// The unique path to the type. Can be empty for built-in types
     #[cfg_attr(
@@ -94,35 +92,24 @@ impl IntoPortable for Type {
     }
 }
 
-impl From<TypeDefPrimitive> for Type {
-    fn from(primitive: TypeDefPrimitive) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), primitive)
-    }
+macro_rules! impl_from_type_def_for_type {
+    ( $( $t:ty  ), + $(,)?) => { $(
+        impl From<$t> for Type {
+            fn from(item: $t) -> Self {
+                Self::new(Path::voldemort(), Vec::new(), item)
+            }
+        }
+    )* }
 }
 
-impl From<TypeDefArray> for Type {
-    fn from(array: TypeDefArray) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), array)
-    }
-}
-
-impl From<TypeDefSequence> for Type {
-    fn from(sequence: TypeDefSequence) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), sequence)
-    }
-}
-
-impl From<TypeDefTuple> for Type {
-    fn from(tuple: TypeDefTuple) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), tuple)
-    }
-}
-
-impl From<TypeDefPhantom> for Type {
-    fn from(phantom: TypeDefPhantom) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), phantom)
-    }
-}
+impl_from_type_def_for_type!(
+    TypeDefPrimitive,
+    TypeDefArray,
+    TypeDefSequence,
+    TypeDefTuple,
+    TypeDefCompact,
+    TypeDefPhantom,
+);
 
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
@@ -173,7 +160,8 @@ where
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
     Composite(TypeDefComposite<T>),
@@ -187,6 +175,8 @@ pub enum TypeDef<T: Form = MetaForm> {
     Tuple(TypeDefTuple<T>),
     /// A Rust primitive type.
     Primitive(TypeDefPrimitive),
+    /// A type using the [`Compact`] encoding
+    Compact(TypeDefCompact<T>),
     /// A PhantomData type.
     Phantom(TypeDefPhantom<T>),
 }
@@ -202,15 +192,17 @@ impl IntoPortable for TypeDef {
             TypeDef::Array(array) => array.into_portable(registry).into(),
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
+            TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
         }
     }
 }
 
 /// A primitive Rust type.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub enum TypeDefPrimitive {
     /// `bool` type
     Bool,
@@ -245,15 +237,9 @@ pub enum TypeDefPrimitive {
 }
 
 /// An array type.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-    ))
-)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
     len: u32,
@@ -306,7 +292,8 @@ where
     ))
 )]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
     fields: Vec<T::Type>,
@@ -351,14 +338,8 @@ where
 
 /// A type to refer to a sequence of elements of the same type.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-    ))
-)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
@@ -405,6 +386,42 @@ where
     }
 }
 
+/// A type wrapped in [`Compact`].
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+pub struct TypeDefCompact<T: Form = MetaForm> {
+    /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    type_param: T::Type,
+}
+
+impl IntoPortable for TypeDefCompact {
+    type Output = TypeDefCompact<PortableForm>;
+
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+        TypeDefCompact {
+            type_param: registry.register_type(&self.type_param),
+        }
+    }
+}
+
+impl TypeDefCompact {
+    /// Creates a new type wrapped in [`Compact`].
+    pub fn new(type_param: MetaType) -> Self {
+        Self { type_param }
+    }
+}
+impl<T> TypeDefCompact<T>
+where
+    T: Form,
+{
+    /// Returns the [`Compact`] wrapped type, i.e. the `T` in `Compact<T>`.
+    pub fn type_param(&self) -> &T::Type {
+        &self.type_param
+    }
+}
+
 /// A type describing a `PhantomData<T>` type.
 ///
 /// In the context of SCALE encoded types, including `PhantomData<T>` types in
@@ -416,14 +433,8 @@ where
 /// required to explicitly skip fields that cannot be represented in SCALE
 /// encoding, using the `#[codec(skip)]` attribute.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize",
-        deserialize = "T::Type: DeserializeOwned",
-    ))
-)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode, Debug)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefPhantom<T: Form = MetaForm> {
     /// The PhantomData type parameter
     #[cfg_attr(feature = "serde", serde(rename = "type"))]

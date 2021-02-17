@@ -26,6 +26,7 @@ use crate::{
     Path,
     Type,
     TypeDefArray,
+    TypeDefCompact,
     TypeDefPhantom,
     TypeDefPrimitive,
     TypeDefSequence,
@@ -249,5 +250,15 @@ where
 
     fn type_info() -> Type {
         TypeDefPhantom::new(MetaType::new::<T>()).into()
+    }
+}
+
+impl<T> TypeInfo for scale::Compact<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        TypeDefCompact::new(MetaType::new::<T>()).into()
     }
 }

@@ -1,0 +1,19 @@
+error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` and `#[codec(encoded_as = "$EncodeAs")]` are accepted.
+ --> $DIR/fail_with_invalid_codec_attrs.rs:7:7
+  |
+7 |     #[codec(skip, compact)]
+  |       ^^^^^^^^^^^^^^^^^^^^
+
+error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` and `#[codec(encoded_as = "$EncodeAs")]` are accepted.
+  --> $DIR/fail_with_invalid_codec_attrs.rs:13:13
+   |
+13 |     Thing(#[codec(index = 3, compact)] u32),
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: proc-macro derive panicked
+  --> $DIR/fail_with_invalid_codec_attrs.rs:11:10
+   |
+11 | #[derive(TypeInfo, Encode)]
+   |          ^^^^^^^^
+   |
+   = help: message: Internal error, parse_meta must have been checked: Error("expected literal")

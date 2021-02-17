@@ -11,6 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use pretty_assertions::assert_eq;
@@ -264,16 +265,14 @@ fn scale_compact_types_work_in_structs() {
         b: u16,
     }
 
-    let dense = Type::builder()
+    let ty_alt = Type::builder()
         .path(Path::new("Dense", "derive"))
         .composite(
             Fields::named()
                 .field_of::<u8>("a", "u8")
-                .field_of::<u16>("b", "u16")
-                .compact(),
+                .compact_of::<u16>("b", "u16"),
         );
-
-    assert_type!(Dense, dense);
+    assert_type!(Dense, ty_alt);
 }
 
 #[test]
@@ -292,10 +291,7 @@ fn scale_compact_types_work_in_enums() {
         .variant(
             Variants::with_fields()
                 .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
-                .variant(
-                    "Index",
-                    Fields::unnamed().field_of::<u16>("AccountIndex").compact(),
-                )
+                .variant("Index", Fields::unnamed().compact_of::<u16>("AccountIndex"))
                 .variant(
                     "Address32",
                     Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"),
@@ -387,6 +383,9 @@ fn ui_tests() {
     let t = trybuild::TestCases::new();
     t.compile_fail("tests/ui/fail_missing_derive.rs");
     t.compile_fail("tests/ui/fail_unions.rs");
+    t.compile_fail("tests/ui/fail_use_codec_attrs_without_deriving_encode.rs");
+    t.compile_fail("tests/ui/fail_with_invalid_codec_attrs.rs");
+    t.pass("tests/ui/pass_with_valid_codec_attrs.rs");
     t.pass("tests/ui/pass_non_static_lifetime.rs");
     t.pass("tests/ui/pass_self_referential.rs");
     t.pass("tests/ui/pass_basic_generic_type.rs");

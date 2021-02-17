@@ -24,12 +24,11 @@ use crate::{
     TypeInfo,
 };
 use scale::{
-    Decode,
     Encode,
+    HasCompact,
 };
 #[cfg(feature = "serde")]
 use serde::{
-    de::DeserializeOwned,
     Deserialize,
     Serialize,
 };
@@ -65,15 +64,9 @@ use serde::{
 /// alias, there are no guarantees provided, and the type name representation
 /// may change.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-    ))
-)]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub struct Field<T: Form = MetaForm> {
     /// The name of the field. None for unnamed fields.
     #[cfg_attr(
@@ -86,17 +79,6 @@ pub struct Field<T: Form = MetaForm> {
     ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     type_name: T::String,
-    /// This field should be encode/decoded as a
-    /// [`Compact`](parity_scale_codec::Compact) field
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "is_false", default))]
-    compact: bool,
-}
-
-// Need to obey the required serde signature here
-#[allow(clippy::trivially_copy_pass_by_ref)]
-#[allow(dead_code)]
-const fn is_false(v: &bool) -> bool {
-    !(*v)
 }
 
 impl IntoPortable for Field {
@@ -107,7 +89,6 @@ impl IntoPortable for Field {
             name: self.name.map(|name| name.into_portable(registry)),
             ty: registry.register_type(&self.ty),
             type_name: self.type_name.into_portable(registry),
-            compact: self.compact,
         }
     }
 }
@@ -120,13 +101,11 @@ impl Field {
         name: Option<&'static str>,
         ty: MetaType,
         type_name: &'static str,
-        compact: bool,
     ) -> Self {
         Self {
             name,
             ty,
             type_name,
-            compact,
         }
     }
 
@@ -138,7 +117,7 @@ impl Field {
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        Self::new(Some(name), MetaType::new::<T>(), type_name, false)
+        Self::new(Some(name), MetaType::new::<T>(), type_name)
     }
 
     /// Creates a new unnamed field.
@@ -149,7 +128,16 @@ impl Field {
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        Self::new(None, MetaType::new::<T>(), type_name, false)
+        Self::new(None, MetaType::new::<T>(), type_name)
+    }
+
+    /// Creates a new [`Compact`] field.
+    pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str) -> Field
+    where
+        T: HasCompact,
+        <T as HasCompact>::Type: TypeInfo + 'static,
+    {
+        Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name)
     }
 }
 
@@ -174,11 +162,5 @@ where
     /// purposes only.
     pub fn type_name(&self) -> &T::String {
         &self.type_name
-    }
-
-    /// Set the `compact` property to true, signalling that this type is to be
-    /// encoded/decoded as a [`parity_scale_codec::Compact`].
-    pub fn compact(&mut self) {
-        self.compact = true;
     }
 }
