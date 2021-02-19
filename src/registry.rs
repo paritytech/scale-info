@@ -34,7 +34,6 @@ use crate::prelude::{
 use crate::{
     form::{
         Form,
-        FormString,
         PortableForm,
     },
     interner::{
@@ -44,13 +43,9 @@ use crate::{
     meta_type::MetaType,
     Type,
 };
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
-    de::DeserializeOwned,
     Deserialize,
     Serialize,
 };
@@ -68,7 +63,7 @@ impl IntoPortable for &'static str {
     type Output = <PortableForm as Form>::String;
 
     fn into_portable(self, _registry: &mut Registry) -> Self::Output {
-        self
+        self.into()
     }
 }
 
@@ -171,16 +166,10 @@ impl Registry {
 
 /// A read-only registry containing types in their portable form for serialization.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Eq, Encode, Decode)]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(serialize = "S: Serialize", deserialize = "S: DeserializeOwned"))
-)]
-pub struct PortableRegistry<S = &'static str>
-where
-    S: FormString,
-{
-    types: Vec<Type<PortableForm<S>>>,
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(Clone, Debug, PartialEq, Eq, Encode)]
+pub struct PortableRegistry {
+    types: Vec<Type<PortableForm>>,
 }
 
 impl From<Registry> for PortableRegistry {
@@ -191,19 +180,14 @@ impl From<Registry> for PortableRegistry {
     }
 }
 
-impl<S> PortableRegistry<S>
-where
-    S: FormString,
-{
+impl PortableRegistry {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
-    pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<PortableForm<S>>> {
+    pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<PortableForm>> {
         self.types.get((id.get() - 1) as usize)
     }
 
     /// Returns an iterator for all types paired with their associated NonZeroU32 identifier.
-    pub fn enumerate(
-        &self,
-    ) -> impl Iterator<Item = (NonZeroU32, &Type<PortableForm<S>>)> {
+    pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<PortableForm>)> {
         self.types.iter().enumerate().map(|(i, ty)| {
             let id = NonZeroU32::new(i as u32 + 1).expect("i + 1 > 0; qed");
             (id, ty)
