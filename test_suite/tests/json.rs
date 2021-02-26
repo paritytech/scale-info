@@ -246,13 +246,14 @@ fn test_struct_with_some_fields_marked_as_compact() {
 fn test_struct_with_phantom() {
     use scale_info::prelude::marker::PhantomData;
     #[derive(TypeInfo)]
-    struct Struct<T> {
-        a: i32,
+    struct SSStruct<T> {
+        // a: i32,
+        a: T,
         b: PhantomData<T>,
     }
 
-    assert_json_for_type::<Struct<u8>>(json!({
-        "path": ["json", "Struct"],
+    assert_json_for_type::<SSStruct<u8>>(json!({
+        "path": ["json", "SSStruct"],
         "params": [1],
         "def": {
             "composite": {
