@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 use pretty_assertions::assert_eq;
-use scale::{Encode, HasCompact};
+use scale::Encode;
 use scale_info::{
     build::*,
-    meta_type,
     prelude::{
         boxed::Box,
         marker::PhantomData,
@@ -299,7 +298,7 @@ fn scale_compact_types_complex() {
 
     let ty = Type::builder()
         .path(Path::new("A", "derive"))
-        .type_params(vec![meta_type::<u8>(), meta_type::<u16>()])
+        .type_params(tuple_meta_type![u8, u16])
         .composite(Fields::named()
             .field_of::<PhantomData<u8>>("one", "PhantomData<T>")
             .field_of::<PhantomData<u16>>("two", "PhantomData<U>")
@@ -309,32 +308,6 @@ fn scale_compact_types_complex() {
 
     assert_type!(A<u8, u16>, ty);
 }
-
-
-// TODO: make failing trybuild test out of this so we know when https://github.com/rust-lang/rust/issues/81785 is fixed
-// #[test]
-// fn scale_compact_types_work_with_generic_types() {
-//     #[derive(TypeInfo)]
-//     struct Color<Hue>{hue: Hue}
-//     #[derive(TypeInfo)]
-//     struct Texture<Bump, Hump>{bump: Bump, hump: Hump}
-
-//     #[allow(unused)]
-//     #[derive(Encode, TypeInfo)]
-//     struct Apple<T, U> {
-//         #[codec(compact)]
-//         one: Color<U>,   // <– works with a "naked" generic, `U`, but not like this
-//         two: Texture<T, U>,
-//     }
-//     let ty = Type::builder().path(Path::new("Apple", "derive"))
-//         .type_params(tuple_meta_type!(u8, u16))
-//         .composite(
-//             Fields::named()
-//                 .compact_of::<Color<u16>>("one", "Color<U>")
-//                 .field_of::<Texture<u8, u16>>("two", "Texture<T, U>")
-//         );
-//     assert_type!(Apple<u8, u16>, ty);
-// }
 
 #[test]
 fn whitespace_scrubbing_works() {
@@ -351,18 +324,18 @@ fn whitespace_scrubbing_works() {
     assert_type!(A, ty);
 }
 
-// TODO: re-enable when warnings are fixed
-// #[rustversion::nightly]
-// #[test]
-// fn ui_tests() {
-//     let t = trybuild::TestCases::new();
-//     t.compile_fail("tests/ui/fail_missing_derive.rs");
-//     t.compile_fail("tests/ui/fail_unions.rs");
-//     t.compile_fail("tests/ui/fail_use_codec_attrs_without_deriving_encode.rs");
-//     t.compile_fail("tests/ui/fail_with_invalid_codec_attrs.rs");
-//     t.pass("tests/ui/pass_with_valid_codec_attrs.rs");
-//     t.pass("tests/ui/pass_non_static_lifetime.rs");
-//     t.pass("tests/ui/pass_self_referential.rs");
-//     t.pass("tests/ui/pass_basic_generic_type.rs");
-//     t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
-// }
+#[rustversion::nightly]
+#[test]
+fn ui_tests() {
+    let t = trybuild::TestCases::new();
+    t.compile_fail("tests/ui/fail_missing_derive.rs");
+    t.compile_fail("tests/ui/fail_unions.rs");
+    t.compile_fail("tests/ui/fail_use_codec_attrs_without_deriving_encode.rs");
+    t.compile_fail("tests/ui/fail_with_invalid_codec_attrs.rs");
+    t.compile_fail("tests/ui/fail_infinite_recursion.rs");
+    t.pass("tests/ui/pass_with_valid_codec_attrs.rs");
+    t.pass("tests/ui/pass_non_static_lifetime.rs");
+    t.pass("tests/ui/pass_self_referential.rs");
+    t.pass("tests/ui/pass_basic_generic_type.rs");
+    t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
+}

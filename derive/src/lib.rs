@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 extern crate proc_macro;
@@ -80,7 +80,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
-    println!("[generate_type] START {:?}", ident);
     ast.generics
         .lifetimes_mut()
         .for_each(|l| *l = parse_quote!('static));
@@ -93,19 +92,15 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         &scale_info,
         &parity_scale_codec,
     )?;
-    println!("[generate_type]   compact_types={:?}", compact_types);
     let generic_type_ids = ast.generics.type_params().map(|ty| {
-        // If this is used in a Compact field, then the call must be: ::scale_info::meta_type::<<#ty_ident as HasCompact>::Type>()
         let ty_ident = &ty.ident;
-        // let is_compact = types.as_ref().unwrap().iter().filter(|infos| if let Some(i) = &infos.2 { i == ty_ident } else {false}).any(|infos| infos.1 );
-        // if is_compact {
+        // If this type param is used as a parameter in a Compact field, then the call must be:
+        //  ::scale_info::meta_type::<<#ty_ident as HasCompact>::Type>()
         if compact_types.contains(ty_ident) {
-            println!("[generate_type]   Adding call to meta_type with as HasCompact");
             quote! {
                 :: #scale_info ::meta_type::<<#ty_ident as :: #parity_scale_codec :: HasCompact>::Type>()
             }
         } else {
-            println!("[generate_type]   Adding normal call to meta_type");
             quote! {
                 :: #scale_info ::meta_type::<#ty_ident>()
             }
