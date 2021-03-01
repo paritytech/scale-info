@@ -281,7 +281,9 @@ fn scale_compact_types_work_in_enums() {
 
 #[test]
 fn scale_compact_types_complex() {
-    trait Boo { type B: TypeInfo; }
+    trait Boo {
+        type B: TypeInfo;
+    }
     impl Boo for u8 {
         type B = bool;
     }
@@ -299,11 +301,12 @@ fn scale_compact_types_complex() {
     let ty = Type::builder()
         .path(Path::new("A", "derive"))
         .type_params(tuple_meta_type![u8, u16])
-        .composite(Fields::named()
-            .field_of::<PhantomData<u8>>("one", "PhantomData<T>")
-            .field_of::<PhantomData<u16>>("two", "PhantomData<U>")
-            .compact_of::<u8>("three", "T")
-            .field_of::<bool>("four", "T::B")
+        .composite(
+            Fields::named()
+                .field_of::<PhantomData<u8>>("one", "PhantomData<T>")
+                .field_of::<PhantomData<u16>>("two", "PhantomData<U>")
+                .compact_of::<u8>("three", "T")
+                .field_of::<bool>("four", "T::B"),
         );
 
     assert_type!(A<u8, u16>, ty);

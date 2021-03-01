@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 use alloc::vec::Vec;
 use hashbrown::HashSet;
 use proc_macro2::Ident;
@@ -21,8 +20,8 @@ use syn::{
     punctuated::Punctuated,
     spanned::Spanned,
     visit::Visit,
-    Generics,
     GenericArgument,
+    Generics,
     Result,
     Type,
     WhereClause,
@@ -180,25 +179,18 @@ fn collect_types_to_bind(
 ) -> Result<Vec<(Type, bool, Option<Ident>)>> {
     let types_from_fields =
         |fields: &Punctuated<syn::Field, _>| -> Vec<(Type, bool, Option<Ident>)> {
-            fields
-                .iter()
-                // TODO: Rewrite this as a `fold` to remove multiple calls to `type_contains_ident`.
-                .filter(|field| {
-                    // Only add a bound if the type uses a generic.
-                    type_contains_idents(&field.ty, &ty_params).is_some()
-                &&
-                // Remove all remaining types that start/contain the input ident
+            fields.iter().fold(Vec::new(), |mut acc, field| {
+                // Only add a bound if the type uses a generic.
+                let uses_generic = type_contains_idents(&field.ty, &ty_params);
+                // Find remaining types that start with/contain the input ident
                 // to not have them in the where clause.
-                type_contains_idents(&field.ty, &[input_ident.clone()]).is_none()
-                })
-                .map(|f| {
-                    (
-                        f.ty.clone(),
-                        super::is_compact(f),
-                        type_contains_idents(&f.ty, &ty_params),
-                    )
-                })
-                .collect()
+                let uses_input_ident =
+                    type_contains_idents(&field.ty, &[input_ident.clone()]);
+                if uses_generic.is_some() && uses_input_ident.is_none() {
+                    acc.push((field.ty.clone(), super::is_compact(field), uses_generic));
+                }
+                acc
+            })
         };
 
     let types = match *data {
