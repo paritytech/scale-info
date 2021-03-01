@@ -79,7 +79,7 @@ pub fn make_where_clause<'a>(
     // `'static` bounds. Type params that are used in fields/variants that are
     // `Compact` need only the `'static` bound.
     // The reason we do this "double looping", first over generics used in
-    // fields/variants and then the generics given in the type definition
+    // fields/variants and then over the generics given in the type definition
     // itself, is that a type can have a type parameter bound to a trait, e.g.
     // `T: SomeTrait`, that is not used as-is in the fields/variants but whose
     // associated type **is**. Something like this:
@@ -145,8 +145,8 @@ fn type_contains_idents(ty: &Type, idents: &[Ident]) -> Option<Ident> {
 }
 
 /// Visit a `Type` and collect generic type params used.
-/// Given `struct A<T> { thing: SomeType<T> }`, will return `T`.
-/// Given `struct A<T> { thing: T }`, will **not** return `T`.
+/// Given `struct A<T> { thing: SomeType<T> }`, will include `T` in the set.
+/// Given `struct A<T> { thing: T }`, will **not** include `T` in the set.
 fn collect_generic_arguments(ty: &Type) -> HashSet<Ident> {
     struct GenericsVisitor {
         found: HashSet<Ident>,

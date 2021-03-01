@@ -215,6 +215,7 @@ fn associated_types_derive_without_bounds() {
         a: T::A,
         b: &'bar u64,
     }
+
     #[derive(TypeInfo)]
     enum ConcreteTypes {}
     impl Types for ConcreteTypes {
