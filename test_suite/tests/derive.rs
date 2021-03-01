@@ -266,11 +266,7 @@ fn scale_compact_types_work_in_enums() {
 
     let ty = Type::builder()
         .path(Path::new("MutilatedMultiAddress", "derive"))
-        .type_params(vec![
-                meta_type::<u8>(),
-                meta_type::<u16>(),
-            ]
-        )
+        .type_params(tuple_meta_type!(u8, u16))
         .variant(
             Variants::with_fields()
                 .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
@@ -287,6 +283,10 @@ fn scale_compact_types_work_in_enums() {
 #[test]
 fn scale_compact_types_complex() {
     trait Boo { type B: TypeInfo; }
+    impl Boo for u8 {
+        type B = bool;
+    }
+
     #[allow(unused)]
     #[derive(Encode, TypeInfo)]
     struct A<T: Boo, U> {
@@ -296,7 +296,20 @@ fn scale_compact_types_complex() {
         three: T,
         four: T::B,
     }
+
+    let ty = Type::builder()
+        .path(Path::new("A", "derive"))
+        .type_params(vec![meta_type::<u8>(), meta_type::<u16>()])
+        .composite(Fields::named()
+            .field_of::<PhantomData<u8>>("one", "PhantomData<T>")
+            .field_of::<PhantomData<u16>>("two", "PhantomData<U>")
+            .compact_of::<u8>("three", "T")
+            .field_of::<bool>("four", "T::B")
+        );
+
+    assert_type!(A<u8, u16>, ty);
 }
+
 
 // TODO: make failing trybuild test out of this so we know when https://github.com/rust-lang/rust/issues/81785 is fixed
 // #[test]

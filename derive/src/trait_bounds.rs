@@ -35,8 +35,7 @@ pub fn make_where_clause<'a>(
     generics: &'a Generics, // The type params to our type
     data: &'a syn::Data,    // The body of the type
     scale_info: &Ident,     // Crate name
-    parity_scale_codec: &Ident, /* Crate name
-                             * ) -> Result<(WhereClause, Option<Vec<(Type, bool, Option<Ident>)>>)> { */
+    parity_scale_codec: &Ident, // Crate name
 ) -> Result<(WhereClause, HashSet<Ident>)> {
     let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
         WhereClause {
@@ -65,7 +64,7 @@ pub fn make_where_clause<'a>(
         // HasCompact>::Type: TypeInfo + 'static`
 
         // TODO: should pass in a `&mut HashSet` from outside the loop to ensure we avoid repetitions
-        let type_params_in_type = collect_type_params(&ty);
+        let type_params_in_type = collect_generic_arguments(&ty);
         if is_compact {
             println!("[make_where_clause]   is Compact, ty={:?}  adding HasCompact bounds", ty);
             println!("[make_where_clause]   is Compact, type_params_in_type={:?}", type_params_in_type);
@@ -224,24 +223,25 @@ fn type_contains_idents(ty: &Type, idents: &[Ident]) -> (bool, Option<Ident>) {
 }
 
 // Should call this on a syn:Field instead so we have access to the Attributes, that way we could collect both `Compact` and generics usage?
-// fn collect_type_params(ty: &Type) -> Vec<Ident> {
-fn collect_type_params(ty: &Type) -> HashSet<Ident> {
-    use syn::{
-        GenericArgument,
-        Variant,
-    };
-    println!("[collect_type_params]  ty={:?}", ty);
+// TODO: Can this be done when visiting the type in `type_contains_ident` instead?
+// Visit a `Type` and collect all generics used.
+// example: given `struct A<T> { thing: SomeType<T> }` will return `T`.
+// example: given `struct A<T> { thing: T }` will **not** return `T`.
+// TODO: can it be changed to return both `T` in both cases? I think not, proc macros work on the syntax level.
+fn collect_generic_arguments(ty: &Type) -> HashSet<Ident> {
+    use syn::GenericArgument;
+    println!("[collect_generic_arguments]  ty={:?}", ty);
     struct Bla {
         result: HashSet<Ident>,
     }
     impl<'ast> Visit<'ast> for Bla {
         fn visit_generic_argument(&mut self, g: &'ast GenericArgument) {
-            println!("visit_generic_argument={:?}", g);
+            println!("collect_generic_arguments={:?}", g);
             if let GenericArgument::Type(syn::Type::Path(syn::TypePath {
                 path: t, ..
             })) = g
             {
-                println!("visit_generic_argument, type={:?}", t.get_ident());
+                println!("collect_generic_arguments, type={:?}", t.get_ident());
 
                 if let Some(ident) = t.get_ident() {
                     self.result.insert(ident.clone());
@@ -254,7 +254,7 @@ fn collect_type_params(ty: &Type) -> HashSet<Ident> {
     };
     visitor.visit_type(ty);
     println!(
-        "[collect_type_params]  found type params={:?}",
+        "[collect_generic_arguments]  found type params={:?}",
         visitor.result
     );
 

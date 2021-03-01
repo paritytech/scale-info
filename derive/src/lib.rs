@@ -285,7 +285,7 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
 
     let variants = variants.into_iter().map(|v| {
         let ident = &v.ident;
-        let v_name = quote! {stringify!(#ident) };
+        let v_name = quote! { stringify!(#ident) };
         match v.fields {
             Fields::Named(ref fs) => {
                 let fields = generate_fields(&fs.named);
