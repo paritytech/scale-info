@@ -101,12 +101,17 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         }
     });
 
-    let ast: DeriveInput = syn::parse2(input.clone())?;
+    let mut ast: DeriveInput = syn::parse2(input.clone())?;
     let build_type = match &ast.data {
         Data::Struct(ref s) => generate_composite_type(s, &scale_info),
         Data::Enum(ref e) => generate_variant_type(e, &scale_info),
         Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
     };
+
+    // Remove any type parameter defaults, we don't want those. E.g. `impl<T: Stuff = WutEven>`
+    ast.generics.type_params_mut().for_each(|type_param| {
+        type_param.default = None;
+    });
     let generic_types = ast.generics.type_params();
     let type_info_impl = quote! {
         impl <#( #generic_types ),*> :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {

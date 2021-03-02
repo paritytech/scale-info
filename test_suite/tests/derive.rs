@@ -281,6 +281,30 @@ fn scale_compact_types_work_in_enums() {
 }
 
 #[test]
+fn type_parameters_with_default_bound_works() {
+    trait Formy {
+        type Tip;
+    }
+    #[derive(TypeInfo)]
+    pub enum MetaFormy {}
+    impl Formy for MetaFormy { type Tip = u8; }
+
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Bat<TTT: Formy = MetaFormy> {
+        one: TTT
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Bat", "derive"))
+        .type_params(tuple_meta_type!(MetaFormy))
+        .composite(
+            Fields::named().field_of::<MetaFormy>("one", "TTT")
+        );
+    assert_type!(Bat<MetaFormy>, ty);
+}
+
+#[test]
 fn whitespace_scrubbing_works() {
     #[allow(unused)]
     #[derive(TypeInfo)]
