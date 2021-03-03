@@ -136,7 +136,7 @@ impl_from_type_def_for_type!(
 );
 
 impl Type {
-    /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
+    /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`), the public API for constructing a [`Type`]
     pub fn builder() -> TypeBuilder {
         TypeBuilder::default()
     }

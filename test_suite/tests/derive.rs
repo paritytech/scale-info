@@ -298,14 +298,14 @@ fn whitespace_scrubbing_works() {
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {
-    // let t = trybuild::TestCases::new();
-    // t.compile_fail("tests/ui/fail_missing_derive.rs");
-    // t.compile_fail("tests/ui/fail_unions.rs");
-    // t.compile_fail("tests/ui/fail_use_codec_attrs_without_deriving_encode.rs");
-    // t.compile_fail("tests/ui/fail_with_invalid_codec_attrs.rs");
-    // t.pass("tests/ui/pass_with_valid_codec_attrs.rs");
-    // t.pass("tests/ui/pass_non_static_lifetime.rs");
-    // t.pass("tests/ui/pass_self_referential.rs");
-    // t.pass("tests/ui/pass_basic_generic_type.rs");
-    // t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
+    let t = trybuild::TestCases::new();
+    t.compile_fail("tests/ui/fail_missing_derive.rs");
+    t.compile_fail("tests/ui/fail_unions.rs");
+    t.compile_fail("tests/ui/fail_use_codec_attrs_without_deriving_encode.rs");
+    t.compile_fail("tests/ui/fail_with_invalid_codec_attrs.rs");
+    t.pass("tests/ui/pass_with_valid_codec_attrs.rs");
+    t.pass("tests/ui/pass_non_static_lifetime.rs");
+    t.pass("tests/ui/pass_self_referential.rs");
+    t.pass("tests/ui/pass_basic_generic_type.rs");
+    t.pass("tests/ui/pass_complex_generic_self_referential_type.rs");
 }
