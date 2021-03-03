@@ -76,7 +76,7 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
-    let (scale_info, import_self_as_scale_info) = scale_info_crate_tokens()?;
+    let scale_info = scale_info_crate_tokens()?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
@@ -123,16 +123,10 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             }
         };
     };
-    let crate_rename = if import_self_as_scale_info {
-        quote! { extern crate self as scale_info; }
-    } else {
-        quote! {}
-    };
     Ok(quote! {
         // TODO: are these needed?
         // #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
         const _: () = {
-            #crate_rename
             #type_info_impl
         };
     })
@@ -149,13 +143,13 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
 /// If scale-info is not among the dependencies then we must be deriving
 /// types for the scale-info crate itself, in which case we need to rename
 /// "self" to something, so the object paths keep working.
-fn scale_info_crate_tokens() -> Result<(TokenStream2, bool)> {
+fn scale_info_crate_tokens() -> Result<TokenStream2> {
     const SCALE_INFO_CRATE_NAME: &'static str = "scale-info";
     let actual_crate_name = proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME);
     if let Err(e) = actual_crate_name {
+        // A proper error type would be good here (https://github.com/bkchr/proc-macro-crate/issues/7)
         if e.starts_with(&alloc::format!("Could not find `{}`", SCALE_INFO_CRATE_NAME)) {
-            let ident = Ident::new("scale_info", Span::call_site());
-            Ok((quote!{ #ident }, true))
+            Ok(quote!{ crate })
         } else {
             Err(syn::Error::new(Span::call_site(), e))
         }
@@ -164,7 +158,7 @@ fn scale_info_crate_tokens() -> Result<(TokenStream2, bool)> {
             &actual_crate_name.unwrap_or_else(|_| panic!("Checked for Err above and now it's not Ok. The world is broken.")),
             Span::call_site(),
         );
-        Ok(( quote!{ :: #ident }, false, ))
+        Ok(quote!{ :: #ident })
     }
 }
 
