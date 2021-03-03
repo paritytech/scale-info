@@ -35,8 +35,7 @@ pub fn make_where_clause<'a>(
     input_ident: &'a Ident,
     generics: &'a Generics,
     data: &'a syn::Data,
-    scale_info: &Ident,
-    root_marker: &TokenStream,
+    scale_info: &TokenStream,
     parity_scale_codec: &Ident,
 ) -> Result<WhereClause> {
     let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
@@ -66,18 +65,18 @@ pub fn make_where_clause<'a>(
                 .push(parse_quote!(#ty : :: #parity_scale_codec ::HasCompact));
             where_clause
                 .predicates
-                .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : #root_marker #scale_info ::TypeInfo + 'static));
+                .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : #scale_info ::TypeInfo + 'static));
         } else {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : #root_marker #scale_info ::TypeInfo + 'static));
+                .push(parse_quote!(#ty : #scale_info ::TypeInfo + 'static));
         }
     });
 
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        bounds.push(parse_quote!(#root_marker #scale_info ::TypeInfo));
+        bounds.push(parse_quote!(#scale_info ::TypeInfo));
         bounds.push(parse_quote!('static));
         where_clause
             .predicates

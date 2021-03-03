@@ -76,31 +76,7 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
-    // Find the name given to the `scale-info` crate in the context we run in.
-    // If scale-info is not among the dependencies then we must be deriving
-    // types for the scale-info crate itself, in which case we need to rename
-    // "self" to something, so the object paths keep working.
-    let (scale_info, import_self_as_scale_info, root_marker) = {
-        let actual_crate_name = proc_macro_crate::crate_name("scale-info");
-        if let Err(e) = actual_crate_name {
-            if e.starts_with("Could not find `scale-info`") {
-                (Ident::new("scale_info", Span::call_site()), true, quote! {})
-            } else {
-                return Err(syn::Error::new(Span::call_site(), e))
-            }
-        } else {
-            // TODO: maybe it's better to build a TokenStream with the :: and the crate name
-            (
-                Ident::new(
-                    &actual_crate_name.unwrap_or_else(|_| panic!("Checked for Err above and now it's not Ok. The world is broken.")),
-                    Span::call_site(),
-                ),
-                false,
-                quote!{ :: },
-            )
-        }
-    };
-
+    let (scale_info, import_self_as_scale_info) = scale_info_crate_tokens()?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
@@ -115,20 +91,19 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         &ast.generics,
         &ast.data,
         &scale_info,
-        &root_marker,
         &parity_scale_codec,
     )?;
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
         quote! {
-            #root_marker #scale_info::meta_type::<#ty_ident>()
+            #scale_info::meta_type::<#ty_ident>()
         }
     });
 
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
     let build_type = match &ast.data {
-        Data::Struct(ref s) => generate_composite_type(s, &scale_info, &root_marker),
-        Data::Enum(ref e) => generate_variant_type(e, &scale_info, &root_marker),
+        Data::Struct(ref s) => generate_composite_type(s, &scale_info),
+        Data::Enum(ref e) => generate_variant_type(e, &scale_info),
         Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
     };
 
@@ -138,12 +113,12 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     });
     let generic_types = ast.generics.type_params();
     let type_info_impl = quote! {
-        impl <#( #generic_types ),*> #root_marker #scale_info::TypeInfo for #ident #ty_generics #where_clause {
+        impl <#( #generic_types ),*> #scale_info::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
             fn type_info() -> #scale_info::Type {
-                #root_marker #scale_info::Type::builder()
-                    .path(#root_marker #scale_info::Path::new(stringify!(#ident), module_path!()))
-                    .type_params(#root_marker #scale_info::prelude::vec![ #( #generic_type_ids ),* ])
+                #scale_info::Type::builder()
+                    .path(#scale_info::Path::new(stringify!(#ident), module_path!()))
+                    .type_params(#scale_info::prelude::vec![ #( #generic_type_ids ),* ])
                     .#build_type
             }
         };
@@ -168,6 +143,29 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
     proc_macro_crate::crate_name(name)
         .map(|crate_name| Ident::new(&crate_name, Span::call_site()))
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
+}
+
+/// Find the name given to the `scale-info` crate in the context we run in.
+/// If scale-info is not among the dependencies then we must be deriving
+/// types for the scale-info crate itself, in which case we need to rename
+/// "self" to something, so the object paths keep working.
+fn scale_info_crate_tokens() -> Result<(TokenStream2, bool)> {
+    const SCALE_INFO_CRATE_NAME: &'static str = "scale-info";
+    let actual_crate_name = proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME);
+    if let Err(e) = actual_crate_name {
+        if e.starts_with(&alloc::format!("Could not find `{}`", SCALE_INFO_CRATE_NAME)) {
+            let ident = Ident::new("scale_info", Span::call_site());
+            Ok((quote!{ #ident }, true))
+        } else {
+            Err(syn::Error::new(Span::call_site(), e))
+        }
+    } else {
+        let ident = Ident::new(
+            &actual_crate_name.unwrap_or_else(|_| panic!("Checked for Err above and now it's not Ok. The world is broken.")),
+            Span::call_site(),
+        );
+        Ok(( quote!{ :: #ident }, false, ))
+    }
 }
 
 type FieldsList = Punctuated<Field, Comma>;
@@ -242,8 +240,7 @@ fn clean_type_string(input: &str) -> String {
 
 fn generate_composite_type(
     data_struct: &DataStruct,
-    scale_info: &Ident,
-    root_marker: &TokenStream2,
+    scale_info: &TokenStream2,
 ) -> TokenStream2 {
     let fields = match data_struct.fields {
         Fields::Named(ref fs) => {
@@ -261,7 +258,7 @@ fn generate_composite_type(
         }
     };
     quote! {
-        composite(#root_marker #scale_info::build::Fields::#fields)
+        composite(#scale_info::build::Fields::#fields)
     }
 }
 
@@ -269,8 +266,7 @@ type VariantList = Punctuated<Variant, Comma>;
 
 fn generate_c_like_enum_def(
     variants: &VariantList,
-    scale_info: &Ident,
-    root_marker: &TokenStream2,
+    scale_info: &TokenStream2,
 ) -> TokenStream2 {
     let variants = variants.into_iter().enumerate().map(|(i, v)| {
         let name = &v.ident;
@@ -295,7 +291,7 @@ fn generate_c_like_enum_def(
     });
     quote! {
         variant(
-            #root_marker #scale_info::build::Variants::fieldless()
+            #scale_info::build::Variants::fieldless()
                 #( #variants )*
         )
     }
@@ -310,13 +306,12 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 
 fn generate_variant_type(
     data_enum: &DataEnum,
-    scale_info: &Ident,
-    root_marker: &TokenStream2,
+    scale_info: &TokenStream2,
 ) -> TokenStream2 {
     let variants = &data_enum.variants;
 
     if is_c_like_enum(&variants) {
-        return generate_c_like_enum_def(variants, scale_info, root_marker)
+        return generate_c_like_enum_def(variants, scale_info)
     }
 
     let variants = variants.into_iter().map(|v| {
@@ -328,7 +323,7 @@ fn generate_variant_type(
                 quote! {
                     .variant(
                         #v_name,
-                        #root_marker #scale_info::build::Fields::named()
+                        #scale_info::build::Fields::named()
                             #( #fields)*
                     )
                 }
@@ -338,7 +333,7 @@ fn generate_variant_type(
                 quote! {
                     .variant(
                         #v_name,
-                        #root_marker #scale_info::build::Fields::unnamed()
+                        #scale_info::build::Fields::unnamed()
                             #( #fields)*
                     )
                 }
@@ -352,7 +347,7 @@ fn generate_variant_type(
     });
     quote! {
         variant(
-            #root_marker #scale_info::build::Variants::with_fields()
+            #scale_info::build::Variants::with_fields()
                 #( #variants)*
         )
     }
