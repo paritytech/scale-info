@@ -46,6 +46,7 @@ use crate::{
 use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
+    de::DeserializeOwned,
     Deserialize,
     Serialize,
 };
@@ -166,6 +167,15 @@ impl Registry {
 
 /// A read-only registry containing types in their portable form for serialization.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+// #[cfg_attr(feature = "serde", derive(Serialize))]
+// serialize = "T::Type: Serialize, T::String: Serialize",
+// TODO: do we need this?
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        deserialize = "<PortableForm as Form>::Type: DeserializeOwned, <PortableForm as Form>::String: DeserializeOwned",
+    ))
+)]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {

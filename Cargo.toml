@@ -28,7 +28,9 @@ std = [
 derive = [
     "scale-info-derive"
 ]
-# enables decoding and deserialization of portable scale-info type metadata
+# Derive `TypeInfo` for our own types.
+dogfood = ["derive"]
+# Enables decoding and deserialization of portable scale-info type metadata.
 decode = []
 
 [workspace]
@@ -36,3 +38,4 @@ members = [
     "derive",
     "test_suite",
 ]
+# exclude = ["test_suite"]

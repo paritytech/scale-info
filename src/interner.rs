@@ -32,6 +32,14 @@ use crate::prelude::{
     vec::Vec,
 };
 
+use crate::{
+    build::Fields,
+    form::MetaForm,
+    Path,
+    Type,
+    TypeInfo,
+};
+
 #[cfg(feature = "serde")]
 use serde::{
     Deserialize,
@@ -69,6 +77,19 @@ impl<T> scale::Decode for UntrackedSymbol<T> {
             id,
             marker: Default::default(),
         })
+    }
+}
+
+// TODO: we should be able to derive this.
+impl<T> TypeInfo for UntrackedSymbol<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Self;
+    fn type_info() -> Type<MetaForm> {
+        Type::builder()
+            .path(Path::prelude("Path"))
+            .composite(Fields::named().field_of::<NonZeroU32>("id", "NonZeroU32"))
     }
 }
 

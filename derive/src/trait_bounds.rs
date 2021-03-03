@@ -66,14 +66,14 @@ pub fn make_where_clause<'a>(
         } else {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : :: #scale_info ::TypeInfo + 'static));
+                .push(parse_quote!(#ty : #scale_info ::TypeInfo + 'static));
         }
     });
 
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
+        bounds.push(parse_quote!(#scale_info ::TypeInfo));
         bounds.push(parse_quote!('static));
         where_clause
             .predicates

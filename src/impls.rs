@@ -33,6 +33,18 @@ use crate::{
     TypeDefTuple,
     TypeInfo,
 };
+use core::num::{
+    NonZeroI128,
+    NonZeroI16,
+    NonZeroI32,
+    NonZeroI64,
+    NonZeroI8,
+    NonZeroU128,
+    NonZeroU16,
+    NonZeroU32,
+    NonZeroU64,
+    NonZeroU8,
+};
 
 macro_rules! impl_metadata_for_primitives {
     ( $( $t:ty => $ident_kind:expr, )* ) => { $(
@@ -118,6 +130,34 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+
+macro_rules! impl_for_non_zero {
+    ( $( $t: ty ),* $(,)? ) => {
+        $(
+            impl TypeInfo for $t {
+                type Identity = Self;
+                fn type_info() -> Type {
+                    Type::builder()
+                        .path(Path::prelude(stringify!($t)))
+                        .composite(Fields::unnamed().field_of::<$t>(stringify!($t)))
+                }
+            }
+        )*
+    };
+}
+
+impl_for_non_zero!(
+    NonZeroI8,
+    NonZeroI16,
+    NonZeroI32,
+    NonZeroI64,
+    NonZeroI128,
+    NonZeroU8,
+    NonZeroU16,
+    NonZeroU32,
+    NonZeroU64,
+    NonZeroU128
+);
 
 impl<T> TypeInfo for Vec<T>
 where

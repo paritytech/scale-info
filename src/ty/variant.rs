@@ -83,6 +83,7 @@ use serde::{
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefVariant<T: Form = MetaForm> {
     /// The variants of a variant type
     #[cfg_attr(
@@ -149,6 +150,7 @@ where
 )]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
     name: T::String,

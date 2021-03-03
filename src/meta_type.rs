@@ -27,7 +27,9 @@ use crate::prelude::{
 };
 
 use crate::{
+    build::Fields,
     form::MetaForm,
+    Path,
     Type,
     TypeInfo,
 };
@@ -47,6 +49,18 @@ pub struct MetaType {
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
     type_id: TypeId,
+}
+
+// TODO: this is a total hack. Not sure what we can do here.
+impl TypeInfo for MetaType {
+    type Identity = Self;
+    fn type_info() -> Type<MetaForm> {
+        Type::builder()
+            .path(Path::new("MetaType", "meta_type"))
+            .composite(
+                Fields::named().field_of::<core::num::NonZeroU64>("type_id", "TypeId"),
+            )
+    }
 }
 
 impl PartialEq for MetaType {

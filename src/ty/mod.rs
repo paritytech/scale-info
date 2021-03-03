@@ -62,6 +62,8 @@ pub use self::{
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
+// TODO: this should work
+// #[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Type<T: Form = MetaForm> {
     /// The unique path to the type. Can be empty for built-in types
     #[cfg_attr(
@@ -78,6 +80,28 @@ pub struct Type<T: Form = MetaForm> {
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
     type_def: TypeDef<T>,
+}
+
+impl<T: Form> TypeInfo for Type<T>
+where
+    Path<T>: TypeInfo + 'static,
+    TypeDef<T>: TypeInfo + 'static,
+    T: Form + TypeInfo + 'static,
+    // TODO: why doesn't this show up in the derived version?
+    <T as Form>::Type: TypeInfo + 'static,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::new("Type", "scale_info::ty"))
+            .type_params(tuple_meta_type!(T))
+            .composite(
+                crate::build::Fields::named()
+                    .field_of::<Path<T>>("path", "Path<T>")
+                    .field_of::<Vec<T::Type>>("type_params", "Vec<T::Type>")
+                    .field_of::<TypeDef<T>>("type_def", "TypeDef<T>"),
+            )
+    }
 }
 
 impl IntoPortable for Type {
@@ -162,6 +186,7 @@ where
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
     Composite(TypeDefComposite<T>),
@@ -203,6 +228,7 @@ impl IntoPortable for TypeDef {
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDefPrimitive {
     /// `bool` type
     Bool,
@@ -240,6 +266,7 @@ pub enum TypeDefPrimitive {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
     len: u32,
@@ -294,6 +321,7 @@ where
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
     fields: Vec<T::Type>,
@@ -340,6 +368,7 @@ where
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
@@ -390,6 +419,7 @@ where
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
@@ -435,6 +465,7 @@ where
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefPhantom<T: Form = MetaForm> {
     /// The PhantomData type parameter
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
