@@ -44,11 +44,6 @@ use crate::{
     Type,
 };
 use scale::Encode;
-#[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
 
 /// Convert the type definition into the portable form using a registry.
 pub trait IntoPortable {
@@ -165,7 +160,8 @@ impl Registry {
 }
 
 /// A read-only registry containing types in their portable form for serialization.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {

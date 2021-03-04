@@ -10,9 +10,9 @@ license = "Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-scale-info = { path = "..", features = ["derive", "serde"] }
+scale-info = { path = "..", features = ["derive", "serde", "decode"] }
 
-scale = { package = "parity-scale-codec", version = "2.0", default-features = false, features = ["derive"] }
+scale = { package = "parity-scale-codec", version = "2.0.1", default-features = false, features = ["derive"] }
 serde = "1.0"
 serde_json = "1.0"
 pretty_assertions = "0.6.1"
