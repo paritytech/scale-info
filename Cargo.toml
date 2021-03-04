@@ -29,7 +29,9 @@ derive = [
     "scale-info-derive"
 ]
 # enables decoding and deserialization of portable scale-info type metadata
-decode = []
+decode = [
+    "scale/full"
+]
 
 [workspace]
 members = [
