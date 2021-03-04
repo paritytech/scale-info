@@ -29,9 +29,13 @@ derive = [
     "scale-info-derive"
 ]
 # Derive `TypeInfo` for our own types.
-dogfood = ["derive"]
+dogfood = [
+    "derive"
+]
 # Enables decoding and deserialization of portable scale-info type metadata.
-decode = []
+decode = [
+    "scale/full"
+]
 
 [workspace]
 members = [
