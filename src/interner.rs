@@ -32,14 +32,6 @@ use crate::prelude::{
     vec::Vec,
 };
 
-use crate::{
-    build::Fields,
-    form::MetaForm,
-    Path,
-    Type,
-    TypeInfo,
-};
-
 #[cfg(feature = "serde")]
 use serde::{
     Deserialize,
@@ -53,6 +45,7 @@ use serde::{
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
     id: NonZeroU32,
@@ -77,19 +70,6 @@ impl<T> scale::Decode for UntrackedSymbol<T> {
             id,
             marker: Default::default(),
         })
-    }
-}
-
-// TODO: we should be able to derive this.
-impl<T> TypeInfo for UntrackedSymbol<T>
-where
-    T: TypeInfo + 'static,
-{
-    type Identity = Self;
-    fn type_info() -> Type<MetaForm> {
-        Type::builder()
-            .path(Path::prelude("Path"))
-            .composite(Fields::named().field_of::<NonZeroU32>("id", "NonZeroU32"))
     }
 }
 
