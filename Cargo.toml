@@ -38,4 +38,3 @@ members = [
     "derive",
     "test_suite",
 ]
-# exclude = ["test_suite"]
