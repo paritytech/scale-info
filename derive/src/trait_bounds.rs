@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use alloc::vec::Vec;
-use hashbrown::HashSet;
 use proc_macro2::Ident;
+use std::collections::HashSet;
 use syn::{
     parse_quote,
     punctuated::Punctuated,
