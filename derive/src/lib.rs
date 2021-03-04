@@ -124,8 +124,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         };
     };
     Ok(quote! {
-        // TODO: are these needed?
-        // #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+        #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
         const _: () = {
             #type_info_impl
         };
@@ -148,17 +147,22 @@ fn scale_info_crate_tokens() -> Result<TokenStream2> {
     let actual_crate_name = proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME);
     if let Err(e) = actual_crate_name {
         // A proper error type would be good here (https://github.com/bkchr/proc-macro-crate/issues/7)
-        if e.starts_with(&alloc::format!("Could not find `{}`", SCALE_INFO_CRATE_NAME)) {
-            Ok(quote!{ crate })
+        if e.starts_with(&alloc::format!(
+            "Could not find `{}`",
+            SCALE_INFO_CRATE_NAME
+        )) {
+            Ok(quote! { crate })
         } else {
             Err(syn::Error::new(Span::call_site(), e))
         }
     } else {
         let ident = Ident::new(
-            &actual_crate_name.unwrap_or_else(|_| panic!("Checked for Err above and now it's not Ok. The world is broken.")),
+            &actual_crate_name.unwrap_or_else(|_| {
+                panic!("Checked for Err above and now it's not Ok. The world is broken.")
+            }),
             Span::call_site(),
         );
-        Ok(quote!{ :: #ident })
+        Ok(quote! { :: #ident })
     }
 }
 
