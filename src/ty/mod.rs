@@ -62,8 +62,6 @@ pub use self::{
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
-// TODO: this should work
-// #[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Type<T: Form = MetaForm> {
     /// The unique path to the type. Can be empty for built-in types
     #[cfg_attr(
@@ -82,13 +80,14 @@ pub struct Type<T: Form = MetaForm> {
     type_def: TypeDef<T>,
 }
 
+// Issue https://github.com/paritytech/scale-info/issues/73 is why we can't derive `TypeInfo` for `Type`
 impl<T: Form> TypeInfo for Type<T>
 where
     Path<T>: TypeInfo + 'static,
     TypeDef<T>: TypeInfo + 'static,
     T: Form + TypeInfo + 'static,
-    // TODO: why doesn't this show up in the derived version?
-    <T as Form>::Type: TypeInfo + 'static,
+    // We need this and the derive does not handle that yet.
+    T::Type: TypeInfo + 'static,
 {
     type Identity = Self;
     fn type_info() -> Type {
