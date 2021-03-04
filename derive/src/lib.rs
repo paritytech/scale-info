@@ -143,7 +143,7 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
 /// types for the scale-info crate itself, in which case we need to rename
 /// "self" to something, so the object paths keep working.
 fn scale_info_crate_tokens() -> Result<TokenStream2> {
-    const SCALE_INFO_CRATE_NAME: &'static str = "scale-info";
+    const SCALE_INFO_CRATE_NAME: &str = "scale-info";
     let actual_crate_name = proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME);
     if let Err(e) = actual_crate_name {
         // A proper error type would be good here (https://github.com/bkchr/proc-macro-crate/issues/7)
