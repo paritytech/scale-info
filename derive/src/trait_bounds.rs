@@ -41,6 +41,11 @@ pub fn make_where_clause<'a>(
             predicates: Punctuated::new(),
         }
     });
+    for lifetime in generics.lifetimes() {
+        where_clause
+            .predicates
+            .push(parse_quote!(#lifetime: 'static))
+    }
 
     let type_params = generics.type_params();
     let ty_params_ids = type_params
