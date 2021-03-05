@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+// #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;
 extern crate proc_macro;
@@ -74,18 +74,14 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
-    let mut ast: DeriveInput = syn::parse2(input.clone())?;
+    let ast: DeriveInput = syn::parse2(input.clone())?;
 
     let scale_info = crate_name_ident("scale-info")?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
 
-    ast.generics
-        .lifetimes_mut()
-        .for_each(|l| *l = parse_quote!('static));
-
-    let (_, ty_generics, _) = ast.generics.split_for_impl();
+    let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
     let where_clause = trait_bounds::make_where_clause(
         ident,
         &ast.generics,
@@ -101,20 +97,13 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         }
     });
 
-    let mut ast: DeriveInput = syn::parse2(input.clone())?;
     let build_type = match &ast.data {
         Data::Struct(ref s) => generate_composite_type(s, &scale_info),
         Data::Enum(ref e) => generate_variant_type(e, &scale_info),
         Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
     };
-
-    // Remove any type parameter defaults, we don't want those. E.g. `impl<T: Stuff = WutEven>`
-    ast.generics.type_params_mut().for_each(|type_param| {
-        type_param.default = None;
-    });
-    let generic_types = ast.generics.type_params();
     let type_info_impl = quote! {
-        impl <#( #generic_types ),*> :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+        impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()

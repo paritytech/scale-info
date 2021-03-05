@@ -301,6 +301,7 @@ fn type_parameters_with_default_bound_works() {
         .path(Path::new("Bat", "derive"))
         .type_params(tuple_meta_type!(MetaFormy))
         .composite(Fields::named().field_of::<MetaFormy>("one", "TTT"));
+
     assert_type!(Bat<MetaFormy>, ty);
 }
 
