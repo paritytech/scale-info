@@ -42,7 +42,9 @@ pub fn make_where_clause<'a>(
         }
     });
     for lifetime in generics.lifetimes() {
-        where_clause.predicates.push(parse_quote!(#lifetime: 'static))
+        where_clause
+            .predicates
+            .push(parse_quote!(#lifetime: 'static))
     }
 
     let type_params = generics.type_params();
