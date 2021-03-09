@@ -263,7 +263,7 @@ fn associated_types_named_like_the_derived_type_works() {
                 .field_of::<Vec<bool>>("a", "Vec<T::Assoc>")
                 .field_of::<Vec<bool>>("b", "Vec<<T>::Assoc>")
                 .field_of::<bool>("c", "T::Assoc")
-                .field_of::<bool>("d", "<T>::Assoc")
+                .field_of::<bool>("d", "<T>::Assoc"),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);

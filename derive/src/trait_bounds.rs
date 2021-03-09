@@ -18,7 +18,10 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     spanned::Spanned,
-    visit::{self, Visit},
+    visit::{
+        self,
+        Visit,
+    },
     Generics,
     Result,
     Type,
@@ -118,7 +121,7 @@ fn type_or_sub_type_path_starts_with_ident(ty: &Type, ident: &Ident) -> bool {
     // Visits the ast and checks if the a type path starts with the given ident.
     struct TypePathStartsWithIdent<'a> {
         result: bool,
-        ident: &'a Ident
+        ident: &'a Ident,
     }
 
     impl<'a, 'ast> Visit<'ast> for TypePathStartsWithIdent<'a> {
@@ -127,7 +130,7 @@ fn type_or_sub_type_path_starts_with_ident(ty: &Type, ident: &Ident) -> bool {
                 if let Some(segment) = i.path.segments.first() {
                     if &segment.ident == self.ident {
                         self.result = true;
-                        return;
+                        return
                     }
                 }
             }
@@ -135,11 +138,13 @@ fn type_or_sub_type_path_starts_with_ident(ty: &Type, ident: &Ident) -> bool {
         }
     }
 
-	let mut visitor = TypePathStartsWithIdent { result: false, ident };
-	visitor.visit_type(ty);
-	visitor.result
+    let mut visitor = TypePathStartsWithIdent {
+        result: false,
+        ident,
+    };
+    visitor.visit_type(ty);
+    visitor.result
 }
-
 
 /// Returns all types that must be added to the where clause with a boolean
 /// indicating if the field is [`scale::Compact`] or not.
