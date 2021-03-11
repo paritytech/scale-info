@@ -125,7 +125,13 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 /// Get the name of a crate, to be robust against renamed dependencies.
 fn crate_name_ident(name: &str) -> Result<Ident> {
     proc_macro_crate::crate_name(name)
-        .map(|crate_name| Ident::new(&crate_name, Span::call_site()))
+        .map(|crate_name| {
+            use proc_macro_crate::FoundCrate::*;
+            match crate_name {
+                Itself => Ident::new("self", Span::call_site()),
+                Name(name)  => Ident::new(&name, Span::call_site()),
+            }
+        })
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
 }
 
