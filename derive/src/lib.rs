@@ -129,7 +129,7 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
             use proc_macro_crate::FoundCrate::*;
             match crate_name {
                 Itself => Ident::new("self", Span::call_site()),
-                Name(name)  => Ident::new(&name, Span::call_site()),
+                Name(name) => Ident::new(&name, Span::call_site()),
             }
         })
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
