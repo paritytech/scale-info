@@ -25,6 +25,8 @@ use syn::{
     WhereClause,
 };
 
+use crate::internals::attr;
+
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
 /// with self-referential types.
@@ -34,6 +36,7 @@ pub fn make_where_clause<'a>(
     data: &'a syn::Data,
     scale_info: &Ident,
     parity_scale_codec: &Ident,
+    attr_container: &attr::Container,
 ) -> Result<WhereClause> {
     let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
         WhereClause {
@@ -41,6 +44,15 @@ pub fn make_where_clause<'a>(
             predicates: Punctuated::new(),
         }
     });
+
+    // If they provided a set of bounds with `#[scale_info(bound = "…")]` then
+    // that's all the bounds we're going to use.
+    if let Some(predicates) = attr_container.bound() {
+        println!("[make_where_clause, {}] overriding with attribute bounds", input_ident);
+        where_clause.predicates.extend(predicates.iter().cloned());
+        return Ok(where_clause)
+    }
+
     for lifetime in generics.lifetimes() {
         where_clause
             .predicates

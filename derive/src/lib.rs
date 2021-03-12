@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 extern crate alloc;
 extern crate proc_macro;
 
 mod trait_bounds;
+mod internals;
 
 use alloc::{
     string::{
@@ -58,8 +57,9 @@ use syn::{
     NestedMeta,
     Variant,
 };
+use internals::{attr, Ctxt};
 
-#[proc_macro_derive(TypeInfo)]
+#[proc_macro_derive(TypeInfo, attributes(scale_info))]
 pub fn type_info(input: TokenStream) -> TokenStream {
     match generate(input.into()) {
         Ok(output) => output.into(),
@@ -81,6 +81,11 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let ident = &ast.ident;
 
+    let cx = Ctxt::new();
+    let cont = attr::Container::from_ast(&cx, &ast);
+    Ctxt::check(cx)?;
+    println!("[generate_type, {}] attributes container: {:#?}", ident, cont);
+
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
     let where_clause = trait_bounds::make_where_clause(
         ident,
@@ -88,6 +93,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         &ast.data,
         &scale_info,
         &parity_scale_codec,
+        &cont,
     )?;
 
     let generic_type_ids = ast.generics.type_params().map(|ty| {
