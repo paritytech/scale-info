@@ -89,6 +89,7 @@ fn custom_trait_bounds_makes_associated_types_named_like_the_derived_type_work()
     assert_type!(Assoc<ConcreteTypes>, struct_type);
 }
 
+// This is a set of structs that `serde` had issues deriving for.
 #[test]
 fn self_referential_types() {
     #[allow(unused)]
