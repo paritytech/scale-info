@@ -389,6 +389,40 @@ fn associated_types_derive_without_bounds() {
 }
 
 #[test]
+fn associated_types_named_like_the_derived_type_works() {
+    trait Types {
+        type Assoc;
+    }
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Assoc<T: Types> {
+        a: Vec<T::Assoc>,
+        b: Vec<<T>::Assoc>,
+        c: T::Assoc,
+        d: <T>::Assoc,
+    }
+
+    #[derive(TypeInfo)]
+    enum ConcreteTypes {}
+    impl Types for ConcreteTypes {
+        type Assoc = bool;
+    }
+
+    let struct_type = Type::builder()
+        .path(Path::new("Assoc", "derive"))
+        .type_params(tuple_meta_type!(ConcreteTypes))
+        .composite(
+            Fields::named()
+                .field_of::<Vec<bool>>("a", "Vec<T::Assoc>")
+                .field_of::<Vec<bool>>("b", "Vec<<T>::Assoc>")
+                .field_of::<bool>("c", "T::Assoc")
+                .field_of::<bool>("d", "<T>::Assoc"),
+        );
+
+    assert_type!(Assoc<ConcreteTypes>, struct_type);
+}
+
+#[test]
 fn scale_compact_types_work_in_structs() {
     #[allow(unused)]
     #[derive(Encode, TypeInfo)]
