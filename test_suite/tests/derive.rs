@@ -55,6 +55,73 @@ fn custom_trait_bounds() {
 }
 
 #[test]
+fn scale_compact_types_complex() {
+    trait Boo {
+        type B: TypeInfo;
+    }
+    impl Boo for u8 {
+        type B = bool;
+    }
+
+    #[allow(unused)]
+    #[derive(Encode, TypeInfo)]
+    struct A<T: Boo, U> {
+        one: PhantomData<T>,
+        two: PhantomData<U>,
+        #[codec(compact)]
+        three: T,
+        four: T::B,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("A", "derive"))
+        .type_params(tuple_meta_type![u8, u16])
+        .composite(
+            Fields::named()
+                .field_of::<PhantomData<u8>>("one", "PhantomData<T>")
+                .field_of::<PhantomData<u16>>("two", "PhantomData<U>")
+                .compact_of::<u8>("three", "T")
+                .field_of::<bool>("four", "T::B"),
+        );
+
+    assert_type!(A<u8, u16>, ty);
+}
+
+#[test]
+fn custom_bounds_and_compact_types_in_generics() {
+    use scale::HasCompact;
+
+    #[derive(Encode, TypeInfo)]
+    struct Color<Hue>(#[codec(compact)] Hue);
+
+    #[derive(TypeInfo)]
+    struct Texture<Bump, Hump>{bump: Bump, hump: Hump}
+
+    #[allow(unused)]
+    #[derive(Encode, TypeInfo)]
+    #[scale_info(bound = "
+        T: TypeInfo + 'static,
+        U: HasCompact + TypeInfo + 'static,
+        <U as HasCompact>::Type: TypeInfo + 'static
+    ")]
+    struct Apple<T, U> {
+        color: Color<U>,
+        texture: Texture<T, U>,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Apple", "derive"))
+        .type_params(tuple_meta_type![u128, u64])
+        .composite(
+            Fields::named()
+                .field_of::<Color<u64>>("color", "Color<U>")
+                .field_of::<Texture<u128, u64>>("texture", "Texture<T, U>")
+        );
+
+    assert_type!(Apple<u128, u64>, ty);
+}
+
+#[test]
 fn custom_trait_bounds_makes_associated_types_named_like_the_derived_type_work() {
     trait Types {
         type Assoc;
