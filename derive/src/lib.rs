@@ -15,8 +15,11 @@
 extern crate alloc;
 extern crate proc_macro;
 
-mod trait_bounds;
 mod internals;
+mod trait_bounds;
+#[macro_use]
+mod fragment;
+mod bound;
 
 use alloc::{
     string::{
@@ -25,6 +28,17 @@ use alloc::{
     },
     vec::Vec,
 };
+use internals::{
+    ast::{
+        self,
+        Container,
+        Data,
+        Style,
+    },
+    attr,
+    replace_receiver,
+    Ctxt,
+};
 use proc_macro::TokenStream;
 use proc_macro2::{
     Span,
@@ -32,16 +46,13 @@ use proc_macro2::{
 };
 use quote::quote;
 use syn::{
-    parse::{
-        Error,
-        Result,
-    },
+    parse::Error,
+    parse_macro_input,
     parse_quote,
     punctuated::Punctuated,
     token::Comma,
     visit_mut::VisitMut,
     AttrStyle,
-    Data,
     DataEnum,
     DataStruct,
     DeriveInput,
@@ -57,23 +68,251 @@ use syn::{
     NestedMeta,
     Variant,
 };
-use internals::{attr, Ctxt};
+
+use fragment::{
+    Fragment,
+    Stmts,
+};
 
 #[proc_macro_derive(TypeInfo, attributes(scale_info))]
 pub fn type_info(input: TokenStream) -> TokenStream {
-    match generate(input.into()) {
-        Ok(output) => output.into(),
-        Err(err) => err.to_compile_error().into(),
+    let mut input = parse_macro_input!(input as DeriveInput);
+    derive_type_info(&mut input)
+        .unwrap_or_else(to_compile_errors)
+        .into()
+    // match generate(input.into()) {
+    //     Ok(output) => output.into(),
+    //     Err(err) => err.to_compile_error().into(),
+    // }
+}
+
+fn derive_type_info(input: &mut DeriveInput) -> Result<TokenStream2, Vec<syn::Error>> {
+    replace_receiver(input);
+
+    let ctxt = Ctxt::new();
+    let cont = match Container::from_ast(&ctxt, input) {
+        Some(cont) => cont,
+        // None => return Err(vec![ctxt.check().unwrap_err()]), /* TODO: check how serde does the wrapping in Vec */
+        None => return Err(ctxt.check().unwrap_err()),
+    };
+    // TODO: what exactly do we want `check()` to check for our case?
+    ctxt.check()?;
+
+    let ident = &cont.ident;
+    let params = Parameters::new(&cont);
+    // TODO: This was a `Path` in serde, is that a problem?
+    let scale_info = crate_name_ident("scale-info").expect("TODO!!");
+    // TODO: make this into a method on `Parameters`?
+    let generic_type_ids = params.generics.type_params().map(|ty| {
+        let ty_ident = &ty.ident;
+        quote! {
+            :: #scale_info ::meta_type::<#ty_ident>()
+        }
+    });
+
+    let (impl_generics, ty_generics, where_clause) = params.generics.split_for_impl();
+    let body = Stmts(type_info_body(&cont, &params));
+
+    let impl_block = quote! {
+        #[automatically_derived]
+        impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+            type Identity = Self;
+            fn type_info() -> :: #scale_info ::Type {
+                :: #scale_info ::Type::builder()
+                    .path(:: #scale_info ::Path::new(stringify!(#ident), module_path!()))
+                    .type_params(:: #scale_info ::prelude::vec![ #( #generic_type_ids ),* ])
+                    .#body
+            }
+        }
+    };
+
+    Ok(quote! {
+        #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+        const _: () = {
+            #impl_block;
+        };
+    })
+}
+
+fn to_compile_errors(errors: Vec<syn::Error>) -> proc_macro2::TokenStream {
+    let compile_errors = errors.iter().map(syn::Error::to_compile_error);
+    quote!(#(#compile_errors)*)
+}
+
+struct Parameters {
+    // TODO: figure out what this means in a `scale_info` context
+    /// Variable holding the value being derived. Either `self` for local
+    /// types or `__self` for remote types.
+    self_var: Ident,
+
+    /// Path to the type the impl is for. Does not include generic parameters.
+    this: syn::Path,
+
+    /// Generics including any explicit and inferred bounds for the impl.
+    generics: syn::Generics,
+    /* TODO: serde has `#[serde(remote = "…")]` – would that be useful to us? Serde sets up a "shadow" type for such types. */
+
+    /* TODO: maybe we need a `is_compact` here? */
+}
+
+impl Parameters {
+    fn new(cont: &Container) -> Self {
+        let self_var = Ident::new("self", Span::call_site());
+        let this = cont.ident.clone().into();
+        let generics = build_generics(cont);
+
+        Parameters {
+            self_var,
+            this,
+            generics,
+        }
+    }
+
+    /// Type name to use in error messages and `&'static str` arguments to
+    /// various Serializer methods.
+    fn type_name(&self) -> String {
+        self.this.segments.last().unwrap().ident.to_string()
     }
 }
 
-fn generate(input: TokenStream2) -> Result<TokenStream2> {
+// All the generics in the input, plus a bound `T: Serialize` for each generic
+// field type that will be serialized by us.
+fn build_generics(cont: &Container) -> syn::Generics {
+    // TODO: all the `with_` methods
+    let generics = bound::without_defaults(cont.generics);
+
+    let generics =
+        bound::with_where_predicates_from_fields(cont, &generics, attr::Field::bound);
+
+    let generics =
+        bound::with_where_predicates_from_variants(cont, &generics, attr::Variant::bound);
+
+    match cont.attrs.bound() {
+        Some(predicates) => bound::with_where_predicates(&generics, predicates),
+        None => {
+            bound::with_bound(
+                cont,
+                &generics,
+                needs_bound,
+                // TODO: what goes here?
+                // TODO: need the proper crate name yes?
+                &parse_quote!(scale_info::TypeInfo),
+            )
+        }
+    }
+}
+
+fn needs_bound(field: &attr::Field, variant: Option<&attr::Variant>) -> bool {
+    field.bound().is_none() && variant.map_or(true, |variant| variant.bound().is_none())
+}
+
+fn type_info_body(cont: &Container, params: &Parameters) -> Fragment {
+    // TODO: port all the derive_for_* (was serialize_*)
+    // This is where we plug in the actual TypeInfo generating code.
+    // Each derive_for_* call should return a `Fragment`, which is either an `Expr` or a `Block`
+
+    match &cont.data {
+        Data::Enum(variants) => derive_for_enum(params, variants, &cont.attrs),
+        Data::Struct(_, _) => todo!()
+        // Data::Struct(Style::Struct, fields) => derive_for_struct(params, fields, &cont.attrs),
+        // Data::Struct(Style::Tuple, fields) => {
+        //     derive_for_tuple_struct(params, fields, &cont.attrs)
+        // }
+        // Data::Struct(Style::Newtype, fields) => {
+        //     derive_for_newtype_struct(params, &fields[0], &cont.attrs)
+        // }
+        // Data::Struct(Style::Unit, _) => derive_for_unit_struct(&cont.attrs),
+    }
+}
+
+fn derive_for_enum(
+    params: &Parameters,
+    variants: &[ast::Variant],
+    cattrs: &attr::Container,
+) -> Fragment {
+    assert!(variants.len() as u64 <= u64::from(u32::max_value()));
+
+    let self_var = &params.self_var;
+
+    let variant_tokens: Vec<_> = variants
+        .iter()
+        .enumerate()
+        .map(|(variant_index, variant)| {
+            derive_for_variant(params, variant, variant_index as u32, cattrs)
+        })
+        .collect();
+
+    // TODO:
+    quote_expr! {}
+    // quote_expr! {
+    //     match *#self_var {
+    //         #(#arms)*
+    //     }
+    // }
+}
+
+fn derive_for_variant(
+    params: &Parameters,
+    variant: &ast::Variant,
+    variant_index: u32,
+    cattrs: &attr::Container,
+) -> TokenStream2 {
+    let this = &params.this;
+    let variant_ident = &variant.ident;
+    quote! {}
+    // let case = match variant.style {
+    //     Style::Unit => {
+    //         quote! {
+    //             #this::#variant_ident
+    //         }
+    //     }
+    //     Style::Newtype => {
+    //         quote! {
+    //             #this::#variant_ident(ref __field0)
+    //         }
+    //     }
+    //     Style::Tuple => {
+    //         let field_names = (0..variant.fields.len())
+    //             .map(|i| Ident::new(&format!("__field{}", i), Span::call_site()));
+    //         quote! {
+    //             #this::#variant_ident(#(ref #field_names),*)
+    //         }
+    //     }
+    //     Style::Struct => {
+    //         let members = variant.fields.iter().map(|f| &f.member);
+    //         quote! {
+    //             #this::#variant_ident { #(ref #members),* }
+    //         }
+    //     }
+    // };
+
+    // let body = Match(match cattrs.tag() {
+    //     attr::TagType::External => {
+    //         serialize_externally_tagged_variant(params, variant, variant_index, cattrs)
+    //     }
+    //     attr::TagType::Internal { tag } => {
+    //         serialize_internally_tagged_variant(params, variant, cattrs, tag)
+    //     }
+    //     attr::TagType::Adjacent { tag, content } => {
+    //         serialize_adjacently_tagged_variant(params, variant, cattrs, tag, content)
+    //     }
+    //     attr::TagType::None => serialize_untagged_variant(params, variant, cattrs),
+    // });
+
+    // quote! {
+    //     #case => #body
+    // }
+}
+
+// OLD
+
+fn generate(input: TokenStream2) -> Result<TokenStream2, syn::Error> {
     let mut tokens = quote! {};
     tokens.extend(generate_type(input)?);
     Ok(tokens)
 }
 
-fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
+fn generate_type(input: TokenStream2) -> Result<TokenStream2, syn::Error> {
     let ast: DeriveInput = syn::parse2(input.clone())?;
 
     let scale_info = crate_name_ident("scale-info")?;
@@ -83,8 +322,11 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let cx = Ctxt::new();
     let cont = attr::Container::from_ast(&cx, &ast);
-    Ctxt::check(cx)?;
-    println!("[generate_type, {}] attributes container: {:#?}", ident, cont);
+    Ctxt::check(cx).expect("oh noes");
+    println!(
+        "[generate_type, {}] attributes container: {:#?}",
+        ident, cont
+    );
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
     let where_clause = trait_bounds::make_where_clause(
@@ -104,9 +346,11 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     });
 
     let build_type = match &ast.data {
-        Data::Struct(ref s) => generate_composite_type(s, &scale_info),
-        Data::Enum(ref e) => generate_variant_type(e, &scale_info),
-        Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
+        syn::Data::Struct(ref s) => generate_composite_type(s, &scale_info),
+        syn::Data::Enum(ref e) => generate_variant_type(e, &scale_info),
+        syn::Data::Union(_) => {
+            return Err(Error::new_spanned(input, "Unions not supported"))
+        }
     };
     let type_info_impl = quote! {
         impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
@@ -129,7 +373,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 /// Get the name of a crate, to be robust against renamed dependencies.
-fn crate_name_ident(name: &str) -> Result<Ident> {
+fn crate_name_ident(name: &str) -> Result<Ident, syn::Error> {
     proc_macro_crate::crate_name(name)
         .map(|crate_name| {
             use proc_macro_crate::FoundCrate::*;

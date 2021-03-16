@@ -1,5 +1,5 @@
 // TODO: copyright and license
-use syn::{self, Meta::{List, NameValue}, NestedMeta::{Lit, Meta}};
+use syn::{self, Ident, Meta::{List, NameValue}, NestedMeta::{Lit, Meta}};
 use syn::parse::{self, Parse};
 use proc_macro2::TokenStream;
 use quote::ToTokens;
@@ -7,9 +7,18 @@ use super::symbol::{Symbol, BOUND, SCALE_INFO};
 use super::Ctxt;
 use super::respan::respan;
 
+// This module handles parsing of `#[scale_info(...)]` attributes. The entrypoints
+// are `attr::Container::from_ast`, `attr::Variant::from_ast`, and
+// `attr::Field::from_ast`. Each returns an instance of the corresponding
+// struct. Note that none of them return a Result. Unrecognized, malformed, or
+// duplicated attributes result in a span_err but otherwise are ignored. The
+// user will see errors simultaneously for all bad attributes in the crate
+// rather than just the first.
+
 struct Attr<'c, T> {
     cx: &'c Ctxt,
     name: Symbol,
+    // TODO: do we need this?
     #[allow(unused)]
     tokens: TokenStream,
     value: Option<T>,
@@ -64,6 +73,9 @@ impl<'c, T> Attr<'c, T> {
     }
 }
 
+fn unraw(ident: &Ident) -> String {
+    ident.to_string().trim_start_matches("r#").to_owned()
+}
 
 #[derive(Debug)]
 /// Represents struct or enum attribute information.
@@ -112,6 +124,7 @@ impl Container {
         Container {
             name: item.ident.to_string(),
             bound: bound.get(),
+
         }
     }
 
@@ -187,4 +200,117 @@ where
 fn spanned_tokens(s: &syn::LitStr) -> parse::Result<TokenStream> {
     let stream = syn::parse_str(&s.value())?;
     Ok(respan(stream, s.span()))
+}
+
+
+/// Represents variant attribute information
+pub struct Variant {
+    name: String,
+    bound: Option<Vec<syn::WherePredicate>>,
+}
+
+impl Variant {
+    pub fn from_ast(cx: &Ctxt, variant: &syn::Variant) -> Self {
+        // TODO: this is a bit dumb. We don't have any variant attributes.
+        for meta_item in variant
+            .attrs
+            .iter()
+            .flat_map(|attr| get_scale_info_meta_items(cx, attr))
+            .flatten()
+        {
+            match &meta_item {
+                Meta(meta_item) => {
+                    let path = meta_item
+                        .path()
+                        .into_token_stream()
+                        .to_string()
+                        .replace(' ', "");
+                    cx.error_spanned_by(
+                        meta_item.path(),
+                        format!("unknown scale_info variant attribute `{}`", path),
+                    );
+                }
+
+                Lit(lit) => {
+                    cx.error_spanned_by(lit, "unexpected literal in scale_info variant attribute");
+                }
+            }
+        }
+
+        Variant {
+            name: unraw(&variant.ident),
+            bound: None,
+        }
+    }
+
+    // TODO: needed?
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn bound(&self) -> Option<&[syn::WherePredicate]> {
+        self.bound.as_ref().map(|vec| &vec[..])
+    }
+}
+
+
+/// Represents field attribute information
+pub struct Field {
+    name: String,
+    bound: Option<Vec<syn::WherePredicate>>,
+}
+
+impl Field {
+    // TODO: we don't have attributes on fields/variants...
+    /// Extract out the `#[scale_info(...)]` attributes from a struct field.
+    pub fn from_ast(
+        cx: &Ctxt,
+        index: usize,
+        field: &syn::Field,
+        attrs: Option<&Variant>,
+    ) -> Self {
+        let ident = match &field.ident {
+            Some(ident) => unraw(ident),
+            None => index.to_string(),
+        };
+
+        for meta_item in field
+            .attrs
+            .iter()
+            .flat_map(|attr| get_scale_info_meta_items(cx, attr))
+            .flatten()
+        {
+            match &meta_item {
+                Meta(meta_item) => {
+                    let path = meta_item
+                        .path()
+                        .into_token_stream()
+                        .to_string()
+                        .replace(' ', "");
+                    cx.error_spanned_by(
+                        meta_item.path(),
+                        format!("unknown scale_info field attribute `{}`", path),
+                    );
+                }
+
+                Lit(lit) => {
+                    cx.error_spanned_by(lit, "unexpected literal in scale_info field attribute");
+                }
+            }
+        }
+
+        Field {
+            name: ident,
+            bound: None,
+        }
+    }
+
+    // TODO: needed?
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn bound(&self) -> Option<&[syn::WherePredicate]> {
+        self.bound.as_ref().map(|vec| &vec[..])
+    }
 }

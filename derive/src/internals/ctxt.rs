@@ -45,13 +45,13 @@ impl Ctxt {
     }
 
     /// Consume this object, producing a formatted error string if there are errors.
-    // pub fn check(self) -> Result<(), Vec<syn::Error>> {
-    pub fn check(self) -> Result<(), syn::Error> {
+    pub fn check(self) -> Result<(), Vec<syn::Error>> {
+    // pub fn check(self) -> Result<(), syn::Error> {
         let errors = self.errors.borrow_mut().take().unwrap();
         match errors.len() {
             0 => Ok(()),
-            _ => Err(errors[0].clone()), // TODO: the whole crate should probably use `Result<…, Vec<syn::Error>>`
-            // _ => Err(errors),
+            // _ => Err(errors[0].clone()), // TODO: the whole crate should probably use `Result<…, Vec<syn::Error>>`
+            _ => Err(errors),
         }
     }
 }
