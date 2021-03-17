@@ -29,6 +29,8 @@ use syn::{
     WhereClause,
 };
 
+use crate::utils;
+
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
 /// with self-referential types.
@@ -164,7 +166,7 @@ fn collect_types_to_bind(
                 // to not have them in the where clause.
                 !type_or_sub_type_path_starts_with_ident(&field.ty, &input_ident)
             })
-            .map(|f| (f.ty.clone(), super::is_compact(f)))
+            .map(|f| (f.ty.clone(), utils::is_compact(f)))
             .collect()
     };
 

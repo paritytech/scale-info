@@ -20,6 +20,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
     spanned::Spanned,
+    AttrStyle,
     Attribute,
     Lit,
     Meta,
@@ -56,18 +57,22 @@ pub fn variant_index(v: &Variant, i: usize) -> TokenStream {
 }
 
 // /// Look for a `#[codec(compact)]` outer attribute on the given `Field`.
-// pub fn is_compact(field: &Field) -> bool {
-//     find_meta_item(field.attrs.iter(), |meta| {
-//         if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
-//             if path.is_ident("compact") {
-//                 return Some(())
-//             }
-//         }
+pub fn is_compact(field: &syn::Field) -> bool {
+    let outer_attrs = field
+        .attrs
+        .iter()
+        .filter(|attr| attr.style == AttrStyle::Outer);
+    find_meta_item(outer_attrs, |meta| {
+        if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
+            if path.is_ident("compact") {
+                return Some(())
+            }
+        }
 
-//         None
-//     })
-//     .is_some()
-// }
+        None
+    })
+    .is_some()
+}
 
 /// Look for a `#[codec(skip)]` in the given attributes.
 pub fn should_skip(attrs: &[Attribute]) -> bool {

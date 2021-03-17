@@ -42,7 +42,6 @@ use syn::{
     punctuated::Punctuated,
     token::Comma,
     visit_mut::VisitMut,
-    AttrStyle,
     Data,
     DataEnum,
     DataStruct,
@@ -51,9 +50,6 @@ use syn::{
     Fields,
     Ident,
     Lifetime,
-    Meta,
-    MetaList,
-    NestedMeta,
     Variant,
 };
 
@@ -153,7 +149,7 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             StaticLifetimesReplace.visit_type_mut(&mut ty);
 
             let type_name = clean_type_string(&quote!(#ty).to_string());
-            let method_call = if is_compact(f) {
+            let method_call = if utils::is_compact(f) {
                 quote!(.compact_of::<#ty>)
             } else {
                 quote!(.field_of::<#ty>)
@@ -165,23 +161,6 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             }
         })
         .collect()
-}
-
-/// Look for a `#[codec(compact)]` outer attribute.
-fn is_compact(f: &Field) -> bool {
-    f.attrs.iter().any(|attr| {
-        let mut is_compact = false;
-        if attr.style == AttrStyle::Outer && attr.path.is_ident("codec") {
-            if let Ok(Meta::List(MetaList { nested, .. })) = attr.parse_meta() {
-                if let Some(NestedMeta::Meta(Meta::Path(path))) = nested.iter().next() {
-                    if path.is_ident("compact") {
-                        is_compact = true;
-                    }
-                }
-            }
-        }
-        is_compact
-    })
 }
 
 fn clean_type_string(input: &str) -> String {
