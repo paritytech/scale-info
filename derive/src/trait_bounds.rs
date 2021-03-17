@@ -18,10 +18,14 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     spanned::Spanned,
-    visit::Visit,
+    visit::{
+        self,
+        Visit,
+    },
     Generics,
     Result,
     Type,
+    TypePath,
     WhereClause,
 };
 
@@ -41,6 +45,11 @@ pub fn make_where_clause<'a>(
             predicates: Punctuated::new(),
         }
     });
+    for lifetime in generics.lifetimes() {
+        where_clause
+            .predicates
+            .push(parse_quote!(#lifetime: 'static))
+    }
 
     let type_params = generics.type_params();
     let ty_params_ids = type_params
@@ -107,6 +116,36 @@ fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
     visitor.result
 }
 
+/// Checks if the given type or any containing type path starts with the given ident.
+fn type_or_sub_type_path_starts_with_ident(ty: &Type, ident: &Ident) -> bool {
+    // Visits the ast and checks if the a type path starts with the given ident.
+    struct TypePathStartsWithIdent<'a> {
+        result: bool,
+        ident: &'a Ident,
+    }
+
+    impl<'a, 'ast> Visit<'ast> for TypePathStartsWithIdent<'a> {
+        fn visit_type_path(&mut self, i: &'ast TypePath) {
+            if i.qself.is_none() {
+                if let Some(segment) = i.path.segments.first() {
+                    if &segment.ident == self.ident {
+                        self.result = true;
+                        return
+                    }
+                }
+            }
+            visit::visit_type_path(self, i);
+        }
+    }
+
+    let mut visitor = TypePathStartsWithIdent {
+        result: false,
+        ident,
+    };
+    visitor.visit_type(ty);
+    visitor.result
+}
+
 /// Returns all types that must be added to the where clause with a boolean
 /// indicating if the field is [`scale::Compact`] or not.
 fn collect_types_to_bind(
@@ -123,7 +162,7 @@ fn collect_types_to_bind(
                 &&
                 // Remove all remaining types that start/contain the input ident
                 // to not have them in the where clause.
-                !type_contains_idents(&field.ty, &[input_ident.clone()])
+                !type_or_sub_type_path_starts_with_ident(&field.ty, &input_ident)
             })
             .map(|f| (f.ty.clone(), super::is_compact(f)))
             .collect()

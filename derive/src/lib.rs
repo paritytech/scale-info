@@ -72,18 +72,14 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
-    let mut ast: DeriveInput = syn::parse2(input.clone())?;
+    let ast: DeriveInput = syn::parse2(input.clone())?;
 
     let scale_info = crate_name_ident("scale-info")?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
 
-    ast.generics
-        .lifetimes_mut()
-        .for_each(|l| *l = parse_quote!('static));
-
-    let (_, ty_generics, _) = ast.generics.split_for_impl();
+    let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
     let where_clause = trait_bounds::make_where_clause(
         ident,
         &ast.generics,
@@ -99,15 +95,13 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         }
     });
 
-    let ast: DeriveInput = syn::parse2(input.clone())?;
     let build_type = match &ast.data {
         Data::Struct(ref s) => generate_composite_type(s, &scale_info),
         Data::Enum(ref e) => generate_variant_type(e, &scale_info),
         Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
     };
-    let generic_types = ast.generics.type_params();
     let type_info_impl = quote! {
-        impl <#( #generic_types ),*> :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+        impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()
@@ -129,7 +123,13 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 /// Get the name of a crate, to be robust against renamed dependencies.
 fn crate_name_ident(name: &str) -> Result<Ident> {
     proc_macro_crate::crate_name(name)
-        .map(|crate_name| Ident::new(&crate_name, Span::call_site()))
+        .map(|crate_name| {
+            use proc_macro_crate::FoundCrate::*;
+            match crate_name {
+                Itself => Ident::new("self", Span::call_site()),
+                Name(name) => Ident::new(&name, Span::call_site()),
+            }
+        })
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
 }
 
