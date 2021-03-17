@@ -18,6 +18,9 @@ pub struct Container<'a> {
     pub generics: &'a syn::Generics,
     /// Original input.
     pub original: &'a syn::DeriveInput,
+    // TODO: needs to be a TokenStream so we can use `crate`
+    /// Crate name, e.g. `scale_info`
+    pub crate_name: &'a syn::Ident,
 }
 
 /// The fields of a struct or enum.
@@ -62,6 +65,7 @@ impl<'a> Container<'a> {
     pub fn from_ast(
         cx: &Ctxt,
         item: &'a syn::DeriveInput,
+        crate_name: &'a syn::Ident,
         // TODO: needed?
         // derive: Derive,
     ) -> Option<Container<'a>> {
@@ -85,6 +89,7 @@ impl<'a> Container<'a> {
             data,
             generics: &item.generics,
             original: item,
+            crate_name,
         };
         //TODO: if we need checks, uncomment this:
         // check::check(cx, &mut item, derive);

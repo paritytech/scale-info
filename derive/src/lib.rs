@@ -90,7 +90,10 @@ fn derive_type_info(input: &mut DeriveInput) -> Result<TokenStream2, Vec<syn::Er
     replace_receiver(input);
 
     let ctxt = Ctxt::new();
-    let cont = match Container::from_ast(&ctxt, input) {
+    // TODO: This was a `Path` in serde, is that a problem?
+    let scale_info = crate_name_ident("scale-info").expect("TODO!!");
+
+    let cont = match Container::from_ast(&ctxt, input, &scale_info) {
         Some(cont) => cont,
         // None => return Err(vec![ctxt.check().unwrap_err()]), /* TODO: check how serde does the wrapping in Vec */
         None => return Err(ctxt.check().unwrap_err()),
@@ -100,8 +103,6 @@ fn derive_type_info(input: &mut DeriveInput) -> Result<TokenStream2, Vec<syn::Er
 
     let ident = &cont.ident;
     let params = Parameters::new(&cont);
-    // TODO: This was a `Path` in serde, is that a problem?
-    let scale_info = crate_name_ident("scale-info").expect("TODO!!");
     // TODO: make this into a method on `Parameters`?
     let generic_type_ids = params.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
@@ -212,7 +213,7 @@ fn type_info_body(cont: &Container, params: &Parameters) -> Fragment {
     // Each derive_for_* call should return a `Fragment`, which is either an `Expr` or a `Block`
 
     match &cont.data {
-        Data::Enum(variants) => derive_for_enum(params, variants, &cont.attrs),
+        Data::Enum(variants) => derive_for_enum(params, variants, &cont.attrs, &cont.crate_name),
         Data::Struct(_, _) => todo!()
         // Data::Struct(Style::Struct, fields) => derive_for_struct(params, fields, &cont.attrs),
         // Data::Struct(Style::Tuple, fields) => {
@@ -229,12 +230,13 @@ fn derive_for_enum(
     params: &Parameters,
     variants: &[ast::Variant],
     cattrs: &attr::Container,
+    crate_name: &syn::Ident,
 ) -> Fragment {
     assert!(variants.len() as u64 <= u64::from(u32::max_value()));
 
     let self_var = &params.self_var;
 
-    let variant_tokens: Vec<_> = variants
+    let variants_tokens: Vec<_> = variants
         .iter()
         .enumerate()
         .map(|(variant_index, variant)| {
@@ -242,8 +244,12 @@ fn derive_for_enum(
         })
         .collect();
 
-    // TODO:
-    quote_expr! {}
+    println!("[derive_for_enum] variants={:?}", variants_tokens);
+    // TODO: fieldless/with_fields
+    quote_expr! {
+        #crate_name::build::Variants::fieldless()
+            #( #variants_tokens )*
+    }
     // quote_expr! {
     //     match *#self_var {
     //         #(#arms)*
@@ -259,7 +265,13 @@ fn derive_for_variant(
 ) -> TokenStream2 {
     let this = &params.this;
     let variant_ident = &variant.ident;
-    quote! {}
+    let variant_name = quote!{ stringify!(#variant_ident) };
+    match variant.style {
+        Style::Unit => quote! { .variant_unit(#variant_name) },
+        Style::Newtype => todo!("NewTypes are not supported yet"),
+        Style::Tuple => todo!("Tuples are not supported yet "),
+        Style::Struct => todo!("Structs are not supported yet "),
+    }
     // let case = match variant.style {
     //     Style::Unit => {
     //         quote! {
