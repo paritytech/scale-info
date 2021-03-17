@@ -90,7 +90,7 @@ pub fn should_skip(attrs: &[Attribute]) -> bool {
 
 fn find_meta_item<'a, F, R, I>(itr: I, pred: F) -> Option<R>
 where
-    F: FnMut(&NestedMeta) -> Option<R> + Clone,
+    F: Fn(&NestedMeta) -> Option<R> + Clone,
     I: Iterator<Item = &'a Attribute>,
 {
     itr.filter_map(|attr| {
