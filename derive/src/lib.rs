@@ -227,9 +227,9 @@ fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> Token
 }
 
 fn is_c_like_enum(variants: &VariantList) -> bool {
-    // any variant has an explicit discriminant
+    // One of the variants has an explicit discriminant, or…
     variants.iter().any(|v| v.discriminant.is_some()) ||
-        // all variants are unit
+        // …all variants are unit
         variants.iter().all(|v| matches!(v.fields, Fields::Unit))
 }
 
