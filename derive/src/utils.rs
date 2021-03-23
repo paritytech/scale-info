@@ -38,7 +38,7 @@ pub fn variant_index(v: &Variant, i: usize) -> TokenStream {
                 if let Lit::Int(ref v) = nv.lit {
                     let byte = v
                         .base10_parse::<u8>()
-                        .expect("Internal error, index attribute must have been checked");
+                        .expect("Internal error. `#[codec(index = …)]` attribute syntax must be checked in `parity-scale-codec`. This is a bug.");
                     return Some(byte)
                 }
             }
@@ -97,7 +97,7 @@ where
         if attr.path.is_ident("codec") {
             if let Meta::List(ref meta_list) = attr
                 .parse_meta()
-                .expect("Internal error, parse_meta must have been checked")
+                .expect("Internal error. `#[codec(…)]` attributes must be checked in `parity-scale-codec`. This is a bug.")
             {
                 return meta_list.nested.iter().filter_map(pred.clone()).next()
             }

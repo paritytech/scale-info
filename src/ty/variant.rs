@@ -60,7 +60,7 @@ use serde::{
 ///     Monday,
 ///     Tuesday,
 ///     Wednesday,
-///     Thursday = 42, // Also allows to manually set the discriminant!
+///     Thursday = 42, // Allows setting the discriminant explicitly
 ///     Friday,
 ///     Saturday,
 ///     Sunday,

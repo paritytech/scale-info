@@ -151,13 +151,18 @@ fn c_like_enum_derive_with_scale_index_set() {
         B = 10,
         #[codec(index = 13)]
         C,
+        D,
+        #[codec(index = 14)]
+        E = 15,
     }
 
     let ty = Type::builder().path(Path::new("E", "derive")).variant(
         Variants::fieldless()
-            .variant("A", 0u64)
-            .variant("B", 10u64)
-            .variant("C", 13u64),
+            .variant("A", 0)
+            .variant("B", 10)
+            .variant("C", 13)
+            .variant("D", 3)
+            .variant("E", 14)
     );
 
     assert_type!(E, ty);

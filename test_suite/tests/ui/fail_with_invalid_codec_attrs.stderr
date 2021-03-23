@@ -16,4 +16,4 @@ error: proc-macro derive panicked
 11 | #[derive(TypeInfo, Encode)]
    |          ^^^^^^^^
    |
-   = help: message: Internal error, parse_meta must have been checked: Error("expected literal")
+   = help: message: Internal error. `#[codec(…)]` attributes must be checked in `parity-scale-codec`. This is a bug.: Error("expected literal")
