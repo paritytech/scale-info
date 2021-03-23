@@ -175,7 +175,6 @@ pub struct Variant<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    // TODO: why is this a `u64` and not a `usize`? To ensure it's consistent across platforms?
     discriminant: Option<u64>,
 }
 
@@ -204,14 +203,10 @@ impl Variant {
     }
 
     /// Creates a new indexed variant with the given fields.
-    pub fn indexed_fields<F>(name: &'static str, index: u8, fields: FieldsBuilder<F>) -> Self {
+    pub fn indexed_with_fields<F>(name: &'static str, index: u8, fields: FieldsBuilder<F>) -> Self {
         Self {
             name,
             fields: fields.finalize(),
-            // TODO: this is where it gets yucky. Store the index but leaving
-            // the discriminant empty here, and vice versa below in
-            // `with_discriminant`. OTOH discriminants are (likely) `usize`
-            // whereas `index` is `u8`. So perhaps it's as good as it gets.
             index: Some(index),
             discriminant: None,
         }

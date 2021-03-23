@@ -237,5 +237,4 @@ fn basic_enum_with_index() {
         );
 
     assert_type!(IndexedRustEnum, ty);
-    // TODO: assert on encoding too
 }

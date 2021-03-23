@@ -167,11 +167,6 @@ fn c_like_enum_derive_with_scale_index_set() {
     );
 
     assert_type!(E, ty);
-    // TODO: remove
-    assert_eq!(
-        vec![E::A.encode(), E::B.encode(), E::C.encode()],
-        vec![vec![0], vec![10], vec![13]],
-    );
 }
 
 #[test]
