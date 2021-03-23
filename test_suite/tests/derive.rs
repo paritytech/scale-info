@@ -162,7 +162,7 @@ fn c_like_enum_derive_with_scale_index_set() {
             .variant("B", 10)
             .variant("C", 13)
             .variant("D", 3)
-            .variant("E", 14)
+            .variant("E", 14),
     );
 
     assert_type!(E, ty);
