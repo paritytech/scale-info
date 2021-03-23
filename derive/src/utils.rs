@@ -56,7 +56,7 @@ pub fn variant_index(v: &Variant, i: usize) -> TokenStream {
     })
 }
 
-// /// Look for a `#[codec(compact)]` outer attribute on the given `Field`.
+/// Look for a `#[codec(compact)]` outer attribute on the given `Field`.
 pub fn is_compact(field: &syn::Field) -> bool {
     let outer_attrs = field
         .attrs
