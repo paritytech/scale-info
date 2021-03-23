@@ -91,7 +91,7 @@
 //!     }
 //! }
 //! ```
-//! ## Enum without fields
+//! ## Enum without fields, aka C-style enums.
 //! ```
 //! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo};
 //! enum Foo {

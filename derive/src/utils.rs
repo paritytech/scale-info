@@ -18,21 +18,31 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    spanned::Spanned,
-    AttrStyle,
-    Attribute,
-    Lit,
-    Meta,
-    NestedMeta,
-    Variant,
-};
+use syn::{AttrStyle, Attribute, Lit, Meta, NestedMeta, Variant, spanned::Spanned};
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
 /// is found, fall back to the discriminant or just the variant index.
 pub fn variant_index(v: &Variant, i: usize) -> TokenStream {
-    // first look for an attribute
-    let index = find_meta_item(v.attrs.iter(), |meta| {
+    // first look for an `index` attribute…
+    let index = maybe_index(v);
+    // …then fallback to discriminant or just index
+    index.map(|i| quote! { #i }).unwrap_or_else(|| {
+        v.discriminant
+            .as_ref()
+            .map(|&(_, ref expr)| quote! { #expr })
+            .unwrap_or_else(|| quote! { #i })
+    })
+}
+
+/// Look for a `#[codec(index = $int)]` outer attribute on a variant.
+/// If found, it is expected to be a parseable as a `u8` (panics otherwise).
+pub fn maybe_index(variant: &Variant) -> Option<u8> {
+    let outer_attrs = variant
+        .attrs
+        .iter()
+        .filter(|attr| attr.style == AttrStyle::Outer);
+
+    find_meta_item(outer_attrs, |meta| {
         if let NestedMeta::Meta(Meta::NameValue(ref nv)) = meta {
             if nv.path.is_ident("index") {
                 if let Lit::Int(ref v) = nv.lit {
@@ -45,14 +55,6 @@ pub fn variant_index(v: &Variant, i: usize) -> TokenStream {
         }
 
         None
-    });
-
-    // then fallback to discriminant or just index
-    index.map(|i| quote! { #i }).unwrap_or_else(|| {
-        v.discriminant
-            .as_ref()
-            .map(|&(_, ref expr)| quote! { #expr })
-            .unwrap_or_else(|| quote! { #i })
     })
 }
 

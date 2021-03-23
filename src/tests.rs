@@ -183,3 +183,59 @@ fn basic_struct_with_phantoms() {
 
     assert_type!(SomeStruct<bool>, struct_bool_type_info);
 }
+
+#[test]
+fn basic_enum_with_index() {
+    use scale::Encode;
+
+    #[allow(unused)]
+    #[derive(Encode)]
+    enum IndexedRustEnum {
+        #[codec(index = 3)]
+        A(bool),
+        #[codec(index = 0)]
+        B {
+            b: u8,
+        },
+        C(u16, u32),
+        D,
+    }
+    impl TypeInfo for IndexedRustEnum {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("IndexedRustEnum", module_path!()))
+                .variant(
+                    Variants::with_fields()
+                        .indexed_variant("A", 3, Fields::unnamed().field_of::<bool>("bool"))
+                        .indexed_variant("B", 0, Fields::named().field_of::<u8>("b", "bool"))
+                        .variant(
+                            "C",
+                            Fields::unnamed()
+                                .field_of::<u16>("u16")
+                                .field_of::<u32>("u32"),
+                        )
+                        .variant_unit("D"),
+                )
+        }
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("IndexedRustEnum", module_path!()))
+        .variant(
+            Variants::with_fields()
+                .indexed_variant("A", 3, Fields::unnamed().field_of::<bool>("bool"))
+                .indexed_variant("B", 0, Fields::named().field_of::<u8>("b", "bool"))
+                .variant(
+                    "C",
+                    Fields::unnamed()
+                        .field_of::<u16>("u16")
+                        .field_of::<u32>("u32"),
+                )
+                .variant_unit("D"),
+        );
+
+    assert_type!(IndexedRustEnum, ty);
+    // TODO: assert on encoding too
+}

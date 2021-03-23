@@ -245,9 +245,21 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
         .filter(|v| !utils::should_skip(&v.attrs))
         .map(|v| {
             let ident = &v.ident;
-            let v_name = quote! {stringify!(#ident) };
-            match v.fields {
-                Fields::Named(ref fs) => {
+            let v_name = quote! { stringify!(#ident) };
+            let index = utils::maybe_index(v);
+            match (&v.fields, index) {
+                (Fields::Named(ref fs), Some(index)) => {
+                    let fields = generate_fields(&fs.named);
+                    quote! {
+                        .indexed_variant(
+                            #v_name,
+                            #index,
+                            :: #scale_info::build::Fields::named()
+                                #( #fields)*
+                        )
+                    }
+                }
+                (Fields::Named(ref fs), None) => {
                     let fields = generate_fields(&fs.named);
                     quote! {
                         .variant(
@@ -257,7 +269,18 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
                         )
                     }
                 }
-                Fields::Unnamed(ref fs) => {
+                (Fields::Unnamed(ref fs), Some(index)) => {
+                    let fields = generate_fields(&fs.unnamed);
+                    quote! {
+                        .indexed_variant(
+                            #v_name,
+                            #index,
+                            :: #scale_info::build::Fields::unnamed()
+                                #( #fields)*
+                        )
+                    }
+                }
+                (Fields::Unnamed(ref fs), None) => {
                     let fields = generate_fields(&fs.unnamed);
                     quote! {
                         .variant(
@@ -267,7 +290,12 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
                         )
                     }
                 }
-                Fields::Unit => {
+                (Fields::Unit, Some(index)) => {
+                    quote! {
+                        .indexed_variant_unit(#v_name, #index)
+                    }
+                }
+                (Fields::Unit, None) => {
                     quote! {
                         .variant_unit(#v_name)
                     }

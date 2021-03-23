@@ -22,6 +22,7 @@ use scale_info::{
         boxed::Box,
         marker::PhantomData,
         vec::Vec,
+        vec,
     },
     tuple_meta_type,
     Path,
@@ -166,6 +167,11 @@ fn c_like_enum_derive_with_scale_index_set() {
     );
 
     assert_type!(E, ty);
+    // TODO: remove
+    assert_eq!(
+        vec![E::A.encode(), E::B.encode(), E::C.encode()],
+        vec![vec![0], vec![10], vec![13]],
+    );
 }
 
 #[test]
@@ -186,6 +192,32 @@ fn enum_derive() {
                 .variant("A", Fields::unnamed().field_of::<bool>("T"))
                 .variant("B", Fields::named().field_of::<bool>("b", "T"))
                 .variant_unit("C"),
+        );
+
+    assert_type!(E<bool>, ty);
+}
+
+#[test]
+fn enum_derive_with_codec_index() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    enum E<T> {
+        #[codec(index = 5)]
+        A(T),
+        #[codec(index = 0)]
+        B { b: T },
+        #[codec(index = 13)]
+        C,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("E", "derive"))
+        .type_params(tuple_meta_type!(bool))
+        .variant(
+            Variants::with_fields()
+                .indexed_variant("A", 5, Fields::unnamed().field_of::<bool>("T"))
+                .indexed_variant("B", 0, Fields::named().field_of::<bool>("b", "T"))
+                .indexed_variant_unit("C", 13),
         );
 
     assert_type!(E<bool>, ty);

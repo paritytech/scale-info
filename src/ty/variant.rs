@@ -158,6 +158,12 @@ pub struct Variant<T: Form = MetaForm> {
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
     fields: Vec<Field<T>>,
+    /// Index of the variant, used in `parity-scale-codec`
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Option::is_none", default)
+    )]
+    index: Option<u8>,
     /// The discriminant of the variant.
     ///
     /// # Note
@@ -169,6 +175,7 @@ pub struct Variant<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
+    // TODO: why is this a `u64` and not a `usize`? To ensure it's consistent across platforms?
     discriminant: Option<u64>,
 }
 
@@ -179,6 +186,7 @@ impl IntoPortable for Variant {
         Variant {
             name: self.name.into_portable(registry),
             fields: registry.map_into_portable(self.fields),
+            index: self.index,
             discriminant: self.discriminant,
         }
     }
@@ -190,6 +198,21 @@ impl Variant {
         Self {
             name,
             fields: fields.finalize(),
+            index: None,
+            discriminant: None,
+        }
+    }
+
+    /// Creates a new indexed variant with the given fields.
+    pub fn indexed_fields<F>(name: &'static str, index: u8, fields: FieldsBuilder<F>) -> Self {
+        Self {
+            name,
+            fields: fields.finalize(),
+            // TODO: this is where it gets yucky. Store the index but leaving
+            // the discriminant empty here, and vice versa below in
+            // `with_discriminant`. OTOH discriminants are (likely) `usize`
+            // whereas `index` is `u8`. So perhaps it's as good as it gets.
+            index: Some(index),
             discriminant: None,
         }
     }
@@ -199,6 +222,7 @@ impl Variant {
         Self {
             name,
             fields: Vec::new(),
+            index: None,
             discriminant: Some(discriminant),
         }
     }

@@ -327,6 +327,58 @@ fn test_enum() {
 }
 
 #[test]
+fn enums_with_scale_indexed_variants() {
+    #[derive(TypeInfo, Encode)]
+    enum Animal {
+        #[codec(index = 123)]
+        Ape(u8),
+        #[codec(index = 12)]
+        Boar { a: u16, b: u32},
+        #[codec(index = 1)]
+        Cat,
+        #[codec(index = 0)]
+        Dog(u64, u128),
+    }
+
+    assert_json_for_type::<Animal>(json!({
+        "path": ["json", "Animal"],
+        "def": {
+            "variant": {
+                "variants": [
+                    {
+                        "name": "Ape",
+                        "index": 123,
+                        "fields": [
+                            { "type": 1, "typeName": "u8" }
+                        ]
+                    },
+                    {
+                        "name": "Boar",
+                        "index": 12,
+                        "fields": [
+                            { "name": "a", "type": 2, "typeName": "u16" },
+                            { "name": "b", "type": 3, "typeName": "u32" }
+                        ]
+                    },
+                    {
+                        "name": "Cat",
+                        "index": 1,
+                    },
+                    {
+                        "name": "Dog",
+                        "index": 0,
+                        "fields": [
+                            { "type": 4, "typeName": "u64" },
+                            { "type": 5, "typeName": "u128" }
+                        ]
+                    }
+                ]
+            }
+        }
+    }));
+}
+
+#[test]
 fn test_recursive_type_with_box() {
     #[derive(TypeInfo)]
     pub enum Tree {
