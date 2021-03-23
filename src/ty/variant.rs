@@ -203,7 +203,11 @@ impl Variant {
     }
 
     /// Creates a new indexed variant with the given fields.
-    pub fn indexed_with_fields<F>(name: &'static str, index: u8, fields: FieldsBuilder<F>) -> Self {
+    pub fn indexed_with_fields<F>(
+        name: &'static str,
+        index: u8,
+        fields: FieldsBuilder<F>,
+    ) -> Self {
         Self {
             name,
             fields: fields.finalize(),

@@ -208,8 +208,16 @@ fn basic_enum_with_index() {
                 .path(Path::new("IndexedRustEnum", module_path!()))
                 .variant(
                     Variants::with_fields()
-                        .indexed_variant("A", 3, Fields::unnamed().field_of::<bool>("bool"))
-                        .indexed_variant("B", 0, Fields::named().field_of::<u8>("b", "bool"))
+                        .indexed_variant(
+                            "A",
+                            3,
+                            Fields::unnamed().field_of::<bool>("bool"),
+                        )
+                        .indexed_variant(
+                            "B",
+                            0,
+                            Fields::named().field_of::<u8>("b", "bool"),
+                        )
                         .variant(
                             "C",
                             Fields::unnamed()

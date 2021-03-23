@@ -18,7 +18,15 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{AttrStyle, Attribute, Lit, Meta, NestedMeta, Variant, spanned::Spanned};
+use syn::{
+    spanned::Spanned,
+    AttrStyle,
+    Attribute,
+    Lit,
+    Meta,
+    NestedMeta,
+    Variant,
+};
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
 /// is found, fall back to the discriminant or just the variant index.

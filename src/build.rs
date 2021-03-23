@@ -332,8 +332,14 @@ impl VariantsBuilder<VariantFields> {
     }
 
     /// Add an indexed variant with fields constructed by the supplied [`FieldsBuilder`](`crate::build::FieldsBuilder`)
-    pub fn indexed_variant<F>(mut self, name: &'static str, index: u8, fields: FieldsBuilder<F>) -> Self {
-        self.variants.push(Variant::indexed_with_fields(name, index, fields));
+    pub fn indexed_variant<F>(
+        mut self,
+        name: &'static str,
+        index: u8,
+        fields: FieldsBuilder<F>,
+    ) -> Self {
+        self.variants
+            .push(Variant::indexed_with_fields(name, index, fields));
         self
     }
 

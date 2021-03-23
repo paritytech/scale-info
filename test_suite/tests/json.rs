@@ -333,7 +333,7 @@ fn enums_with_scale_indexed_variants() {
         #[codec(index = 123)]
         Ape(u8),
         #[codec(index = 12)]
-        Boar { a: u16, b: u32},
+        Boar { a: u16, b: u32 },
         #[codec(index = 1)]
         Cat,
         #[codec(index = 0)]
