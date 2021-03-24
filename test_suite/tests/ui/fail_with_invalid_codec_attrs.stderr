@@ -5,15 +5,35 @@ error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` an
   |       ^^^^^^^^^^^^^^^^^^^^
 
 error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` and `#[codec(encoded_as = "$EncodeAs")]` are accepted.
-  --> $DIR/fail_with_invalid_codec_attrs.rs:13:13
+  --> $DIR/fail_with_invalid_codec_attrs.rs:13:19
    |
-13 |     Thing(#[codec(index = 3, compact)] u32),
-   |             ^^^^^^^^^^^^^^^^^^^^^^^^^
+13 |     Thing(#[codec(index = 3)] u32),
+   |                   ^^^^^^^^^
 
 error: proc-macro derive panicked
-  --> $DIR/fail_with_invalid_codec_attrs.rs:11:10
+  --> $DIR/fail_with_invalid_codec_attrs.rs:16:18
    |
-11 | #[derive(TypeInfo, Encode)]
-   |          ^^^^^^^^
+16 | #[derive(Encode, TypeInfo)]
+   |                  ^^^^^^^^
    |
-   = help: message: Internal error. `#[codec(…)]` attributes must be checked in `parity-scale-codec`. This is a bug.: Error("expected literal")
+   = help: message: scale-info: Bad index in `#[codec(index = …)]`, see `parity-scale-codec` error: Error("expected literal")
+
+error: expected literal
+  --> $DIR/fail_with_invalid_codec_attrs.rs:18:21
+   |
+18 |     #[codec(index = a)]
+   |                     ^
+
+error: proc-macro derive panicked
+  --> $DIR/fail_with_invalid_codec_attrs.rs:22:18
+   |
+22 | #[derive(Encode, TypeInfo)]
+   |                  ^^^^^^^^
+   |
+   = help: message: scale-info: Bad index in `#[codec(index = …)]`, see `parity-scale-codec` error: Error("expected literal")
+
+error: expected literal
+  --> $DIR/fail_with_invalid_codec_attrs.rs:24:25
+   |
+24 |     #[codec(encode_as = u8, compact)]
+   |                         ^^
