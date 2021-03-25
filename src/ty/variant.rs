@@ -26,10 +26,7 @@ use crate::{
     Registry,
 };
 use derive_more::From;
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
@@ -84,7 +81,8 @@ use serde::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode)]
 pub struct TypeDefVariant<T: Form = MetaForm> {
     /// The variants of a variant type
     #[cfg_attr(
@@ -149,7 +147,8 @@ where
         deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
     ))
 )]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
     name: T::String,

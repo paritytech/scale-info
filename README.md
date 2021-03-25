@@ -223,6 +223,23 @@ The following optional `cargo` features are available:
 - **serde** includes support for json serialization/deserialization of the type registry. See example [here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/json.rs).
 - **derive** reexports the [`scale-info-derive`](https://crates.io/crates/scale-info-derive) crate.
 
+## Known issues
+
+When deriving `TypeInfo` for a type with generic compact fields e.g.
+
+```rust
+#[derive(Encode, TypeInfo)]
+struct Foo<S> { #[codec(compact)] a: S }
+```
+
+You may experience the following error when using this generic type without the correct bounds:
+
+```
+error[E0275]: overflow evaluating the requirement `_::_parity_scale_codec::Compact<_>: Decode`
+```
+
+See https://github.com/paritytech/scale-info/issues/65 for more information.
+
 ## Resources
 
 - See usage for describing types for [`ink!`](https://github.com/paritytech/ink/blob/master/crates/metadata/src/specs.rs) smart contracts metadata.

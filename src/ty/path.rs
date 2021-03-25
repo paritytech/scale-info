@@ -32,10 +32,7 @@ use crate::{
     IntoPortable,
     Registry,
 };
-use scale::{
-    Decode,
-    Encode,
-};
+use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
@@ -50,7 +47,6 @@ use serde::{
 /// has been defined. The last
 ///
 /// Rust prelude type may have an empty namespace definition.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -60,6 +56,8 @@ use serde::{
     ))
 )]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode)]
 pub struct Path<T: Form = MetaForm> {
     /// The segments of the namespace.
     segments: Vec<T::String>,

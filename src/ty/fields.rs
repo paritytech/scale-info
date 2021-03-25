@@ -24,12 +24,11 @@ use crate::{
     TypeInfo,
 };
 use scale::{
-    Decode,
     Encode,
+    HasCompact,
 };
 #[cfg(feature = "serde")]
 use serde::{
-    de::DeserializeOwned,
     Deserialize,
     Serialize,
 };
@@ -65,15 +64,9 @@ use serde::{
 /// alias, there are no guarantees provided, and the type name representation
 /// may change.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-    ))
-)]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, Decode)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub struct Field<T: Form = MetaForm> {
     /// The name of the field. None for unnamed fields.
     #[cfg_attr(
@@ -136,6 +129,15 @@ impl Field {
         T: TypeInfo + ?Sized + 'static,
     {
         Self::new(None, MetaType::new::<T>(), type_name)
+    }
+
+    /// Creates a new [`Compact`] field.
+    pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str) -> Field
+    where
+        T: HasCompact,
+        <T as HasCompact>::Type: TypeInfo + 'static,
+    {
+        Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name)
     }
 }
 
