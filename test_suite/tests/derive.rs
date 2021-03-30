@@ -143,6 +143,32 @@ fn c_like_enum_derive() {
 }
 
 #[test]
+fn c_like_enum_derive_with_scale_index_set() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    enum E {
+        A,
+        B = 10,
+        #[codec(index = 13)]
+        C,
+        D,
+        #[codec(index = 14)]
+        E = 15,
+    }
+
+    let ty = Type::builder().path(Path::new("E", "derive")).variant(
+        Variants::fieldless()
+            .variant("A", 0)
+            .variant("B", 10)
+            .variant("C", 13)
+            .variant("D", 3)
+            .variant("E", 14),
+    );
+
+    assert_type!(E, ty);
+}
+
+#[test]
 fn enum_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
@@ -313,6 +339,67 @@ fn scale_compact_types_work_in_enums() {
         );
 
     assert_type!(MutilatedMultiAddress<u8, u16>, ty);
+}
+
+#[test]
+fn struct_fields_marked_scale_skip_are_skipped() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    struct Skippy {
+        a: u8,
+        #[codec(skip)]
+        b: u16,
+        c: u32,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Skippy", "derive"))
+        .composite(
+            Fields::named()
+                .field_of::<u8>("a", "u8")
+                .field_of::<u32>("c", "u32"),
+        );
+    assert_type!(Skippy, ty);
+}
+
+#[test]
+fn enum_variants_marked_scale_skip_are_skipped() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    enum Skippy {
+        A,
+        #[codec(skip)]
+        B,
+        C,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Skippy", "derive"))
+        .variant(Variants::fieldless().variant("A", 0).variant("C", 2));
+    assert_type!(Skippy, ty);
+}
+
+#[test]
+fn enum_variants_with_fields_marked_scale_skip_are_skipped() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    enum Skippy {
+        #[codec(skip)]
+        Apa,
+        Bajs {
+            #[codec(skip)]
+            a: u8,
+            b: bool,
+        },
+        Coo(bool),
+    }
+
+    let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
+        Variants::with_fields()
+            .variant("Bajs", Fields::named().field_of::<bool>("b", "bool"))
+            .variant("Coo", Fields::unnamed().field_of::<bool>("bool")),
+    );
+    assert_type!(Skippy, ty);
 }
 
 #[test]

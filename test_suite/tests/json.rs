@@ -243,6 +243,7 @@ fn test_struct_with_some_fields_marked_as_compact() {
     }]);
 }
 
+#[test]
 fn test_struct_with_phantom() {
     use scale_info::prelude::marker::PhantomData;
     #[derive(TypeInfo)]

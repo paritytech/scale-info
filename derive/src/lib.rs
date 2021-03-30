@@ -18,6 +18,7 @@ extern crate alloc;
 extern crate proc_macro;
 
 mod trait_bounds;
+mod utils;
 
 use alloc::{
     string::{
@@ -41,21 +42,14 @@ use syn::{
     punctuated::Punctuated,
     token::Comma,
     visit_mut::VisitMut,
-    AttrStyle,
     Data,
     DataEnum,
     DataStruct,
     DeriveInput,
-    Expr,
-    ExprLit,
     Field,
     Fields,
     Ident,
     Lifetime,
-    Lit,
-    Meta,
-    MetaList,
-    NestedMeta,
     Variant,
 };
 
@@ -140,6 +134,7 @@ type FieldsList = Punctuated<Field, Comma>;
 fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
     fields
         .iter()
+        .filter(|f| !utils::should_skip(&f.attrs))
         .map(|f| {
             let (ty, ident) = (&f.ty, &f.ident);
             // Replace any field lifetime params with `static to prevent "unnecessary lifetime parameter"
@@ -154,7 +149,7 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             StaticLifetimesReplace.visit_type_mut(&mut ty);
 
             let type_name = clean_type_string(&quote!(#ty).to_string());
-            let method_call = if is_compact(f) {
+            let method_call = if utils::is_compact(f) {
                 quote!(.compact_of::<#ty>)
             } else {
                 quote!(.field_of::<#ty>)
@@ -166,23 +161,6 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             }
         })
         .collect()
-}
-
-/// Look for a `#[codec(compact)]` outer attribute.
-fn is_compact(f: &Field) -> bool {
-    f.attrs.iter().any(|attr| {
-        let mut is_compact = false;
-        if attr.style == AttrStyle::Outer && attr.path.is_ident("codec") {
-            if let Ok(Meta::List(MetaList { nested, .. })) = attr.parse_meta() {
-                if let Some(NestedMeta::Meta(Meta::Path(path))) = nested.iter().next() {
-                    if path.is_ident("compact") {
-                        is_compact = true;
-                    }
-                }
-            }
-        }
-        is_compact
-    })
 }
 
 fn clean_type_string(input: &str) -> String {
@@ -229,27 +207,17 @@ fn generate_composite_type(data_struct: &DataStruct, scale_info: &Ident) -> Toke
 type VariantList = Punctuated<Variant, Comma>;
 
 fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> TokenStream2 {
-    let variants = variants.into_iter().enumerate().map(|(i, v)| {
-        let name = &v.ident;
-        let discriminant = if let Some((
-            _,
-            Expr::Lit(ExprLit {
-                lit: Lit::Int(lit_int),
-                ..
-            }),
-        )) = &v.discriminant
-        {
-            match lit_int.base10_parse::<u64>() {
-                Ok(i) => i,
-                Err(err) => return err.to_compile_error(),
+    let variants = variants
+        .into_iter()
+        .enumerate()
+        .filter(|(_, v)| !utils::should_skip(&v.attrs))
+        .map(|(i, v)| {
+            let name = &v.ident;
+            let discriminant = utils::variant_index(v, i);
+            quote! {
+                .variant(stringify!(#name), #discriminant as u64)
             }
-        } else {
-            i as u64
-        };
-        quote! {
-            .variant(stringify!(#name), #discriminant)
-        }
-    });
+        });
     quote! {
         variant(
             :: #scale_info ::build::Variants::fieldless()
@@ -259,9 +227,9 @@ fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> Token
 }
 
 fn is_c_like_enum(variants: &VariantList) -> bool {
-    // any variant has an explicit discriminant
+    // One of the variants has an explicit discriminant, or…
     variants.iter().any(|v| v.discriminant.is_some()) ||
-        // all variants are unit
+        // …all variants are unit
         variants.iter().all(|v| matches!(v.fields, Fields::Unit))
 }
 
@@ -272,37 +240,40 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
         return generate_c_like_enum_def(variants, scale_info)
     }
 
-    let variants = variants.into_iter().map(|v| {
-        let ident = &v.ident;
-        let v_name = quote! {stringify!(#ident) };
-        match v.fields {
-            Fields::Named(ref fs) => {
-                let fields = generate_fields(&fs.named);
-                quote! {
-                    .variant(
-                        #v_name,
-                        :: #scale_info ::build::Fields::named()
-                            #( #fields)*
-                    )
+    let variants = variants
+        .into_iter()
+        .filter(|v| !utils::should_skip(&v.attrs))
+        .map(|v| {
+            let ident = &v.ident;
+            let v_name = quote! {stringify!(#ident) };
+            match v.fields {
+                Fields::Named(ref fs) => {
+                    let fields = generate_fields(&fs.named);
+                    quote! {
+                        .variant(
+                            #v_name,
+                            :: #scale_info::build::Fields::named()
+                                #( #fields)*
+                        )
+                    }
+                }
+                Fields::Unnamed(ref fs) => {
+                    let fields = generate_fields(&fs.unnamed);
+                    quote! {
+                        .variant(
+                            #v_name,
+                            :: #scale_info::build::Fields::unnamed()
+                                #( #fields)*
+                        )
+                    }
+                }
+                Fields::Unit => {
+                    quote! {
+                        .variant_unit(#v_name)
+                    }
                 }
             }
-            Fields::Unnamed(ref fs) => {
-                let fields = generate_fields(&fs.unnamed);
-                quote! {
-                    .variant(
-                        #v_name,
-                        :: #scale_info ::build::Fields::unnamed()
-                            #( #fields)*
-                    )
-                }
-            }
-            Fields::Unit => {
-                quote! {
-                    .variant_unit(#v_name)
-                }
-            }
-        }
-    });
+        });
     quote! {
         variant(
             :: #scale_info ::build::Variants::with_fields()
