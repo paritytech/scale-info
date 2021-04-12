@@ -171,10 +171,13 @@ impl<T> TypeInfo for Box<T>
 where
     T: TypeInfo + ?Sized + 'static,
 {
-    type Identity = T;
+    type Identity = Self;
 
     fn type_info() -> Type {
-        Self::Identity::type_info()
+        Type::builder()
+            .path(Path::prelude("Box"))
+            .type_params(tuple_meta_type![T])
+            .composite(Fields::unnamed().field_of::<T>("T"))
     }
 }
 
