@@ -14,17 +14,16 @@
 
 use crate::{
     build::*,
+    prelude::{
+        borrow::Cow,
+        boxed::Box,
+        string::String,
+        vec,
+    },
     *,
 };
 use core::marker::PhantomData;
 use scale::Compact;
-
-#[cfg(not(feature = "std"))]
-use alloc::{
-    boxed::Box,
-    string::String,
-    vec,
-};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -76,6 +75,15 @@ fn prelude_items() {
             )
     );
     assert_type!(PhantomData<i32>, TypeDefPhantom::new(meta_type::<i32>()));
+    assert_type!(
+        Cow<u128>,
+        Type::builder()
+            .path(Path::prelude("Cow"))
+            .type_params(tuple_meta_type!(u128))
+            .composite(
+                Fields::unnamed().field_of::<u128>("T")
+            )
+    );
 }
 
 #[test]

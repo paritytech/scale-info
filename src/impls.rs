@@ -14,6 +14,7 @@
 
 use crate::prelude::{
     boxed::Box,
+    borrow::{Cow, ToOwned},
     collections::BTreeMap,
     marker::PhantomData,
     string::String,
@@ -149,6 +150,20 @@ where
                     .variant("Ok", Fields::unnamed().field_of::<T>("T"))
                     .variant("Err", Fields::unnamed().field_of::<E>("E")),
             )
+    }
+}
+
+impl<T> TypeInfo for Cow<'static, T>
+where
+    T: ToOwned + TypeInfo + ?Sized + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("Cow"))
+            .type_params(tuple_meta_type!(T))
+            .composite(Fields::unnamed().field_of::<T>("T"))
     }
 }
 
