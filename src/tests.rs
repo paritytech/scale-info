@@ -80,9 +80,7 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Cow"))
             .type_params(tuple_meta_type!(u128))
-            .composite(
-                Fields::unnamed().field_of::<u128>("T")
-            )
+            .composite(Fields::unnamed().field_of::<u128>("T"))
     );
 }
 

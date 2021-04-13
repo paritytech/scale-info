@@ -13,8 +13,11 @@
 // limitations under the License.
 
 use crate::prelude::{
+    borrow::{
+        Cow,
+        ToOwned,
+    },
     boxed::Box,
-    borrow::{Cow, ToOwned},
     collections::BTreeMap,
     marker::PhantomData,
     string::String,
