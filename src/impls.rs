@@ -18,7 +18,10 @@ use crate::prelude::{
         ToOwned,
     },
     boxed::Box,
-    collections::BTreeMap,
+    collections::{
+        BTreeMap,
+        BTreeSet,
+    },
     marker::PhantomData,
     string::String,
     vec::Vec,
@@ -182,6 +185,20 @@ where
             .path(Path::prelude("BTreeMap"))
             .type_params(tuple_meta_type![(K, V)])
             .composite(Fields::unnamed().field_of::<[(K, V)]>("[(K, V)]"))
+    }
+}
+
+impl<T> TypeInfo for BTreeSet<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("BTreeSet"))
+            .type_params(tuple_meta_type![T])
+            .composite(Fields::unnamed().field_of::<[T]>("[T]"))
     }
 }
 
