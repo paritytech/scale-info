@@ -111,7 +111,7 @@ fn tuple_struct_derive() {
     /// Type docs.
     struct S<T>(
         /// Unnamed field docs.
-        T
+        T,
     );
 
     let ty = Type::builder()
@@ -148,13 +148,14 @@ fn c_like_enum_derive() {
         B = 10,
     }
 
-    let ty = Type::builder().path(Path::new("E", "derive"))
+    let ty = Type::builder()
+        .path(Path::new("E", "derive"))
         .docs(&[" Enum docs."])
         .variant(
-        Variants::fieldless()
-            .variant("A", 0u64, &[" Unit variant."])
-            .variant("B", 10u64, &[" Variant with discriminator."]),
-    );
+            Variants::fieldless()
+                .variant("A", 0u64, &[" Unit variant."])
+                .variant("B", 10u64, &[" Variant with discriminator."]),
+        );
 
     assert_type!(E, ty);
 }
@@ -194,12 +195,12 @@ fn enum_derive() {
         /// Unnamed fields variant.
         A(
             /// Unnamed field.
-            T
+            T,
         ),
         /// Named fields variant.
         B {
             /// Named field.
-            b: T
+            b: T,
         },
         /// Unit variant.
         C,
@@ -211,8 +212,16 @@ fn enum_derive() {
         .docs(&[" Enum docs."])
         .variant(
             Variants::with_fields()
-                .variant("A", Fields::unnamed().field_of::<bool>("T", &[" Unnamed field."]), &[" Unnamed fields variant."])
-                .variant("B", Fields::named().field_of::<bool>("b", "T", &[" Named field."]), &[" Named fields variant."])
+                .variant(
+                    "A",
+                    Fields::unnamed().field_of::<bool>("T", &[" Unnamed field."]),
+                    &[" Unnamed fields variant."],
+                )
+                .variant(
+                    "B",
+                    Fields::named().field_of::<bool>("b", "T", &[" Named field."]),
+                    &[" Named fields variant."],
+                )
                 .variant_unit("C", &[" Unit variant."]),
         );
 
