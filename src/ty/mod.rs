@@ -78,6 +78,9 @@ pub struct Type<T: Form = MetaForm> {
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
     type_def: TypeDef<T>,
+    /// Documentation
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    docs: Vec<T::String>,
 }
 
 impl IntoPortable for Type {
@@ -88,6 +91,7 @@ impl IntoPortable for Type {
             path: self.path.into_portable(registry),
             type_params: registry.register_types(self.type_params),
             type_def: self.type_def.into_portable(registry),
+            docs: registry.map_into_portable(self.docs),
         }
     }
 }
@@ -96,7 +100,7 @@ macro_rules! impl_from_type_def_for_type {
     ( $( $t:ty  ), + $(,)?) => { $(
         impl From<$t> for Type {
             fn from(item: $t) -> Self {
-                Self::new(Path::voldemort(), Vec::new(), item)
+                Self::new(Path::voldemort(), Vec::new(), item, Vec::new())
             }
         }
     )* }
@@ -117,7 +121,7 @@ impl Type {
         TypeBuilder::default()
     }
 
-    pub(crate) fn new<I, D>(path: Path, type_params: I, type_def: D) -> Self
+    pub(crate) fn new<I, D>(path: Path, type_params: I, type_def: D, docs: Vec<&'static str>) -> Self
     where
         I: IntoIterator<Item = MetaType>,
         D: Into<TypeDef>,
@@ -126,6 +130,7 @@ impl Type {
             path,
             type_params: type_params.into_iter().collect(),
             type_def: type_def.into(),
+            docs,
         }
     }
 }
@@ -147,6 +152,11 @@ where
     /// Returns the definition of the type
     pub fn type_def(&self) -> &TypeDef<T> {
         &self.type_def
+    }
+
+    /// Returns the documentation of the type
+    pub fn docs(&self) -> &[T::String] {
+        &self.docs
     }
 }
 

@@ -57,8 +57,8 @@ fn struct_derive() {
         .type_params(tuple_meta_type!(bool, u8))
         .composite(
             Fields::named()
-                .field_of::<bool>("t", "T")
-                .field_of::<u8>("u", "U"),
+                .field_of::<bool>("t", "T", &[])
+                .field_of::<u8>("u", "U", &[]),
         );
 
     assert_type!(S<bool, u8>, struct_type);
@@ -72,8 +72,8 @@ fn struct_derive() {
         .type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
         .composite(
             Fields::named()
-                .field_of::<Box<S<bool, u8>>>("t", "T")
-                .field_of::<bool>("u", "U"),
+                .field_of::<Box<S<bool, u8>>>("t", "T", &[])
+                .field_of::<bool>("u", "U", &[]),
         );
     assert_type!(SelfTyped, self_typed_type);
 }
@@ -92,8 +92,8 @@ fn phantom_data_is_part_of_the_type_info() {
         .type_params(tuple_meta_type!(bool))
         .composite(
             Fields::named()
-                .field_of::<u8>("a", "u8")
-                .field_of::<PhantomData<bool>>("m", "PhantomData<T>"),
+                .field_of::<u8>("a", "u8", &[])
+                .field_of::<PhantomData<bool>>("m", "PhantomData<T>", &[]),
         );
 
     assert_type!(P<bool>, ty);
@@ -108,7 +108,7 @@ fn tuple_struct_derive() {
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool))
-        .composite(Fields::unnamed().field_of::<bool>("T"));
+        .composite(Fields::unnamed().field_of::<bool>("T", &[]));
 
     assert_type!(S<bool>, ty);
 }
@@ -135,9 +135,11 @@ fn c_like_enum_derive() {
         B = 10,
     }
 
-    let ty = Type::builder()
-        .path(Path::new("E", "derive"))
-        .variant(Variants::fieldless().variant("A", 0u64).variant("B", 10u64));
+    let ty = Type::builder().path(Path::new("E", "derive")).variant(
+        Variants::fieldless()
+            .variant("A", 0u64, &[])
+            .variant("B", 10u64, &[]),
+    );
 
     assert_type!(E, ty);
 }
@@ -158,11 +160,11 @@ fn c_like_enum_derive_with_scale_index_set() {
 
     let ty = Type::builder().path(Path::new("E", "derive")).variant(
         Variants::fieldless()
-            .variant("A", 0)
-            .variant("B", 10)
-            .variant("C", 13)
-            .variant("D", 3)
-            .variant("E", 14),
+            .variant("A", 0, &[])
+            .variant("B", 10, &[])
+            .variant("C", 13, &[])
+            .variant("D", 3, &[])
+            .variant("E", 14, &[]),
     );
 
     assert_type!(E, ty);
@@ -183,9 +185,9 @@ fn enum_derive() {
         .type_params(tuple_meta_type!(bool))
         .variant(
             Variants::with_fields()
-                .variant("A", Fields::unnamed().field_of::<bool>("T"))
-                .variant("B", Fields::named().field_of::<bool>("b", "T"))
-                .variant_unit("C"),
+                .variant("A", Fields::unnamed().field_of::<bool>("T", &[]), &[])
+                .variant("B", Fields::named().field_of::<bool>("b", "T", &[]), &[])
+                .variant_unit("C", &[]),
         );
 
     assert_type!(E<bool>, ty);
@@ -202,12 +204,17 @@ fn recursive_type_derive() {
 
     let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
         Variants::with_fields()
-            .variant("Leaf", Fields::named().field_of::<i32>("value", "i32"))
+            .variant(
+                "Leaf",
+                Fields::named().field_of::<i32>("value", "i32", &[]),
+                &[],
+            )
             .variant(
                 "Node",
                 Fields::named()
-                    .field_of::<Box<Tree>>("right", "Box<Tree>")
-                    .field_of::<Box<Tree>>("left", "Box<Tree>"),
+                    .field_of::<Box<Tree>>("right", "Box<Tree>", &[])
+                    .field_of::<Box<Tree>>("left", "Box<Tree>", &[]),
+                &[],
             ),
     );
 
@@ -226,7 +233,7 @@ fn fields_with_type_alias() {
 
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
-        .composite(Fields::named().field_of::<BoolAlias>("a", "BoolAlias"));
+        .composite(Fields::named().field_of::<BoolAlias>("a", "BoolAlias", &[]));
 
     assert_type!(S, ty);
 }
@@ -254,8 +261,8 @@ fn associated_types_derive_without_bounds() {
         .type_params(tuple_meta_type!(ConcreteTypes))
         .composite(
             Fields::named()
-                .field_of::<bool>("a", "T::A")
-                .field_of::<u64>("b", "&'static u64"),
+                .field_of::<bool>("a", "T::A", &[])
+                .field_of::<u64>("b", "&'static u64", &[]),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
@@ -286,10 +293,10 @@ fn associated_types_named_like_the_derived_type_works() {
         .type_params(tuple_meta_type!(ConcreteTypes))
         .composite(
             Fields::named()
-                .field_of::<Vec<bool>>("a", "Vec<T::Assoc>")
-                .field_of::<Vec<bool>>("b", "Vec<<T>::Assoc>")
-                .field_of::<bool>("c", "T::Assoc")
-                .field_of::<bool>("d", "<T>::Assoc"),
+                .field_of::<Vec<bool>>("a", "Vec<T::Assoc>", &[])
+                .field_of::<Vec<bool>>("b", "Vec<<T>::Assoc>", &[])
+                .field_of::<bool>("c", "T::Assoc", &[])
+                .field_of::<bool>("d", "<T>::Assoc", &[]),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
@@ -309,8 +316,8 @@ fn scale_compact_types_work_in_structs() {
         .path(Path::new("Dense", "derive"))
         .composite(
             Fields::named()
-                .field_of::<u8>("a", "u8")
-                .compact_of::<u16>("b", "u16"),
+                .field_of::<u8>("a", "u8", &[])
+                .compact_of::<u16>("b", "u16", &[]),
         );
     assert_type!(Dense, ty_alt);
 }
@@ -330,11 +337,20 @@ fn scale_compact_types_work_in_enums() {
         .type_params(tuple_meta_type!(u8, u16))
         .variant(
             Variants::with_fields()
-                .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
-                .variant("Index", Fields::unnamed().compact_of::<u16>("AccountIndex"))
+                .variant(
+                    "Id",
+                    Fields::unnamed().field_of::<u8>("AccountId", &[]),
+                    &[],
+                )
+                .variant(
+                    "Index",
+                    Fields::unnamed().compact_of::<u16>("AccountIndex", &[]),
+                    &[],
+                )
                 .variant(
                     "Address32",
-                    Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"),
+                    Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]", &[]),
+                    &[],
                 ),
         );
 
@@ -356,8 +372,8 @@ fn struct_fields_marked_scale_skip_are_skipped() {
         .path(Path::new("Skippy", "derive"))
         .composite(
             Fields::named()
-                .field_of::<u8>("a", "u8")
-                .field_of::<u32>("c", "u32"),
+                .field_of::<u8>("a", "u8", &[])
+                .field_of::<u32>("c", "u32", &[]),
         );
     assert_type!(Skippy, ty);
 }
@@ -373,9 +389,11 @@ fn enum_variants_marked_scale_skip_are_skipped() {
         C,
     }
 
-    let ty = Type::builder()
-        .path(Path::new("Skippy", "derive"))
-        .variant(Variants::fieldless().variant("A", 0).variant("C", 2));
+    let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
+        Variants::fieldless()
+            .variant("A", 0, &[])
+            .variant("C", 2, &[]),
+    );
     assert_type!(Skippy, ty);
 }
 
@@ -396,8 +414,12 @@ fn enum_variants_with_fields_marked_scale_skip_are_skipped() {
 
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
         Variants::with_fields()
-            .variant("Bajs", Fields::named().field_of::<bool>("b", "bool"))
-            .variant("Coo", Fields::unnamed().field_of::<bool>("bool")),
+            .variant(
+                "Bajs",
+                Fields::named().field_of::<bool>("b", "bool", &[]),
+                &[],
+            )
+            .variant("Coo", Fields::unnamed().field_of::<bool>("bool", &[]), &[]),
     );
     assert_type!(Skippy, ty);
 }
@@ -422,7 +444,7 @@ fn type_parameters_with_default_bound_works() {
     let ty = Type::builder()
         .path(Path::new("Bat", "derive"))
         .type_params(tuple_meta_type!(MetaFormy))
-        .composite(Fields::named().field_of::<MetaFormy>("one", "TTT"));
+        .composite(Fields::named().field_of::<MetaFormy>("one", "TTT", &[]));
 
     assert_type!(Bat<MetaFormy>, ty);
 }
@@ -435,9 +457,9 @@ fn whitespace_scrubbing_works() {
         a: (u8, (bool, u8)),
     }
 
-    let ty = Type::builder()
-        .path(Path::new("A", "derive"))
-        .composite(Fields::named().field_of::<(u8, (bool, u8))>("a", "(u8, (bool, u8))"));
+    let ty = Type::builder().path(Path::new("A", "derive")).composite(
+        Fields::named().field_of::<(u8, (bool, u8))>("a", "(u8, (bool, u8))", &[]),
+    );
 
     assert_type!(A, ty);
 }

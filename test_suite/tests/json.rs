@@ -221,10 +221,10 @@ fn test_struct_with_some_fields_marked_as_compact() {
                 .path(Path::new("Dense", module_path!()))
                 .composite(
                     Fields::named()
-                        .compact_of::<u128>("a", "u128")
-                        .field_of::<u128>("a_not_compact", "u128")
-                        .field_of::<[u8; 32]>("b", "[u8; 32]")
-                        .compact_of::<u64>("c", "u64"),
+                        .compact_of::<u128>("a", "u128", &[])
+                        .field_of::<u128>("a_not_compact", "u128", &[])
+                        .field_of::<[u8; 32]>("b", "[u8; 32]", &[])
+                        .compact_of::<u64>("c", "u64", &[]),
                 )
         }
     }

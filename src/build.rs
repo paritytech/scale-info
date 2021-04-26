@@ -39,8 +39,8 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .type_params(vec![MetaType::new::<T>()])
 //!             .composite(Fields::named()
-//!                 .field_of::<T>("bar", "T")
-//!                 .field_of::<u64>("data", "u64")
+//!                 .field_of::<T>("bar", "T", &[])
+//!                 .field_of::<u64>("data", "u64", &[])
 //!             )
 //!     }
 //! }
@@ -57,8 +57,8 @@
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
 //!             .composite(Fields::unnamed()
-//!                 .field_of::<u32>("u32")
-//!                 .field_of::<bool>("bool")
+//!                 .field_of::<u32>("u32", &[])
+//!                 .field_of::<bool>("bool", &[])
 //!             )
 //!     }
 //! }
@@ -84,9 +84,9 @@
 //!                .type_params(vec![MetaType::new::<T>()])
 //!             .variant(
 //!                 Variants::with_fields()
-//!                     .variant("A", Fields::unnamed().field_of::<T>("T"))
-//!                     .variant("B", Fields::named().field_of::<u32>("f", "u32"))
-//!                     .variant("C", Fields::unit())
+//!                     .variant("A", Fields::unnamed().field_of::<T>("T", &[]), &[])
+//!                     .variant("B", Fields::named().field_of::<u32>("f", "u32", &[]), &[])
+//!                     .variant("C", Fields::unit(), &[]),
 //!             )
 //!     }
 //! }
@@ -108,9 +108,9 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .variant(
 //!                 Variants::fieldless()
-//!                     .variant("A", 1)
-//!                     .variant("B", 2)
-//!                     .variant("C", 33)
+//!                     .variant("A", 1, &[])
+//!                     .variant("B", 2, &[])
+//!                     .variant("C", 33, &[])
 //!             )
 //!     }
 //! }
@@ -146,6 +146,7 @@ pub mod state {
 pub struct TypeBuilder<S = state::PathNotAssigned> {
     path: Option<Path>,
     type_params: Vec<MetaType>,
+    docs: Vec<&'static str>,
     marker: PhantomData<fn() -> S>,
 }
 
@@ -154,6 +155,7 @@ impl<S> Default for TypeBuilder<S> {
         TypeBuilder {
             path: Default::default(),
             type_params: Default::default(),
+            docs: Default::default(),
             marker: Default::default(),
         }
     }
@@ -165,6 +167,7 @@ impl TypeBuilder<state::PathNotAssigned> {
         TypeBuilder {
             path: Some(path),
             type_params: self.type_params,
+            docs: self.docs,
             marker: Default::default(),
         }
     }
@@ -176,7 +179,7 @@ impl TypeBuilder<state::PathAssigned> {
         D: Into<TypeDef>,
     {
         let path = self.path.expect("Path not assigned");
-        Type::new(path, self.type_params, type_def)
+        Type::new(path, self.type_params, type_def, self.docs)
     }
 
     /// Construct a "variant" type i.e an `enum`
@@ -197,6 +200,12 @@ impl<S> TypeBuilder<S> {
         I: IntoIterator<Item = MetaType>,
     {
         self.type_params = type_params.into_iter().collect();
+        self
+    }
+
+    /// Set the type documentation
+    pub fn docs(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
         self
     }
 }
@@ -252,43 +261,43 @@ impl<T> FieldsBuilder<T> {
 
 impl FieldsBuilder<NamedFields> {
     /// Add a named field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
+    pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str, docs: &[&'static str]) -> Self
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::named_of::<T>(name, type_name));
+        self.fields.push(Field::named_of::<T>(name, type_name, docs));
         self
     }
 
     /// Add a named, [`Compact`] field of type `T`.
-    pub fn compact_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
+    pub fn compact_of<T>(mut self, name: &'static str, type_name: &'static str, docs: &[&'static str]) -> Self
     where
         T: scale::HasCompact,
         <T as scale::HasCompact>::Type: TypeInfo + 'static,
     {
         self.fields
-            .push(Field::compact_of::<T>(Some(name), type_name));
+            .push(Field::compact_of::<T>(Some(name), type_name, docs));
         self
     }
 }
 
 impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self, type_name: &'static str) -> Self
+    pub fn field_of<T>(mut self, type_name: &'static str, docs: &[&'static str]) -> Self
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::unnamed_of::<T>(type_name));
+        self.fields.push(Field::unnamed_of::<T>(type_name, docs));
         self
     }
 
     /// Add an unnamed, [`Compact`] field of type `T`.
-    pub fn compact_of<T>(mut self, type_name: &'static str) -> Self
+    pub fn compact_of<T>(mut self, type_name: &'static str, docs: &[&'static str]) -> Self
     where
         T: scale::HasCompact,
         <T as scale::HasCompact>::Type: TypeInfo + 'static,
     {
-        self.fields.push(Field::compact_of::<T>(None, type_name));
+        self.fields.push(Field::compact_of::<T>(None, type_name, docs));
         self
     }
 }
@@ -326,22 +335,22 @@ pub struct VariantsBuilder<T> {
 
 impl VariantsBuilder<VariantFields> {
     /// Add a variant with fields constructed by the supplied [`FieldsBuilder`](`crate::build::FieldsBuilder`)
-    pub fn variant<F>(mut self, name: &'static str, fields: FieldsBuilder<F>) -> Self {
-        self.variants.push(Variant::with_fields(name, fields));
+    pub fn variant<F>(mut self, name: &'static str, fields: FieldsBuilder<F>, docs: &[&'static str]) -> Self {
+        self.variants.push(Variant::with_fields(name, fields, docs.to_vec()));
         self
     }
 
     /// Add a variant with no fields i.e. a unit variant
-    pub fn variant_unit(self, name: &'static str) -> Self {
-        self.variant::<NoFields>(name, Fields::unit())
+    pub fn variant_unit(self, name: &'static str, docs: &[&'static str]) -> Self {
+        self.variant::<NoFields>(name, Fields::unit(), docs)
     }
 }
 
 impl VariantsBuilder<Fieldless> {
     /// Add a fieldless variant, explicitly setting the discriminant
-    pub fn variant(mut self, name: &'static str, discriminant: u64) -> Self {
+    pub fn variant(mut self, name: &'static str, discriminant: u64, docs: &[&'static str]) -> Self {
         self.variants
-            .push(Variant::with_discriminant(name, discriminant));
+            .push(Variant::with_discriminant(name, discriminant, docs));
         self
     }
 }

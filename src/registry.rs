@@ -240,14 +240,17 @@ mod tests {
                             .field_of::<Box<RecursiveRefs>>(
                                 "boxed",
                                 "Box < RecursiveRefs >",
+                                &[],
                             )
                             .field_of::<&'static RecursiveRefs<'static>>(
                                 "reference",
                                 "&RecursiveRefs",
+                                &[],
                             )
                             .field_of::<&'static mut RecursiveRefs<'static>>(
                                 "mutable_reference",
                                 "&mut RecursiveRefs",
+                                &[],
                             ),
                     )
             }

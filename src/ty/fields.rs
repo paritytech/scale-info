@@ -79,6 +79,9 @@ pub struct Field<T: Form = MetaForm> {
     ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     type_name: T::String,
+    /// Documentation
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    docs: Vec<T::String>,
 }
 
 impl IntoPortable for Field {
@@ -89,6 +92,7 @@ impl IntoPortable for Field {
             name: self.name.map(|name| name.into_portable(registry)),
             ty: registry.register_type(&self.ty),
             type_name: self.type_name.into_portable(registry),
+            docs: registry.map_into_portable(self.docs),
         }
     }
 }
@@ -101,11 +105,13 @@ impl Field {
         name: Option<&'static str>,
         ty: MetaType,
         type_name: &'static str,
+        docs: &[&'static str],
     ) -> Self {
         Self {
             name,
             ty,
             type_name,
+            docs: docs.to_vec()
         }
     }
 
@@ -113,31 +119,31 @@ impl Field {
     ///
     /// Use this constructor if you want to instantiate from a given
     /// compile-time type.
-    pub fn named_of<T>(name: &'static str, type_name: &'static str) -> Field
+    pub fn named_of<T>(name: &'static str, type_name: &'static str, docs: &[&'static str]) -> Field
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        Self::new(Some(name), MetaType::new::<T>(), type_name)
+        Self::new(Some(name), MetaType::new::<T>(), type_name, docs)
     }
 
     /// Creates a new unnamed field.
     ///
     /// Use this constructor if you want to instantiate an unnamed field from a
     /// given compile-time type.
-    pub fn unnamed_of<T>(type_name: &'static str) -> Field
+    pub fn unnamed_of<T>(type_name: &'static str, docs: &[&'static str]) -> Field
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        Self::new(None, MetaType::new::<T>(), type_name)
+        Self::new(None, MetaType::new::<T>(), type_name, docs)
     }
 
     /// Creates a new [`Compact`] field.
-    pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str) -> Field
+    pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str, docs: &[&'static str]) -> Field
     where
         T: HasCompact,
         <T as HasCompact>::Type: TypeInfo + 'static,
     {
-        Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name)
+        Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name, docs)
     }
 }
 
@@ -162,5 +168,10 @@ where
     /// purposes only.
     pub fn type_name(&self) -> &T::String {
         &self.type_name
+    }
+
+    /// Returns the documentation of the field.
+    pub fn docs(&self) -> &[T::String] {
+        &self.docs
     }
 }

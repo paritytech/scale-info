@@ -170,6 +170,9 @@ pub struct Variant<T: Form = MetaForm> {
         serde(skip_serializing_if = "Option::is_none", default)
     )]
     discriminant: Option<u64>,
+    /// Documentation
+    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    docs: Vec<T::String>,
 }
 
 impl IntoPortable for Variant {
@@ -180,26 +183,29 @@ impl IntoPortable for Variant {
             name: self.name.into_portable(registry),
             fields: registry.map_into_portable(self.fields),
             discriminant: self.discriminant,
+            docs: registry.map_into_portable(self.docs),
         }
     }
 }
 
 impl Variant {
     /// Creates a new variant with the given fields.
-    pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>) -> Self {
+    pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>, docs: Vec<&'static str>) -> Self {
         Self {
             name,
             fields: fields.finalize(),
             discriminant: None,
+            docs: docs.to_vec(),
         }
     }
 
     /// Creates a new variant with the given discriminant.
-    pub fn with_discriminant(name: &'static str, discriminant: u64) -> Self {
+    pub fn with_discriminant(name: &'static str, discriminant: u64, docs: &[&'static str]) -> Self {
         Self {
             name,
             fields: Vec::new(),
             discriminant: Some(discriminant),
+            docs: docs.to_vec(),
         }
     }
 }
@@ -208,7 +214,7 @@ impl<T> Variant<T>
 where
     T: Form,
 {
-    /// Returns the name of the variant
+    /// Returns the name of the variant.
     pub fn name(&self) -> &T::String {
         &self.name
     }
@@ -221,5 +227,10 @@ where
     /// Returns the discriminant of the variant.
     pub fn discriminant(&self) -> Option<u64> {
         self.discriminant
+    }
+
+    /// Returns the documentation of the variant.
+    pub fn docs(&self) -> &[T::String] {
+        &self.docs
     }
 }
