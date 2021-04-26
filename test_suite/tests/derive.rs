@@ -47,7 +47,11 @@ macro_rules! assert_type {
 fn struct_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
+    /// Type docs.
+    /// Multiline.
     struct S<T, U> {
+        /// Field docs
+        /// Multiline
         pub t: T,
         pub u: U,
     }
@@ -55,9 +59,10 @@ fn struct_derive() {
     let struct_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool, u8))
+        .docs(&[" Type docs.", " Multiline."])
         .composite(
             Fields::named()
-                .field_of::<bool>("t", "T", &[])
+                .field_of::<bool>("t", "T", &[" Field docs", " Multiline"])
                 .field_of::<u8>("u", "U", &[]),
         );
 
@@ -103,12 +108,17 @@ fn phantom_data_is_part_of_the_type_info() {
 fn tuple_struct_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct S<T>(T);
+    /// Type docs.
+    struct S<T>(
+        /// Unnamed field docs.
+        T
+    );
 
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool))
-        .composite(Fields::unnamed().field_of::<bool>("T", &[]));
+        .docs(&[" Type docs."])
+        .composite(Fields::unnamed().field_of::<bool>("T", &[" Unnamed field docs."]));
 
     assert_type!(S<bool>, ty);
 }
@@ -130,15 +140,20 @@ fn unit_struct_derive() {
 fn c_like_enum_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
+    /// Enum docs.
     enum E {
+        /// Unit variant.
         A,
+        /// Variant with discriminator.
         B = 10,
     }
 
-    let ty = Type::builder().path(Path::new("E", "derive")).variant(
+    let ty = Type::builder().path(Path::new("E", "derive"))
+        .docs(&[" Enum docs."])
+        .variant(
         Variants::fieldless()
-            .variant("A", 0u64, &[])
-            .variant("B", 10u64, &[]),
+            .variant("A", 0u64, &[" Unit variant."])
+            .variant("B", 10u64, &[" Variant with discriminator."]),
     );
 
     assert_type!(E, ty);
@@ -174,20 +189,31 @@ fn c_like_enum_derive_with_scale_index_set() {
 fn enum_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
+    /// Enum docs.
     enum E<T> {
-        A(T),
-        B { b: T },
+        /// Unnamed fields variant.
+        A(
+            /// Unnamed field.
+            T
+        ),
+        /// Named fields variant.
+        B {
+            /// Named field.
+            b: T
+        },
+        /// Unit variant.
         C,
     }
 
     let ty = Type::builder()
         .path(Path::new("E", "derive"))
         .type_params(tuple_meta_type!(bool))
+        .docs(&[" Enum docs."])
         .variant(
             Variants::with_fields()
-                .variant("A", Fields::unnamed().field_of::<bool>("T", &[]), &[])
-                .variant("B", Fields::named().field_of::<bool>("b", "T", &[]), &[])
-                .variant_unit("C", &[]),
+                .variant("A", Fields::unnamed().field_of::<bool>("T", &[" Unnamed field."]), &[" Unnamed fields variant."])
+                .variant("B", Fields::named().field_of::<bool>("b", "T", &[" Named field."]), &[" Named fields variant."])
+                .variant_unit("C", &[" Unit variant."]),
         );
 
     assert_type!(E<bool>, ty);
