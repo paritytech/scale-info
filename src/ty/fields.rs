@@ -18,6 +18,7 @@ use crate::{
         MetaForm,
         PortableForm,
     },
+    prelude::vec::Vec,
     IntoPortable,
     MetaType,
     Registry,
