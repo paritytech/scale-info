@@ -86,6 +86,23 @@ pub struct Type<T: Form = MetaForm> {
     docs: Vec<T::String>,
 }
 
+impl Type<PortableForm> {
+    /// Clear docs from this type.
+    pub fn clear_docs(&mut self) {
+        self.docs.clear();
+        match &mut self.type_def {
+            TypeDef::Composite(composite) => composite.clear_docs(),
+            TypeDef::Variant(variant) => variant.clear_docs(),
+            TypeDef::Sequence(_) => {}
+            TypeDef::Array(_) => {}
+            TypeDef::Tuple(_) => {}
+            TypeDef::Primitive(_) => {}
+            TypeDef::Compact(_) => {}
+            TypeDef::Phantom(_) => {}
+        }
+    }
+}
+
 impl IntoPortable for Type {
     type Output = Type<PortableForm>;
 

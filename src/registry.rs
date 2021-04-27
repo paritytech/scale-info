@@ -189,13 +189,25 @@ impl PortableRegistry {
             (id, ty)
         })
     }
+
+    /// Clears all docs from types.
+    ///
+    /// Use when the docs are not required to produce smaller encoded metadata.
+    pub fn clear_docs(&mut self) {
+        for ty in &mut self.types {
+            ty.clear_docs()
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
-        build::Fields,
+        build::{
+            Fields,
+            Variants,
+        },
         meta_type,
         Path,
         TypeDef,
@@ -266,6 +278,121 @@ mod tests {
             }
         } else {
             panic!("Should be a composite type definition")
+        }
+    }
+
+    #[test]
+    fn clear_docs() {
+        #[allow(unused)]
+        /// docs
+        struct S {
+            /// docs
+            pub t: bool,
+            pub u: u8,
+        }
+
+        impl TypeInfo for S {
+            type Identity = Self;
+
+            fn type_info() -> Type {
+                Type::builder()
+                    .path(Path::new("S", module_path!()))
+                    .docs(&[" docs"])
+                    .composite(
+                        Fields::named()
+                            .field_of::<bool>("t", "bool", &[" docs"])
+                            .field_of::<u8>("u", "u8", &[]),
+                    )
+            }
+        }
+
+        #[allow(unused)]
+        struct T(
+            /// docs
+            u32,
+        );
+
+        impl TypeInfo for T {
+            type Identity = Self;
+
+            fn type_info() -> Type {
+                Type::builder()
+                    .path(Path::new("T", module_path!()))
+                    .docs(&[" docs"])
+                    .composite(Fields::unnamed().field_of::<u32>("u32", &[" docs"]))
+            }
+        }
+
+        #[allow(unused)]
+        /// docs
+        enum E {
+            /// docs
+            A(
+                /// docs
+                bool,
+            ),
+            /// docs
+            B {
+                /// docs
+                b: u8,
+            },
+            /// docs
+            C,
+        }
+
+        impl TypeInfo for E {
+            type Identity = Self;
+
+            fn type_info() -> Type {
+                Type::builder()
+                    .path(Path::new("E", "derive"))
+                    .type_params(tuple_meta_type!(bool))
+                    .docs(&[" Enum docs."])
+                    .variant(
+                        Variants::with_fields()
+                            .variant(
+                                "A",
+                                Fields::unnamed().field_of::<bool>("bool", &[" docs"]),
+                                &[" Unnamed fields variant."],
+                            )
+                            .variant(
+                                "B",
+                                Fields::named().field_of::<u8>("b", "u8", &[" docs"]),
+                                &[" docs"],
+                            )
+                            .variant_unit("C", &[" docs"]),
+                    )
+            }
+        }
+
+        let mut registry = Registry::new();
+        registry.register_type(&meta_type::<S>());
+        registry.register_type(&meta_type::<T>());
+        registry.register_type(&meta_type::<E>());
+
+        let mut registry: PortableRegistry = registry.into();
+
+        registry.clear_docs();
+
+        for ty in registry.types {
+            assert!(ty.docs().is_empty());
+            match ty.type_def() {
+                TypeDef::Composite(c) => {
+                    for f in c.fields() {
+                        assert!(f.docs().is_empty())
+                    }
+                }
+                TypeDef::Variant(v) => {
+                    for var in v.variants() {
+                        assert!(var.docs().is_empty());
+
+                        for f in var.fields() {
+                            assert!(f.docs().is_empty())
+                        }
+                    }
+                }
+                _ => {}
+            }
         }
     }
 }

@@ -109,4 +109,11 @@ where
     pub fn fields(&self) -> &[Field<T>] {
         &self.fields
     }
+
+    /// Clear the docs of the field.
+    pub fn clear_docs(&mut self) {
+        for field in &mut self.fields {
+            field.clear_docs()
+        }
+    }
 }

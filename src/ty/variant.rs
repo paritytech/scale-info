@@ -122,6 +122,13 @@ where
     pub fn variants(&self) -> &[Variant<T>] {
         &self.variants
     }
+
+    /// Clear docs for all variants.
+    pub fn clear_docs(&mut self) {
+        for variant in &mut self.variants {
+            variant.clear_docs()
+        }
+    }
 }
 
 /// A struct enum variant with either named (struct) or unnamed (tuple struct)
@@ -243,5 +250,13 @@ where
     /// Returns the documentation of the variant.
     pub fn docs(&self) -> &[T::String] {
         &self.docs
+    }
+
+    /// Clear the docs for this variant.
+    pub fn clear_docs(&mut self) {
+        self.docs.clear();
+        for field in &mut self.fields {
+            field.clear_docs()
+        }
     }
 }
