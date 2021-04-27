@@ -74,11 +74,7 @@ fn struct_derive() {
     let self_typed_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
-        .docs(&[
-            " Type docs.",
-            " clear\
-        Multiline.",
-        ])
+        .docs(&[" Type docs.", " Multiline."])
         .composite(
             Fields::named()
                 .field_of::<Box<S<bool, u8>>>("t", "T", &[" Field docs."])
