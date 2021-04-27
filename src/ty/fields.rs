@@ -80,7 +80,10 @@ pub struct Field<T: Form = MetaForm> {
     /// The name of the type of the field as it appears in the source code.
     type_name: T::String,
     /// Documentation
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
     docs: Vec<T::String>,
 }
 
@@ -111,7 +114,7 @@ impl Field {
             name,
             ty,
             type_name,
-            docs: docs.to_vec()
+            docs: docs.to_vec(),
         }
     }
 
@@ -119,7 +122,11 @@ impl Field {
     ///
     /// Use this constructor if you want to instantiate from a given
     /// compile-time type.
-    pub fn named_of<T>(name: &'static str, type_name: &'static str, docs: &[&'static str]) -> Field
+    pub fn named_of<T>(
+        name: &'static str,
+        type_name: &'static str,
+        docs: &[&'static str],
+    ) -> Field
     where
         T: TypeInfo + ?Sized + 'static,
     {
@@ -138,12 +145,21 @@ impl Field {
     }
 
     /// Creates a new [`Compact`] field.
-    pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str, docs: &[&'static str]) -> Field
+    pub fn compact_of<T>(
+        name: Option<&'static str>,
+        type_name: &'static str,
+        docs: &[&'static str],
+    ) -> Field
     where
         T: HasCompact,
         <T as HasCompact>::Type: TypeInfo + 'static,
     {
-        Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name, docs)
+        Self::new(
+            name,
+            MetaType::new::<<T as HasCompact>::Type>(),
+            type_name,
+            docs,
+        )
     }
 }
 

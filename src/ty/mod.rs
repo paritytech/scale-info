@@ -79,7 +79,10 @@ pub struct Type<T: Form = MetaForm> {
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
     type_def: TypeDef<T>,
     /// Documentation
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
     docs: Vec<T::String>,
 }
 
@@ -121,7 +124,12 @@ impl Type {
         TypeBuilder::default()
     }
 
-    pub(crate) fn new<I, D>(path: Path, type_params: I, type_def: D, docs: Vec<&'static str>) -> Self
+    pub(crate) fn new<I, D>(
+        path: Path,
+        type_params: I,
+        type_def: D,
+        docs: Vec<&'static str>,
+    ) -> Self
     where
         I: IntoIterator<Item = MetaType>,
         D: Into<TypeDef>,

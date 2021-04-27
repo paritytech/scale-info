@@ -261,16 +261,27 @@ impl<T> FieldsBuilder<T> {
 
 impl FieldsBuilder<NamedFields> {
     /// Add a named field with the type of the type parameter `T`
-    pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str, docs: &[&'static str]) -> Self
+    pub fn field_of<T>(
+        mut self,
+        name: &'static str,
+        type_name: &'static str,
+        docs: &[&'static str],
+    ) -> Self
     where
         T: TypeInfo + ?Sized + 'static,
     {
-        self.fields.push(Field::named_of::<T>(name, type_name, docs));
+        self.fields
+            .push(Field::named_of::<T>(name, type_name, docs));
         self
     }
 
     /// Add a named, [`Compact`] field of type `T`.
-    pub fn compact_of<T>(mut self, name: &'static str, type_name: &'static str, docs: &[&'static str]) -> Self
+    pub fn compact_of<T>(
+        mut self,
+        name: &'static str,
+        type_name: &'static str,
+        docs: &[&'static str],
+    ) -> Self
     where
         T: scale::HasCompact,
         <T as scale::HasCompact>::Type: TypeInfo + 'static,
@@ -297,7 +308,8 @@ impl FieldsBuilder<UnnamedFields> {
         T: scale::HasCompact,
         <T as scale::HasCompact>::Type: TypeInfo + 'static,
     {
-        self.fields.push(Field::compact_of::<T>(None, type_name, docs));
+        self.fields
+            .push(Field::compact_of::<T>(None, type_name, docs));
         self
     }
 }
@@ -335,8 +347,14 @@ pub struct VariantsBuilder<T> {
 
 impl VariantsBuilder<VariantFields> {
     /// Add a variant with fields constructed by the supplied [`FieldsBuilder`](`crate::build::FieldsBuilder`)
-    pub fn variant<F>(mut self, name: &'static str, fields: FieldsBuilder<F>, docs: &[&'static str]) -> Self {
-        self.variants.push(Variant::with_fields(name, fields, docs.to_vec()));
+    pub fn variant<F>(
+        mut self,
+        name: &'static str,
+        fields: FieldsBuilder<F>,
+        docs: &[&'static str],
+    ) -> Self {
+        self.variants
+            .push(Variant::with_fields(name, fields, docs.to_vec()));
         self
     }
 
@@ -348,7 +366,12 @@ impl VariantsBuilder<VariantFields> {
 
 impl VariantsBuilder<Fieldless> {
     /// Add a fieldless variant, explicitly setting the discriminant
-    pub fn variant(mut self, name: &'static str, discriminant: u64, docs: &[&'static str]) -> Self {
+    pub fn variant(
+        mut self,
+        name: &'static str,
+        discriminant: u64,
+        docs: &[&'static str],
+    ) -> Self {
         self.variants
             .push(Variant::with_discriminant(name, discriminant, docs));
         self

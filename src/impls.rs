@@ -132,11 +132,11 @@ where
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type![T])
-            .variant(
-                Variants::with_fields()
-                    .variant_unit("None", &[])
-                    .variant("Some", Fields::unnamed().field_of::<T>("T", &[]), &[]),
-            )
+            .variant(Variants::with_fields().variant_unit("None", &[]).variant(
+                "Some",
+                Fields::unnamed().field_of::<T>("T", &[]),
+                &[],
+            ))
     }
 }
 

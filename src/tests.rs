@@ -61,11 +61,11 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type!(u128))
-            .variant(
-                Variants::with_fields()
-                    .variant_unit("None", &[])
-                    .variant("Some", Fields::unnamed().field_of::<u128>("T", &[]), &[])
-            )
+            .variant(Variants::with_fields().variant_unit("None", &[]).variant(
+                "Some",
+                Fields::unnamed().field_of::<u128>("T", &[]),
+                &[]
+            ))
     );
     assert_type!(
         Result<bool, String>,

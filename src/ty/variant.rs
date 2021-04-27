@@ -171,7 +171,10 @@ pub struct Variant<T: Form = MetaForm> {
     )]
     discriminant: Option<u64>,
     /// Documentation
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Vec::is_empty", default))]
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
     docs: Vec<T::String>,
 }
 
@@ -190,7 +193,11 @@ impl IntoPortable for Variant {
 
 impl Variant {
     /// Creates a new variant with the given fields.
-    pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>, docs: Vec<&'static str>) -> Self {
+    pub fn with_fields<F>(
+        name: &'static str,
+        fields: FieldsBuilder<F>,
+        docs: Vec<&'static str>,
+    ) -> Self {
         Self {
             name,
             fields: fields.finalize(),
@@ -200,7 +207,11 @@ impl Variant {
     }
 
     /// Creates a new variant with the given discriminant.
-    pub fn with_discriminant(name: &'static str, discriminant: u64, docs: &[&'static str]) -> Self {
+    pub fn with_discriminant(
+        name: &'static str,
+        discriminant: u64,
+        docs: &[&'static str],
+    ) -> Self {
         Self {
             name,
             fields: Vec::new(),
