@@ -50,8 +50,7 @@ fn struct_derive() {
     /// Type docs.
     /// Multiline.
     struct S<T, U> {
-        /// Field docs
-        /// Multiline
+        /// Field docs.
         pub t: T,
         pub u: U,
     }
@@ -62,7 +61,7 @@ fn struct_derive() {
         .docs(&[" Type docs.", " Multiline."])
         .composite(
             Fields::named()
-                .field_of::<bool>("t", "T", &[" Field docs", " Multiline"])
+                .field_of::<bool>("t", "T", &[" Field docs."])
                 .field_of::<u8>("u", "U", &[]),
         );
 
@@ -75,9 +74,10 @@ fn struct_derive() {
     let self_typed_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
+        .docs(&[" Type docs.", " Multiline."])
         .composite(
             Fields::named()
-                .field_of::<Box<S<bool, u8>>>("t", "T", &[])
+                .field_of::<Box<S<bool, u8>>>("t", "T", &[" Field docs."])
                 .field_of::<bool>("u", "U", &[]),
         );
     assert_type!(SelfTyped, self_typed_type);
