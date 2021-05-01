@@ -21,7 +21,6 @@ use scale_info::{
     prelude::{
         boxed::Box,
         marker::PhantomData,
-        vec,
         vec::Vec,
     },
     tuple_meta_type,
