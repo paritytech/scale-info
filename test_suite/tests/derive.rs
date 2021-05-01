@@ -442,6 +442,42 @@ fn whitespace_scrubbing_works() {
     assert_type!(A, ty);
 }
 
+#[test]
+fn custom_bounds() {
+    // TODO: this test is dumb. It's a copy of Basti's equivalent in `parity-scale-codec` but I
+    // don't think it can work for us. I need a proper example of when custom bounds are needed.
+    // As-is, this test is simply setting the same bounds as the derive would have, which is pretty
+    // pointless.
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(bounds(T: Default + TypeInfo + 'static, N: TypeInfo + 'static))]
+    struct Hey<T, N> {
+        ciao: Greet<T>,
+        ho: N,
+    }
+
+    #[derive(TypeInfo)]
+    #[scale_info(bounds(T: TypeInfo + 'static))]
+    struct Greet<T> {
+        marker: PhantomData<T>,
+    }
+
+    #[derive(TypeInfo)]
+    #[derive(Default)]
+    struct SomeType;
+
+    let ty = Type::builder()
+        .path(Path::new("Hey", "derive"))
+        .type_params(tuple_meta_type!(SomeType, u16))
+        .composite(
+            Fields::named()
+                .field_of::<Greet<SomeType>>("ciao", "Greet<T>")
+                .field_of::<u16>("ho", "N")
+        );
+
+    assert_type!(Hey<SomeType, u16>, ty);
+}
+
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {
