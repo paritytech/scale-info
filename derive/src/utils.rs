@@ -107,7 +107,7 @@ where
         if attr.path.is_ident("codec") {
             if let Meta::List(ref meta_list) = attr
                 .parse_meta()
-                .expect("Internal error. `#[codec(…)]` attributes must be checked in `parity-scale-codec`. This is a bug.")
+                .expect("scale-info: Bad index in `#[codec(index = …)]`, see `parity-scale-codec` error")
             {
                 return meta_list.nested.iter().filter_map(pred.clone()).next()
             }
