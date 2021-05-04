@@ -462,8 +462,7 @@ fn custom_bounds() {
         marker: PhantomData<T>,
     }
 
-    #[derive(TypeInfo)]
-    #[derive(Default)]
+    #[derive(TypeInfo, Default)]
     struct SomeType;
 
     let ty = Type::builder()
@@ -472,7 +471,7 @@ fn custom_bounds() {
         .composite(
             Fields::named()
                 .field_of::<Greet<SomeType>>("ciao", "Greet<T>")
-                .field_of::<u16>("ho", "N")
+                .field_of::<u16>("ho", "N"),
         );
 
     assert_type!(Hey<SomeType, u16>, ty);

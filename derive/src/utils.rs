@@ -19,13 +19,13 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
-    DeriveInput,
     parse::Parse,
     punctuated::Punctuated,
     spanned::Spanned,
     token,
     AttrStyle,
     Attribute,
+    DeriveInput,
     Lit,
     Meta,
     NestedMeta,
