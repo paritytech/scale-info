@@ -28,7 +28,6 @@ use crate::prelude::{
         Entry,
     },
     marker::PhantomData,
-    num::NonZeroU32,
     vec::Vec,
 };
 
@@ -42,39 +41,19 @@ use serde::{
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
-    id: NonZeroU32,
+    id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> T>,
 }
 
-impl<T> scale::Encode for UntrackedSymbol<T> {
-    fn encode_to<W: scale::Output + ?Sized>(&self, dest: &mut W) {
-        self.id.get().encode_to(dest)
-    }
-}
-
-impl<T> scale::Decode for UntrackedSymbol<T> {
-    fn decode<I: scale::Input>(value: &mut I) -> Result<Self, scale::Error> {
-        let id = <u32 as scale::Decode>::decode(value)?;
-        if id < 1 {
-            return Err("UntrackedSymbol::id should be a non-zero unsigned integer".into())
-        }
-        let id = NonZeroU32::new(id).expect("ID is non zero");
-        Ok(UntrackedSymbol {
-            id,
-            marker: Default::default(),
-        })
-    }
-}
-
 impl<T> UntrackedSymbol<T> {
     /// Returns the index to the symbol in the interner table.
-    pub fn id(&self) -> NonZeroU32 {
+    pub fn id(&self) -> u32 {
         self.id
     }
 }
@@ -86,7 +65,7 @@ impl<T> UntrackedSymbol<T> {
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct Symbol<'a, T> {
-    id: NonZeroU32,
+    id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> &'a T>,
 }
@@ -181,7 +160,7 @@ where
         (
             inserted,
             Symbol {
-                id: NonZeroU32::new((sym_id + 1) as u32).unwrap(),
+                id: sym_id as u32,
                 marker: PhantomData,
             },
         )
@@ -192,7 +171,7 @@ where
     pub fn get(&self, s: &T) -> Option<Symbol<T>> {
         self.map.get(s).map(|&id| {
             Symbol {
-                id: NonZeroU32::new(id as u32).unwrap(),
+                id: id as u32,
                 marker: PhantomData,
             }
         })
@@ -201,7 +180,7 @@ where
     /// Resolves the original element given its associated symbol or
     /// returns `None` if it has not been interned yet.
     pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
-        let idx = (sym.id.get() - 1) as usize;
+        let idx = sym.id as usize;
         if idx >= self.vec.len() {
             return None
         }
@@ -220,7 +199,7 @@ mod tests {
         new_symbol: &'static str,
         expected_id: u32,
     ) {
-        let actual_id = interner.intern_or_get(new_symbol).1.id.get();
+        let actual_id = interner.intern_or_get(new_symbol).1.id;
         assert_eq!(actual_id, expected_id,);
     }
 
@@ -229,7 +208,7 @@ mod tests {
         E: Into<Option<&'static str>>,
     {
         let actual_str = interner.resolve(Symbol {
-            id: NonZeroU32::new(symbol_id).unwrap(),
+            id: symbol_id,
             marker: PhantomData,
         });
         assert_eq!(actual_str.cloned(), expected_str.into(),);
@@ -238,14 +217,14 @@ mod tests {
     #[test]
     fn simple() {
         let mut interner = StringInterner::new();
-        assert_id(&mut interner, "Hello", 1);
-        assert_id(&mut interner, ", World!", 2);
-        assert_id(&mut interner, "1 2 3", 3);
-        assert_id(&mut interner, "Hello", 1);
+        assert_id(&mut interner, "Hello", 0);
+        assert_id(&mut interner, ", World!", 1);
+        assert_id(&mut interner, "1 2 3", 2);
+        assert_id(&mut interner, "Hello", 0);
 
-        assert_resolve(&mut interner, 1, "Hello");
-        assert_resolve(&mut interner, 2, ", World!");
-        assert_resolve(&mut interner, 3, "1 2 3");
-        assert_resolve(&mut interner, 4, None);
+        assert_resolve(&mut interner, 0, "Hello");
+        assert_resolve(&mut interner, 1, ", World!");
+        assert_resolve(&mut interner, 2, "1 2 3");
+        assert_resolve(&mut interner, 3, None);
     }
 }
