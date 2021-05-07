@@ -41,7 +41,9 @@ use serde::{
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, scale::Encode, scale::Decode)]
+#[derive(
+    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, scale::Encode, scale::Decode,
+)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct UntrackedSymbol<T> {
@@ -60,7 +62,10 @@ impl<T> From<u32> for UntrackedSymbol<T> {
 impl<T> UntrackedSymbol<T> {
     /// Construct a new [`UntrackedSymbol`].
     pub fn new(id: u32) -> Self {
-        Self { id, marker: PhantomData }
+        Self {
+            id,
+            marker: PhantomData,
+        }
     }
 
     /// Returns the index to the symbol in the interner table.
