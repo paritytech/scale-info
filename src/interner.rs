@@ -51,7 +51,18 @@ pub struct UntrackedSymbol<T> {
     marker: PhantomData<fn() -> T>,
 }
 
+impl<T> From<u32> for UntrackedSymbol<T> {
+    fn from(id: u32) -> Self {
+        Self::new(id)
+    }
+}
+
 impl<T> UntrackedSymbol<T> {
+    /// Construct a new [`UntrackedSymbol`].
+    pub fn new(id: u32) -> Self {
+        Self { id, marker: PhantomData }
+    }
+
     /// Returns the index to the symbol in the interner table.
     pub fn id(&self) -> u32 {
         self.id
@@ -87,10 +98,7 @@ impl<T> Symbol<'_, T> {
     /// considered to be safe since untracked symbols can no longer be
     /// used to resolve their associated instance from the interner.
     pub fn into_untracked(self) -> UntrackedSymbol<T> {
-        UntrackedSymbol {
-            id: self.id,
-            marker: PhantomData,
-        }
+        UntrackedSymbol::new(self.id)
     }
 }
 
