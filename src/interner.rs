@@ -170,7 +170,7 @@ where
 
     /// Returns the symbol of the given element or `None` if it hasn't been
     /// interned already.
-    pub fn get(&self, s: &T) -> Option<Symbol<T>> {
+    pub fn get(&self, sym: &T) -> Option<Symbol<T>> {
         self.map.get(s).map(|&id| {
             Symbol {
                 id: id as u32,
