@@ -129,7 +129,7 @@ pub use self::{
 pub use scale_info_derive::TypeInfo;
 
 /// Implementors return their meta type information.
-pub trait TypeInfo {
+pub trait TypeInfo: 'static {
     /// The type identifying for which type info is provided.
     ///
     /// # Note
@@ -146,7 +146,7 @@ pub trait TypeInfo {
 /// Returns the runtime bridge to the types compile-time type information.
 pub fn meta_type<T>() -> MetaType
 where
-    T: ?Sized + TypeInfo + 'static,
+    T: ?Sized + TypeInfo,
 {
     MetaType::new::<T>()
 }

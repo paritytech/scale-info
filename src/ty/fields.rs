@@ -135,7 +135,7 @@ impl Field {
     pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str) -> Field
     where
         T: HasCompact,
-        <T as HasCompact>::Type: TypeInfo + 'static,
+        <T as HasCompact>::Type: TypeInfo,
     {
         Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name)
     }

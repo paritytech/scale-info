@@ -30,7 +30,7 @@
 //!
 //! impl<T> TypeInfo for Foo<T>
 //! where
-//!     T: TypeInfo + 'static,
+//!     T: TypeInfo,
 //! {
 //!     type Identity = Self;
 //!
@@ -74,7 +74,7 @@
 //!
 //! impl<T> TypeInfo for Foo<T>
 //! where
-//!     T: TypeInfo + 'static,
+//!     T: TypeInfo,
 //! {
 //!     type Identity = Self;
 //!
@@ -264,7 +264,7 @@ impl FieldsBuilder<NamedFields> {
     pub fn compact_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
     where
         T: scale::HasCompact,
-        <T as scale::HasCompact>::Type: TypeInfo + 'static,
+        <T as scale::HasCompact>::Type: TypeInfo,
     {
         self.fields
             .push(Field::compact_of::<T>(Some(name), type_name));
@@ -286,7 +286,7 @@ impl FieldsBuilder<UnnamedFields> {
     pub fn compact_of<T>(mut self, type_name: &'static str) -> Self
     where
         T: scale::HasCompact,
-        <T as scale::HasCompact>::Type: TypeInfo + 'static,
+        <T as scale::HasCompact>::Type: TypeInfo,
     {
         self.fields.push(Field::compact_of::<T>(None, type_name));
         self

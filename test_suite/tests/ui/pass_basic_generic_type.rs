@@ -13,7 +13,7 @@ struct Cat<Tail, Ear, Paw> {
     _paws: PawType<Paw>,
 }
 
-fn assert_type_info<T: TypeInfo + 'static>() {}
+fn assert_type_info<T: TypeInfo>() {}
 
 fn main() {
     assert_type_info::<Cat<bool, u8, u16>>();

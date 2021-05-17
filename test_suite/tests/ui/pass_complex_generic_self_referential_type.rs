@@ -34,7 +34,7 @@ struct Selfie<Pos> {
     _nested: Box<Other<Thing<That<Is<Nested<Pos>>, Selfie<Pos>>>>>,
 }
 
-fn assert_type_info<T: TypeInfo + 'static>() {}
+fn assert_type_info<T: TypeInfo>() {}
 
 fn main() {
     assert_type_info::<Selfie<bool>>();

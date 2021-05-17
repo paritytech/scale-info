@@ -7,7 +7,7 @@ union Commonwealth {
     b: f32,
 }
 
-fn assert_type_info<T: TypeInfo + 'static>() {}
+fn assert_type_info<T: TypeInfo>() {}
 
 fn main() {
     assert_type_info::<Commonwealth>();

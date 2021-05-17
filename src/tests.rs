@@ -154,7 +154,7 @@ fn struct_with_generics() {
 
     impl<T> TypeInfo for MyStruct<T>
     where
-        T: TypeInfo + 'static,
+        T: TypeInfo,
     {
         type Identity = Self;
 
@@ -193,7 +193,7 @@ fn basic_struct_with_phantoms() {
 
     impl<T> TypeInfo for SomeStruct<T>
     where
-        T: TypeInfo + 'static,
+        T: TypeInfo,
     {
         type Identity = Self;
 

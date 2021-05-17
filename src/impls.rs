@@ -68,7 +68,7 @@ impl_metadata_for_primitives!(
     i128 => TypeDefPrimitive::I128,
 );
 
-impl<T: TypeInfo + 'static, const N: usize> TypeInfo for [T; N] {
+impl<T: TypeInfo, const N: usize> TypeInfo for [T; N] {
     type Identity = Self;
 
     fn type_info() -> Type {
@@ -113,7 +113,7 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
 
 impl<T> TypeInfo for Vec<T>
 where
-    T: TypeInfo + 'static,
+    T: TypeInfo,
 {
     type Identity = [T];
 
@@ -124,7 +124,7 @@ where
 
 impl<T> TypeInfo for Option<T>
 where
-    T: TypeInfo + 'static,
+    T: TypeInfo,
 {
     type Identity = Self;
 
@@ -142,8 +142,8 @@ where
 
 impl<T, E> TypeInfo for Result<T, E>
 where
-    T: TypeInfo + 'static,
-    E: TypeInfo + 'static,
+    T: TypeInfo,
+    E: TypeInfo,
 {
     type Identity = Self;
 
@@ -175,8 +175,8 @@ where
 
 impl<K, V> TypeInfo for BTreeMap<K, V>
 where
-    K: TypeInfo + 'static,
-    V: TypeInfo + 'static,
+    K: TypeInfo,
+    V: TypeInfo,
 {
     type Identity = Self;
 
@@ -190,7 +190,7 @@ where
 
 impl<T> TypeInfo for BTreeSet<T>
 where
-    T: TypeInfo + 'static,
+    T: TypeInfo,
 {
     type Identity = Self;
 
@@ -213,9 +213,9 @@ where
     }
 }
 
-impl<T> TypeInfo for &T
+impl<T> TypeInfo for &'static T
 where
-    T: TypeInfo + ?Sized + 'static,
+    T: TypeInfo + ?Sized,
 {
     type Identity = T;
 
@@ -224,9 +224,9 @@ where
     }
 }
 
-impl<T> TypeInfo for &mut T
+impl<T> TypeInfo for &'static mut T
 where
-    T: TypeInfo + ?Sized + 'static,
+    T: TypeInfo + ?Sized,
 {
     type Identity = T;
 
@@ -237,7 +237,7 @@ where
 
 impl<T> TypeInfo for [T]
 where
-    T: TypeInfo + 'static,
+    T: TypeInfo,
 {
     type Identity = Self;
 
@@ -264,7 +264,7 @@ impl TypeInfo for String {
 
 impl<T> TypeInfo for PhantomData<T>
 where
-    T: TypeInfo + ?Sized + 'static,
+    T: TypeInfo + ?Sized,
 {
     type Identity = Self;
 
@@ -275,7 +275,7 @@ where
 
 impl<T> TypeInfo for scale::Compact<T>
 where
-    T: TypeInfo + 'static,
+    T: TypeInfo,
 {
     type Identity = Self;
     fn type_info() -> Type {
