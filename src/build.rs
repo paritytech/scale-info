@@ -254,7 +254,7 @@ impl FieldsBuilder<NamedFields> {
     /// Add a named field with the type of the type parameter `T`
     pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
     where
-        T: TypeInfo + ?Sized + 'static,
+        T: TypeInfo + ?Sized,
     {
         self.fields.push(Field::named_of::<T>(name, type_name));
         self
@@ -276,7 +276,7 @@ impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field with the type of the type parameter `T`
     pub fn field_of<T>(mut self, type_name: &'static str) -> Self
     where
-        T: TypeInfo + ?Sized + 'static,
+        T: TypeInfo + ?Sized,
     {
         self.fields.push(Field::unnamed_of::<T>(type_name));
         self

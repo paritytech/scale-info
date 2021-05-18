@@ -81,7 +81,7 @@ macro_rules! impl_metadata_for_tuple {
         impl<$($ty),*> TypeInfo for ($($ty,)*)
         where
             $(
-                $ty: TypeInfo+ 'static,
+                $ty: TypeInfo,
             )*
         {
             type Identity = Self;
@@ -161,7 +161,7 @@ where
 
 impl<T> TypeInfo for Cow<'static, T>
 where
-    T: ToOwned + TypeInfo + ?Sized + 'static,
+    T: ToOwned + TypeInfo + ?Sized,
 {
     type Identity = Self;
 
@@ -204,7 +204,7 @@ where
 
 impl<T> TypeInfo for Box<T>
 where
-    T: TypeInfo + ?Sized + 'static,
+    T: TypeInfo + ?Sized,
 {
     type Identity = T;
 

@@ -115,7 +115,7 @@ impl Field {
     /// compile-time type.
     pub fn named_of<T>(name: &'static str, type_name: &'static str) -> Field
     where
-        T: TypeInfo + ?Sized + 'static,
+        T: TypeInfo + ?Sized,
     {
         Self::new(Some(name), MetaType::new::<T>(), type_name)
     }
@@ -126,7 +126,7 @@ impl Field {
     /// given compile-time type.
     pub fn unnamed_of<T>(type_name: &'static str) -> Field
     where
-        T: TypeInfo + ?Sized + 'static,
+        T: TypeInfo + ?Sized,
     {
         Self::new(None, MetaType::new::<T>(), type_name)
     }
