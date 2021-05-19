@@ -149,7 +149,7 @@ pub trait TypeInfo {
 ///
 /// Currently because of the `'static` constraint on [`std::any::TypeId::of`] (see [`MetaType`]),
 /// `TypeInfo` constraints must also be accompanied by a `'static` bound. This trait is useful to
-/// for implementors so only a single constraint is required.
+/// implementors so only a single constraint is required.
 pub trait StaticTypeInfo: TypeInfo + 'static {}
 
 impl<T> StaticTypeInfo for T where T: TypeInfo + 'static {}
