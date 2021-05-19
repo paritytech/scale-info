@@ -370,7 +370,7 @@ impl TypeDefSequence {
     /// compile-time type.
     pub fn of<T>() -> Self
     where
-        T: TypeInfo,
+        T: TypeInfo + 'static,
     {
         Self::new(MetaType::new::<T>())
     }

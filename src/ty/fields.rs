@@ -115,7 +115,7 @@ impl Field {
     /// compile-time type.
     pub fn named_of<T>(name: &'static str, type_name: &'static str) -> Field
     where
-        T: TypeInfo + ?Sized,
+        T: TypeInfo + ?Sized + 'static,
     {
         Self::new(Some(name), MetaType::new::<T>(), type_name)
     }
@@ -126,7 +126,7 @@ impl Field {
     /// given compile-time type.
     pub fn unnamed_of<T>(type_name: &'static str) -> Field
     where
-        T: TypeInfo + ?Sized,
+        T: TypeInfo + ?Sized + 'static,
     {
         Self::new(None, MetaType::new::<T>(), type_name)
     }
@@ -135,7 +135,7 @@ impl Field {
     pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str) -> Field
     where
         T: HasCompact,
-        <T as HasCompact>::Type: TypeInfo,
+        <T as HasCompact>::Type: TypeInfo + 'static,
     {
         Self::new(name, MetaType::new::<<T as HasCompact>::Type>(), type_name)
     }

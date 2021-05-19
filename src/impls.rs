@@ -68,7 +68,7 @@ impl_metadata_for_primitives!(
     i128 => TypeDefPrimitive::I128,
 );
 
-impl<T: TypeInfo, const N: usize> TypeInfo for [T; N] {
+impl<T: TypeInfo + 'static, const N: usize> TypeInfo for [T; N] {
     type Identity = Self;
 
     fn type_info() -> Type {
@@ -81,7 +81,7 @@ macro_rules! impl_metadata_for_tuple {
         impl<$($ty),*> TypeInfo for ($($ty,)*)
         where
             $(
-                $ty: TypeInfo,
+                $ty: TypeInfo+ 'static,
             )*
         {
             type Identity = Self;
@@ -113,7 +113,7 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
 
 impl<T> TypeInfo for Vec<T>
 where
-    T: TypeInfo,
+    T: TypeInfo + 'static,
 {
     type Identity = [T];
 
@@ -124,7 +124,7 @@ where
 
 impl<T> TypeInfo for Option<T>
 where
-    T: TypeInfo,
+    T: TypeInfo + 'static,
 {
     type Identity = Self;
 
@@ -142,8 +142,8 @@ where
 
 impl<T, E> TypeInfo for Result<T, E>
 where
-    T: TypeInfo,
-    E: TypeInfo,
+    T: TypeInfo + 'static,
+    E: TypeInfo + 'static,
 {
     type Identity = Self;
 
@@ -161,7 +161,7 @@ where
 
 impl<T> TypeInfo for Cow<'static, T>
 where
-    T: ToOwned + TypeInfo + ?Sized,
+    T: ToOwned + TypeInfo + ?Sized + 'static,
 {
     type Identity = Self;
 
@@ -175,8 +175,8 @@ where
 
 impl<K, V> TypeInfo for BTreeMap<K, V>
 where
-    K: TypeInfo,
-    V: TypeInfo,
+    K: TypeInfo + 'static,
+    V: TypeInfo + 'static,
 {
     type Identity = Self;
 
@@ -190,7 +190,7 @@ where
 
 impl<T> TypeInfo for BTreeSet<T>
 where
-    T: TypeInfo,
+    T: TypeInfo + 'static,
 {
     type Identity = Self;
 
@@ -204,7 +204,7 @@ where
 
 impl<T> TypeInfo for Box<T>
 where
-    T: TypeInfo + ?Sized,
+    T: TypeInfo + ?Sized + 'static,
 {
     type Identity = T;
 
@@ -213,9 +213,9 @@ where
     }
 }
 
-impl<T> TypeInfo for &'static T
+impl<T> TypeInfo for &T
 where
-    T: TypeInfo + ?Sized,
+    T: TypeInfo + ?Sized + 'static,
 {
     type Identity = T;
 
@@ -224,9 +224,9 @@ where
     }
 }
 
-impl<T> TypeInfo for &'static mut T
+impl<T> TypeInfo for &mut T
 where
-    T: TypeInfo + ?Sized,
+    T: TypeInfo + ?Sized + 'static,
 {
     type Identity = T;
 
@@ -237,7 +237,7 @@ where
 
 impl<T> TypeInfo for [T]
 where
-    T: TypeInfo,
+    T: TypeInfo + 'static,
 {
     type Identity = Self;
 
@@ -264,7 +264,7 @@ impl TypeInfo for String {
 
 impl<T> TypeInfo for PhantomData<T>
 where
-    T: TypeInfo + ?Sized,
+    T: TypeInfo + ?Sized + 'static,
 {
     type Identity = Self;
 
@@ -275,7 +275,7 @@ where
 
 impl<T> TypeInfo for scale::Compact<T>
 where
-    T: TypeInfo,
+    T: TypeInfo + 'static,
 {
     type Identity = Self;
     fn type_info() -> Type {

@@ -88,7 +88,7 @@ impl MetaType {
     /// Creates a new meta type from the given compile-time known type.
     pub fn new<T>() -> Self
     where
-        T: TypeInfo + ?Sized,
+        T: TypeInfo + ?Sized + 'static,
     {
         Self {
             fn_type_info: <T as TypeInfo>::type_info,

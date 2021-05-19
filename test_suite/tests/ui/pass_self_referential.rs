@@ -5,7 +5,7 @@ struct Me {
     _me: Box<Me>,
 }
 
-fn assert_type_info<T: TypeInfo>() {}
+fn assert_type_info<T: TypeInfo + 'static>() {}
 
 fn main() {
     assert_type_info::<Me>();

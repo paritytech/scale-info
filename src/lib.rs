@@ -160,7 +160,7 @@ where
 /// Returns the runtime bridge to the types compile-time type information.
 pub fn meta_type<T>() -> MetaType
 where
-    T: ?Sized + StaticTypeInfo,
+    T: ?Sized + TypeInfo + 'static,
 {
     MetaType::new::<T>()
 }

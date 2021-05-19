@@ -31,7 +31,7 @@ use syn::{
 
 use crate::utils;
 
-/// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo` bounds to all
+/// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
 /// with self-referential types.
 pub fn make_where_clause<'a>(
@@ -66,18 +66,18 @@ pub fn make_where_clause<'a>(
 
     types.into_iter().for_each(|(ty, is_compact)| {
         // Compact types need extra bounds, T: HasCompact and <T as
-        // HasCompact>::Type: TypeInfo
+        // HasCompact>::Type: TypeInfo + 'static
         if is_compact {
             where_clause
                 .predicates
                 .push(parse_quote!(#ty : :: #parity_scale_codec ::HasCompact));
             where_clause
                 .predicates
-                .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : :: #scale_info ::TypeInfo));
+                .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : :: #scale_info ::TypeInfo + 'static));
         } else {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : :: #scale_info ::TypeInfo));
+                .push(parse_quote!(#ty : :: #scale_info ::TypeInfo + 'static));
         }
     });
 
@@ -85,6 +85,7 @@ pub fn make_where_clause<'a>(
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
         bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
+        bounds.push(parse_quote!('static));
         where_clause
             .predicates
             .push(parse_quote!( #ident : #bounds));

@@ -30,7 +30,7 @@
 //!
 //! impl<T> TypeInfo for Foo<T>
 //! where
-//!     T: TypeInfo,
+//!     T: TypeInfo + 'static,
 //! {
 //!     type Identity = Self;
 //!
@@ -74,7 +74,7 @@
 //!
 //! impl<T> TypeInfo for Foo<T>
 //! where
-//!     T: TypeInfo,
+//!     T: TypeInfo + 'static,
 //! {
 //!     type Identity = Self;
 //!
@@ -254,7 +254,7 @@ impl FieldsBuilder<NamedFields> {
     /// Add a named field with the type of the type parameter `T`
     pub fn field_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
     where
-        T: TypeInfo + ?Sized,
+        T: TypeInfo + ?Sized + 'static,
     {
         self.fields.push(Field::named_of::<T>(name, type_name));
         self
@@ -264,7 +264,7 @@ impl FieldsBuilder<NamedFields> {
     pub fn compact_of<T>(mut self, name: &'static str, type_name: &'static str) -> Self
     where
         T: scale::HasCompact,
-        <T as scale::HasCompact>::Type: TypeInfo,
+        <T as scale::HasCompact>::Type: TypeInfo + 'static,
     {
         self.fields
             .push(Field::compact_of::<T>(Some(name), type_name));
@@ -276,7 +276,7 @@ impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field with the type of the type parameter `T`
     pub fn field_of<T>(mut self, type_name: &'static str) -> Self
     where
-        T: TypeInfo + ?Sized,
+        T: TypeInfo + ?Sized + 'static,
     {
         self.fields.push(Field::unnamed_of::<T>(type_name));
         self
@@ -286,7 +286,7 @@ impl FieldsBuilder<UnnamedFields> {
     pub fn compact_of<T>(mut self, type_name: &'static str) -> Self
     where
         T: scale::HasCompact,
-        <T as scale::HasCompact>::Type: TypeInfo,
+        <T as scale::HasCompact>::Type: TypeInfo + 'static,
     {
         self.fields.push(Field::compact_of::<T>(None, type_name));
         self

@@ -97,7 +97,7 @@ struct Foo<T> {
 
 impl<T> TypeInfo for Foo<T>
 where
-    T: TypeInfo,
+    T: TypeInfo + 'static,
 {
     type Identity = Self;
 
@@ -146,7 +146,7 @@ enum Foo<T>{
 
 impl<T> TypeInfo for Foo<T>
 where
-    T: TypeInfo,
+    T: TypeInfo + 'static,
 {
     type Identity = Self;
 

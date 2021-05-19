@@ -11,7 +11,7 @@ error: Unions not supported
 error[E0277]: the trait bound `Commonwealth: TypeInfo` is not satisfied
   --> $DIR/fail_unions.rs:13:24
    |
-10 | fn assert_type_info<T: TypeInfo>() {}
+10 | fn assert_type_info<T: TypeInfo + 'static>() {}
    |                        -------- required by this bound in `assert_type_info`
 ...
 13 |     assert_type_info::<Commonwealth>();

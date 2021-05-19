@@ -232,22 +232,6 @@ fn fields_with_type_alias() {
 }
 
 #[test]
-fn basic_reference_with_lifetime() {
-    #[allow(unused)]
-    #[derive(TypeInfo)]
-    struct S<'a, T> {
-        f: &'a T,
-    }
-
-    let struct_type = Type::builder()
-        .path(Path::new("S", "derive"))
-        .type_params(tuple_meta_type!(u32))
-        .composite(Fields::named().field_of::<&'static u32>("f", "&'static T"));
-
-    assert_type!(S<u32>, struct_type);
-}
-
-#[test]
 fn associated_types_derive_without_bounds() {
     trait Types {
         type A;
