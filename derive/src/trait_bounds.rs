@@ -66,26 +66,25 @@ pub fn make_where_clause<'a>(
 
     types.into_iter().for_each(|(ty, is_compact)| {
         // Compact types need extra bounds, T: HasCompact and <T as
-        // HasCompact>::Type: TypeInfo + 'static
+        // HasCompact>::Type: StaticTypeInfo
         if is_compact {
             where_clause
                 .predicates
                 .push(parse_quote!(#ty : :: #parity_scale_codec ::HasCompact));
             where_clause
                 .predicates
-                .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : :: #scale_info ::TypeInfo + 'static));
+                .push(parse_quote!(<#ty as :: #parity_scale_codec ::HasCompact>::Type : :: #scale_info ::StaticTypeInfo));
         } else {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : :: #scale_info ::TypeInfo + 'static));
+                .push(parse_quote!(#ty : :: #scale_info ::StaticTypeInfo));
         }
     });
 
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
-        bounds.push(parse_quote!('static));
+        bounds.push(parse_quote!(:: #scale_info ::StaticTypeInfo));
         where_clause
             .predicates
             .push(parse_quote!( #ident : #bounds));
