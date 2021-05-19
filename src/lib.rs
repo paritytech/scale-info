@@ -152,10 +152,7 @@ pub trait TypeInfo {
 /// for implementors so only a single constraint is required.
 pub trait StaticTypeInfo: TypeInfo + 'static {}
 
-impl<T> StaticTypeInfo for T
-where
-    T: TypeInfo + 'static,
-{}
+impl<T> StaticTypeInfo for T where T: TypeInfo + 'static {}
 
 /// Returns the runtime bridge to the types compile-time type information.
 pub fn meta_type<T>() -> MetaType
