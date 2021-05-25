@@ -281,9 +281,9 @@ fn test_clike_enum() {
         "def": {
             "variant": {
                 "variants": [
-                    { "name": "A", "discriminant": 0, },
-                    { "name": "B", "discriminant": 42, },
-                    { "name": "C", "discriminant": 2, },
+                    { "name": "A", "index": 0, },
+                    { "name": "B", "index": 42, },
+                    { "name": "C", "index": 2, },
                 ],
             },
         }
@@ -564,15 +564,15 @@ fn test_registry() {
                         "variants": [
                             {
                                 "name": "A",
-                                "discriminant": 0,
+                                "index": 0,
                             },
                             {
                                 "name": "B",
-                                "discriminant": 1,
+                                "index": 1,
                             },
                             {
                                 "name": "C",
-                                "discriminant": 2,
+                                "index": 2,
                             },
                         ]
                     }

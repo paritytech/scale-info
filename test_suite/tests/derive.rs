@@ -27,6 +27,7 @@ use scale_info::{
     Path,
     Type,
     TypeInfo,
+    Variant,
 };
 
 fn assert_type<T, E>(expected: E)
@@ -152,9 +153,13 @@ fn c_like_enum_derive() {
         .path(Path::new("E", "derive"))
         .docs(&[" Enum docs."])
         .variant(
-            Variants::fieldless()
-                .variant("A", 0u64, &[" Unit variant."])
-                .variant("B", 10u64, &[" Variant with discriminator."]),
+            Variants::new()
+                .variant(
+                    Variant::builder("A").index(0).docs(&[" Unit variant."])
+                )
+                .variant(
+                    Variant::builder("B").index(10).docs(&[" Variant with discriminator."])
+                ),
         );
 
     assert_type!(E, ty);
@@ -175,12 +180,12 @@ fn c_like_enum_derive_with_scale_index_set() {
     }
 
     let ty = Type::builder().path(Path::new("E", "derive")).variant(
-        Variants::fieldless()
-            .variant("A", 0, &[])
-            .variant("B", 10, &[])
-            .variant("C", 13, &[])
-            .variant("D", 3, &[])
-            .variant("E", 14, &[]),
+        Variants::new()
+            .variant(Variant::builder("A").index(0))
+            .variant(Variant::builder("B").index(10))
+            .variant(Variant::builder("C").index(13))
+            .variant(Variant::builder("D").index(3))
+            .variant(Variant::builder("E").index(14))
     );
 
     assert_type!(E, ty);
@@ -211,18 +216,18 @@ fn enum_derive() {
         .type_params(tuple_meta_type!(bool))
         .docs(&[" Enum docs."])
         .variant(
-            Variants::with_fields()
+            Variants::new()
                 .variant(
-                    "A",
-                    Fields::unnamed().field_of::<bool>("T", &[" Unnamed field."]),
-                    &[" Unnamed fields variant."],
+                    Variant::builder("A")
+                        .fields(Fields::unnamed().field_of::<bool>("T", &[" Unnamed field."]))
+                        .docs(&[" Unnamed fields variant."])
                 )
                 .variant(
-                    "B",
-                    Fields::named().field_of::<bool>("b", "T", &[" Named field."]),
-                    &[" Named fields variant."],
+                    Variant::builder("B")
+                        .fields(Fields::named().field_of::<bool>("b", "T", &[" Named field."]))
+                        .docs(&[" Named fields variant."])
                 )
-                .variant_unit("C", &[" Unit variant."]),
+                .variant(Variant::builder("C").docs(&[" Unit variant."])),
         );
 
     assert_type!(E<bool>, ty);
@@ -238,19 +243,20 @@ fn recursive_type_derive() {
     }
 
     let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
-        Variants::with_fields()
+        Variants::new()
             .variant(
-                "Leaf",
-                Fields::named().field_of::<i32>("value", "i32", &[]),
-                &[],
+                Variant::builder("Leaf")
+                    .fields(Fields::named()
+                        .field_of::<i32>("value", "i32", &[])
+                    )
             )
             .variant(
-                "Node",
-                Fields::named()
-                    .field_of::<Box<Tree>>("right", "Box<Tree>", &[])
-                    .field_of::<Box<Tree>>("left", "Box<Tree>", &[]),
-                &[],
-            ),
+                Variant::builder("Node")
+                    .fields(Fields::named()
+                        .field_of::<Box<Tree>>("right", "Box<Tree>", &[])
+                        .field_of::<Box<Tree>>("left", "Box<Tree>", &[]),
+                    )
+            )
     );
 
     assert_type!(Tree, ty);
@@ -371,21 +377,24 @@ fn scale_compact_types_work_in_enums() {
         .path(Path::new("MutilatedMultiAddress", "derive"))
         .type_params(tuple_meta_type!(u8, u16))
         .variant(
-            Variants::with_fields()
+            Variants::new()
                 .variant(
-                    "Id",
-                    Fields::unnamed().field_of::<u8>("AccountId", &[]),
-                    &[],
+                    Variant::builder("Id")
+                        .fields(Fields::unnamed()
+                            .field_of::<u8>("AccountId", &[])
+                        )
                 )
                 .variant(
-                    "Index",
-                    Fields::unnamed().compact_of::<u16>("AccountIndex", &[]),
-                    &[],
+                    Variant::builder("Index")
+                        .fields(Fields::unnamed()
+                            .compact_of::<u16>("AccountIndex", &[])
+                        )
                 )
                 .variant(
-                    "Address32",
-                    Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]", &[]),
-                    &[],
+                    Variant::builder("Address32")
+                        .fields(Fields::unnamed()
+                            .field_of::<[u8; 32]>("[u8; 32]", &[])
+                        )
                 ),
         );
 
@@ -425,9 +434,9 @@ fn enum_variants_marked_scale_skip_are_skipped() {
     }
 
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
-        Variants::fieldless()
-            .variant("A", 0, &[])
-            .variant("C", 2, &[]),
+        Variants::new()
+            .variant(Variant::builder("A").index(0))
+            .variant(Variant::builder("C").index(2)),
     );
     assert_type!(Skippy, ty);
 }
@@ -448,13 +457,17 @@ fn enum_variants_with_fields_marked_scale_skip_are_skipped() {
     }
 
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
-        Variants::with_fields()
-            .variant(
-                "Bajs",
-                Fields::named().field_of::<bool>("b", "bool", &[]),
-                &[],
+        Variants::new()
+            .variant(Variant::builder("Bajs")
+                 .fields(Fields::named()
+                     .field_of::<bool>("b", "bool", &[])
+                 )
             )
-            .variant("Coo", Fields::unnamed().field_of::<bool>("bool", &[]), &[]),
+            .variant(Variant::builder("Coo")
+                .fields(Fields::unnamed()
+                    .field_of::<bool>("bool", &[])
+                )
+            )
     );
     assert_type!(Skippy, ty);
 }

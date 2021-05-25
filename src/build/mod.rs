@@ -83,7 +83,7 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!                .type_params(vec![MetaType::new::<T>()])
 //!             .variant(
-//!                 Variants::with_fields()
+//!                 Variants::new()
 //!                     .variant("A", Fields::unnamed().field_of::<T>("T", &[]), &[])
 //!                     .variant("B", Fields::named().field_of::<u32>("f", "u32", &[]), &[])
 //!                     .variant("C", Fields::unit(), &[]),

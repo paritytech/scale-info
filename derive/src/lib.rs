@@ -220,12 +220,16 @@ fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> Token
             let discriminant = utils::variant_index(v, i);
             let docs = utils::get_doc_literals(&v.attrs);
             quote! {
-                .variant(stringify!(#name), #discriminant as u64, &[ #( #docs ),* ])
+                .variant(
+                    :: #scale_info ::Variant::builder(stringify!(#name))
+                        .index(#discriminant as u64)
+                        .docs(&[ #( #docs ),* ])
+                )
             }
         });
     quote! {
         variant(
-            :: #scale_info ::build::Variants::fieldless()
+            :: #scale_info ::build::Variants::new()
                 #( #variants )*
         )
     }
@@ -253,39 +257,40 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
             let v_name = quote! {stringify!(#ident) };
             let docs = utils::get_doc_literals(&v.attrs);
 
-            match v.fields {
-                Fields::Named(ref fs) => {
-                    let fields = generate_fields(&fs.named);
-                    quote! {
-                        .variant(
-                            #v_name,
+            let fields =
+                match v.fields {
+                    Fields::Named(ref fs) => {
+                        let fields = generate_fields(&fs.named);
+                        quote! {
                             :: #scale_info::build::Fields::named()
-                                #( #fields )*,
-                            &[ #( #docs ),* ]
-                        )
+                                #( #fields )*
+                        }
                     }
-                }
-                Fields::Unnamed(ref fs) => {
-                    let fields = generate_fields(&fs.unnamed);
-                    quote! {
-                        .variant(
-                            #v_name,
+                    Fields::Unnamed(ref fs) => {
+                        let fields = generate_fields(&fs.unnamed);
+                        quote! {
                             :: #scale_info::build::Fields::unnamed()
-                                #( #fields )*,
-                            &[ #( #docs ),* ]
-                        )
+                                #( #fields )*
+                        }
                     }
-                }
-                Fields::Unit => {
-                    quote! {
-                        .variant_unit(#v_name, &[ #( #docs ),* ])
+                    Fields::Unit => {
+                        quote! {
+                            :: #scale_info::build::Fields::unit()
+                        }
                     }
-                }
+                };
+
+            quote! {
+                .variant(
+                    :: #scale_info::Variant::builder(#v_name)
+                        .fields(#fields)
+                        .docs(&[ #( #docs ),* ])
+                )
             }
         });
     quote! {
         variant(
-            :: #scale_info ::build::Variants::with_fields()
+            :: #scale_info ::build::Variants::new()
                 #( #variants )*
         )
     }
