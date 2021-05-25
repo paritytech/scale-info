@@ -12,88 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::prelude::{
-    marker::PhantomData,
-    vec::Vec,
-};
+use crate::prelude::vec::Vec;
 
 use crate::{
+    form::MetaForm,
+    Field,
     TypeDefVariant,
     Variant,
 };
 
 use super::*;
 
-/// Build a type with no variants.
-pub enum NoVariants {}
-/// Build a type where at least one variant has fields.
-pub enum VariantFields {}
-/// Build a type where *all* variants have no fields and the discriminant can
-/// be directly chosen or accessed
-pub enum Fieldless {}
-
-/// Empty enum for VariantsBuilder constructors for the type builder DSL.
-pub enum Variants {}
-
-impl Variants {
-    /// Build a set of variants, at least one of which will have fields.
-    pub fn with_fields() -> VariantsBuilder<VariantFields> {
-        VariantsBuilder::new()
-    }
-
-    /// Build a set of variants, none of which will have fields, and the discriminant can
-    /// be directly chosen or accessed
-    pub fn fieldless() -> VariantsBuilder<Fieldless> {
-        VariantsBuilder::new()
-    }
-}
-
 /// Builds a definition of a variant type i.e an `enum`
 #[derive(Default)]
-pub struct VariantsBuilder<T> {
+pub struct Variants {
     variants: Vec<Variant>,
-    marker: PhantomData<fn() -> T>,
 }
 
-impl VariantsBuilder<VariantFields> {
-    /// Add a variant with fields constructed by the supplied [`FieldsBuilder`](`crate::build::FieldsBuilder`)
-    pub fn variant<F>(
-        mut self,
-        name: &'static str,
-        fields: FieldsBuilder<F>,
-        docs: &[&'static str],
-    ) -> Self {
-        self.variants
-            .push(Variant::with_fields(name, fields, docs.to_vec()));
-        self
+impl Variants {
+    /// Create a new [`VariantsBuilder`].
+    pub fn new() -> Self {
+        Variants {
+            variants: Vec::new(),
+        }
     }
 
-    /// Add a variant with no fields i.e. a unit variant
-    pub fn variant_unit(self, name: &'static str, docs: &[&'static str]) -> Self {
-        self.variant::<NoFields>(name, Fields::unit(), docs)
-    }
-}
-
-impl VariantsBuilder<Fieldless> {
-    /// Add a fieldless variant, explicitly setting the discriminant
+    /// Add a variant with the
     pub fn variant(
         mut self,
-        name: &'static str,
-        discriminant: u64,
-        docs: &[&'static str],
+        builder: VariantBuilder,
     ) -> Self {
-        self.variants
-            .push(Variant::with_discriminant(name, discriminant, docs));
+        self.variants.push(builder.finalize());
         self
-    }
-}
-
-impl<T> VariantsBuilder<T> {
-    fn new() -> Self {
-        VariantsBuilder {
-            variants: Vec::new(),
-            marker: Default::default(),
-        }
     }
 
     /// Construct a new [`TypeDefVariant`] from the initialized builder variants.
@@ -102,15 +52,40 @@ impl<T> VariantsBuilder<T> {
     }
 }
 
-// pub struct VariantBuilder<F> {
-//     name: &'static str,
-//     fields: Option<FieldsBuilder<F>>,
-//     discriminant: Option<u64>,
-//     docs: Vec<&'static str>,
-// }
-//
-// impl<F> VariantBuilder<F> {
-//     pub fn new(name: &'static str) -> Self {
-//         Self { name, fields: None, discriminant: None, docs: Vec::new() }
-//     }
-// }
+/// Build a [`Variant`].
+pub struct VariantBuilder {
+    name: &'static str,
+    fields: Vec<Field<MetaForm>>,
+    index: Option<u64>,
+    docs: Vec<&'static str>,
+}
+
+impl VariantBuilder {
+    /// Create a new [`VariantBuilder`].
+    pub fn new(name: &'static str) -> Self {
+        Self { name, fields: Vec::new(), index: None, docs: Vec::new() }
+    }
+
+    /// Initialize the variant's index.
+    pub fn index(mut self, index: u64) -> Self {
+        self.index = Some(index);
+        self
+    }
+
+    /// Initialize the variant's fields.
+    pub fn fields<F>(mut self, fields_builder: FieldsBuilder<F>) -> Self {
+        self.fields = fields_builder.finalize();
+        self
+    }
+
+    /// Initialize the variant's documentation.
+    pub fn docs(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
+        self
+    }
+
+    /// Complete building and create final [`Variant`] instance.
+    pub fn finalize(self) -> Variant<MetaForm> {
+        Variant::new(self.name, self.fields, self.index, self.docs)
+    }
+}

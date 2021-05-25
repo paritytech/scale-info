@@ -184,7 +184,7 @@ impl TypeBuilder<state::PathAssigned> {
     }
 
     /// Construct a "variant" type i.e an `enum`
-    pub fn variant<V>(self, builder: VariantsBuilder<V>) -> Type {
+    pub fn variant(self, builder: Variants) -> Type {
         self.build(builder.finalize())
     }
 

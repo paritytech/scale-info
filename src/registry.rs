@@ -211,6 +211,7 @@ mod tests {
         Path,
         TypeDef,
         TypeInfo,
+        ty::Variant,
     };
 
     #[test]
@@ -348,18 +349,24 @@ mod tests {
                     .type_params(tuple_meta_type!(bool))
                     .docs(&[" Enum docs."])
                     .variant(
-                        Variants::with_fields()
+                        Variants::new()
                             .variant(
-                                "A",
-                                Fields::unnamed().field_of::<bool>("bool", &[" docs"]),
-                                &[" Unnamed fields variant."],
+                                Variant::builder("A")
+                                    .fields(
+                                        Fields::unnamed().field_of::<bool>("bool", &[" docs"])
+                                    )
+                                    .docs(&[" Unnamed fields variant."])
                             )
                             .variant(
-                                "B",
-                                Fields::named().field_of::<u8>("b", "u8", &[" docs"]),
-                                &[" docs"],
+                                Variant::builder("B")
+                                    .fields(
+                                        Fields::named().field_of::<u8>("b", "u8", &[" docs"])
+                                    )
+                                    .docs(&[" docs"])
                             )
-                            .variant_unit("C", &[" docs"]),
+                            .variant(
+                                Variant::builder("C").docs(&[" docs"])
+                            ),
                     )
             }
         }

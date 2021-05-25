@@ -15,7 +15,7 @@
 use crate::prelude::vec::Vec;
 
 use crate::{
-    build::FieldsBuilder,
+    build::VariantBuilder,
     form::{
         Form,
         MetaForm,
@@ -165,18 +165,19 @@ pub struct Variant<T: Form = MetaForm> {
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
     fields: Vec<Field<T>>,
-    /// The discriminant of the variant.
+    /// The index of the variant.
     ///
     /// # Note
     ///
-    /// Even though setting the discriminant is optional
-    /// every C-like enum variant has a discriminant specified
-    /// upon compile-time.
+    /// In order of precedence:
+    ///  - The index specified by the `#[codec(index = $int)]` attribute.
+    ///  - The explicit discriminant in a "C-like" enum.l
+    ///  - The position the variant appears in an enum definition.
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    discriminant: Option<u64>,
+    index: Option<u64>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
@@ -192,38 +193,30 @@ impl IntoPortable for Variant {
         Variant {
             name: self.name.into_portable(registry),
             fields: registry.map_into_portable(self.fields),
-            discriminant: self.discriminant,
+            index: self.index,
             docs: registry.map_into_portable(self.docs),
         }
     }
 }
 
 impl Variant {
-    /// Creates a new variant with the given fields.
-    pub fn with_fields<F>(
+    /// Creates a [`VariantBuilder`] for a new variant.
+    pub fn builder(name: &'static str) -> VariantBuilder {
+        VariantBuilder::new(name)
+    }
+
+    /// Creates a new variant.
+    pub(crate) fn new(
         name: &'static str,
-        fields: FieldsBuilder<F>,
+        fields: Vec<Field<MetaForm>>,
+        index: Option<u64>,
         docs: Vec<&'static str>,
     ) -> Self {
         Self {
             name,
-            fields: fields.finalize(),
-            discriminant: None,
-            docs: docs.to_vec(),
-        }
-    }
-
-    /// Creates a new variant with the given discriminant.
-    pub fn with_discriminant(
-        name: &'static str,
-        discriminant: u64,
-        docs: &[&'static str],
-    ) -> Self {
-        Self {
-            name,
-            fields: Vec::new(),
-            discriminant: Some(discriminant),
-            docs: docs.to_vec(),
+            fields,
+            index,
+            docs,
         }
     }
 }
@@ -242,9 +235,9 @@ where
         &self.fields
     }
 
-    /// Returns the discriminant of the variant.
-    pub fn discriminant(&self) -> Option<u64> {
-        self.discriminant
+    /// Returns the index of the variant.
+    pub fn index(&self) -> Option<u64> {
+        self.index
     }
 
     /// Returns the documentation of the variant.

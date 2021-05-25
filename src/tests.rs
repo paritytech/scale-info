@@ -61,11 +61,16 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type!(u128))
-            .variant(Variants::with_fields().variant_unit("None", &[]).variant(
-                "Some",
-                Fields::unnamed().field_of::<u128>("T", &[]),
-                &[]
-            ))
+            .variant(
+                Variants::new()
+                    .variant(
+                        Variant::builder("None")
+                    )
+                    .variant(
+                        Variant::builder("Some")
+                            .fields(Fields::unnamed().field_of::<u128>("T", &[]))
+                    )
+            )
     );
     assert_type!(
         Result<bool, String>,
@@ -73,9 +78,15 @@ fn prelude_items() {
             .path(Path::prelude("Result"))
             .type_params(tuple_meta_type!(bool, String))
             .variant(
-                Variants::with_fields()
-                    .variant("Ok", Fields::unnamed().field_of::<bool>("T", &[]), &[])
-                    .variant("Err", Fields::unnamed().field_of::<String>("E", &[]), &[])
+                Variants::new()
+                    .variant(
+                        Variant::builder("Ok")
+                            .fields(Fields::unnamed().field_of::<bool>("T", &[]))
+                    )
+                    .variant(
+                        Variant::builder("Err")
+                            .fields(Fields::unnamed().field_of::<String>("E", &[]))
+                    )
             )
     );
     assert_type!(PhantomData<i32>, TypeDefPhantom::new(meta_type::<i32>()));
