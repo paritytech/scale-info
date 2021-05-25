@@ -65,7 +65,7 @@
 //! ```
 //! ## Enum with fields
 //! ```
-//! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo};
+//! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo, Variant};
 //! enum Foo<T>{
 //!     A(T),
 //!     B { f: u32 },
@@ -84,16 +84,25 @@
 //!                .type_params(vec![MetaType::new::<T>()])
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant("A", Fields::unnamed().field_of::<T>("T", &[]), &[])
-//!                     .variant("B", Fields::named().field_of::<u32>("f", "u32", &[]), &[])
-//!                     .variant("C", Fields::unit(), &[]),
+//!                     .variant(
+//!                         Variant::builder("A")
+//!                             .fields(Fields::unnamed().field_of::<T>("T", &[]))
+//!                     )
+//!                     .variant(
+//!                         Variant::builder("B")
+//!                             .fields(Fields::named().field_of::<u32>("f", "u32", &[]))
+//!                     )
+//!                     .variant(
+//!                         Variant::builder("A")
+//!                             .fields(Fields::unit())
+//!                     )
 //!             )
 //!     }
 //! }
 //! ```
 //! ## Enum without fields
 //! ```
-//! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo};
+//! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo, Variant};
 //! enum Foo {
 //!     A,
 //!     B,
@@ -107,10 +116,10 @@
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
 //!             .variant(
-//!                 Variants::fieldless()
-//!                     .variant("A", 1, &[])
-//!                     .variant("B", 2, &[])
-//!                     .variant("C", 33, &[])
+//!                 Variants::new()
+//!                     .variant(Variant::builder("A").index(1))
+//!                     .variant(Variant::builder("B").index(2))
+//!                     .variant(Variant::builder("C").index(33))
 //!             )
 //!     }
 //! }
