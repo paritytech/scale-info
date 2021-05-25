@@ -116,25 +116,22 @@
 //! }
 //! ```
 
-mod fields;
-mod variant;
-
-pub use self::{
-    fields::*,
-    variant::*,
-};
-
 use crate::prelude::{
     marker::PhantomData,
     vec::Vec,
 };
 
 use crate::{
+    form::MetaForm,
+    Field,
     MetaType,
     Path,
     Type,
     TypeDef,
     TypeDefComposite,
+    TypeDefVariant,
+    TypeInfo,
+    Variant,
 };
 
 /// State types for type builders which require a Path
@@ -210,5 +207,178 @@ impl<S> TypeBuilder<S> {
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
         self.docs = docs.to_vec();
         self
+    }
+}
+
+/// A fields builder has no fields (e.g. a unit struct)
+pub enum NoFields {}
+/// A fields builder only allows named fields (e.g. a struct)
+pub enum NamedFields {}
+/// A fields builder only allows unnamed fields (e.g. a tuple)
+pub enum UnnamedFields {}
+
+/// Provides FieldsBuilder constructors
+pub enum Fields {}
+
+impl Fields {
+    /// The type construct has no fields
+    pub fn unit() -> FieldsBuilder<NoFields> {
+        FieldsBuilder::<NoFields>::default()
+    }
+
+    /// Fields for a type construct with named fields
+    pub fn named() -> FieldsBuilder<NamedFields> {
+        FieldsBuilder::default()
+    }
+
+    /// Fields for a type construct with unnamed fields
+    pub fn unnamed() -> FieldsBuilder<UnnamedFields> {
+        FieldsBuilder::default()
+    }
+}
+
+/// Build a set of either all named (e.g. for a struct) or all unnamed (e.g. for a tuple struct)
+pub struct FieldsBuilder<T> {
+    fields: Vec<Field>,
+    marker: PhantomData<fn() -> T>,
+}
+
+impl<T> Default for FieldsBuilder<T> {
+    fn default() -> Self {
+        Self {
+            fields: Vec::new(),
+            marker: Default::default(),
+        }
+    }
+}
+
+impl<T> FieldsBuilder<T> {
+    /// Complete building and return the set of fields
+    pub fn finalize(self) -> Vec<Field<MetaForm>> {
+        self.fields
+    }
+}
+
+impl FieldsBuilder<NamedFields> {
+    /// Add a named field with the type of the type parameter `T`
+    pub fn field_of<T>(
+        mut self,
+        name: &'static str,
+        type_name: &'static str,
+        docs: &[&'static str],
+    ) -> Self
+    where
+        T: TypeInfo + ?Sized + 'static,
+    {
+        self.fields
+            .push(Field::named_of::<T>(name, type_name, docs));
+        self
+    }
+
+    /// Add a named, [`Compact`] field of type `T`.
+    pub fn compact_of<T>(
+        mut self,
+        name: &'static str,
+        type_name: &'static str,
+        docs: &[&'static str],
+    ) -> Self
+    where
+        T: scale::HasCompact,
+        <T as scale::HasCompact>::Type: TypeInfo + 'static,
+    {
+        self.fields
+            .push(Field::compact_of::<T>(Some(name), type_name, docs));
+        self
+    }
+}
+
+impl FieldsBuilder<UnnamedFields> {
+    /// Add an unnamed field with the type of the type parameter `T`
+    pub fn field_of<T>(mut self, type_name: &'static str, docs: &[&'static str]) -> Self
+    where
+        T: TypeInfo + ?Sized + 'static,
+    {
+        self.fields.push(Field::unnamed_of::<T>(type_name, docs));
+        self
+    }
+
+    /// Add an unnamed, [`Compact`] field of type `T`.
+    pub fn compact_of<T>(mut self, type_name: &'static str, docs: &[&'static str]) -> Self
+    where
+        T: scale::HasCompact,
+        <T as scale::HasCompact>::Type: TypeInfo + 'static,
+    {
+        self.fields
+            .push(Field::compact_of::<T>(None, type_name, docs));
+        self
+    }
+}
+
+/// Builds a definition of a variant type i.e an `enum`
+#[derive(Default)]
+pub struct Variants {
+    variants: Vec<Variant>,
+}
+
+impl Variants {
+    /// Create a new [`VariantsBuilder`].
+    pub fn new() -> Self {
+        Variants {
+            variants: Vec::new(),
+        }
+    }
+
+    /// Add a variant with the
+    pub fn variant(mut self, builder: VariantBuilder) -> Self {
+        self.variants.push(builder.finalize());
+        self
+    }
+
+    /// Construct a new [`TypeDefVariant`] from the initialized builder variants.
+    pub fn finalize(self) -> TypeDefVariant {
+        TypeDefVariant::new(self.variants)
+    }
+}
+
+/// Build a [`Variant`].
+pub struct VariantBuilder {
+    name: &'static str,
+    fields: Vec<Field<MetaForm>>,
+    index: Option<u64>,
+    docs: Vec<&'static str>,
+}
+
+impl VariantBuilder {
+    /// Create a new [`VariantBuilder`].
+    pub fn new(name: &'static str) -> Self {
+        Self {
+            name,
+            fields: Vec::new(),
+            index: None,
+            docs: Vec::new(),
+        }
+    }
+
+    /// Initialize the variant's index.
+    pub fn index(mut self, index: u64) -> Self {
+        self.index = Some(index);
+        self
+    }
+
+    /// Initialize the variant's fields.
+    pub fn fields<F>(mut self, fields_builder: FieldsBuilder<F>) -> Self {
+        self.fields = fields_builder.finalize();
+        self
+    }
+
+    /// Initialize the variant's documentation.
+    pub fn docs(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
+        self
+    }
+
+    /// Complete building and create final [`Variant`] instance.
+    pub fn finalize(self) -> Variant<MetaForm> {
+        Variant::new(self.name, self.fields, self.index, self.docs)
     }
 }
