@@ -208,10 +208,10 @@ mod tests {
             Variants,
         },
         meta_type,
+        ty::Variant,
         Path,
         TypeDef,
         TypeInfo,
-        ty::Variant,
     };
 
     #[test]
@@ -353,20 +353,21 @@ mod tests {
                             .variant(
                                 Variant::builder("A")
                                     .fields(
-                                        Fields::unnamed().field_of::<bool>("bool", &[" docs"])
+                                        Fields::unnamed()
+                                            .field_of::<bool>("bool", &[" docs"]),
                                     )
-                                    .docs(&[" Unnamed fields variant."])
+                                    .docs(&[" Unnamed fields variant."]),
                             )
                             .variant(
                                 Variant::builder("B")
-                                    .fields(
-                                        Fields::named().field_of::<u8>("b", "u8", &[" docs"])
-                                    )
-                                    .docs(&[" docs"])
+                                    .fields(Fields::named().field_of::<u8>(
+                                        "b",
+                                        "u8",
+                                        &[" docs"],
+                                    ))
+                                    .docs(&[" docs"]),
                             )
-                            .variant(
-                                Variant::builder("C").docs(&[" docs"])
-                            ),
+                            .variant(Variant::builder("C").docs(&[" docs"])),
                     )
             }
         }

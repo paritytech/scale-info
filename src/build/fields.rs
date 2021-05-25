@@ -18,9 +18,9 @@ use crate::prelude::{
 };
 
 use crate::{
+    form::MetaForm,
     Field,
     TypeInfo,
-    form::MetaForm,
 };
 
 /// A fields builder has no fields (e.g. a unit struct)
@@ -80,8 +80,8 @@ impl FieldsBuilder<NamedFields> {
         type_name: &'static str,
         docs: &[&'static str],
     ) -> Self
-        where
-            T: TypeInfo + ?Sized + 'static,
+    where
+        T: TypeInfo + ?Sized + 'static,
     {
         self.fields
             .push(Field::named_of::<T>(name, type_name, docs));
@@ -95,9 +95,9 @@ impl FieldsBuilder<NamedFields> {
         type_name: &'static str,
         docs: &[&'static str],
     ) -> Self
-        where
-            T: scale::HasCompact,
-            <T as scale::HasCompact>::Type: TypeInfo + 'static,
+    where
+        T: scale::HasCompact,
+        <T as scale::HasCompact>::Type: TypeInfo + 'static,
     {
         self.fields
             .push(Field::compact_of::<T>(Some(name), type_name, docs));
@@ -108,8 +108,8 @@ impl FieldsBuilder<NamedFields> {
 impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field with the type of the type parameter `T`
     pub fn field_of<T>(mut self, type_name: &'static str, docs: &[&'static str]) -> Self
-        where
-            T: TypeInfo + ?Sized + 'static,
+    where
+        T: TypeInfo + ?Sized + 'static,
     {
         self.fields.push(Field::unnamed_of::<T>(type_name, docs));
         self
@@ -117,9 +117,9 @@ impl FieldsBuilder<UnnamedFields> {
 
     /// Add an unnamed, [`Compact`] field of type `T`.
     pub fn compact_of<T>(mut self, type_name: &'static str, docs: &[&'static str]) -> Self
-        where
-            T: scale::HasCompact,
-            <T as scale::HasCompact>::Type: TypeInfo + 'static,
+    where
+        T: scale::HasCompact,
+        <T as scale::HasCompact>::Type: TypeInfo + 'static,
     {
         self.fields
             .push(Field::compact_of::<T>(None, type_name, docs));

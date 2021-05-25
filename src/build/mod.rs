@@ -119,8 +119,10 @@
 mod fields;
 mod variant;
 
-pub use self::fields::*;
-pub use self::variant::*;
+pub use self::{
+    fields::*,
+    variant::*,
+};
 
 use crate::prelude::{
     marker::PhantomData,

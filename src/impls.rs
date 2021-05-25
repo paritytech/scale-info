@@ -138,14 +138,10 @@ where
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type![T])
             .variant(
-                Variants::new()
-                    .variant(
-                        Variant::builder("None")
-                    )
-                    .variant(
-                        Variant::builder("Some")
-                            .fields(Fields::unnamed().field_of::<T>("T", &[]))
-                    )
+                Variants::new().variant(Variant::builder("None")).variant(
+                    Variant::builder("Some")
+                        .fields(Fields::unnamed().field_of::<T>("T", &[])),
+                ),
             )
     }
 }
@@ -163,12 +159,14 @@ where
             .type_params(tuple_meta_type!(T, E))
             .variant(
                 Variants::new()
-                    .variant(Variant::builder("Ok")
-                        .fields(Fields::unnamed().field_of::<T>("T", &[]))
+                    .variant(
+                        Variant::builder("Ok")
+                            .fields(Fields::unnamed().field_of::<T>("T", &[])),
                     )
-                    .variant(Variant::builder("Err")
-                        .fields(Fields::unnamed().field_of::<E>("E", &[]))
-                    )
+                    .variant(
+                        Variant::builder("Err")
+                            .fields(Fields::unnamed().field_of::<E>("E", &[])),
+                    ),
             )
     }
 }

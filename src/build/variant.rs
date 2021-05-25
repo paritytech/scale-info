@@ -38,10 +38,7 @@ impl Variants {
     }
 
     /// Add a variant with the
-    pub fn variant(
-        mut self,
-        builder: VariantBuilder,
-    ) -> Self {
+    pub fn variant(mut self, builder: VariantBuilder) -> Self {
         self.variants.push(builder.finalize());
         self
     }
@@ -63,7 +60,12 @@ pub struct VariantBuilder {
 impl VariantBuilder {
     /// Create a new [`VariantBuilder`].
     pub fn new(name: &'static str) -> Self {
-        Self { name, fields: Vec::new(), index: None, docs: Vec::new() }
+        Self {
+            name,
+            fields: Vec::new(),
+            index: None,
+            docs: Vec::new(),
+        }
     }
 
     /// Initialize the variant's index.

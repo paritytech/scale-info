@@ -257,28 +257,27 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
             let v_name = quote! {stringify!(#ident) };
             let docs = utils::get_doc_literals(&v.attrs);
 
-            let fields =
-                match v.fields {
-                    Fields::Named(ref fs) => {
-                        let fields = generate_fields(&fs.named);
-                        quote! {
-                            :: #scale_info::build::Fields::named()
-                                #( #fields )*
-                        }
+            let fields = match v.fields {
+                Fields::Named(ref fs) => {
+                    let fields = generate_fields(&fs.named);
+                    quote! {
+                        :: #scale_info::build::Fields::named()
+                            #( #fields )*
                     }
-                    Fields::Unnamed(ref fs) => {
-                        let fields = generate_fields(&fs.unnamed);
-                        quote! {
-                            :: #scale_info::build::Fields::unnamed()
-                                #( #fields )*
-                        }
+                }
+                Fields::Unnamed(ref fs) => {
+                    let fields = generate_fields(&fs.unnamed);
+                    quote! {
+                        :: #scale_info::build::Fields::unnamed()
+                            #( #fields )*
                     }
-                    Fields::Unit => {
-                        quote! {
-                            :: #scale_info::build::Fields::unit()
-                        }
+                }
+                Fields::Unit => {
+                    quote! {
+                        :: #scale_info::build::Fields::unit()
                     }
-                };
+                }
+            };
 
             quote! {
                 .variant(
