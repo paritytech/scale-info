@@ -103,7 +103,7 @@ fn test_builtins() {
                     },
                     {
                         "name": "Some",
-                        "fields": [ { "type": 0, "typeName": "T" } ]
+                        "fields": [ { "type": 0 } ]
                     },
                 ]
             }
@@ -117,11 +117,11 @@ fn test_builtins() {
                 "variants": [
                     {
                         "name": "Ok",
-                        "fields": [ { "type": 0, "typeName": "T" } ]
+                        "fields": [ { "type": 0 } ]
                     },
                     {
                         "name": "Err",
-                        "fields": [ { "type": 1, "typeName": "E" } ]
+                        "fields": [ { "type": 1 } ]
                     }
                 ]
             }

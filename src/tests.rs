@@ -63,9 +63,8 @@ fn prelude_items() {
             .type_params(tuple_meta_type!(u128))
             .variant(
                 Variants::new().variant(Variant::builder("None")).variant(
-                    Variant::builder("Some").fields(
-                        Fields::unnamed().field(|f| f.ty::<u128>().type_name("T"))
-                    )
+                    Variant::builder("Some")
+                        .fields(Fields::unnamed().field(|f| f.ty::<u128>()))
                 )
             )
     );
@@ -78,11 +77,11 @@ fn prelude_items() {
                 Variants::new()
                     .variant(
                         Variant::builder("Ok")
-                            .fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("T")))
+                            .fields(Fields::unnamed().field(|f| f.ty::<bool>()))
                     )
                     .variant(
                         Variant::builder("Err")
-                            .fields(Fields::unnamed().field(|f| f.ty::<String>().type_name("E")))
+                            .fields(Fields::unnamed().field(|f| f.ty::<String>()))
                     )
             )
     );
@@ -92,7 +91,7 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Cow"))
             .type_params(tuple_meta_type!(u128))
-            .composite(Fields::unnamed().field(|f| f.ty::<u128>().type_name("T")))
+            .composite(Fields::unnamed().field(|f| f.ty::<u128>()))
     );
 }
 
@@ -103,7 +102,7 @@ fn collections() {
         Type::builder()
             .path(Path::prelude("BTreeMap"))
             .type_params(tuple_meta_type![(String, u32)])
-            .composite(Fields::unnamed().field(|f| f.ty::<[(String, u32)]>().type_name("[(K, V)]")))
+            .composite(Fields::unnamed().field(|f| f.ty::<[(String, u32)]>()))
     );
 
     assert_type!(
@@ -111,7 +110,7 @@ fn collections() {
         Type::builder()
             .path(Path::prelude("BTreeSet"))
             .type_params(tuple_meta_type![String])
-            .composite(Fields::unnamed().field(|f| f.ty::<[String]>().type_name("[T]")))
+            .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
     );
 }
 
