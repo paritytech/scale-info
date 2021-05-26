@@ -280,7 +280,7 @@ impl FieldsBuilder<NamedFields> {
         T: TypeInfo + ?Sized + 'static,
     {
         self.fields
-            .push(Field::named_of::<T>(name, type_name, docs));
+            .push(Field::named_of::<T>(name, Some(type_name), docs));
         self
     }
 
@@ -320,6 +320,73 @@ impl FieldsBuilder<UnnamedFields> {
         self.fields
             .push(Field::compact_of::<T>(None, type_name, docs));
         self
+    }
+}
+
+/// Type states for building a field.
+pub mod field_state {
+    /// A name has not been assigned to the field.
+    pub enum NameNotAssigned {}
+    /// A name has been assigned to the field.
+    pub enum NameAssigned {}
+    /// A type has not been assigned to the field.
+    pub enum TypeNotAssigned {}
+    /// A type has been assigned to the field.
+    pub enum TypeAssigned {}
+}
+
+/// Construct a valid [`Field`].
+pub struct FieldBuilder<F, N, T> {
+    field: Field<MetaForm>,
+    marker: PhantomData<fn() -> (F, N, T)>,
+}
+
+impl<T> FieldBuilder<NamedFields, field_state::NameNotAssigned, T> {
+    /// Initialize the field name.
+    pub fn name(self, name: &'static str) -> FieldBuilder<NamedFields, field_state::NameAssigned, T> {
+        FieldBuilder { field: Field { name: Some(name), .. self.field }, marker: PhantomData }
+    }
+}
+
+impl<F, N> FieldBuilder<F, N, field_state::TypeNotAssigned> {
+    /// Initialize the type of the field.
+    pub fn ty<TY>(self) -> FieldBuilder<F, N, field_state::TypeAssigned>
+        where
+            TY: TypeInfo + 'static
+    {
+        FieldBuilder { field: Field { ty: MetaType::new::<TY>(), .. self.field }, marker: PhantomData }
+    }
+
+    /// Initializes the type of the field as a compact type.
+    pub fn compact<TY>(self) -> FieldBuilder<F, N, field_state::TypeAssigned>
+        where
+            TY: scale::HasCompact,
+            <TY as scale::HasCompact>::Type: TypeInfo + 'static,
+    {
+        FieldBuilder {
+            field: Field {
+                ty: MetaType::new::<<TY as scale::HasCompact>::Type>(),
+                .. self.field
+            },
+            marker: PhantomData
+        }
+    }
+}
+
+impl<F, N, T> FieldBuilder<F, N, T> {
+    /// Initialize the type name of a field (optional).
+    pub fn type_name(self, type_name: &'static str) -> FieldBuilder<F, N, T> {
+        FieldBuilder { field: Field { type_name: Some(type_name), .. self.field }, marker: PhantomData }
+    }
+
+    /// Initialize the documentation of a field (optional).
+    pub fn docs(self, docs: Vec<&'static str>) -> FieldBuilder<F, N, T> {
+        FieldBuilder { field: Field { docs, .. self.field }, marker: PhantomData }
+    }
+
+    /// Complete building and return a new [`Field`].
+    pub fn finalize(self) -> Field<MetaForm> {
+        self.field
     }
 }
 
