@@ -103,7 +103,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             type Identity = Self;
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()
-                    .path(:: #scale_info ::Path::new(stringify!(#ident), module_path!()))
+                    .path(:: #scale_info ::Path::new(::core::stringify!(#ident), module_path!()))
                     .type_params(:: #scale_info ::prelude::vec![ #( #generic_type_ids ),* ])
                     .docs(&[ #( #docs ),* ])
                     .#build_type
@@ -159,7 +159,7 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
                 quote!(ty)
             };
             let name = if let Some(ident) = ident {
-                quote!(.name(stringify!(#ident)))
+                quote!(.name(::core::stringify!(#ident)))
             } else {
                 quote!()
             };
@@ -229,7 +229,7 @@ fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> Token
             let docs = utils::get_doc_literals(&v.attrs);
             quote! {
                 .variant(
-                    :: #scale_info ::Variant::builder(stringify!(#name))
+                    :: #scale_info ::Variant::builder(::core::stringify!(#name))
                         .index(#discriminant as u64)
                         .docs(&[ #( #docs ),* ])
                 )
@@ -262,7 +262,7 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
         .filter(|v| !utils::should_skip(&v.attrs))
         .map(|v| {
             let ident = &v.ident;
-            let v_name = quote! {stringify!(#ident) };
+            let v_name = quote! {::core::stringify!(#ident) };
             let docs = utils::get_doc_literals(&v.attrs);
 
             let fields = match v.fields {
