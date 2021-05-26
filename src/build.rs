@@ -334,6 +334,13 @@ impl Default for FieldBuilder {
     }
 }
 
+impl FieldBuilder {
+    /// Create a new FieldBuilder.
+    pub fn new() -> Self {
+        Default::default()
+    }
+}
+
 impl<T> FieldBuilder<field_state::NameNotAssigned, T> {
     /// Initialize the field name.
     pub fn name(self, name: &'static str) -> FieldBuilder<field_state::NameAssigned, T> {
@@ -379,11 +386,6 @@ impl<N> FieldBuilder<N, field_state::TypeNotAssigned> {
 }
 
 impl<N, T> FieldBuilder<N, T> {
-    /// Create a new FieldBuilder.
-    pub fn new() -> Self {
-        Default::default()
-    }
-
     /// Initialize the type name of a field (optional).
     pub fn type_name(self, type_name: &'static str) -> FieldBuilder<N, T> {
         FieldBuilder {
