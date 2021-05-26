@@ -153,16 +153,24 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
 
             let type_name = clean_type_string(&quote!(#ty).to_string());
             let docs = utils::get_doc_literals(&f.attrs);
-            let method_call = if utils::is_compact(f) {
-                quote!(.compact_of::<#ty>)
+            let type_of_method = if utils::is_compact(f) {
+                quote!(compact)
             } else {
-                quote!(.field_of::<#ty>)
+                quote!(ty)
             };
-            if let Some(ident) = ident {
-                quote!(#method_call(stringify!(#ident), #type_name, &[ #( #docs ),* ]))
+            let name = if let Some(ident) = ident {
+                quote!(.name(stringify!(#ident)))
             } else {
-                quote!(#method_call(#type_name, &[ #( #docs ),* ]))
-            }
+                quote!()
+            };
+            quote!(
+                .field(|f| f
+                    .#type_of_method::<#ty>()
+                    #name
+                    .type_name(#type_name)
+                    .docs(&[ #( #docs ),* ])
+                )
+            )
         })
         .collect()
 }

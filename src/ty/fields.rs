@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::{
+    build::FieldBuilder,
     form::{
         Form,
         MetaForm,
@@ -22,12 +23,8 @@ use crate::{
     IntoPortable,
     MetaType,
     Registry,
-    TypeInfo,
 };
-use scale::{
-    Encode,
-    HasCompact,
-};
+use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
     de::DeserializeOwned,
@@ -82,22 +79,22 @@ pub struct Field<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    pub(crate) name: Option<T::String>,
+    name: Option<T::String>,
     /// The type of the field.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub(crate) ty: T::Type,
+    ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    pub(crate) type_name: Option<T::String>,
+    type_name: Option<T::String>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    pub(crate) docs: Vec<T::String>,
+    docs: Vec<T::String>,
 }
 
 impl IntoPortable for Field {
@@ -114,6 +111,11 @@ impl IntoPortable for Field {
 }
 
 impl Field {
+    /// Returns a new [`FieldBuilder`] for constructing a field.
+    pub fn builder() -> FieldBuilder {
+        FieldBuilder::new()
+    }
+
     /// Creates a new field.
     ///
     /// Use this constructor if you want to instantiate from a given meta type.
@@ -129,50 +131,6 @@ impl Field {
             type_name,
             docs: docs.to_vec(),
         }
-    }
-
-    /// Creates a new named field.
-    ///
-    /// Use this constructor if you want to instantiate from a given
-    /// compile-time type.
-    pub fn named_of<T>(
-        name: &'static str,
-        type_name: Option<&'static str>,
-        docs: &[&'static str],
-    ) -> Field
-    where
-        T: TypeInfo + ?Sized + 'static,
-    {
-        Self::new(Some(name), MetaType::new::<T>(), type_name, docs)
-    }
-
-    /// Creates a new unnamed field.
-    ///
-    /// Use this constructor if you want to instantiate an unnamed field from a
-    /// given compile-time type.
-    pub fn unnamed_of<T>(type_name: &'static str, docs: &[&'static str]) -> Field
-    where
-        T: TypeInfo + ?Sized + 'static,
-    {
-        Self::new(None, MetaType::new::<T>(), Some(type_name), docs)
-    }
-
-    /// Creates a new [`Compact`] field.
-    pub fn compact_of<T>(
-        name: Option<&'static str>,
-        type_name: &'static str,
-        docs: &[&'static str],
-    ) -> Field
-    where
-        T: HasCompact,
-        <T as HasCompact>::Type: TypeInfo + 'static,
-    {
-        Self::new(
-            name,
-            MetaType::new::<<T as HasCompact>::Type>(),
-            Some(type_name),
-            docs,
-        )
     }
 }
 

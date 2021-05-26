@@ -249,21 +249,21 @@ mod tests {
                     .path(Path::new("RecursiveRefs", module_path!()))
                     .composite(
                         Fields::named()
-                            .field_of::<Box<RecursiveRefs>>(
-                                "boxed",
-                                "Box < RecursiveRefs >",
-                                &[],
-                            )
-                            .field_of::<&'static RecursiveRefs<'static>>(
-                                "reference",
-                                "&RecursiveRefs",
-                                &[],
-                            )
-                            .field_of::<&'static mut RecursiveRefs<'static>>(
-                                "mutable_reference",
-                                "&mut RecursiveRefs",
-                                &[],
-                            ),
+                            .field(|f| {
+                                f.ty::<Box<RecursiveRefs>>()
+                                    .name("boxed")
+                                    .type_name("Box < RecursiveRefs >")
+                            })
+                            .field(|f| {
+                                f.ty::<&'static RecursiveRefs<'static>>()
+                                    .name("reference")
+                                    .type_name("&RecursiveRefs")
+                            })
+                            .field(|f| {
+                                f.ty::<&'static mut RecursiveRefs<'static>>()
+                                    .name("mutable_reference")
+                                    .type_name("&mut RecursiveRefs")
+                            }),
                     )
             }
         }
@@ -300,8 +300,13 @@ mod tests {
                     .docs(&[" docs"])
                     .composite(
                         Fields::named()
-                            .field_of::<bool>("t", "bool", &[" docs"])
-                            .field_of::<u8>("u", "u8", &[]),
+                            .field(|f| {
+                                f.ty::<bool>()
+                                    .name("t")
+                                    .type_name("bool")
+                                    .docs(&[" docs"])
+                            })
+                            .field(|f| f.ty::<u8>().name("u").type_name("u8")),
                     )
             }
         }
@@ -319,7 +324,10 @@ mod tests {
                 Type::builder()
                     .path(Path::new("T", module_path!()))
                     .docs(&[" docs"])
-                    .composite(Fields::unnamed().field_of::<u32>("u32", &[" docs"]))
+                    .composite(
+                        Fields::unnamed()
+                            .field(|f| f.ty::<u32>().type_name("u32").docs(&[" docs"])),
+                    )
             }
         }
 
@@ -352,19 +360,19 @@ mod tests {
                         Variants::new()
                             .variant(
                                 Variant::builder("A")
-                                    .fields(
-                                        Fields::unnamed()
-                                            .field_of::<bool>("bool", &[" docs"]),
-                                    )
+                                    .fields(Fields::unnamed().field(|f| {
+                                        f.ty::<bool>().type_name("bool").docs(&[" docs"])
+                                    }))
                                     .docs(&[" Unnamed fields variant."]),
                             )
                             .variant(
                                 Variant::builder("B")
-                                    .fields(Fields::named().field_of::<u8>(
-                                        "b",
-                                        "u8",
-                                        &[" docs"],
-                                    ))
+                                    .fields(Fields::named().field(|f| {
+                                        f.ty::<u8>()
+                                            .name("b")
+                                            .type_name("u8")
+                                            .docs(&[" docs"])
+                                    }))
                                     .docs(&[" docs"]),
                             )
                             .variant(Variant::builder("C").docs(&[" docs"])),
