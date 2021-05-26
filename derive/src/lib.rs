@@ -103,7 +103,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             type Identity = Self;
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()
-                    .path(:: #scale_info ::Path::new(::core::stringify!(#ident), module_path!()))
+                    .path(:: #scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
                     .type_params(:: #scale_info ::prelude::vec![ #( #generic_type_ids ),* ])
                     .docs(&[ #( #docs ),* ])
                     .#build_type
