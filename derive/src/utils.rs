@@ -43,7 +43,7 @@ pub fn get_doc_literals(attrs: &[syn::Attribute]) -> Vec<syn::Lit> {
                     let lit = &meta.lit;
                     let doc_lit = quote!(#lit).to_string();
                     let trimmed_doc_lit =
-                        doc_lit.trim_start_matches(r#"" "#).trim_end_matches(r#"""#);
+                        doc_lit.trim_start_matches(r#"" "#).trim_end_matches('"');
                     println!("{}", trimmed_doc_lit);
                     Some(parse_quote!(#trimmed_doc_lit))
                 } else {
