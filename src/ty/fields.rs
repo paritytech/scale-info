@@ -161,9 +161,4 @@ where
     pub fn docs(&self) -> &[T::String] {
         &self.docs
     }
-
-    /// Clear the docs of the field.
-    pub fn clear_docs(&mut self) {
-        self.docs.clear()
-    }
 }
