@@ -230,7 +230,7 @@ fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> Token
             quote! {
                 .variant(
                     :: #scale_info ::Variant::builder(::core::stringify!(#name))
-                        .index(#discriminant as u64)
+                        .index(#discriminant as ::core::primitive::u64)
                         .docs(&[ #( #docs ),* ])
                 )
             }
