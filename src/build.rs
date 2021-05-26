@@ -84,18 +84,9 @@
 //!                .type_params(vec![MetaType::new::<T>()])
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant(
-//!                         Variant::builder("A")
-//!                             .fields(Fields::unnamed().field(|f| f.ty::<T>().type_name("T")))
-//!                     )
-//!                     .variant(
-//!                         Variant::builder("B")
-//!                             .fields(Fields::named().field(|f| f.ty::<u32>().name("f").type_name("u32")))
-//!                     )
-//!                     .variant(
-//!                         Variant::builder("A")
-//!                             .fields(Fields::unit())
-//!                     )
+//!                     .variant("A", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>().type_name("T"))))
+//!                     .variant("B", |v| v.fields(Fields::named().field(|f| f.ty::<u32>().name("f").type_name("u32"))))
+//!                     .variant_unit("A")
 //!             )
 //!     }
 //! }
@@ -117,9 +108,9 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant(Variant::builder("A").index(1))
-//!                     .variant(Variant::builder("B").index(2))
-//!                     .variant(Variant::builder("C").index(33))
+//!                     .variant("A", |v| v.index(1))
+//!                     .variant("B", |v| v.index(2))
+//!                     .variant("C", |v| v.index(33))
 //!             )
 //!     }
 //! }
@@ -435,8 +426,19 @@ impl Variants {
         }
     }
 
-    /// Add a variant with the
-    pub fn variant(mut self, builder: VariantBuilder) -> Self {
+    /// Add a variant
+    pub fn variant<F>(mut self, name: &'static str, builder: F) -> Self
+    where
+        F: Fn(VariantBuilder) -> VariantBuilder,
+    {
+        let builder = builder(VariantBuilder::new(name));
+        self.variants.push(builder.finalize());
+        self
+    }
+
+    /// Add a variant no fields.
+    pub fn variant_unit(mut self, name: &'static str) -> Self {
+        let builder = VariantBuilder::new(name);
         self.variants.push(builder.finalize());
         self
     }

@@ -15,7 +15,6 @@
 use crate::prelude::vec::Vec;
 
 use crate::{
-    build::VariantBuilder,
     form::{
         Form,
         MetaForm,
@@ -193,11 +192,6 @@ impl IntoPortable for Variant {
 }
 
 impl Variant {
-    /// Creates a [`VariantBuilder`] for a new variant.
-    pub fn builder(name: &'static str) -> VariantBuilder {
-        VariantBuilder::new(name)
-    }
-
     /// Creates a new variant.
     pub(crate) fn new(
         name: &'static str,

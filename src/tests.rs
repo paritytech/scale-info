@@ -61,12 +61,9 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type!(u128))
-            .variant(
-                Variants::new().variant(Variant::builder("None")).variant(
-                    Variant::builder("Some")
-                        .fields(Fields::unnamed().field(|f| f.ty::<u128>()))
-                )
-            )
+            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
+                v.fields(Fields::unnamed().field(|f| f.ty::<u128>()))
+            }))
     );
     assert_type!(
         Result<bool, String>,
@@ -76,11 +73,11 @@ fn prelude_items() {
             .variant(
                 Variants::new()
                     .variant(
-                        Variant::builder("Ok")
+                        "Ok", |v| v
                             .fields(Fields::unnamed().field(|f| f.ty::<bool>()))
                     )
                     .variant(
-                        Variant::builder("Err")
+                        "Err", |v| v
                             .fields(Fields::unnamed().field(|f| f.ty::<String>()))
                     )
             )

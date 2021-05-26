@@ -39,7 +39,6 @@ use crate::{
     TypeDefSequence,
     TypeDefTuple,
     TypeInfo,
-    Variant,
 };
 
 macro_rules! impl_metadata_for_primitives {
@@ -137,9 +136,9 @@ where
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type![T])
-            .variant(Variants::new().variant(Variant::builder("None")).variant(
-                Variant::builder("Some").fields(Fields::unnamed().field(|f| f.ty::<T>())),
-            ))
+            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
+                v.fields(Fields::unnamed().field(|f| f.ty::<T>()))
+            }))
     }
 }
 
@@ -156,14 +155,10 @@ where
             .type_params(tuple_meta_type!(T, E))
             .variant(
                 Variants::new()
-                    .variant(
-                        Variant::builder("Ok")
-                            .fields(Fields::unnamed().field(|f| f.ty::<T>())),
-                    )
-                    .variant(
-                        Variant::builder("Err")
-                            .fields(Fields::unnamed().field(|f| f.ty::<E>())),
-                    ),
+                    .variant("Ok", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
+                    .variant("Err", |v| {
+                        v.fields(Fields::unnamed().field(|f| f.ty::<E>()))
+                    }),
             )
     }
 }
