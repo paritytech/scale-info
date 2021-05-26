@@ -163,7 +163,7 @@ fn c_like_enum_derive() {
     enum E {
         /// Unit variant.
         A,
-        /// Variant with discriminator.
+        /// Variant with discriminant.
         B = 10,
     }
 
@@ -176,7 +176,7 @@ fn c_like_enum_derive() {
                 .variant(
                     Variant::builder("B")
                         .index(10)
-                        .docs(&[" Variant with discriminator."]),
+                        .docs(&[" Variant with discriminant."]),
                 ),
         );
 
