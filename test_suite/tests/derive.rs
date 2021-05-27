@@ -171,7 +171,9 @@ fn c_like_enum_derive() {
         .variant(
             Variants::new()
                 .variant("A", |v| v.discriminant(0).docs(&["Unit variant."]))
-                .variant("B", |v| v.discriminant(10).docs(&["Variant with discriminant."])),
+                .variant("B", |v| {
+                    v.discriminant(10).docs(&["Variant with discriminant."])
+                }),
         );
 
     assert_type!(E, ty);
