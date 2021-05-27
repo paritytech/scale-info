@@ -468,7 +468,7 @@ impl VariantBuilder {
         }
     }
 
-    /// Initialize the variant's discriminant.
+    /// Set the variant's discriminant.
     pub fn discriminant(mut self, discriminant: u64) -> Self {
         self.discriminant = Some(discriminant);
         self
