@@ -349,15 +349,15 @@ fn enums_with_scale_indexed_variants() {
                         "name": "Ape",
                         "index": 123,
                         "fields": [
-                            { "type": 1, "typeName": "u8" }
+                            { "type": 0, "typeName": "u8" }
                         ]
                     },
                     {
                         "name": "Boar",
                         "index": 12,
                         "fields": [
-                            { "name": "a", "type": 2, "typeName": "u16" },
-                            { "name": "b", "type": 3, "typeName": "u32" }
+                            { "name": "a", "type": 1, "typeName": "u16" },
+                            { "name": "b", "type": 2, "typeName": "u32" }
                         ]
                     },
                     {
@@ -368,8 +368,8 @@ fn enums_with_scale_indexed_variants() {
                         "name": "Dog",
                         "index": 0,
                         "fields": [
-                            { "type": 4, "typeName": "u64" },
-                            { "type": 5, "typeName": "u128" }
+                            { "type": 3, "typeName": "u64" },
+                            { "type": 4, "typeName": "u128" }
                         ]
                     }
                 ]

@@ -436,18 +436,6 @@ impl Variants {
         self
     }
 
-    /// Add an indexed variant with fields constructed by the supplied [`FieldsBuilder`](`crate::build::FieldsBuilder`)
-    pub fn indexed_variant<F>(
-        mut self,
-        name: &'static str,
-        index: u8,
-        fields: FieldsBuilder<F>,
-    ) -> Self {
-        self.variants
-            .push(Variant::indexed_with_fields(name, index, fields));
-        self
-    }
-
     /// Add a variant no fields.
     pub fn variant_unit(mut self, name: &'static str) -> Self {
         let builder = VariantBuilder::new(name);
@@ -466,6 +454,7 @@ pub struct VariantBuilder {
     name: &'static str,
     fields: Vec<Field<MetaForm>>,
     discriminant: Option<u64>,
+    index: Option<u8>,
     docs: Vec<&'static str>,
 }
 
@@ -476,6 +465,7 @@ impl VariantBuilder {
             name,
             fields: Vec::new(),
             discriminant: None,
+            index: None,
             docs: Vec::new(),
         }
     }
@@ -483,6 +473,12 @@ impl VariantBuilder {
     /// Initialize the variant's discriminant.
     pub fn discriminant(mut self, discriminant: u64) -> Self {
         self.discriminant = Some(discriminant);
+        self
+    }
+
+    /// Initialize the variant's index.
+    pub fn index(mut self, index: u8) -> Self {
+        self.index = Some(index);
         self
     }
 
@@ -500,6 +496,12 @@ impl VariantBuilder {
 
     /// Complete building and create final [`Variant`] instance.
     pub fn finalize(self) -> Variant<MetaForm> {
-        Variant::new(self.name, self.fields, self.discriminant, self.docs)
+        Variant::new(
+            self.name,
+            self.fields,
+            self.index,
+            self.discriminant,
+            self.docs,
+        )
     }
 }

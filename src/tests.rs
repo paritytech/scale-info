@@ -247,23 +247,26 @@ fn basic_enum_with_index() {
             Type::builder()
                 .path(Path::new("IndexedRustEnum", module_path!()))
                 .variant(
-                    Variants::with_fields()
-                        .indexed_variant(
-                            "A",
-                            3,
-                            Fields::unnamed().field_of::<bool>("bool"),
-                        )
-                        .indexed_variant(
-                            "B",
-                            0,
-                            Fields::named().field_of::<u8>("b", "bool"),
-                        )
-                        .variant(
-                            "C",
-                            Fields::unnamed()
-                                .field_of::<u16>("u16")
-                                .field_of::<u32>("u32"),
-                        )
+                    Variants::new()
+                        .variant("A", |v| {
+                            v.index(3).fields(
+                                Fields::unnamed()
+                                    .field(|f| f.ty::<bool>().type_name("bool")),
+                            )
+                        })
+                        .variant("B", |v| {
+                            v.index(0).fields(
+                                Fields::named()
+                                    .field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                            )
+                        })
+                        .variant("C", |v| {
+                            v.fields(
+                                Fields::unnamed()
+                                    .field(|f| f.ty::<u16>().type_name("u16"))
+                                    .field(|f| f.ty::<u32>().type_name("u32")),
+                            )
+                        })
                         .variant_unit("D"),
                 )
         }
@@ -272,15 +275,24 @@ fn basic_enum_with_index() {
     let ty = Type::builder()
         .path(Path::new("IndexedRustEnum", module_path!()))
         .variant(
-            Variants::with_fields()
-                .indexed_variant("A", 3, Fields::unnamed().field_of::<bool>("bool"))
-                .indexed_variant("B", 0, Fields::named().field_of::<u8>("b", "bool"))
-                .variant(
-                    "C",
-                    Fields::unnamed()
-                        .field_of::<u16>("u16")
-                        .field_of::<u32>("u32"),
-                )
+            Variants::new()
+                .variant("A", |v| {
+                    v.index(3).fields(
+                        Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")),
+                    )
+                })
+                .variant("B", |v| {
+                    v.index(0).fields(
+                        Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                    )
+                })
+                .variant("C", |v| {
+                    v.fields(
+                        Fields::unnamed()
+                            .field(|f| f.ty::<u16>().type_name("u16"))
+                            .field(|f| f.ty::<u32>().type_name("u32")),
+                    )
+                })
                 .variant_unit("D"),
         );
 

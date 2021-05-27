@@ -269,10 +269,19 @@ fn enum_derive_with_codec_index() {
         .path(Path::new("E", "derive"))
         .type_params(tuple_meta_type!(bool))
         .variant(
-            Variants::with_fields()
-                .indexed_variant("A", 5, Fields::unnamed().field_of::<bool>("T"))
-                .indexed_variant("B", 0, Fields::named().field_of::<bool>("b", "T"))
-                .indexed_variant_unit("C", 13),
+            Variants::new()
+                .variant("A", |v| {
+                    v.index(5).fields(
+                        Fields::unnamed().field(|f| f.ty::<bool>().type_name("T")),
+                    )
+                })
+                .variant("B", |v| {
+                    v.index(0).fields(
+                        Fields::named()
+                            .field(|f| f.ty::<bool>().name("b").type_name("T")),
+                    )
+                })
+                .variant("C", |v| v.index(13)),
         );
 
     assert_type!(E<bool>, ty);

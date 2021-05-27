@@ -262,7 +262,7 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
             let ident = &v.ident;
             let v_name = quote! {::core::stringify!(#ident) };
             let docs = utils::get_doc_literals(&v.attrs);
-            let index = utils::maybe_index(v);
+            let index = utils::maybe_index(v).map(|i| quote!(.index(#i)));
 
             let fields = match v.fields {
                 Fields::Named(ref fs) => {
@@ -272,30 +272,14 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
                             #( #fields )*
                     }
                 }
-                (Fields::Unnamed(ref fs), Some(index)) => {
-                    let fields = generate_fields(&fs.unnamed);
-                    quote! {
-                        .indexed_variant(
-                            #v_name,
-                            #index,
-                            :: #scale_info::build::Fields::unnamed()
-                                #( #fields)*
-                        )
-                    }
-                }
-                (Fields::Unnamed(ref fs), None) => {
+                Fields::Unnamed(ref fs) => {
                     let fields = generate_fields(&fs.unnamed);
                     quote! {
                         :: #scale_info::build::Fields::unnamed()
-                            #( #fields )*
+                            #( #fields)*
                     }
                 }
-                (Fields::Unit, Some(index)) => {
-                    quote! {
-                        .indexed_variant_unit(#v_name, #index)
-                    }
-                }
-                (Fields::Unit, None) => {
+                Fields::Unit => {
                     quote! {
                         :: #scale_info::build::Fields::unit()
                     }
@@ -304,7 +288,10 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
 
             quote! {
                 .variant(#v_name, |v|
-                    v.fields(#fields).docs(&[ #( #docs ),* ])
+                    v
+                        .fields(#fields)
+                        .docs(&[ #( #docs ),* ])
+                        #index
                 )
             }
         });

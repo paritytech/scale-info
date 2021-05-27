@@ -202,13 +202,15 @@ impl Variant {
     pub(crate) fn new(
         name: &'static str,
         fields: Vec<Field<MetaForm>>,
-        index: Option<u64>,
+        index: Option<u8>,
+        discriminant: Option<u64>,
         docs: Vec<&'static str>,
     ) -> Self {
         Self {
             name,
             fields,
-            discriminant: index,
+            index,
+            discriminant,
             docs,
         }
     }
