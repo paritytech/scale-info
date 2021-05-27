@@ -108,9 +108,9 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant("A", |v| v.index(1))
-//!                     .variant("B", |v| v.index(2))
-//!                     .variant("C", |v| v.index(33))
+//!                     .variant("A", |v| v.discriminant(1))
+//!                     .variant("B", |v| v.discriminant(2))
+//!                     .variant("C", |v| v.discriminant(33))
 //!             )
 //!     }
 //! }
@@ -453,7 +453,7 @@ impl Variants {
 pub struct VariantBuilder {
     name: &'static str,
     fields: Vec<Field<MetaForm>>,
-    index: Option<u64>,
+    discriminant: Option<u64>,
     docs: Vec<&'static str>,
 }
 
@@ -463,14 +463,14 @@ impl VariantBuilder {
         Self {
             name,
             fields: Vec::new(),
-            index: None,
+            discriminant: None,
             docs: Vec::new(),
         }
     }
 
-    /// Initialize the variant's index.
-    pub fn index(mut self, index: u64) -> Self {
-        self.index = Some(index);
+    /// Initialize the variant's discriminant.
+    pub fn discriminant(mut self, discriminant: u64) -> Self {
+        self.discriminant = Some(discriminant);
         self
     }
 
@@ -488,6 +488,6 @@ impl VariantBuilder {
 
     /// Complete building and create final [`Variant`] instance.
     pub fn finalize(self) -> Variant<MetaForm> {
-        Variant::new(self.name, self.fields, self.index, self.docs)
+        Variant::new(self.name, self.fields, self.discriminant, self.docs)
     }
 }

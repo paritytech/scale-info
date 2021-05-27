@@ -170,8 +170,8 @@ fn c_like_enum_derive() {
         .docs(&["Enum docs."])
         .variant(
             Variants::new()
-                .variant("A", |v| v.index(0).docs(&["Unit variant."]))
-                .variant("B", |v| v.index(10).docs(&["Variant with discriminant."])),
+                .variant("A", |v| v.discriminant(0).docs(&["Unit variant."]))
+                .variant("B", |v| v.discriminant(10).docs(&["Variant with discriminant."])),
         );
 
     assert_type!(E, ty);
@@ -193,11 +193,11 @@ fn c_like_enum_derive_with_scale_index_set() {
 
     let ty = Type::builder().path(Path::new("E", "derive")).variant(
         Variants::new()
-            .variant("A", |v| v.index(0))
-            .variant("B", |v| v.index(10))
-            .variant("C", |v| v.index(13))
-            .variant("D", |v| v.index(3))
-            .variant("E", |v| v.index(14)),
+            .variant("A", |v| v.discriminant(0))
+            .variant("B", |v| v.discriminant(10))
+            .variant("C", |v| v.discriminant(13))
+            .variant("D", |v| v.discriminant(3))
+            .variant("E", |v| v.discriminant(14)),
     );
 
     assert_type!(E, ty);
@@ -455,8 +455,8 @@ fn enum_variants_marked_scale_skip_are_skipped() {
 
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
         Variants::new()
-            .variant("A", |v| v.index(0))
-            .variant("C", |v| v.index(2)),
+            .variant("A", |v| v.discriminant(0))
+            .variant("C", |v| v.discriminant(2)),
     );
     assert_type!(Skippy, ty);
 }

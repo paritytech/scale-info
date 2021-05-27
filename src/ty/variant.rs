@@ -157,19 +157,18 @@ pub struct Variant<T: Form = MetaForm> {
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
     fields: Vec<Field<T>>,
-    /// The index of the variant.
+    /// The discriminant of the variant.
     ///
     /// # Note
     ///
-    /// In order of precedence:
-    ///  - The index specified by the `#[codec(index = $int)]` attribute.
-    ///  - The explicit discriminant in a "C-like" enum.l
-    ///  - The position the variant appears in an enum definition.
+    /// Even though setting the discriminant is optional
+    /// every C-like enum variant has a discriminant specified
+    /// upon compile-time.
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    index: Option<u64>,
+    discriminant: Option<u64>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
@@ -185,7 +184,7 @@ impl IntoPortable for Variant {
         Variant {
             name: self.name.into_portable(registry),
             fields: registry.map_into_portable(self.fields),
-            index: self.index,
+            discriminant: self.discriminant,
             docs: registry.map_into_portable(self.docs),
         }
     }
@@ -202,7 +201,7 @@ impl Variant {
         Self {
             name,
             fields,
-            index,
+            discriminant: index,
             docs,
         }
     }
@@ -222,9 +221,9 @@ where
         &self.fields
     }
 
-    /// Returns the index of the variant.
-    pub fn index(&self) -> Option<u64> {
-        self.index
+    /// Returns the discriminant of the variant.
+    pub fn discriminant(&self) -> Option<u64> {
+        self.discriminant
     }
 
     /// Returns the documentation of the variant.
