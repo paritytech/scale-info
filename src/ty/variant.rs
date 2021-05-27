@@ -15,7 +15,6 @@
 use crate::prelude::vec::Vec;
 
 use crate::{
-    build::FieldsBuilder,
     form::{
         Form,
         MetaForm,
@@ -176,6 +175,12 @@ pub struct Variant<T: Form = MetaForm> {
         serde(skip_serializing_if = "Option::is_none", default)
     )]
     discriminant: Option<u64>,
+    /// Documentation
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
+    docs: Vec<T::String>,
 }
 
 impl IntoPortable for Variant {
@@ -187,42 +192,24 @@ impl IntoPortable for Variant {
             fields: registry.map_into_portable(self.fields),
             index: self.index,
             discriminant: self.discriminant,
+            docs: registry.map_into_portable(self.docs),
         }
     }
 }
 
 impl Variant {
-    /// Creates a new variant with the given fields.
-    pub fn with_fields<F>(name: &'static str, fields: FieldsBuilder<F>) -> Self {
-        Self {
-            name,
-            fields: fields.finalize(),
-            index: None,
-            discriminant: None,
-        }
-    }
-
-    /// Creates a new indexed variant with the given fields.
-    pub fn indexed_with_fields<F>(
+    /// Creates a new variant.
+    pub(crate) fn new(
         name: &'static str,
-        index: u8,
-        fields: FieldsBuilder<F>,
+        fields: Vec<Field<MetaForm>>,
+        index: Option<u64>,
+        docs: Vec<&'static str>,
     ) -> Self {
         Self {
             name,
-            fields: fields.finalize(),
-            index: Some(index),
-            discriminant: None,
-        }
-    }
-
-    /// Creates a new variant with the given discriminant.
-    pub fn with_discriminant(name: &'static str, discriminant: u64) -> Self {
-        Self {
-            name,
-            fields: Vec::new(),
-            index: None,
-            discriminant: Some(discriminant),
+            fields,
+            discriminant: index,
+            docs,
         }
     }
 }
@@ -231,7 +218,7 @@ impl<T> Variant<T>
 where
     T: Form,
 {
-    /// Returns the name of the variant
+    /// Returns the name of the variant.
     pub fn name(&self) -> &T::String {
         &self.name
     }
@@ -244,5 +231,10 @@ where
     /// Returns the discriminant of the variant.
     pub fn discriminant(&self) -> Option<u64> {
         self.discriminant
+    }
+
+    /// Returns the documentation of the variant.
+    pub fn docs(&self) -> &[T::String] {
+        &self.docs
     }
 }

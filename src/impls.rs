@@ -136,11 +136,9 @@ where
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type![T])
-            .variant(
-                Variants::with_fields()
-                    .variant_unit("None")
-                    .variant("Some", Fields::unnamed().field_of::<T>("T")),
-            )
+            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
+                v.fields(Fields::unnamed().field(|f| f.ty::<T>()))
+            }))
     }
 }
 
@@ -156,9 +154,11 @@ where
             .path(Path::prelude("Result"))
             .type_params(tuple_meta_type!(T, E))
             .variant(
-                Variants::with_fields()
-                    .variant("Ok", Fields::unnamed().field_of::<T>("T"))
-                    .variant("Err", Fields::unnamed().field_of::<E>("E")),
+                Variants::new()
+                    .variant("Ok", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
+                    .variant("Err", |v| {
+                        v.fields(Fields::unnamed().field(|f| f.ty::<E>()))
+                    }),
             )
     }
 }
@@ -173,7 +173,7 @@ where
         Type::builder()
             .path(Path::prelude("Cow"))
             .type_params(tuple_meta_type!(T))
-            .composite(Fields::unnamed().field_of::<T>("T"))
+            .composite(Fields::unnamed().field(|f| f.ty::<T>()))
     }
 }
 
@@ -188,7 +188,7 @@ where
         Type::builder()
             .path(Path::prelude("BTreeMap"))
             .type_params(tuple_meta_type![(K, V)])
-            .composite(Fields::unnamed().field_of::<[(K, V)]>("[(K, V)]"))
+            .composite(Fields::unnamed().field(|f| f.ty::<[(K, V)]>()))
     }
 }
 
@@ -202,7 +202,7 @@ where
         Type::builder()
             .path(Path::prelude("BTreeSet"))
             .type_params(tuple_meta_type![T])
-            .composite(Fields::unnamed().field_of::<[T]>("[T]"))
+            .composite(Fields::unnamed().field(|f| f.ty::<[T]>()))
     }
 }
 
