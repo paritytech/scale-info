@@ -436,7 +436,7 @@ impl Variants {
         self
     }
 
-    /// Add a variant no fields.
+    /// Add a unit variant (without fields).
     pub fn variant_unit(mut self, name: &'static str) -> Self {
         let builder = VariantBuilder::new(name);
         self.variants.push(builder.finalize());
