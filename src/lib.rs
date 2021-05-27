@@ -143,6 +143,17 @@ pub trait TypeInfo {
     fn type_info() -> Type;
 }
 
+/// Convenience trait for implementors, combining `TypeInfo` and `'static` bounds.
+///
+/// # Note
+///
+/// Currently because of the `'static` constraint on [`std::any::TypeId::of`] (see [`MetaType`]),
+/// `TypeInfo` constraints must also be accompanied by a `'static` bound. This trait is useful to
+/// implementors so only a single constraint is required.
+pub trait StaticTypeInfo: TypeInfo + 'static {}
+
+impl<T> StaticTypeInfo for T where T: TypeInfo + 'static {}
+
 /// Returns the runtime bridge to the types compile-time type information.
 pub fn meta_type<T>() -> MetaType
 where

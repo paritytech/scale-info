@@ -69,32 +69,32 @@ fn test_primitives() {
 fn test_builtins() {
     // arrays
     assert_json_for_type::<[u8; 2]>(
-        json!({ "def": { "array": { "len": 2, "type": 1 } } }),
+        json!({ "def": { "array": { "len": 2, "type": 0 } } }),
     );
     assert_json_for_type::<[bool; 4]>(
-        json!({ "def": { "array": { "len": 4, "type": 1 } } }),
+        json!({ "def": { "array": { "len": 4, "type": 0 } } }),
     );
     assert_json_for_type::<[char; 8]>(
-        json!({ "def": { "array": { "len": 8, "type": 1 } } }),
+        json!({ "def": { "array": { "len": 8, "type": 0 } } }),
     );
     // tuples
-    assert_json_for_type::<(u8, bool)>(json!({ "def": { "tuple": [ 1, 2 ] } }));
+    assert_json_for_type::<(u8, bool)>(json!({ "def": { "tuple": [ 0, 1 ] } }));
     assert_json_for_type::<(u8, bool, char, u128)>(
-        json!({ "def": { "tuple": [ 1, 2, 3, 4 ] } }),
+        json!({ "def": { "tuple": [ 0, 1, 2, 3 ] } }),
     );
     assert_json_for_type::<(u8, bool, char, u128, i32, u32)>(json!({
         "def": {
-            "tuple": [ 1, 2, 3, 4, 5, 6 ]
+            "tuple": [ 0, 1, 2, 3, 4, 5 ]
         }
     }));
     // sequences
-    assert_json_for_type::<[bool]>(json!({ "def": { "sequence": { "type": 1 } } }));
-    assert_json_for_type::<&[bool]>(json!({ "def": { "sequence": { "type": 1 } } }));
-    assert_json_for_type::<Vec<bool>>(json!({ "def": { "sequence": { "type": 1 } } }));
+    assert_json_for_type::<[bool]>(json!({ "def": { "sequence": { "type": 0 } } }));
+    assert_json_for_type::<&[bool]>(json!({ "def": { "sequence": { "type": 0 } } }));
+    assert_json_for_type::<Vec<bool>>(json!({ "def": { "sequence": { "type": 0 } } }));
     // complex types
     assert_json_for_type::<Option<&str>>(json!({
         "path": ["Option"],
-        "params": [1],
+        "params": [0],
         "def": {
             "variant": {
                 "variants": [
@@ -103,7 +103,7 @@ fn test_builtins() {
                     },
                     {
                         "name": "Some",
-                        "fields": [ { "type": 1, "typeName": "T" } ]
+                        "fields": [ { "type": 0, "typeName": "T" } ]
                     },
                 ]
             }
@@ -111,17 +111,17 @@ fn test_builtins() {
     }));
     assert_json_for_type::<Result<u32, u64>>(json!({
         "path": ["Result"],
-        "params": [1, 2],
+        "params": [0, 1],
         "def": {
             "variant": {
                 "variants": [
                     {
                         "name": "Ok",
-                        "fields": [ { "type": 1, "typeName": "T" } ]
+                        "fields": [ { "type": 0, "typeName": "T" } ]
                     },
                     {
                         "name": "Err",
-                        "fields": [ { "type": 2, "typeName": "E" } ]
+                        "fields": [ { "type": 1, "typeName": "E" } ]
                     }
                 ]
             }
@@ -136,7 +136,7 @@ fn test_builtins() {
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
     // PhantomData
     assert_json_for_type::<PhantomData<bool>>(
-        json!({ "def": { "phantom": { "type": 1 } }, }),
+        json!({ "def": { "phantom": { "type": 0 } }, }),
     )
 }
 
@@ -163,9 +163,9 @@ fn test_tuplestruct() {
         "def": {
             "composite": {
                 "fields": [
-                    { "type": 1, "typeName": "i32" },
-                    { "type": 2, "typeName": "[u8; 32]" },
-                    { "type": 4, "typeName": "bool" },
+                    { "type": 0, "typeName": "i32" },
+                    { "type": 1, "typeName": "[u8; 32]" },
+                    { "type": 3, "typeName": "bool" },
                 ],
             },
         }
@@ -186,9 +186,9 @@ fn test_struct() {
         "def": {
             "composite": {
                 "fields": [
-                    { "name": "a", "type": 1, "typeName": "i32" },
-                    { "name": "b", "type": 2, "typeName": "[u8; 32]" },
-                    { "name": "c", "type": 4, "typeName": "bool" },
+                    { "name": "a", "type": 0, "typeName": "i32" },
+                    { "name": "b", "type": 1, "typeName": "[u8; 32]" },
+                    { "name": "c", "type": 3, "typeName": "bool" },
                 ],
             },
         }
@@ -233,10 +233,10 @@ fn test_struct_with_some_fields_marked_as_compact() {
         "def": {
             "composite": {
                 "fields": [
-                    { "name": "a", "type": 1, "typeName": "u128" },
-                    { "name": "a_not_compact", "type": 2, "typeName": "u128" },
-                    { "name": "b", "type": 3, "typeName": "[u8; 32]" },
-                    { "name": "c", "type": 5, "typeName": "u64" },
+                    { "name": "a", "type": 0, "typeName": "u128" },
+                    { "name": "a_not_compact", "type": 1, "typeName": "u128" },
+                    { "name": "b", "type": 2, "typeName": "[u8; 32]" },
+                    { "name": "c", "type": 4, "typeName": "u64" },
                 ],
             },
         }
@@ -254,13 +254,13 @@ fn test_struct_with_phantom() {
 
     assert_json_for_type::<Struct<u8>>(json!({
         "path": ["json", "Struct"],
-        "params": [1],
+        "params": [0],
         "def": {
             "composite": {
                 "fields": [
-                    { "name": "a", "type": 2, "typeName": "i32" },
+                    { "name": "a", "type": 1, "typeName": "i32" },
                     // type 1 is the `u8` in the `PhantomData`
-                    { "name": "b", "type": 3, "typeName": "PhantomData<T>" },
+                    { "name": "b", "type": 2, "typeName": "PhantomData<T>" },
                 ],
             },
         }
@@ -308,16 +308,16 @@ fn test_enum() {
                     {
                         "name": "TupleStructVariant",
                         "fields": [
-                            { "type": 1, "typeName": "u32" },
-                            { "type": 2, "typeName": "bool" },
+                            { "type": 0, "typeName": "u32" },
+                            { "type": 1, "typeName": "bool" },
                         ],
                     },
                     {
                         "name": "StructVariant",
                         "fields": [
-                            { "name": "a", "type": 1, "typeName": "u32" },
-                            { "name": "b", "type": 3, "typeName": "[u8; 32]" },
-                            { "name": "c", "type": 5, "typeName": "char" },
+                            { "name": "a", "type": 0, "typeName": "u32" },
+                            { "name": "b", "type": 2, "typeName": "[u8; 32]" },
+                            { "name": "c", "type": 4, "typeName": "char" },
                         ],
                     }
                 ],
@@ -399,14 +399,14 @@ fn test_recursive_type_with_box() {
                             {
                                 "name": "Leaf",
                                 "fields": [
-                                    { "name": "value", "type": 2, "typeName": "i32" },
+                                    { "name": "value", "type": 1, "typeName": "i32" },
                                 ],
                             },
                             {
                                 "name": "Node",
                                 "fields": [
-                                    { "name": "right", "type": 1, "typeName": "Box<Tree>" },
-                                    { "name": "left", "type": 1, "typeName": "Box<Tree>" },
+                                    { "name": "right", "type": 0, "typeName": "Box<Tree>" },
+                                    { "name": "left", "type": 0, "typeName": "Box<Tree>" },
                                 ],
                             }
                         ],
@@ -445,28 +445,28 @@ fn registry_knows_about_compact_types() {
                 "def": {
                     "composite": {
                         "fields": [
-                            { "name": "a", "type": 2, "typeName": "u128" },
-                            { "name": "a_not_compact", "type": 3, "typeName": "u128" },
-                            { "name": "b", "type": 4, "typeName": "[u8; 32]" },
-                            { "name": "c", "type": 6, "typeName": "u64" }
+                            { "name": "a", "type": 1, "typeName": "u128" },
+                            { "name": "a_not_compact", "type": 2, "typeName": "u128" },
+                            { "name": "b", "type": 3, "typeName": "[u8; 32]" },
+                            { "name": "c", "type": 5, "typeName": "u64" }
                         ]
                     }
                 }
             },
             { // type 2, the `Compact<u128>` of field `a`.
-                "def": { "compact": { "type": 3 } },
+                "def": { "compact": { "type": 2 } },
             },
             { // type 3, the `u128` used by type 2 and field `a_not_compact`.
                 "def": { "primitive": "u128" }
             },
             { // type 4, the `[u8; 32]` of field `b`.
-                "def": { "array": { "len": 32, "type": 5 }}
+                "def": { "array": { "len": 32, "type": 4 }}
             },
             { // type 5, the `u8` in `[u8; 32]`
                 "def": { "primitive": "u8" }
             },
             { // type 6, the `Compact<u64>` of field `c`
-                "def": { "compact": { "type": 7 } },
+                "def": { "compact": { "type": 6 } },
             },
             { // type 7, the `u64` in `Compact<u64>` of field `c`
                 "def": { "primitive": "u64" }
@@ -518,7 +518,7 @@ fn test_registry() {
 
     let expected_json = json!({
         "types": [
-            { // type 1
+            { // type 0
                 "path": [
                     "json",
                     "UnitStruct",
@@ -527,7 +527,7 @@ fn test_registry() {
                     "composite": {},
                 }
             },
-            { // type 2
+            { // type 1
                 "path": [
                     "json",
                     "TupleStruct",
@@ -535,19 +535,19 @@ fn test_registry() {
                 "def": {
                     "composite": {
                         "fields": [
-                            { "type": 3, "typeName": "u8" },
-                            { "type": 4, "typeName": "u32" },
+                            { "type": 2, "typeName": "u8" },
+                            { "type": 3, "typeName": "u32" },
                         ],
                     },
                 }
             },
-            { // type 3
+            { // type 2
                 "def": { "primitive": "u8" },
             },
-            { // type 4
+            { // type 3
                 "def": { "primitive": "u32" },
             },
-            { // type 5
+            { // type 4
                 "path": [
                     "json",
                     "Struct",
@@ -557,32 +557,32 @@ fn test_registry() {
                         "fields": [
                             {
                                 "name": "a",
-                                "type": 3,
+                                "type": 2,
                                 "typeName": "u8"
                             },
                             {
                                 "name": "b",
-                                "type": 4,
+                                "type": 3,
                                 "typeName": "u32"
                             },
                             {
                                 "name": "c",
-                                "type": 6,
+                                "type": 5,
                                 "typeName": "[u8; 32]"
                             }
                         ]
                     },
                 }
             },
-            { // type 6
+            { // type 5
                 "def": {
                     "array": {
                         "len": 32,
-                        "type": 3, // u8
+                        "type": 2, // u8
                     },
                 }
             },
-            { // type 7
+            { // type 6
                 "path": [
                     "json",
                     "RecursiveStruct",
@@ -592,21 +592,21 @@ fn test_registry() {
                         "fields": [
                             {
                                 "name": "rec",
-                                "type": 8,
+                                "type": 7,
                                 "typeName": "Vec<RecursiveStruct>"
                             }
                         ]
                     },
                 }
             },
-            { // type 8
+            { // type 7
                 "def": {
                     "sequence": {
-                        "type": 7, // RecursiveStruct
+                        "type": 6, // RecursiveStruct
                     },
                 }
             },
-            { // type 9
+            { // type 8
                 "path": [
                     "json",
                     "ClikeEnum",
@@ -630,7 +630,7 @@ fn test_registry() {
                     }
                 }
             },
-            { // type 10
+            { // type 9
                 "path": [
                     "json",
                     "RustEnum"
@@ -644,8 +644,8 @@ fn test_registry() {
                             {
                                 "name": "B",
                                 "fields": [
-                                    { "type": 3, "typeName": "u8" }, // u8
-                                    { "type": 4, "typeName": "u32" }, // u32
+                                    { "type": 2, "typeName": "u8" }, // u8
+                                    { "type": 3, "typeName": "u32" }, // u32
                                 ]
                             },
                             {
@@ -653,17 +653,17 @@ fn test_registry() {
                                 "fields": [
                                     {
                                         "name": "a",
-                                        "type": 3, // u8
+                                        "type": 2, // u8
                                         "typeName": "u8"
                                     },
                                     {
                                         "name": "b",
-                                        "type": 4, // u32
+                                        "type": 3, // u32
                                         "typeName": "u32"
                                     },
                                     {
                                         "name": "c",
-                                        "type": 6,
+                                        "type": 5,
                                         "typeName": "[u8; 32]"
                                     }
                                 ]
