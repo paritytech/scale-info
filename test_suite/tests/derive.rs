@@ -537,6 +537,41 @@ fn whitespace_scrubbing_works() {
     assert_type!(A, ty);
 }
 
+#[test]
+fn doc_capture_works() {
+    //! Que pasa
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[doc(hidden)]
+    struct S {
+        #[doc = " Field a"]
+        a: bool,
+        #[doc(primitive)]
+        b: u8,
+        ///     Indented
+        c: u16,
+    }
+
+    let ty = Type::builder().path(Path::new("S", "derive")).composite(
+        Fields::named()
+            .field(|f| {
+                f.ty::<bool>()
+                    .name("a")
+                    .type_name("bool")
+                    .docs(&["Field a"])
+            })
+            .field(|f| f.ty::<u8>().name("b").type_name("u8").docs(&[]))
+            .field(|f| {
+                f.ty::<u16>()
+                    .name("c")
+                    .type_name("u16")
+                    .docs(&["    Indented"])
+            }),
+    );
+
+    assert_type!(S, ty);
+}
+
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {
