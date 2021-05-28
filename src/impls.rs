@@ -266,14 +266,11 @@ impl TypeInfo for String {
     }
 }
 
-impl<T> TypeInfo for PhantomData<T>
-where
-    T: TypeInfo + ?Sized + 'static,
-{
-    type Identity = Self;
+impl<T> TypeInfo for PhantomData<T> {
+    type Identity = PhantomData<()>;
 
     fn type_info() -> Type {
-        TypeDefPhantom::new(MetaType::new::<T>()).into()
+        TypeDefPhantom.into()
     }
 }
 

@@ -18,13 +18,6 @@ extern crate proc_macro;
 mod trait_bounds;
 mod utils;
 
-use alloc::{
-    string::{
-        String,
-        ToString,
-    },
-    vec::Vec,
-};
 use proc_macro::TokenStream;
 use proc_macro2::{
     Span,
@@ -66,7 +59,7 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
-    let mut ast: DeriveInput = syn::parse2(input.clone())?;
+    let ast: DeriveInput = syn::parse2(input.clone())?;
 
     utils::check_attributes(&ast)?;
 
@@ -75,24 +68,29 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let ident = &ast.ident;
 
-    let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
-    {
-        let where_clause = ast.generics.make_where_clause();
-        where_clause.predicates.extend(custom_bounds);
-        where_clause.clone()
-    } else {
-        trait_bounds::make_where_clause(
-            ident,
-            &ast.generics,
-            &ast.data,
-            &scale_info,
-            &parity_scale_codec,
-        )?
-    };
+    let type_params: Vec<_> =
+        if let Some(skip_type_params) = utils::skipped_type_params(&ast.attrs) {
+            ast.generics
+                .type_params()
+                .filter(|tp| skip_type_params.iter().find(|skip| skip == tp).is_none())
+                .cloned()
+                .collect()
+        } else {
+            ast.generics.type_params().into_iter().cloned().collect()
+        };
+
+    let where_clause = trait_bounds::make_where_clause(
+        ident,
+        &ast.generics,
+        &type_params,
+        &ast.data,
+        &scale_info,
+        &parity_scale_codec,
+    )?;
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 
-    let generic_type_ids = ast.generics.type_params().map(|ty| {
+    let type_params_meta_types = type_params.iter().map(|ty| {
         let ty_ident = &ty.ident;
         quote! {
             :: #scale_info ::meta_type::<#ty_ident>()
@@ -110,7 +108,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()
                     .path(:: #scale_info ::Path::new(stringify!(#ident), module_path!()))
-                    .type_params(:: #scale_info ::prelude::vec![ #( #generic_type_ids ),* ])
+                    .type_params(:: #scale_info ::prelude::vec![ #( #type_params_meta_types ),* ])
                     .#build_type
             }
         }

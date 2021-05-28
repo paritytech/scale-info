@@ -78,7 +78,7 @@ fn prelude_items() {
                     .variant("Err", Fields::unnamed().field_of::<String>("E"))
             )
     );
-    assert_type!(PhantomData<i32>, TypeDefPhantom::new(meta_type::<i32>()));
+    assert_type!(PhantomData<i32>, TypeDefPhantom);
     assert_type!(
         Cow<u128>,
         Type::builder()

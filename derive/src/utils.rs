@@ -33,34 +33,34 @@ use syn::{
 };
 
 /// Trait bounds.
-pub type TraitBounds = Punctuated<syn::WherePredicate, token::Comma>;
+pub type TypeParams = Punctuated<syn::TypeParam, token::Comma>;
 
-/// Parse `name(T: Bound, N: Bound)` as a custom trait bound.
-struct CustomTraitBound<N> {
+/// Parse `name(T, N)` as a custom trait bound.
+struct SkipTypeParams<N> {
     _name: N,
     _paren_token: token::Paren,
-    bounds: TraitBounds,
+    params: TypeParams,
 }
 
-impl<N: Parse> Parse for CustomTraitBound<N> {
+impl<N: Parse> Parse for SkipTypeParams<N> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let content;
         Ok(Self {
             _name: input.parse()?,
             _paren_token: syn::parenthesized!(content in input),
-            bounds: content.parse_terminated(syn::WherePredicate::parse)?,
+            params: content.parse_terminated(syn::TypeParam::parse)?,
         })
     }
 }
 
-syn::custom_keyword!(bounds);
+syn::custom_keyword!(skip_type_params);
 
-/// Look for a `#[scale_info(bounds(…))]`in the given attributes.
+/// Look for a `#[scale_info(skip_type_params(…))]`in the given attributes.
 ///
-/// If found, use the given trait bounds when deriving the `TypeInfo` trait.
-pub fn custom_trait_bounds(attrs: &[Attribute]) -> Option<TraitBounds> {
-    scale_info_meta_item(attrs.iter(), |meta: CustomTraitBound<bounds>| {
-        Some(meta.bounds)
+/// If found, do not register the given type params or require `TypeInfo` bounds for them.
+pub fn skipped_type_params(attrs: &[Attribute]) -> Option<TypeParams> {
+    scale_info_meta_item(attrs.iter(), |meta: SkipTypeParams<skip_type_params>| {
+        Some(meta.params)
     })
 }
 
@@ -170,7 +170,7 @@ pub fn check_attributes(input: &DeriveInput) -> syn::Result<()> {
 // Only `#[scale_info(bounds())]` is a valid top attribute.
 fn check_top_attribute(attr: &Attribute) -> syn::Result<()> {
     if attr.path.is_ident("scale_info") {
-        match attr.parse_args::<CustomTraitBound<bounds>>() {
+        match attr.parse_args::<SkipTypeParams<skip_type_params>>() {
             Ok(_) => Ok(()),
             Err(e) => Err(syn::Error::new(attr.span(), format!("Invalid attribute: {:?}. Only `#[scale_info(bounds(…))]` is a valid top attribute", e)))
         }

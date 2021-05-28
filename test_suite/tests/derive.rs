@@ -443,31 +443,26 @@ fn whitespace_scrubbing_works() {
 }
 
 #[test]
-fn custom_bounds() {
-    // TODO: this test is dumb. It's a copy of Basti's equivalent in `parity-scale-codec` but I
-    // don't think it can work for us. I need a proper example of when custom bounds are needed.
-    // As-is, this test is simply setting the same bounds as the derive would have, which is pretty
-    // pointless.
+fn skip_type_params() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(bounds(T: Default + TypeInfo + 'static, N: TypeInfo + 'static))]
+    #[scale_info(skip_type_params(T))]
     struct Hey<T, N> {
         ciao: Greet<T>,
         ho: N,
     }
 
     #[derive(TypeInfo)]
-    #[scale_info(bounds(T: TypeInfo + 'static))]
+    #[scale_info(skip_type_params(T))]
     struct Greet<T> {
         marker: PhantomData<T>,
     }
 
-    #[derive(TypeInfo, Default)]
     struct SomeType;
 
     let ty = Type::builder()
         .path(Path::new("Hey", "derive"))
-        .type_params(tuple_meta_type!(SomeType, u16))
+        .type_params(tuple_meta_type!(u16))
         .composite(
             Fields::named()
                 .field_of::<Greet<SomeType>>("ciao", "Greet<T>")

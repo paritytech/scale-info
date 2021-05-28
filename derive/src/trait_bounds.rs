@@ -26,6 +26,7 @@ use syn::{
     Result,
     Type,
     TypePath,
+    TypeParam,
     WhereClause,
 };
 
@@ -34,9 +35,12 @@ use crate::utils;
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
 /// with self-referential types.
+///
+/// Ignores any type parameters not included in `type_params`.
 pub fn make_where_clause<'a>(
     input_ident: &'a Ident,
     generics: &'a Generics,
+    type_params: &[TypeParam],
     data: &'a syn::Data,
     scale_info: &Ident,
     parity_scale_codec: &Ident,
@@ -53,8 +57,8 @@ pub fn make_where_clause<'a>(
             .push(parse_quote!(#lifetime: 'static))
     }
 
-    let type_params = generics.type_params();
-    let ty_params_ids = type_params
+    let ty_params_ids = generics
+        .type_params()
         .map(|type_param| type_param.ident.clone())
         .collect::<Vec<Ident>>();
 
@@ -84,7 +88,9 @@ pub fn make_where_clause<'a>(
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
+        if type_params.iter().find(|tp| *tp == type_param).is_some() {
+            bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
+        }
         bounds.push(parse_quote!('static));
         where_clause
             .predicates
