@@ -251,7 +251,7 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStream2 {
     let variants = &data_enum.variants;
 
-    if is_c_like_enum(&variants) {
+    if is_c_like_enum(variants) {
         return generate_c_like_enum_def(variants, scale_info)
     }
 
