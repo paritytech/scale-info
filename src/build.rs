@@ -407,7 +407,7 @@ impl<N> FieldBuilder<N, field_state::TypeAssigned> {
             self.name,
             self.ty.expect("Type should be set by builder"),
             self.type_name,
-            &self.docs,
+            self.docs,
         )
     }
 }
