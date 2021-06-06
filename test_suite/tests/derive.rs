@@ -268,7 +268,6 @@ fn enum_derive_with_codec_index() {
     let ty = Type::builder()
         .path(Path::new("E", "derive"))
         .type_params(tuple_meta_type!(bool))
-        .docs(&["Enum docs."])
         .variant(
             Variants::new()
                 .variant("A", |v| {
