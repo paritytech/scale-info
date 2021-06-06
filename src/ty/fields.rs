@@ -13,22 +13,21 @@
 // limitations under the License.
 
 use crate::{
+    build::FieldBuilder,
     form::{
         Form,
         MetaForm,
         PortableForm,
     },
+    prelude::vec::Vec,
     IntoPortable,
     MetaType,
     Registry,
-    TypeInfo,
 };
-use scale::{
-    Encode,
-    HasCompact,
-};
+use scale::Encode;
 #[cfg(feature = "serde")]
 use serde::{
+    de::DeserializeOwned,
     Deserialize,
     Serialize,
 };
@@ -64,6 +63,13 @@ use serde::{
 /// alias, there are no guarantees provided, and the type name representation
 /// may change.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
@@ -78,7 +84,17 @@ pub struct Field<T: Form = MetaForm> {
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
     ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
-    type_name: T::String,
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Option::is_none", default)
+    )]
+    type_name: Option<T::String>,
+    /// Documentation
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
+    docs: Vec<T::String>,
 }
 
 impl IntoPortable for Field {
@@ -88,55 +104,33 @@ impl IntoPortable for Field {
         Field {
             name: self.name.map(|name| name.into_portable(registry)),
             ty: registry.register_type(&self.ty),
-            type_name: self.type_name.into_portable(registry),
+            type_name: self.type_name.map(|tn| tn.into_portable(registry)),
+            docs: registry.map_into_portable(self.docs),
         }
     }
 }
 
 impl Field {
+    /// Returns a new [`FieldBuilder`] for constructing a field.
+    pub fn builder() -> FieldBuilder {
+        FieldBuilder::new()
+    }
+
     /// Creates a new field.
     ///
     /// Use this constructor if you want to instantiate from a given meta type.
     pub fn new(
         name: Option<&'static str>,
         ty: MetaType,
-        type_name: &'static str,
+        type_name: Option<&'static str>,
+        docs: &[&'static str],
     ) -> Self {
         Self {
             name,
             ty,
             type_name,
+            docs: docs.to_vec(),
         }
-    }
-
-    /// Creates a new named field.
-    ///
-    /// Use this constructor if you want to instantiate from a given
-    /// compile-time type.
-    pub fn named_of<T>(name: &'static str, type_name: &'static str) -> Field
-    where
-        T: TypeInfo + ?Sized + 'static,
-    {
-        Self::new(Some(name), MetaType::new::<T>(), type_name)
-    }
-
-    /// Creates a new unnamed field.
-    ///
-    /// Use this constructor if you want to instantiate an unnamed field from a
-    /// given compile-time type.
-    pub fn unnamed_of<T>(type_name: &'static str) -> Field
-    where
-        T: TypeInfo + ?Sized + 'static,
-    {
-        Self::new(None, MetaType::new::<T>(), type_name)
-    }
-
-    /// Creates a new [`Compact`] field.
-    pub fn compact_of<T>(name: Option<&'static str>, type_name: &'static str) -> Field
-    where
-        T: HasCompact + TypeInfo + 'static,
-    {
-        Self::new(name, MetaType::new::<scale::Compact<T>>(), type_name)
     }
 }
 
@@ -159,7 +153,12 @@ where
     /// name are not specified, but in practice will be the name of any valid
     /// type for a field. This is intended for informational and diagnostic
     /// purposes only.
-    pub fn type_name(&self) -> &T::String {
-        &self.type_name
+    pub fn type_name(&self) -> Option<&T::String> {
+        self.type_name.as_ref()
+    }
+
+    /// Returns the documentation of the field.
+    pub fn docs(&self) -> &[T::String] {
+        &self.docs
     }
 }

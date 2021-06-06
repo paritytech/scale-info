@@ -13,8 +13,15 @@
 // limitations under the License.
 
 use crate::prelude::{
+    borrow::{
+        Cow,
+        ToOwned,
+    },
     boxed::Box,
-    collections::BTreeMap,
+    collections::{
+        BTreeMap,
+        BTreeSet,
+    },
     marker::PhantomData,
     string::String,
     vec::Vec,
@@ -103,6 +110,10 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
 
 impl<T> TypeInfo for Vec<T>
 where
@@ -125,11 +136,9 @@ where
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type![T])
-            .variant(
-                Variants::with_fields()
-                    .variant_unit("None")
-                    .variant("Some", Fields::unnamed().field_of::<T>("T")),
-            )
+            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
+                v.fields(Fields::unnamed().field(|f| f.ty::<T>()))
+            }))
     }
 }
 
@@ -145,10 +154,26 @@ where
             .path(Path::prelude("Result"))
             .type_params(tuple_meta_type!(T, E))
             .variant(
-                Variants::with_fields()
-                    .variant("Ok", Fields::unnamed().field_of::<T>("T"))
-                    .variant("Err", Fields::unnamed().field_of::<E>("E")),
+                Variants::new()
+                    .variant("Ok", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
+                    .variant("Err", |v| {
+                        v.fields(Fields::unnamed().field(|f| f.ty::<E>()))
+                    }),
             )
+    }
+}
+
+impl<T> TypeInfo for Cow<'static, T>
+where
+    T: ToOwned + TypeInfo + ?Sized + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("Cow"))
+            .type_params(tuple_meta_type!(T))
+            .composite(Fields::unnamed().field(|f| f.ty::<T>()))
     }
 }
 
@@ -163,7 +188,21 @@ where
         Type::builder()
             .path(Path::prelude("BTreeMap"))
             .type_params(tuple_meta_type![(K, V)])
-            .composite(Fields::unnamed().field_of::<[(K, V)]>("[(K, V)]"))
+            .composite(Fields::unnamed().field(|f| f.ty::<[(K, V)]>()))
+    }
+}
+
+impl<T> TypeInfo for BTreeSet<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("BTreeSet"))
+            .type_params(tuple_meta_type![T])
+            .composite(Fields::unnamed().field(|f| f.ty::<[T]>()))
     }
 }
 
