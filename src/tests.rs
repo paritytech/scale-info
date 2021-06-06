@@ -223,3 +223,78 @@ fn basic_struct_with_phantoms() {
 
     assert_type!(SomeStruct<bool>, struct_bool_type_info);
 }
+
+#[test]
+fn basic_enum_with_index() {
+    use scale::Encode;
+
+    #[allow(unused)]
+    #[derive(Encode)]
+    enum IndexedRustEnum {
+        #[codec(index = 3)]
+        A(bool),
+        #[codec(index = 0)]
+        B {
+            b: u8,
+        },
+        C(u16, u32),
+        D,
+    }
+    impl TypeInfo for IndexedRustEnum {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("IndexedRustEnum", module_path!()))
+                .variant(
+                    Variants::new()
+                        .variant("A", |v| {
+                            v.index(3).fields(
+                                Fields::unnamed()
+                                    .field(|f| f.ty::<bool>().type_name("bool")),
+                            )
+                        })
+                        .variant("B", |v| {
+                            v.index(0).fields(
+                                Fields::named()
+                                    .field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                            )
+                        })
+                        .variant("C", |v| {
+                            v.fields(
+                                Fields::unnamed()
+                                    .field(|f| f.ty::<u16>().type_name("u16"))
+                                    .field(|f| f.ty::<u32>().type_name("u32")),
+                            )
+                        })
+                        .variant_unit("D"),
+                )
+        }
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("IndexedRustEnum", module_path!()))
+        .variant(
+            Variants::new()
+                .variant("A", |v| {
+                    v.index(3).fields(
+                        Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")),
+                    )
+                })
+                .variant("B", |v| {
+                    v.index(0).fields(
+                        Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                    )
+                })
+                .variant("C", |v| {
+                    v.fields(
+                        Fields::unnamed()
+                            .field(|f| f.ty::<u16>().type_name("u16"))
+                            .field(|f| f.ty::<u32>().type_name("u32")),
+                    )
+                })
+                .variant_unit("D"),
+        );
+
+    assert_type!(IndexedRustEnum, ty);
+}

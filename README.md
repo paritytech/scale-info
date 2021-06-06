@@ -54,8 +54,7 @@ pub enum TypeDef<T: Form = MetaForm> {
 
 The following "built-in" types have predefined `TypeInfo` definitions:
 
-- **Primitives:** `bool`, `char`, `str`, `u8`, `u16`, `u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64
-`, `i128`.
+- **Primitives:** `bool`, `char`, `str`, `u8`, `u16`, `u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`.
 
 - **Sequence:** Variable size sequence of elements of `T`, where `T` implements `TypeInfo`. e.g. `[T]`, `&[T]`, `&mut
  [T]`, `Vec<T>`
@@ -234,7 +233,7 @@ struct Foo<S> { #[codec(compact)] a: S }
 
 You may experience the following error when using this generic type without the correct bounds:
 
-```
+```sh
 error[E0275]: overflow evaluating the requirement `_::_parity_scale_codec::Compact<_>: Decode`
 ```
 

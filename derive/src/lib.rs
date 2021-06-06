@@ -251,7 +251,7 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStream2 {
     let variants = &data_enum.variants;
 
-    if is_c_like_enum(&variants) {
+    if is_c_like_enum(variants) {
         return generate_c_like_enum_def(variants, scale_info)
     }
 
@@ -262,6 +262,7 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
             let ident = &v.ident;
             let v_name = quote! {::core::stringify!(#ident) };
             let docs = utils::get_doc_literals(&v.attrs);
+            let index = utils::maybe_index(v).map(|i| quote!(.index(#i)));
 
             let fields = match v.fields {
                 Fields::Named(ref fs) => {
@@ -287,7 +288,10 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
 
             quote! {
                 .variant(#v_name, |v|
-                    v.fields(#fields).docs(&[ #( #docs ),* ])
+                    v
+                        .fields(#fields)
+                        .docs(&[ #( #docs ),* ])
+                        #index
                 )
             }
         });

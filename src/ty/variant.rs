@@ -157,6 +157,12 @@ pub struct Variant<T: Form = MetaForm> {
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
     fields: Vec<Field<T>>,
+    /// Index of the variant, used in `parity-scale-codec`
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Option::is_none", default)
+    )]
+    index: Option<u8>,
     /// The discriminant of the variant.
     ///
     /// # Note
@@ -184,6 +190,7 @@ impl IntoPortable for Variant {
         Variant {
             name: self.name.into_portable(registry),
             fields: registry.map_into_portable(self.fields),
+            index: self.index,
             discriminant: self.discriminant,
             docs: registry.map_into_portable(self.docs),
         }
@@ -195,13 +202,15 @@ impl Variant {
     pub(crate) fn new(
         name: &'static str,
         fields: Vec<Field<MetaForm>>,
-        index: Option<u64>,
+        index: Option<u8>,
+        discriminant: Option<u64>,
         docs: Vec<&'static str>,
     ) -> Self {
         Self {
             name,
             fields,
-            discriminant: index,
+            index,
+            discriminant,
             docs,
         }
     }

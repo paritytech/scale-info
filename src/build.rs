@@ -91,7 +91,7 @@
 //!     }
 //! }
 //! ```
-//! ## Enum without fields
+//! ## Enum without fields, aka C-style enums.
 //! ```
 //! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo, Variant};
 //! enum Foo {
@@ -407,7 +407,7 @@ impl<N> FieldBuilder<N, field_state::TypeAssigned> {
             self.name,
             self.ty.expect("Type should be set by builder"),
             self.type_name,
-            &self.docs,
+            self.docs,
         )
     }
 }
@@ -453,6 +453,7 @@ impl Variants {
 pub struct VariantBuilder {
     name: &'static str,
     fields: Vec<Field<MetaForm>>,
+    index: Option<u8>,
     discriminant: Option<u64>,
     docs: Vec<&'static str>,
 }
@@ -464,6 +465,7 @@ impl VariantBuilder {
             name,
             fields: Vec::new(),
             discriminant: None,
+            index: None,
             docs: Vec::new(),
         }
     }
@@ -471,6 +473,12 @@ impl VariantBuilder {
     /// Set the variant's discriminant.
     pub fn discriminant(mut self, discriminant: u64) -> Self {
         self.discriminant = Some(discriminant);
+        self
+    }
+
+    /// Set the variant's codec index.
+    pub fn index(mut self, index: u8) -> Self {
+        self.index = Some(index);
         self
     }
 
@@ -488,6 +496,12 @@ impl VariantBuilder {
 
     /// Complete building and create final [`Variant`] instance.
     pub fn finalize(self) -> Variant<MetaForm> {
-        Variant::new(self.name, self.fields, self.discriminant, self.docs)
+        Variant::new(
+            self.name,
+            self.fields,
+            self.index,
+            self.discriminant,
+            self.docs,
+        )
     }
 }

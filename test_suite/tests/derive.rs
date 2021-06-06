@@ -253,6 +253,41 @@ fn enum_derive() {
 }
 
 #[test]
+fn enum_derive_with_codec_index() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    enum E<T> {
+        #[codec(index = 5)]
+        A(T),
+        #[codec(index = 0)]
+        B { b: T },
+        #[codec(index = 13)]
+        C,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("E", "derive"))
+        .type_params(tuple_meta_type!(bool))
+        .variant(
+            Variants::new()
+                .variant("A", |v| {
+                    v.index(5).fields(
+                        Fields::unnamed().field(|f| f.ty::<bool>().type_name("T")),
+                    )
+                })
+                .variant("B", |v| {
+                    v.index(0).fields(
+                        Fields::named()
+                            .field(|f| f.ty::<bool>().name("b").type_name("T")),
+                    )
+                })
+                .variant("C", |v| v.index(13)),
+        );
+
+    assert_type!(E<bool>, ty);
+}
+
+#[test]
 fn recursive_type_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
