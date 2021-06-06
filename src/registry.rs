@@ -236,18 +236,21 @@ mod tests {
                     .path(Path::new("RecursiveRefs", module_path!()))
                     .composite(
                         Fields::named()
-                            .field_of::<Box<RecursiveRefs>>(
-                                "boxed",
-                                "Box < RecursiveRefs >",
-                            )
-                            .field_of::<&'static RecursiveRefs<'static>>(
-                                "reference",
-                                "&RecursiveRefs",
-                            )
-                            .field_of::<&'static mut RecursiveRefs<'static>>(
-                                "mutable_reference",
-                                "&mut RecursiveRefs",
-                            ),
+                            .field(|f| {
+                                f.ty::<Box<RecursiveRefs>>()
+                                    .name("boxed")
+                                    .type_name("Box < RecursiveRefs >")
+                            })
+                            .field(|f| {
+                                f.ty::<&'static RecursiveRefs<'static>>()
+                                    .name("reference")
+                                    .type_name("&RecursiveRefs")
+                            })
+                            .field(|f| {
+                                f.ty::<&'static mut RecursiveRefs<'static>>()
+                                    .name("mutable_reference")
+                                    .type_name("&mut RecursiveRefs")
+                            }),
                     )
             }
         }

@@ -103,7 +103,7 @@ fn test_builtins() {
                     },
                     {
                         "name": "Some",
-                        "fields": [ { "type": 0, "typeName": "T" } ]
+                        "fields": [ { "type": 0 } ]
                     },
                 ]
             }
@@ -117,11 +117,11 @@ fn test_builtins() {
                 "variants": [
                     {
                         "name": "Ok",
-                        "fields": [ { "type": 0, "typeName": "T" } ]
+                        "fields": [ { "type": 0 } ]
                     },
                     {
                         "name": "Err",
-                        "fields": [ { "type": 1, "typeName": "E" } ]
+                        "fields": [ { "type": 1 } ]
                     }
                 ]
             }
@@ -221,10 +221,10 @@ fn test_struct_with_some_fields_marked_as_compact() {
                 .path(Path::new("Dense", module_path!()))
                 .composite(
                     Fields::named()
-                        .compact_of::<u128>("a", "u128")
-                        .field_of::<u128>("a_not_compact", "u128")
-                        .field_of::<[u8; 32]>("b", "[u8; 32]")
-                        .compact_of::<u64>("c", "u64"),
+                        .field(|f| f.compact::<u128>().name("a").type_name("u128"))
+                        .field(|f| f.ty::<u128>().name("a_not_compact").type_name("u128"))
+                        .field(|f| f.ty::<[u8; 32]>().name("b").type_name("[u8; 32]"))
+                        .field(|f| f.compact::<u64>().name("c").type_name("u64")),
                 )
         }
     }
