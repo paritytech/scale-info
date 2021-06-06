@@ -216,7 +216,7 @@ where
         Type::builder()
             .path(Path::prelude("Box"))
             .type_params(tuple_meta_type![T])
-            .composite(Fields::unnamed().field_of::<T>("T"))
+            .composite(Fields::unnamed().field(|f| f.ty::<T>().type_name("T")))
     }
 }
 
