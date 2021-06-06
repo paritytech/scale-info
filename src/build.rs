@@ -436,7 +436,7 @@ impl Variants {
         self
     }
 
-    /// Add a variant no fields.
+    /// Add a unit variant (without fields).
     pub fn variant_unit(mut self, name: &'static str) -> Self {
         let builder = VariantBuilder::new(name);
         self.variants.push(builder.finalize());
@@ -454,7 +454,6 @@ pub struct VariantBuilder {
     name: &'static str,
     fields: Vec<Field<MetaForm>>,
     discriminant: Option<u64>,
-    index: Option<u8>,
     docs: Vec<&'static str>,
 }
 
@@ -465,20 +464,13 @@ impl VariantBuilder {
             name,
             fields: Vec::new(),
             discriminant: None,
-            index: None,
             docs: Vec::new(),
         }
     }
 
-    /// Initialize the variant's discriminant.
+    /// Set the variant's discriminant.
     pub fn discriminant(mut self, discriminant: u64) -> Self {
         self.discriminant = Some(discriminant);
-        self
-    }
-
-    /// Initialize the variant's index.
-    pub fn index(mut self, index: u8) -> Self {
-        self.index = Some(index);
         self
     }
 
@@ -496,12 +488,6 @@ impl VariantBuilder {
 
     /// Complete building and create final [`Variant`] instance.
     pub fn finalize(self) -> Variant<MetaForm> {
-        Variant::new(
-            self.name,
-            self.fields,
-            self.index,
-            self.discriminant,
-            self.docs,
-        )
+        Variant::new(self.name, self.fields, self.discriminant, self.docs)
     }
 }

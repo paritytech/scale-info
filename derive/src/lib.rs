@@ -276,7 +276,7 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
                     let fields = generate_fields(&fs.unnamed);
                     quote! {
                         :: #scale_info::build::Fields::unnamed()
-                            #( #fields)*
+                            #( #fields )*
                     }
                 }
                 Fields::Unit => {
