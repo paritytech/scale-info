@@ -25,6 +25,7 @@ cfg_if! {
     if #[cfg(feature = "std")] {
         pub use std::{
             any,
+            borrow,
             boxed,
             cmp,
             collections,
@@ -39,6 +40,7 @@ cfg_if! {
         };
     } else {
         pub use alloc::{
+            borrow,
             boxed,
             collections,
             format,

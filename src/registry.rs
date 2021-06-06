@@ -27,7 +27,6 @@ use crate::prelude::{
     any::TypeId,
     collections::BTreeMap,
     fmt::Debug,
-    num::NonZeroU32,
     vec::Vec,
 };
 
@@ -178,14 +177,14 @@ impl From<Registry> for PortableRegistry {
 
 impl PortableRegistry {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
-    pub fn resolve(&self, id: NonZeroU32) -> Option<&Type<PortableForm>> {
-        self.types.get((id.get() - 1) as usize)
+    pub fn resolve(&self, id: u32) -> Option<&Type<PortableForm>> {
+        self.types.get(id as usize)
     }
 
-    /// Returns an iterator for all types paired with their associated NonZeroU32 identifier.
-    pub fn enumerate(&self) -> impl Iterator<Item = (NonZeroU32, &Type<PortableForm>)> {
+    /// Returns an iterator for all types paired with their associated u32 identifier.
+    pub fn enumerate(&self) -> impl Iterator<Item = (u32, &Type<PortableForm>)> {
         self.types.iter().enumerate().map(|(i, ty)| {
-            let id = NonZeroU32::new(i as u32 + 1).expect("i + 1 > 0; qed");
+            let id = i as u32;
             (id, ty)
         })
     }
@@ -213,9 +212,9 @@ mod tests {
 
         assert_eq!(4, readonly.enumerate().count());
 
-        let mut expected = 1;
+        let mut expected = 0;
         for (i, _) in readonly.enumerate() {
-            assert_eq!(NonZeroU32::new(expected).unwrap(), i);
+            assert_eq!(expected, i);
             expected += 1;
         }
     }
@@ -237,18 +236,21 @@ mod tests {
                     .path(Path::new("RecursiveRefs", module_path!()))
                     .composite(
                         Fields::named()
-                            .field_of::<Box<RecursiveRefs>>(
-                                "boxed",
-                                "Box < RecursiveRefs >",
-                            )
-                            .field_of::<&'static RecursiveRefs<'static>>(
-                                "reference",
-                                "&RecursiveRefs",
-                            )
-                            .field_of::<&'static mut RecursiveRefs<'static>>(
-                                "mutable_reference",
-                                "&mut RecursiveRefs",
-                            ),
+                            .field(|f| {
+                                f.ty::<Box<RecursiveRefs>>()
+                                    .name("boxed")
+                                    .type_name("Box < RecursiveRefs >")
+                            })
+                            .field(|f| {
+                                f.ty::<&'static RecursiveRefs<'static>>()
+                                    .name("reference")
+                                    .type_name("&RecursiveRefs")
+                            })
+                            .field(|f| {
+                                f.ty::<&'static mut RecursiveRefs<'static>>()
+                                    .name("mutable_reference")
+                                    .type_name("&mut RecursiveRefs")
+                            }),
                     )
             }
         }

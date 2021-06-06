@@ -25,41 +25,34 @@ jobs:
 
     - name: fmt
       run: |
-        cargo generate-lockfile --verbose && cargo update -p funty --precise "1.1.0" --verbose
         cargo fmt --version
         cargo fmt --all -- --check
 
     - name: clippy
       run: |
-        cargo generate-lockfile --verbose && cargo update -p funty --precise "1.1.0" --verbose
         cargo clippy --version
         cargo clippy --all -- -D warnings
 
     - name: check-all-features
       run: |
-        cargo generate-lockfile --verbose && cargo update -p funty --precise "1.1.0" --verbose
         cargo check --all --all-features
 
     - name: check-features
       run: |
-        cargo generate-lockfile --verbose && cargo update -p funty --precise "1.1.0" --verbose
         cargo check --no-default-features --features serde
         cargo check --no-default-features --features serde,decode
 
     - name: build
       run: |
-        cargo generate-lockfile --verbose && cargo update -p funty --precise "1.1.0" --verbose
         cargo --version --verbose
         cargo build --all
         cargo build --all --no-default-features
 
     - name: test
       run: |
-        cargo generate-lockfile --verbose && cargo update -p funty --precise "1.1.0" --verbose
         cargo test --all
 
     - name: test no-std
       run: |
         cd ./test_suite/derive_tests_no_std
-        cargo generate-lockfile --verbose && cargo update -p funty --precise "1.1.0" --verbose
         cargo build --no-default-features
