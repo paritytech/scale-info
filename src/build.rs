@@ -496,6 +496,12 @@ impl VariantBuilder {
 
     /// Complete building and create final [`Variant`] instance.
     pub fn finalize(self) -> Variant<MetaForm> {
-        Variant::new(self.name, self.fields, self.index, self.discriminant, self.docs)
+        Variant::new(
+            self.name,
+            self.fields,
+            self.index,
+            self.discriminant,
+            self.docs,
+        )
     }
 }
