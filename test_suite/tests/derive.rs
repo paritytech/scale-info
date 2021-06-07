@@ -632,8 +632,8 @@ fn skip_type_params() {
         .type_params(tuple_meta_type!(u16))
         .composite(
             Fields::named()
-                .field_of::<Greet<SomeType>>("ciao", "Greet<T>")
-                .field_of::<u16>("ho", "N"),
+                .field(|f| f.ty::<Greet<SomeType>>().name("ciao").type_name("Greet<T>"))
+                .field(|f| f.ty::<u16>().name("ho").type_name("N")),
         );
 
     assert_type!(Hey<SomeType, u16>, ty);

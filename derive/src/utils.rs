@@ -24,8 +24,8 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
     parse::Parse,
-    punctuated::Punctuated,
     parse_quote,
+    punctuated::Punctuated,
     spanned::Spanned,
     token,
     AttrStyle,

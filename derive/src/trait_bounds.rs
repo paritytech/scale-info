@@ -25,8 +25,8 @@ use syn::{
     Generics,
     Result,
     Type,
-    TypePath,
     TypeParam,
+    TypePath,
     WhereClause,
 };
 
