@@ -54,8 +54,7 @@ pub enum TypeDef<T: Form = MetaForm> {
 
 The following "built-in" types have predefined `TypeInfo` definitions:
 
-- **Primitives:** `bool`, `char`, `str`, `u8`, `u16`, `u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64
-`, `i128`.
+- **Primitives:** `bool`, `char`, `str`, `u8`, `u16`, `u32`, `u64`, `u128`, `i8`, `i16`, `i32`, `i64`, `i128`.
 
 - **Sequence:** Variable size sequence of elements of `T`, where `T` implements `TypeInfo`. e.g. `[T]`, `&[T]`, `&mut
  [T]`, `Vec<T>`
@@ -106,8 +105,8 @@ where
             .path(Path::new("Foo", module_path!()))
             .type_params(vec![MetaType::new::<T>()])
             .composite(Fields::named()
-                .field_of::<T>("bar", "T")
-                .field_of::<u64>("data", "u64")
+                .field(|f| f.ty::<T>().name("bar").type_name("T"))
+                .field(|f| f.ty::<u64>().name("data").type_name("u64"))
             )
     }
 }
@@ -125,8 +124,8 @@ impl TypeInfo for Foo {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .composite(Fields::unnamed()
-                .field_of::<u32>("u32")
-                .field_of::<bool>("bool")
+                .field(|f| f.ty::<u32>().type_name("u32"))
+                .field(|f| f.ty::<bool>().type_name("bool"))
             )
     }
 }
@@ -155,10 +154,10 @@ where
             .path(Path::new("Foo", module_path!()))
             .type_params(vec![MetaType::new::<T>()])
             .variant(
-                Variants::with_fields()
-                    .variant("A", Fields::unnamed().field_of::<T>("T"))
-                    .variant("B", Fields::named().field_of::<u32>("f", "u32"))
-                    .variant("C", Fields::unit())
+                Variants::new()
+                   .variant("A", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
+                   .variant("B", |v| v.fields(Fields::named().field(|f| f.ty::<u32>().name("f").type_name("u32"))))
+                   .variant_unit("C")
             )
     }
 }
@@ -181,10 +180,10 @@ impl TypeInfo for Foo {
         Type::builder()
             .path(Path::new("Foo", module_path!()))
             .variant(
-                Variants::fieldless()
-                    .variant("A", 1)
-                    .variant("B", 2)
-                    .variant("C", 33)
+                Variants::new()
+                    .variant("A", |v| v.index(1))
+                    .variant("B", |v| v.index(2))
+                    .variant("C", |v| v.index(33))
             )
     }
 }
@@ -234,7 +233,7 @@ struct Foo<S> { #[codec(compact)] a: S }
 
 You may experience the following error when using this generic type without the correct bounds:
 
-```
+```sh
 error[E0275]: overflow evaluating the requirement `_::_parity_scale_codec::Compact<_>: Decode`
 ```
 

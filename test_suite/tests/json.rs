@@ -103,7 +103,7 @@ fn test_builtins() {
                     },
                     {
                         "name": "Some",
-                        "fields": [ { "type": 0, "typeName": "T" } ]
+                        "fields": [ { "type": 0 } ]
                     },
                 ]
             }
@@ -117,11 +117,11 @@ fn test_builtins() {
                 "variants": [
                     {
                         "name": "Ok",
-                        "fields": [ { "type": 0, "typeName": "T" } ]
+                        "fields": [ { "type": 0 } ]
                     },
                     {
                         "name": "Err",
-                        "fields": [ { "type": 1, "typeName": "E" } ]
+                        "fields": [ { "type": 1 } ]
                     }
                 ]
             }
@@ -219,10 +219,10 @@ fn test_struct_with_some_fields_marked_as_compact() {
                 .path(Path::new("Dense", module_path!()))
                 .composite(
                     Fields::named()
-                        .compact_of::<u128>("a", "u128")
-                        .field_of::<u128>("a_not_compact", "u128")
-                        .field_of::<[u8; 32]>("b", "[u8; 32]")
-                        .compact_of::<u64>("c", "u64"),
+                        .field(|f| f.compact::<u128>().name("a").type_name("u128"))
+                        .field(|f| f.ty::<u128>().name("a_not_compact").type_name("u128"))
+                        .field(|f| f.ty::<[u8; 32]>().name("b").type_name("[u8; 32]"))
+                        .field(|f| f.compact::<u64>().name("c").type_name("u64")),
                 )
         }
     }
@@ -320,6 +320,58 @@ fn test_enum() {
                     }
                 ],
             },
+        }
+    }));
+}
+
+#[test]
+fn enums_with_scale_indexed_variants() {
+    #[derive(TypeInfo, Encode)]
+    enum Animal {
+        #[codec(index = 123)]
+        Ape(u8),
+        #[codec(index = 12)]
+        Boar { a: u16, b: u32 },
+        #[codec(index = 1)]
+        Cat,
+        #[codec(index = 0)]
+        Dog(u64, u128),
+    }
+
+    assert_json_for_type::<Animal>(json!({
+        "path": ["json", "Animal"],
+        "def": {
+            "variant": {
+                "variants": [
+                    {
+                        "name": "Ape",
+                        "index": 123,
+                        "fields": [
+                            { "type": 0, "typeName": "u8" }
+                        ]
+                    },
+                    {
+                        "name": "Boar",
+                        "index": 12,
+                        "fields": [
+                            { "name": "a", "type": 1, "typeName": "u16" },
+                            { "name": "b", "type": 2, "typeName": "u32" }
+                        ]
+                    },
+                    {
+                        "name": "Cat",
+                        "index": 1,
+                    },
+                    {
+                        "name": "Dog",
+                        "index": 0,
+                        "fields": [
+                            { "type": 3, "typeName": "u64" },
+                            { "type": 4, "typeName": "u128" }
+                        ]
+                    }
+                ]
+            }
         }
     }));
 }

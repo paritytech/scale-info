@@ -166,11 +166,11 @@ fn collect_types_to_bind(
             .iter()
             .filter(|field| {
                 // Only add a bound if the type uses a generic.
-                type_contains_idents(&field.ty, &ty_params)
+                type_contains_idents(&field.ty, ty_params)
                 &&
                 // Remove all remaining types that start/contain the input ident
                 // to not have them in the where clause.
-                !type_or_sub_type_path_starts_with_ident(&field.ty, &input_ident)
+                !type_or_sub_type_path_starts_with_ident(&field.ty, input_ident)
             })
             .map(|f| (f.ty.clone(), utils::is_compact(f)))
             .collect()

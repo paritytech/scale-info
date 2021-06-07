@@ -61,11 +61,9 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type!(u128))
-            .variant(
-                Variants::with_fields()
-                    .variant_unit("None")
-                    .variant("Some", Fields::unnamed().field_of::<u128>("T"))
-            )
+            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
+                v.fields(Fields::unnamed().field(|f| f.ty::<u128>()))
+            }))
     );
     assert_type!(
         Result<bool, String>,
@@ -73,9 +71,15 @@ fn prelude_items() {
             .path(Path::prelude("Result"))
             .type_params(tuple_meta_type!(bool, String))
             .variant(
-                Variants::with_fields()
-                    .variant("Ok", Fields::unnamed().field_of::<bool>("T"))
-                    .variant("Err", Fields::unnamed().field_of::<String>("E"))
+                Variants::new()
+                    .variant(
+                        "Ok", |v| v
+                            .fields(Fields::unnamed().field(|f| f.ty::<bool>()))
+                    )
+                    .variant(
+                        "Err", |v| v
+                            .fields(Fields::unnamed().field(|f| f.ty::<String>()))
+                    )
             )
     );
     assert_type!(PhantomData<i32>, TypeDefPhantom);
@@ -84,7 +88,7 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Cow"))
             .type_params(tuple_meta_type!(u128))
-            .composite(Fields::unnamed().field_of::<u128>("T"))
+            .composite(Fields::unnamed().field(|f| f.ty::<u128>()))
     );
 }
 
@@ -95,7 +99,7 @@ fn collections() {
         Type::builder()
             .path(Path::prelude("BTreeMap"))
             .type_params(tuple_meta_type![(String, u32)])
-            .composite(Fields::unnamed().field_of::<[(String, u32)]>("[(K, V)]"))
+            .composite(Fields::unnamed().field(|f| f.ty::<[(String, u32)]>()))
     );
 
     assert_type!(
@@ -103,7 +107,7 @@ fn collections() {
         Type::builder()
             .path(Path::prelude("BTreeSet"))
             .type_params(tuple_meta_type![String])
-            .composite(Fields::unnamed().field_of::<[String]>("[T]"))
+            .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
     );
 }
 
@@ -162,7 +166,9 @@ fn struct_with_generics() {
             Type::builder()
                 .path(Path::new("MyStruct", module_path!()))
                 .type_params(tuple_meta_type!(T))
-                .composite(Fields::named().field_of::<T>("data", "T"))
+                .composite(
+                    Fields::named().field(|f| f.ty::<T>().name("data").type_name("T")),
+                )
         }
     }
 
@@ -170,7 +176,7 @@ fn struct_with_generics() {
     let struct_bool_type_info = Type::builder()
         .path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
         .type_params(tuple_meta_type!(bool))
-        .composite(Fields::named().field_of::<bool>("data", "T"));
+        .composite(Fields::named().field(|f| f.ty::<bool>().name("data").type_name("T")));
 
     assert_type!(MyStruct<bool>, struct_bool_type_info);
 
@@ -179,7 +185,10 @@ fn struct_with_generics() {
     let expected_type = Type::builder()
         .path(Path::new("MyStruct", "scale_info::tests"))
         .type_params(tuple_meta_type!(Box<MyStruct<bool>>))
-        .composite(Fields::named().field_of::<Box<MyStruct<bool>>>("data", "T"));
+        .composite(
+            Fields::named()
+                .field(|f| f.ty::<Box<MyStruct<bool>>>().name("data").type_name("T")),
+        );
     assert_type!(SelfTyped, expected_type);
 }
 
@@ -201,14 +210,91 @@ fn basic_struct_with_phantoms() {
             Type::builder()
                 .path(Path::new("SomeStruct", module_path!()))
                 .type_params(tuple_meta_type!(T))
-                .composite(Fields::named().field_of::<u8>("a", "u8"))
+                .composite(
+                    Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")),
+                )
         }
     }
 
     let struct_bool_type_info = Type::builder()
         .path(Path::from_segments(vec!["scale_info", "tests", "SomeStruct"]).unwrap())
         .type_params(tuple_meta_type!(bool))
-        .composite(Fields::named().field_of::<u8>("a", "u8"));
+        .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")));
 
     assert_type!(SomeStruct<bool>, struct_bool_type_info);
+}
+
+#[test]
+fn basic_enum_with_index() {
+    use scale::Encode;
+
+    #[allow(unused)]
+    #[derive(Encode)]
+    enum IndexedRustEnum {
+        #[codec(index = 3)]
+        A(bool),
+        #[codec(index = 0)]
+        B {
+            b: u8,
+        },
+        C(u16, u32),
+        D,
+    }
+    impl TypeInfo for IndexedRustEnum {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("IndexedRustEnum", module_path!()))
+                .variant(
+                    Variants::new()
+                        .variant("A", |v| {
+                            v.index(3).fields(
+                                Fields::unnamed()
+                                    .field(|f| f.ty::<bool>().type_name("bool")),
+                            )
+                        })
+                        .variant("B", |v| {
+                            v.index(0).fields(
+                                Fields::named()
+                                    .field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                            )
+                        })
+                        .variant("C", |v| {
+                            v.fields(
+                                Fields::unnamed()
+                                    .field(|f| f.ty::<u16>().type_name("u16"))
+                                    .field(|f| f.ty::<u32>().type_name("u32")),
+                            )
+                        })
+                        .variant_unit("D"),
+                )
+        }
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("IndexedRustEnum", module_path!()))
+        .variant(
+            Variants::new()
+                .variant("A", |v| {
+                    v.index(3).fields(
+                        Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")),
+                    )
+                })
+                .variant("B", |v| {
+                    v.index(0).fields(
+                        Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                    )
+                })
+                .variant("C", |v| {
+                    v.fields(
+                        Fields::unnamed()
+                            .field(|f| f.ty::<u16>().type_name("u16"))
+                            .field(|f| f.ty::<u32>().type_name("u32")),
+                    )
+                })
+                .variant_unit("D"),
+        );
+
+    assert_type!(IndexedRustEnum, ty);
 }
