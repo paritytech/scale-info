@@ -141,6 +141,19 @@ impl Type {
             docs,
         }
     }
+
+    /// Create a new `TypeDefIndirection` for a reference or a pointer to a type.
+    pub(crate) fn new_indirection<T>(name: &'static str) -> Self
+    where
+        T: TypeInfo + 'static,
+    {
+        Self::new(
+            Path::prelude(name),
+            Vec::new(),
+            TypeDefIndirection::new(MetaType::new::<T>()),
+            Vec::new(),
+        )
+    }
 }
 
 impl<T> Type<T>
@@ -197,6 +210,8 @@ pub enum TypeDef<T: Form = MetaForm> {
     Compact(TypeDefCompact<T>),
     /// A PhantomData type.
     Phantom(TypeDefPhantom<T>),
+    /// A type representing an indirection e.g a reference or a smart pointer.
+    Indirection(TypeDefIndirection<T>),
 }
 
 impl IntoPortable for TypeDef {
@@ -212,6 +227,9 @@ impl IntoPortable for TypeDef {
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
+            TypeDef::Indirection(indirection) => {
+                indirection.into_portable(registry).into()
+            }
         }
     }
 }
@@ -483,5 +501,42 @@ where
     /// Returns the type parameter type of the phantom type.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
+    }
+}
+
+/// A type representing an indirection e.g. a reference or a smart pointer.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+pub struct TypeDefIndirection<T: Form = MetaForm> {
+    /// The underlying type of the indirection.
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    ty: T::Type,
+}
+
+impl IntoPortable for TypeDefIndirection {
+    type Output = TypeDefIndirection<PortableForm>;
+
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+        TypeDefIndirection {
+            ty: registry.register_type(&self.ty),
+        }
+    }
+}
+
+impl TypeDefIndirection {
+    /// Creates a new indirect type definition.
+    pub fn new(ty: MetaType) -> Self {
+        Self { ty }
+    }
+}
+
+impl<T> TypeDefIndirection<T>
+where
+    T: Form,
+{
+    /// Returns the underlying type of the indirection.
+    pub fn ty(&self) -> &T::Type {
+        &self.ty
     }
 }

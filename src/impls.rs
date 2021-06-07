@@ -213,10 +213,7 @@ where
     type Identity = Self;
 
     fn type_info() -> Type {
-        Type::builder()
-            .path(Path::prelude("Box"))
-            .type_params(tuple_meta_type![T])
-            .composite(Fields::unnamed().field(|f| f.ty::<T>().type_name("T")))
+        Type::new_indirection::<Self>("Box")
     }
 }
 

@@ -131,15 +131,10 @@ fn test_builtins() {
     assert_json_for_type::<&bool>(json!({ "def": { "primitive": "bool" } }));
     assert_json_for_type::<&mut str>(json!({ "def": { "primitive": "str" } }));
     assert_json_for_type::<Box<u32>>(json!({
-            "path": ["Box"],
-            "params": [0],
-            "def": {
-                "composite": {
-                    "fields": [
-                        { "type": 0, "typeName": "T" }
-                    ]
-                }
-            },
+        "path": ["Box"],
+        "def": {
+            "indirection": { "type": 0 }
+        },
     }));
     // strings
     assert_json_for_type::<String>(json!({ "def": { "primitive": "str" } }));
@@ -428,13 +423,8 @@ fn test_recursive_type_with_box() {
             },
             {
                 "path": ["Box"],
-                "params": [0],
                 "def": {
-                    "composite": {
-                        "fields": [
-                            { "type": 0, "typeName": "T" }
-                        ]
-                    }
+                    "indirection": { "type": 2 }
                 },
             }
         ]
