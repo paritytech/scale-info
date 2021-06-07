@@ -72,11 +72,13 @@ struct SkipTypeParams<N> {
 impl<N: Parse> Parse for SkipTypeParams<N> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let content;
-        let paren_token = syn::parenthesized!(content in input);
+        let _name = input.parse()?;
+        let _paren_token = syn::parenthesized!(content in input);
+        let params = content.parse_terminated(syn::TypeParam::parse)?;
         Ok(Self {
-            _name: input.parse()?,
-            _paren_token: paren_token,
-            params: content.parse_terminated(syn::TypeParam::parse)?,
+            _name,
+            _paren_token,
+            params,
         })
     }
 }
