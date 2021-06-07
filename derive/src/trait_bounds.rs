@@ -88,7 +88,7 @@ pub fn make_where_clause<'a>(
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        if type_params.iter().find(|tp| *tp == type_param).is_some() {
+        if type_params.iter().any(|tp| *tp == *type_param) {
             bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
         }
         bounds.push(parse_quote!('static));

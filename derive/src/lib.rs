@@ -72,7 +72,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         if let Some(skip_type_params) = utils::skipped_type_params(&ast.attrs) {
             ast.generics
                 .type_params()
-                .filter(|tp| skip_type_params.iter().find(|skip| skip == tp).is_none())
+                .filter(|tp| skip_type_params.iter().any(|skip| *skip == **tp))
                 .cloned()
                 .collect()
         } else {
