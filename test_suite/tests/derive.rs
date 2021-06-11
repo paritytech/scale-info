@@ -610,33 +610,106 @@ fn doc_capture_works() {
 }
 
 #[test]
-fn skip_type_params() {
+fn skip_type_params_nested() {
     #[allow(unused)]
     #[derive(TypeInfo)]
     #[scale_info(skip_type_params(T))]
-    struct Hey<T, N> {
-        ciao: Greet<T>,
-        ho: N,
+    struct SkipTypeParamsNested<T, U> {
+        a: Nested<T>,
+        b: U,
     }
 
     #[derive(TypeInfo)]
     #[scale_info(skip_type_params(T))]
-    struct Greet<T> {
+    struct Nested<T> {
         marker: PhantomData<T>,
     }
 
-    struct SomeType;
+    struct NoScaleInfoImpl;
 
     let ty = Type::builder()
-        .path(Path::new("Hey", "derive"))
+        .path(Path::new("SkipTypeParamsNested", "derive"))
         .type_params(tuple_meta_type!(u16))
         .composite(
             Fields::named()
-                .field(|f| f.ty::<Greet<SomeType>>().name("ciao").type_name("Greet<T>"))
-                .field(|f| f.ty::<u16>().name("ho").type_name("N")),
+                .field(|f| {
+                    f.ty::<Nested<NoScaleInfoImpl>>()
+                        .name("a")
+                        .type_name("Nested<T>")
+                })
+                .field(|f| f.ty::<u16>().name("b").type_name("U")),
         );
 
-    assert_type!(Hey<SomeType, u16>, ty);
+    assert_type!(SkipTypeParamsNested<NoScaleInfoImpl, u16>, ty);
+}
+
+#[test]
+fn skip_all_type_params() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(skip_type_params(T, U))]
+    struct SkipAllTypeParams<T, U> {
+        a: PhantomData<T>,
+        b: PhantomData<U>,
+    }
+
+    struct NoScaleInfoImpl;
+
+    let ty = Type::builder()
+        .path(Path::new("SkipAllTypeParams", "derive"))
+        .composite(
+            Fields::named()
+                .field(|f| {
+                    f.ty::<PhantomData<NoScaleInfoImpl>>()
+                        .name("a")
+                        .type_name("PhantomData<T>")
+                })
+                .field(|f| {
+                    f.ty::<PhantomData<NoScaleInfoImpl>>()
+                        .name("b")
+                        .type_name("PhantomData<U>")
+                }),
+        );
+
+    assert_type!(SkipAllTypeParams<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
+}
+
+#[test]
+fn skip_type_params_with_associated_types() {
+    trait Trait {
+        type A;
+    }
+
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(skip_type_params(T, U))]
+    struct SkipTypeParamsForTraitImpl<T>
+    where
+        T: Trait,
+    {
+        a: PhantomData<T>,
+        b: T::A,
+    }
+
+    struct NoScaleInfoImpl;
+
+    impl Trait for NoScaleInfoImpl {
+        type A = u32;
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("SkipTypeParamsForTraitImpl", "derive"))
+        .composite(
+            Fields::named()
+                .field(|f| {
+                    f.ty::<PhantomData<NoScaleInfoImpl>>()
+                        .name("a")
+                        .type_name("PhantomData<T>")
+                })
+                .field(|f| f.ty::<u32>().name("b").type_name("T::A")),
+        );
+
+    assert_type!(SkipTypeParamsForTraitImpl<NoScaleInfoImpl>, ty);
 }
 
 #[rustversion::nightly]
