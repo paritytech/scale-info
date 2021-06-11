@@ -712,6 +712,37 @@ fn skip_type_params_with_associated_types() {
     assert_type!(SkipTypeParamsForTraitImpl<NoScaleInfoImpl>, ty);
 }
 
+#[test]
+fn skip_type_params_with_defaults() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(skip_type_params(T, U))]
+    struct SkipAllTypeParamsWithDefaults<T = (), U = ()> {
+        a: PhantomData<T>,
+        b: PhantomData<U>,
+    }
+
+    struct NoScaleInfoImpl;
+
+    let ty = Type::builder()
+        .path(Path::new("SkipAllTypeParamsWithDefaults", "derive"))
+        .composite(
+            Fields::named()
+                .field(|f| {
+                    f.ty::<PhantomData<NoScaleInfoImpl>>()
+                        .name("a")
+                        .type_name("PhantomData<T>")
+                })
+                .field(|f| {
+                    f.ty::<PhantomData<NoScaleInfoImpl>>()
+                        .name("b")
+                        .type_name("PhantomData<U>")
+                }),
+        );
+
+    assert_type!(SkipAllTypeParamsWithDefaults<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
+}
+
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {
