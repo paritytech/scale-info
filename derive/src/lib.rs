@@ -59,7 +59,9 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
-    let ast: DeriveInput = syn::parse2(input.clone())?;
+    let mut ast: DeriveInput = syn::parse2(input.clone())?;
+
+    utils::check_attributes(&ast)?;
 
     utils::check_attributes(&ast)?;
 
@@ -79,14 +81,23 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             ast.generics.type_params().into_iter().cloned().collect()
         };
 
-    let where_clause = trait_bounds::make_where_clause(
-        ident,
-        &ast.generics,
-        &type_params,
-        &ast.data,
-        &scale_info,
-        &parity_scale_codec,
-    )?;
+    let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
+    {
+        let where_clause = ast.generics.make_where_clause();
+        where_clause.predicates.extend(custom_bounds);
+        where_clause.clone()
+    } else {
+        trait_bounds::make_where_clause(
+            ident,
+            &ast.generics,
+            &type_params,
+            &ast.data,
+            &scale_info,
+            &parity_scale_codec,
+        )?
+    };
+
+    let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 

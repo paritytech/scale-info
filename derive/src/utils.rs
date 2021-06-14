@@ -60,6 +60,41 @@ pub fn get_doc_literals(attrs: &[syn::Attribute]) -> Vec<syn::Lit> {
 }
 
 /// Trait bounds.
+pub type TraitBounds = Punctuated<syn::WherePredicate, token::Comma>;
+
+/// Parse `name(T: Bound, N: Bound)` as a custom trait bound.
+struct CustomTraitBound<N> {
+    _name: N,
+    _paren_token: token::Paren,
+    bounds: TraitBounds,
+}
+
+impl<N: Parse> Parse for CustomTraitBound<N> {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let content;
+        let _name = input.parse()?;
+        let _paren_token = syn::parenthesized!(content in input);
+        let bounds = content.parse_terminated(syn::WherePredicate::parse)?;
+        Ok(Self {
+            _name,
+            _paren_token,
+            bounds,
+        })
+    }
+}
+
+syn::custom_keyword!(bounds);
+
+/// Look for a `#[scale_info(bounds(…))]`in the given attributes.
+///
+/// If found, use the given trait bounds when deriving the `TypeInfo` trait.
+pub fn custom_trait_bounds(attrs: &[Attribute]) -> Option<TraitBounds> {
+    scale_info_meta_item(attrs.iter(), |meta: CustomTraitBound<bounds>| {
+        Some(meta.bounds)
+    })
+}
+
+/// Trait bounds.
 pub type TypeParams = Punctuated<syn::TypeParam, token::Comma>;
 
 /// Parse `name(T, N)` as a custom trait bound.
@@ -210,7 +245,7 @@ pub fn check_attributes(input: &DeriveInput) -> syn::Result<()> {
 // Only `#[scale_info(bounds())]` is a valid top attribute.
 fn check_top_attribute(attr: &Attribute) -> syn::Result<()> {
     if attr.path.is_ident("scale_info") {
-        match attr.parse_args::<SkipTypeParams<skip_type_params>>() {
+        match attr.parse_args::<CustomTraitBound<bounds>>() {
             Ok(_) => Ok(()),
             Err(e) => Err(syn::Error::new(attr.span(), format!("Invalid attribute: {:?}. Only `#[scale_info(bounds(…))]` is a valid top attribute", e)))
         }
