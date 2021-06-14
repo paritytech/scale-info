@@ -72,10 +72,13 @@ struct CustomTraitBound<N> {
 impl<N: Parse> Parse for CustomTraitBound<N> {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let content;
+        let _name = input.parse()?;
+        let _paren_token = syn::parenthesized!(content in input);
+        let bounds = content.parse_terminated(syn::WherePredicate::parse)?;
         Ok(Self {
-            _name: input.parse()?,
-            _paren_token: syn::parenthesized!(content in input),
-            bounds: content.parse_terminated(syn::WherePredicate::parse)?,
+            _name,
+            _paren_token,
+            bounds,
         })
     }
 }
