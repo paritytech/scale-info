@@ -51,7 +51,7 @@ use syn::{
     Variant,
 };
 
-#[proc_macro_derive(TypeInfo)]
+#[proc_macro_derive(TypeInfo, attributes(scale_info))]
 pub fn type_info(input: TokenStream) -> TokenStream {
     match generate(input.into()) {
         Ok(output) => output.into(),
@@ -66,21 +66,31 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
-    let ast: DeriveInput = syn::parse2(input.clone())?;
+    let mut ast: DeriveInput = syn::parse2(input.clone())?;
+
+    utils::check_attributes(&ast)?;
 
     let scale_info = crate_name_ident("scale-info")?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
 
+    let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
+    {
+        let where_clause = ast.generics.make_where_clause();
+        where_clause.predicates.extend(custom_bounds);
+        where_clause.clone()
+    } else {
+        trait_bounds::make_where_clause(
+            ident,
+            &ast.generics,
+            &ast.data,
+            &scale_info,
+            &parity_scale_codec,
+        )?
+    };
+
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
-    let where_clause = trait_bounds::make_where_clause(
-        ident,
-        &ast.generics,
-        &ast.data,
-        &scale_info,
-        &parity_scale_codec,
-    )?;
 
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
