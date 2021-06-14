@@ -638,7 +638,7 @@ fn custom_bounds() {
         .composite(
             Fields::named()
                 .field(|f| f.ty::<Greet<SomeType>>().name("ciao").type_name("Greet<T>"))
-                .field(|f| f.ty::<u16>().name("ho").type_name("N"))
+                .field(|f| f.ty::<u16>().name("ho").type_name("N")),
         );
 
     assert_type!(Hey<SomeType, u16>, ty);

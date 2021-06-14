@@ -23,8 +23,8 @@ use alloc::{
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
-    parse_quote,
     parse::Parse,
+    parse_quote,
     punctuated::Punctuated,
     spanned::Spanned,
     token,
