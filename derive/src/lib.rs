@@ -63,41 +63,35 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     utils::check_attributes(&ast)?;
 
-    utils::check_attributes(&ast)?;
-
     let scale_info = crate_name_ident("scale-info")?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
 
-    let type_params: Vec<_> =
-        if let Some(skip_type_params) = utils::skipped_type_params(&ast.attrs) {
-            ast.generics
-                .type_params()
-                .filter(|tp| !skip_type_params.iter().any(|skip| skip.ident == tp.ident))
-                .cloned()
-                .collect()
-        } else {
-            ast.generics.type_params().into_iter().cloned().collect()
-        };
+    let mut type_params = ast.generics.type_params().into_iter().cloned().collect::<Vec<_>>();
 
     let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
     {
+        // remove type params which are not part of the custom where clause
+        let bound_type_idents = custom_bounds.bound_type_path_idents();
+        type_params.retain(|tp|
+            bound_type_idents.iter().any(|id| id == &tp.ident)
+        );
+
+        // todo: [AJ] add 'static bounds to skipped type params??? why do we need it?
+
         let where_clause = ast.generics.make_where_clause();
-        where_clause.predicates.extend(custom_bounds);
+        where_clause.predicates.extend(custom_bounds.bounds());
         where_clause.clone()
     } else {
         trait_bounds::make_where_clause(
             ident,
             &ast.generics,
-            &type_params,
             &ast.data,
             &scale_info,
             &parity_scale_codec,
         )?
     };
-
-    let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 

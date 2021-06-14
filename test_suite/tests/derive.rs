@@ -613,14 +613,14 @@ fn doc_capture_works() {
 fn skip_type_params_nested() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(skip_type_params(T))]
+    #[scale_info(bounds(U: TypeInfo + 'static))]
     struct SkipTypeParamsNested<T, U> {
         a: Nested<T>,
         b: U,
     }
 
     #[derive(TypeInfo)]
-    #[scale_info(skip_type_params(T))]
+    #[scale_info(bounds())]
     struct Nested<T> {
         marker: PhantomData<T>,
     }
@@ -647,7 +647,7 @@ fn skip_type_params_nested() {
 fn skip_all_type_params() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(skip_type_params(T, U))]
+    #[scale_info(bounds())]
     struct SkipAllTypeParams<T, U> {
         a: PhantomData<T>,
         b: PhantomData<U>,
@@ -682,7 +682,7 @@ fn skip_type_params_with_associated_types() {
 
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(skip_type_params(T, U))]
+    #[scale_info(bounds(T::A: TypeInfo + 'static))]
     struct SkipTypeParamsForTraitImpl<T>
     where
         T: Trait,
@@ -716,7 +716,7 @@ fn skip_type_params_with_associated_types() {
 fn skip_type_params_with_defaults() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(skip_type_params(T, U))]
+    #[scale_info(bounds())]
     struct SkipAllTypeParamsWithDefaults<T = (), U = ()> {
         a: PhantomData<T>,
         b: PhantomData<U>,
