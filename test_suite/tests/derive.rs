@@ -47,7 +47,10 @@ macro_rules! assert_type {
 fn struct_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
+    /// Type docs.
+    /// Multiline.
     struct S<T, U> {
+        /// Field docs.
         pub t: T,
         pub u: U,
     }
@@ -55,10 +58,16 @@ fn struct_derive() {
     let struct_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool, u8))
+        .docs(&["Type docs.", "Multiline."])
         .composite(
             Fields::named()
-                .field_of::<bool>("t", "T")
-                .field_of::<u8>("u", "U"),
+                .field(|f| {
+                    f.ty::<bool>()
+                        .name("t")
+                        .type_name("T")
+                        .docs(&["Field docs."])
+                })
+                .field(|f| f.ty::<u8>().name("u").type_name("U")),
         );
 
     assert_type!(S<bool, u8>, struct_type);
@@ -70,10 +79,16 @@ fn struct_derive() {
     let self_typed_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
+        .docs(&["Type docs.", "Multiline."])
         .composite(
             Fields::named()
-                .field_of::<Box<S<bool, u8>>>("t", "T")
-                .field_of::<bool>("u", "U"),
+                .field(|f| {
+                    f.ty::<Box<S<bool, u8>>>()
+                        .name("t")
+                        .type_name("T")
+                        .docs(&["Field docs."])
+                })
+                .field(|f| f.ty::<bool>().name("u").type_name("U")),
         );
     assert_type!(SelfTyped, self_typed_type);
 }
@@ -92,8 +107,12 @@ fn phantom_data_is_part_of_the_type_info() {
         .type_params(tuple_meta_type!(bool))
         .composite(
             Fields::named()
-                .field_of::<u8>("a", "u8")
-                .field_of::<PhantomData<bool>>("m", "PhantomData<T>"),
+                .field(|f| f.ty::<u8>().name("a").type_name("u8"))
+                .field(|f| {
+                    f.ty::<PhantomData<bool>>()
+                        .name("m")
+                        .type_name("PhantomData<T>")
+                }),
         );
 
     assert_type!(P<bool>, ty);
@@ -103,12 +122,20 @@ fn phantom_data_is_part_of_the_type_info() {
 fn tuple_struct_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    struct S<T>(T);
+    /// Type docs.
+    struct S<T>(
+        /// Unnamed field docs.
+        T,
+    );
 
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(tuple_meta_type!(bool))
-        .composite(Fields::unnamed().field_of::<bool>("T"));
+        .docs(&["Type docs."])
+        .composite(
+            Fields::unnamed()
+                .field(|f| f.ty::<bool>().type_name("T").docs(&["Unnamed field docs."])),
+        );
 
     assert_type!(S<bool>, ty);
 }
@@ -130,14 +157,24 @@ fn unit_struct_derive() {
 fn c_like_enum_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
+    /// Enum docs.
     enum E {
+        /// Unit variant.
         A,
+        /// Variant with discriminant.
         B = 10,
     }
 
     let ty = Type::builder()
         .path(Path::new("E", "derive"))
-        .variant(Variants::fieldless().variant("A", 0u64).variant("B", 10u64));
+        .docs(&["Enum docs."])
+        .variant(
+            Variants::new()
+                .variant("A", |v| v.discriminant(0).docs(&["Unit variant."]))
+                .variant("B", |v| {
+                    v.discriminant(10).docs(&["Variant with discriminant."])
+                }),
+        );
 
     assert_type!(E, ty);
 }
@@ -157,12 +194,12 @@ fn c_like_enum_derive_with_scale_index_set() {
     }
 
     let ty = Type::builder().path(Path::new("E", "derive")).variant(
-        Variants::fieldless()
-            .variant("A", 0)
-            .variant("B", 10)
-            .variant("C", 13)
-            .variant("D", 3)
-            .variant("E", 14),
+        Variants::new()
+            .variant("A", |v| v.discriminant(0))
+            .variant("B", |v| v.discriminant(10))
+            .variant("C", |v| v.discriminant(13))
+            .variant("D", |v| v.discriminant(3))
+            .variant("E", |v| v.discriminant(14)),
     );
 
     assert_type!(E, ty);
@@ -172,9 +209,59 @@ fn c_like_enum_derive_with_scale_index_set() {
 fn enum_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
+    /// Enum docs.
     enum E<T> {
+        /// Unnamed fields variant.
+        A(
+            /// Unnamed field.
+            T,
+        ),
+        /// Named fields variant.
+        B {
+            /// Named field.
+            b: T,
+        },
+        /// Unit variant.
+        C,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("E", "derive"))
+        .type_params(tuple_meta_type!(bool))
+        .docs(&["Enum docs."])
+        .variant(
+            Variants::new()
+                .variant("A", |v| {
+                    v.fields(Fields::unnamed().field(|f| {
+                        f.ty::<bool>().type_name("T").docs(&["Unnamed field."])
+                    }))
+                    .docs(&["Unnamed fields variant."])
+                })
+                .variant("B", |v| {
+                    v.fields(Fields::named().field(|f| {
+                        f.ty::<bool>()
+                            .name("b")
+                            .type_name("T")
+                            .docs(&["Named field."])
+                    }))
+                    .docs(&["Named fields variant."])
+                })
+                .variant("C", |v| v.docs(&["Unit variant."])),
+        );
+
+    assert_type!(E<bool>, ty);
+}
+
+#[test]
+fn enum_derive_with_codec_index() {
+    #[allow(unused)]
+    #[derive(TypeInfo, Encode)]
+    enum E<T> {
+        #[codec(index = 5)]
         A(T),
+        #[codec(index = 0)]
         B { b: T },
+        #[codec(index = 13)]
         C,
     }
 
@@ -182,10 +269,19 @@ fn enum_derive() {
         .path(Path::new("E", "derive"))
         .type_params(tuple_meta_type!(bool))
         .variant(
-            Variants::with_fields()
-                .variant("A", Fields::unnamed().field_of::<bool>("T"))
-                .variant("B", Fields::named().field_of::<bool>("b", "T"))
-                .variant_unit("C"),
+            Variants::new()
+                .variant("A", |v| {
+                    v.index(5).fields(
+                        Fields::unnamed().field(|f| f.ty::<bool>().type_name("T")),
+                    )
+                })
+                .variant("B", |v| {
+                    v.index(0).fields(
+                        Fields::named()
+                            .field(|f| f.ty::<bool>().name("b").type_name("T")),
+                    )
+                })
+                .variant("C", |v| v.index(13)),
         );
 
     assert_type!(E<bool>, ty);
@@ -201,14 +297,24 @@ fn recursive_type_derive() {
     }
 
     let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
-        Variants::with_fields()
-            .variant("Leaf", Fields::named().field_of::<i32>("value", "i32"))
-            .variant(
-                "Node",
-                Fields::named()
-                    .field_of::<Box<Tree>>("right", "Box<Tree>")
-                    .field_of::<Box<Tree>>("left", "Box<Tree>"),
-            ),
+        Variants::new()
+            .variant("Leaf", |v| {
+                v.fields(
+                    Fields::named()
+                        .field(|f| f.ty::<i32>().name("value").type_name("i32")),
+                )
+            })
+            .variant("Node", |v| {
+                v.fields(
+                    Fields::named()
+                        .field(|f| {
+                            f.ty::<Box<Tree>>().name("right").type_name("Box<Tree>")
+                        })
+                        .field(|f| {
+                            f.ty::<Box<Tree>>().name("left").type_name("Box<Tree>")
+                        }),
+                )
+            }),
     );
 
     assert_type!(Tree, ty);
@@ -224,9 +330,9 @@ fn fields_with_type_alias() {
         a: BoolAlias,
     }
 
-    let ty = Type::builder()
-        .path(Path::new("S", "derive"))
-        .composite(Fields::named().field_of::<BoolAlias>("a", "BoolAlias"));
+    let ty = Type::builder().path(Path::new("S", "derive")).composite(
+        Fields::named().field(|f| f.ty::<BoolAlias>().name("a").type_name("BoolAlias")),
+    );
 
     assert_type!(S, ty);
 }
@@ -254,8 +360,8 @@ fn associated_types_derive_without_bounds() {
         .type_params(tuple_meta_type!(ConcreteTypes))
         .composite(
             Fields::named()
-                .field_of::<bool>("a", "T::A")
-                .field_of::<u64>("b", "&'static u64"),
+                .field(|f| f.ty::<bool>().name("a").type_name("T::A"))
+                .field(|f| f.ty::<u64>().name("b").type_name("&'static u64")),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
@@ -286,10 +392,10 @@ fn associated_types_named_like_the_derived_type_works() {
         .type_params(tuple_meta_type!(ConcreteTypes))
         .composite(
             Fields::named()
-                .field_of::<Vec<bool>>("a", "Vec<T::Assoc>")
-                .field_of::<Vec<bool>>("b", "Vec<<T>::Assoc>")
-                .field_of::<bool>("c", "T::Assoc")
-                .field_of::<bool>("d", "<T>::Assoc"),
+                .field(|f| f.ty::<Vec<bool>>().name("a").type_name("Vec<T::Assoc>"))
+                .field(|f| f.ty::<Vec<bool>>().name("b").type_name("Vec<<T>::Assoc>"))
+                .field(|f| f.ty::<bool>().name("c").type_name("T::Assoc"))
+                .field(|f| f.ty::<bool>().name("d").type_name("<T>::Assoc")),
         );
 
     assert_type!(Assoc<ConcreteTypes>, struct_type);
@@ -309,8 +415,8 @@ fn scale_compact_types_work_in_structs() {
         .path(Path::new("Dense", "derive"))
         .composite(
             Fields::named()
-                .field_of::<u8>("a", "u8")
-                .compact_of::<u16>("b", "u16"),
+                .field(|f| f.ty::<u8>().name("a").type_name("u8"))
+                .field(|f| f.compact::<u16>().name("b").type_name("u16")),
         );
     assert_type!(Dense, ty_alt);
 }
@@ -329,13 +435,24 @@ fn scale_compact_types_work_in_enums() {
         .path(Path::new("MutilatedMultiAddress", "derive"))
         .type_params(tuple_meta_type!(u8, u16))
         .variant(
-            Variants::with_fields()
-                .variant("Id", Fields::unnamed().field_of::<u8>("AccountId"))
-                .variant("Index", Fields::unnamed().compact_of::<u16>("AccountIndex"))
-                .variant(
-                    "Address32",
-                    Fields::unnamed().field_of::<[u8; 32]>("[u8; 32]"),
-                ),
+            Variants::new()
+                .variant("Id", |v| {
+                    v.fields(
+                        Fields::unnamed().field(|f| f.ty::<u8>().type_name("AccountId")),
+                    )
+                })
+                .variant("Index", |v| {
+                    v.fields(
+                        Fields::unnamed()
+                            .field(|f| f.compact::<u16>().type_name("AccountIndex")),
+                    )
+                })
+                .variant("Address32", |v| {
+                    v.fields(
+                        Fields::unnamed()
+                            .field(|f| f.ty::<[u8; 32]>().type_name("[u8; 32]")),
+                    )
+                }),
         );
 
     assert_type!(MutilatedMultiAddress<u8, u16>, ty);
@@ -356,8 +473,8 @@ fn struct_fields_marked_scale_skip_are_skipped() {
         .path(Path::new("Skippy", "derive"))
         .composite(
             Fields::named()
-                .field_of::<u8>("a", "u8")
-                .field_of::<u32>("c", "u32"),
+                .field(|f| f.ty::<u8>().name("a").type_name("u8"))
+                .field(|f| f.ty::<u32>().name("c").type_name("u32")),
         );
     assert_type!(Skippy, ty);
 }
@@ -373,9 +490,11 @@ fn enum_variants_marked_scale_skip_are_skipped() {
         C,
     }
 
-    let ty = Type::builder()
-        .path(Path::new("Skippy", "derive"))
-        .variant(Variants::fieldless().variant("A", 0).variant("C", 2));
+    let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
+        Variants::new()
+            .variant("A", |v| v.discriminant(0))
+            .variant("C", |v| v.discriminant(2)),
+    );
     assert_type!(Skippy, ty);
 }
 
@@ -395,9 +514,15 @@ fn enum_variants_with_fields_marked_scale_skip_are_skipped() {
     }
 
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
-        Variants::with_fields()
-            .variant("Bajs", Fields::named().field_of::<bool>("b", "bool"))
-            .variant("Coo", Fields::unnamed().field_of::<bool>("bool")),
+        Variants::new()
+            .variant("Bajs", |v| {
+                v.fields(
+                    Fields::named().field(|f| f.ty::<bool>().name("b").type_name("bool")),
+                )
+            })
+            .variant("Coo", |v| {
+                v.fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
+            }),
     );
     assert_type!(Skippy, ty);
 }
@@ -422,7 +547,9 @@ fn type_parameters_with_default_bound_works() {
     let ty = Type::builder()
         .path(Path::new("Bat", "derive"))
         .type_params(tuple_meta_type!(MetaFormy))
-        .composite(Fields::named().field_of::<MetaFormy>("one", "TTT"));
+        .composite(
+            Fields::named().field(|f| f.ty::<MetaFormy>().name("one").type_name("TTT")),
+        );
 
     assert_type!(Bat<MetaFormy>, ty);
 }
@@ -435,11 +562,51 @@ fn whitespace_scrubbing_works() {
         a: (u8, (bool, u8)),
     }
 
-    let ty = Type::builder()
-        .path(Path::new("A", "derive"))
-        .composite(Fields::named().field_of::<(u8, (bool, u8))>("a", "(u8, (bool, u8))"));
+    let ty =
+        Type::builder()
+            .path(Path::new("A", "derive"))
+            .composite(Fields::named().field(|f| {
+                f.ty::<(u8, (bool, u8))>()
+                    .name("a")
+                    .type_name("(u8, (bool, u8))")
+            }));
 
     assert_type!(A, ty);
+}
+
+#[test]
+fn doc_capture_works() {
+    //! Que pasa
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[doc(hidden)]
+    struct S {
+        #[doc = " Field a"]
+        a: bool,
+        #[doc(primitive)]
+        b: u8,
+        ///     Indented
+        c: u16,
+    }
+
+    let ty = Type::builder().path(Path::new("S", "derive")).composite(
+        Fields::named()
+            .field(|f| {
+                f.ty::<bool>()
+                    .name("a")
+                    .type_name("bool")
+                    .docs(&["Field a"])
+            })
+            .field(|f| f.ty::<u8>().name("b").type_name("u8").docs(&[]))
+            .field(|f| {
+                f.ty::<u16>()
+                    .name("c")
+                    .type_name("u16")
+                    .docs(&["    Indented"])
+            }),
+    );
+
+    assert_type!(S, ty);
 }
 
 #[test]
@@ -470,8 +637,8 @@ fn custom_bounds() {
         .type_params(tuple_meta_type!(SomeType, u16))
         .composite(
             Fields::named()
-                .field_of::<Greet<SomeType>>("ciao", "Greet<T>")
-                .field_of::<u16>("ho", "N"),
+                .field(|f| f.ty::<Greet<SomeType>>().name("ciao").type_name("Greet<T>"))
+                .field(|f| f.ty::<u16>().name("ho").type_name("N"))
         );
 
     assert_type!(Hey<SomeType, u16>, ty);

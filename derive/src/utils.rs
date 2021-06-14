@@ -16,9 +16,14 @@
 //!
 //! NOTE: The code here is copied verbatim from `parity-scale-codec-derive`.
 
+use alloc::{
+    string::ToString,
+    vec::Vec,
+};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
+    parse_quote,
     parse::Parse,
     punctuated::Punctuated,
     spanned::Spanned,
@@ -31,6 +36,28 @@ use syn::{
     NestedMeta,
     Variant,
 };
+
+/// Return all doc attributes literals found.
+pub fn get_doc_literals(attrs: &[syn::Attribute]) -> Vec<syn::Lit> {
+    attrs
+        .iter()
+        .filter_map(|attr| {
+            if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
+                if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
+                    let lit = &meta.lit;
+                    let doc_lit = quote!(#lit).to_string();
+                    let trimmed_doc_lit =
+                        doc_lit.trim_start_matches(r#"" "#).trim_end_matches('"');
+                    Some(parse_quote!(#trimmed_doc_lit))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect()
+}
 
 /// Trait bounds.
 pub type TraitBounds = Punctuated<syn::WherePredicate, token::Comma>;
@@ -67,8 +94,26 @@ pub fn custom_trait_bounds(attrs: &[Attribute]) -> Option<TraitBounds> {
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
 /// is found, fall back to the discriminant or just the variant index.
 pub fn variant_index(v: &Variant, i: usize) -> TokenStream {
-    // first look for an attribute
-    let index = codec_meta_item(v.attrs.iter(), |meta| {
+    // first look for an `index` attribute…
+    let index = maybe_index(v);
+    // …then fallback to discriminant or just index
+    index.map(|i| quote! { #i }).unwrap_or_else(|| {
+        v.discriminant
+            .as_ref()
+            .map(|&(_, ref expr)| quote! { #expr })
+            .unwrap_or_else(|| quote! { #i })
+    })
+}
+
+/// Look for a `#[codec(index = $int)]` outer attribute on a variant.
+/// If found, it is expected to be a parseable as a `u8` (panics otherwise).
+pub fn maybe_index(variant: &Variant) -> Option<u8> {
+    let outer_attrs = variant
+        .attrs
+        .iter()
+        .filter(|attr| attr.style == AttrStyle::Outer);
+
+    codec_meta_item(outer_attrs, |meta| {
         if let NestedMeta::Meta(Meta::NameValue(ref nv)) = meta {
             if nv.path.is_ident("index") {
                 if let Lit::Int(ref v) = nv.lit {
@@ -81,14 +126,6 @@ pub fn variant_index(v: &Variant, i: usize) -> TokenStream {
         }
 
         None
-    });
-
-    // then fallback to discriminant or just index
-    index.map(|i| quote! { #i }).unwrap_or_else(|| {
-        v.discriminant
-            .as_ref()
-            .map(|&(_, ref expr)| quote! { #expr })
-            .unwrap_or_else(|| quote! { #i })
     })
 }
 

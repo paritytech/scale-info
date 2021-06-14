@@ -104,13 +104,16 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         Data::Enum(ref e) => generate_variant_type(e, &scale_info),
         Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
     };
+    let docs = utils::get_doc_literals(&ast.attrs);
+
     let type_info_impl = quote! {
         impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()
-                    .path(:: #scale_info ::Path::new(stringify!(#ident), module_path!()))
+                    .path(:: #scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
                     .type_params(:: #scale_info ::prelude::vec![ #( #generic_type_ids ),* ])
+                    .docs(&[ #( #docs ),* ])
                     .#build_type
             }
         }
@@ -157,16 +160,25 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             StaticLifetimesReplace.visit_type_mut(&mut ty);
 
             let type_name = clean_type_string(&quote!(#ty).to_string());
-            let method_call = if utils::is_compact(f) {
-                quote!(.compact_of::<#ty>)
+            let docs = utils::get_doc_literals(&f.attrs);
+            let type_of_method = if utils::is_compact(f) {
+                quote!(compact)
             } else {
-                quote!(.field_of::<#ty>)
+                quote!(ty)
             };
-            if let Some(ident) = ident {
-                quote!(#method_call(stringify!(#ident), #type_name))
+            let name = if let Some(ident) = ident {
+                quote!(.name(::core::stringify!(#ident)))
             } else {
-                quote!(#method_call(#type_name))
-            }
+                quote!()
+            };
+            quote!(
+                .field(|f| f
+                    .#type_of_method::<#ty>()
+                    #name
+                    .type_name(#type_name)
+                    .docs(&[ #( #docs ),* ])
+                )
+            )
         })
         .collect()
 }
@@ -222,13 +234,18 @@ fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> Token
         .map(|(i, v)| {
             let name = &v.ident;
             let discriminant = utils::variant_index(v, i);
+            let docs = utils::get_doc_literals(&v.attrs);
             quote! {
-                .variant(stringify!(#name), #discriminant as u64)
+                .variant(::core::stringify!(#name), |v|
+                    v
+                        .discriminant(#discriminant as ::core::primitive::u64)
+                        .docs(&[ #( #docs ),* ])
+                )
             }
         });
     quote! {
         variant(
-            :: #scale_info ::build::Variants::fieldless()
+            :: #scale_info ::build::Variants::new()
                 #( #variants )*
         )
     }
@@ -244,7 +261,7 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStream2 {
     let variants = &data_enum.variants;
 
-    if is_c_like_enum(&variants) {
+    if is_c_like_enum(variants) {
         return generate_c_like_enum_def(variants, scale_info)
     }
 
@@ -253,39 +270,45 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
         .filter(|v| !utils::should_skip(&v.attrs))
         .map(|v| {
             let ident = &v.ident;
-            let v_name = quote! {stringify!(#ident) };
-            match v.fields {
+            let v_name = quote! {::core::stringify!(#ident) };
+            let docs = utils::get_doc_literals(&v.attrs);
+            let index = utils::maybe_index(v).map(|i| quote!(.index(#i)));
+
+            let fields = match v.fields {
                 Fields::Named(ref fs) => {
                     let fields = generate_fields(&fs.named);
                     quote! {
-                        .variant(
-                            #v_name,
-                            :: #scale_info::build::Fields::named()
-                                #( #fields)*
-                        )
+                        :: #scale_info::build::Fields::named()
+                            #( #fields )*
                     }
                 }
                 Fields::Unnamed(ref fs) => {
                     let fields = generate_fields(&fs.unnamed);
                     quote! {
-                        .variant(
-                            #v_name,
-                            :: #scale_info::build::Fields::unnamed()
-                                #( #fields)*
-                        )
+                        :: #scale_info::build::Fields::unnamed()
+                            #( #fields )*
                     }
                 }
                 Fields::Unit => {
                     quote! {
-                        .variant_unit(#v_name)
+                        :: #scale_info::build::Fields::unit()
                     }
                 }
+            };
+
+            quote! {
+                .variant(#v_name, |v|
+                    v
+                        .fields(#fields)
+                        .docs(&[ #( #docs ),* ])
+                        #index
+                )
             }
         });
     quote! {
         variant(
-            :: #scale_info ::build::Variants::with_fields()
-                #( #variants)*
+            :: #scale_info ::build::Variants::new()
+                #( #variants )*
         )
     }
 }
