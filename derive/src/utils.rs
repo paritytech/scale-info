@@ -114,9 +114,7 @@ syn::custom_keyword!(bounds);
 ///
 /// If found, use the given trait bounds when deriving the `TypeInfo` trait.
 pub fn custom_trait_bounds(attrs: &[Attribute]) -> Option<CustomTraitBound<bounds>> {
-    scale_info_meta_item(attrs.iter(), |meta: CustomTraitBound<bounds>| {
-        Some(meta)
-    })
+    scale_info_meta_item(attrs.iter(), |meta: CustomTraitBound<bounds>| Some(meta))
 }
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute

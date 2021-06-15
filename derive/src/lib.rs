@@ -68,7 +68,12 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let ident = &ast.ident;
 
-    let mut type_params = ast.generics.type_params().into_iter().cloned().collect::<Vec<_>>();
+    let mut type_params = ast
+        .generics
+        .type_params()
+        .into_iter()
+        .cloned()
+        .collect::<Vec<_>>();
 
     let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
     {
@@ -82,9 +87,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
         // remove type params which are not part of the custom where clause
         let bound_type_idents = custom_bounds.bound_type_path_idents();
-        type_params.retain(|tp|
-            bound_type_idents.iter().any(|id| id == &tp.ident)
-        );
+        type_params.retain(|tp| bound_type_idents.iter().any(|id| id == &tp.ident));
 
         where_clause.predicates.extend(custom_bounds.bounds());
         where_clause.clone()
