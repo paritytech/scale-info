@@ -72,15 +72,20 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
     {
+        let where_clause = ast.generics.make_where_clause();
+
+        // add the required 'static bound to all type params
+        for tp in &type_params {
+            let ident = &tp.ident;
+            where_clause.predicates.push(parse_quote!(#ident: 'static))
+        }
+
         // remove type params which are not part of the custom where clause
         let bound_type_idents = custom_bounds.bound_type_path_idents();
         type_params.retain(|tp|
             bound_type_idents.iter().any(|id| id == &tp.ident)
         );
 
-        // todo: [AJ] add 'static bounds to skipped type params??? why do we need it?
-
-        let where_clause = ast.generics.make_where_clause();
         where_clause.predicates.extend(custom_bounds.bounds());
         where_clause.clone()
     } else {
