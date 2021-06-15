@@ -15,6 +15,7 @@
 extern crate alloc;
 extern crate proc_macro;
 
+mod attr;
 mod trait_bounds;
 mod utils;
 
