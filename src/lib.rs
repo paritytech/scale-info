@@ -35,6 +35,57 @@
 //! This trait should be implemented for all types that are serializable.
 //! `scale-info` provides implementations for all commonly used Rust standard
 //! types and a derive macro for implementing of custom types.
+//! 
+//! ## Deriving `TypeInfo`
+//!
+//! Enable the `derive` feature of this crate:
+//!
+//! ```toml
+//! scale-info = { version = "0.6.0", features = ["derive"] }
+//! ```
+//!
+//! ```ignore
+//! use scale_info::TypeInfo;
+//! 
+//! #[derive(TypeInfo)]
+//! struct MyStruct {
+//!     a: u32,
+//!     b: MyEnum,
+//! }
+//!
+//! #[derive(TypeInfo)]
+//! enum MyEnum {
+//!     A(bool),
+//!     B { f: Vec<u8> },
+//!     C,
+//! }
+//! ```
+//!
+//! ### Custom bounds
+//!
+//! The derive macro automatically adds `TypeInfo` bounds for all type parameters, and all field
+//! types containing type parameters or associated types.
+//!
+//! Sometimes this naive implementation adds bounds where they are not required,
+//!
+//! This has to be naive and add some unnecessary bounds, since on a syntactical level there is no
+//! way to differentiate between a generic type constructor and a type alias with a generic argument e.g.
+//!
+//! ```ignore
+//! trait MyTrait {
+//!     type A;
+//! }
+//!
+//! type MyAlias<T> = <T as MyTrait>::A;
+//!
+//! #[derive(TypeInfo)]
+//! struct MyStruct<T> {
+//!     a: MyAlias<T>,
+//!     b: PhantomData<T>,
+//! }
+//! ```
+//!
+//! So for the above, since we require `MyTrait::A` to implement
 //!
 //! # Forms
 //!
