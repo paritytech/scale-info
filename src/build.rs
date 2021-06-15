@@ -363,12 +363,11 @@ impl<N> FieldBuilder<N, field_state::TypeNotAssigned> {
     /// Initializes the type of the field as a compact type.
     pub fn compact<TY>(self) -> FieldBuilder<N, field_state::TypeAssigned>
     where
-        TY: scale::HasCompact,
-        <TY as scale::HasCompact>::Type: TypeInfo + 'static,
+        TY: scale::HasCompact + TypeInfo + 'static,
     {
         FieldBuilder {
             name: self.name,
-            ty: Some(MetaType::new::<<TY as scale::HasCompact>::Type>()),
+            ty: Some(MetaType::new::<scale::Compact<TY>>()),
             type_name: self.type_name,
             docs: self.docs,
             marker: PhantomData,
