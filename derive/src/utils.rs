@@ -63,7 +63,7 @@ pub fn get_doc_literals(attrs: &[syn::Attribute]) -> Vec<syn::Lit> {
 pub type TraitBounds = Punctuated<syn::WherePredicate, token::Comma>;
 
 /// Parse `name(T: Bound, N: Bound)` as a custom trait bound.
-pub struct CustomTraitBound<N> {
+struct CustomTraitBound<N> {
     _name: N,
     _paren_token: token::Paren,
     bounds: TraitBounds,
@@ -83,38 +83,50 @@ impl<N: Parse> Parse for CustomTraitBound<N> {
     }
 }
 
-impl<N: Parse> CustomTraitBound<N> {
-    /// Returns all bound types which consist of a single non-parameterized path, which includes
-    /// the generic type parameters e.g. the `T` in `T: TypeInfo`.
-    pub fn bound_type_path_idents(&self) -> Vec<syn::Ident> {
-        self.bounds
-            .iter()
-            .filter_map(|bound| {
-                if let syn::WherePredicate::Type(ty) = bound {
-                    if let syn::Type::Path(ref path) = ty.bounded_ty {
-                        path.path.get_ident().cloned()
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
-
-    pub fn bounds(self) -> TraitBounds {
-        self.bounds
-    }
-}
-
 syn::custom_keyword!(bounds);
 
 /// Look for a `#[scale_info(bounds(…))]`in the given attributes.
 ///
 /// If found, use the given trait bounds when deriving the `TypeInfo` trait.
-pub fn custom_trait_bounds(attrs: &[Attribute]) -> Option<CustomTraitBound<bounds>> {
-    scale_info_meta_item(attrs.iter(), Some)
+pub fn custom_trait_bounds(attrs: &[Attribute]) -> Option<TraitBounds> {
+    scale_info_meta_item(attrs.iter(), |meta: CustomTraitBound<bounds>| {
+        Some(meta.bounds)
+    })
+}
+
+/// Trait bounds.
+pub type TypeParams = Punctuated<syn::TypeParam, token::Comma>;
+
+/// Parse `name(T, N)` as a custom trait bound.
+struct SkipTypeParams<N> {
+    _name: N,
+    _paren_token: token::Paren,
+    params: TypeParams,
+}
+
+impl<N: Parse> Parse for SkipTypeParams<N> {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let content;
+        let _name = input.parse()?;
+        let _paren_token = syn::parenthesized!(content in input);
+        let params = content.parse_terminated(syn::TypeParam::parse)?;
+        Ok(Self {
+            _name,
+            _paren_token,
+            params,
+        })
+    }
+}
+
+syn::custom_keyword!(skip_type_params);
+
+/// Look for a `#[scale_info(skip_type_params(…))]`in the given attributes.
+///
+/// If found, do not register the given type params or require `TypeInfo` bounds for them.
+pub fn skipped_type_params(attrs: &[Attribute]) -> Option<TypeParams> {
+    scale_info_meta_item(attrs.iter(), |meta: SkipTypeParams<skip_type_params>| {
+        Some(meta.params)
+    })
 }
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
