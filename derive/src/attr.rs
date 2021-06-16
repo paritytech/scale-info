@@ -34,6 +34,21 @@ pub struct ScaleInfoAttrList {
 }
 
 impl ScaleInfoAttrList {
+    pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
+        let mut attrs = Punctuated::new();
+        for attr in &item.attrs {
+            if !attr.path.is_ident(SCALE_INFO) {
+                continue
+            }
+            let scale_info_attr_list = attr.parse_args_with(ScaleInfoAttrList::parse)?;
+            for scale_info_attr in scale_info_attr_list.attrs {
+                attrs.push(scale_info_attr);
+            }
+        }
+        // todo: [AJ] check for duplicates
+        Ok(Self { attrs })
+    }
+
     pub fn bounds(&self) -> Option<&BoundsAttr> {
         self.attrs.iter().find_map(|attr| {
             match attr {
@@ -117,22 +132,5 @@ impl Parse for ScaleInfoAttr {
         } else {
             Err(input.error("Expected either `bounds` or `skip_type_params`"))
         }
-    }
-}
-
-impl ScaleInfoAttrList {
-    pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
-        let mut attrs = Punctuated::new();
-        for attr in &item.attrs {
-            if !attr.path.is_ident(SCALE_INFO) {
-                continue
-            }
-            let scale_info_attr_list = attr.parse_args_with(ScaleInfoAttrList::parse)?;
-            for scale_info_attr in scale_info_attr_list.attrs {
-                attrs.push(scale_info_attr);
-            }
-        }
-        // todo: [AJ] check for duplicates
-        Ok(Self { attrs })
     }
 }
