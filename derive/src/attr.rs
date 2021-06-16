@@ -48,15 +48,8 @@ impl ScaleInfoAttrList {
 
 impl Parse for ScaleInfoAttrList {
     fn parse(input: &ParseBuffer) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(keywords::scale_info) {
-            let content;
-            syn::parenthesized!(content in input);
-            let attrs = content.parse_terminated(ScaleInfoAttr::parse)?;
-            Ok(Self { attrs })
-        } else {
-            Err(input.error("Expected a `#[scale_info(..)]` attribute"))
-        }
+        let attrs = input.parse_terminated(ScaleInfoAttr::parse)?;
+        Ok(Self { attrs })
     }
 }
 
