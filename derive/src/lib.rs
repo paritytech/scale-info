@@ -91,11 +91,13 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
                     .map(|skip| skip.skip(type_param))
                     .unwrap_or(false);
                 if !type_param_skipped {
-                    return Err(syn::Error::new(type_param.span(),
-                                          format!("Type parameter requires a `TypeInfo` bound, so either: \
-                                            add it to `#[scale_info(bounds({}: TypeInfo))]`, \
-                                            or skip it with `#[scale_info(skip_type_params({}))]`", type_param.ident, type_param.ident)))
-
+                    let msg = format!(
+                        "Type parameter requires a `TypeInfo` bound, so either: \
+                        add it to `#[scale_info(bounds({}: TypeInfo))]`, \
+                        or skip it with `#[scale_info(skip_type_params({}))]`",
+                        type_param.ident, type_param.ident
+                    );
+                    return Err(syn::Error::new(type_param.span(), msg))
                 }
             }
         }

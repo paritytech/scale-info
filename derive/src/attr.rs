@@ -127,7 +127,7 @@ impl BoundsAttr {
 
     /// Returns true if the given type parameter appears in the custom bounds attribute.
     pub fn contains_type_param(&self, type_param: &syn::TypeParam) -> bool {
-        self.predicates.iter().any(|p|
+        self.predicates.iter().any(|p| {
             if let syn::WherePredicate::Type(ty) = p {
                 if let syn::Type::Path(ref path) = ty.bounded_ty {
                     path.path.get_ident() == Some(&type_param.ident)
@@ -137,7 +137,7 @@ impl BoundsAttr {
             } else {
                 false
             }
-        )
+        })
     }
 }
 
