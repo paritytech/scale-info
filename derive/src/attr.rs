@@ -124,6 +124,21 @@ impl BoundsAttr {
     pub fn extend_where_clause(&self, where_clause: &mut syn::WhereClause) {
         where_clause.predicates.extend(self.predicates.clone());
     }
+
+    /// Returns true if the given type parameter appears in the custom bounds attribute.
+    pub fn contains_type_param(&self, type_param: &syn::TypeParam) -> bool {
+        self.predicates.iter().any(|p|
+            if let syn::WherePredicate::Type(ty) = p {
+                if let syn::Type::Path(ref path) = ty.bounded_ty {
+                    path.path.get_ident() == Some(&type_param.ident)
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+        )
+    }
 }
 
 /// Parsed representation of the `#[scale_info(skip_type_params(...))]` attribute.

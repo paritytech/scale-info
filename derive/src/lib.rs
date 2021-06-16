@@ -44,6 +44,7 @@ use syn::{
     Lifetime,
     Variant,
 };
+use syn::spanned::Spanned;
 
 #[proc_macro_derive(TypeInfo, attributes(scale_info))]
 pub fn type_info(input: TokenStream) -> TokenStream {
@@ -69,15 +70,36 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let ident = &ast.ident;
 
-    let type_params: Vec<_> = if let Some(skip_type_params) = attrs.skip_type_params() {
-        ast.generics
-            .type_params()
-            .filter(|tp| !skip_type_params.skip(tp))
-            .cloned()
-            .collect()
-    } else {
-        ast.generics.type_params().into_iter().cloned().collect()
-    };
+    let type_params: Vec<_> = ast
+        .generics
+        .type_params()
+        .filter(|tp| {
+            attrs
+                .skip_type_params()
+                .map(|skip| !skip.skip(tp))
+                .unwrap_or(true)
+        })
+        .cloned()
+        .collect();
+
+    // validate type params which do not appear in custom bounds but are not skipped.
+    if let Some(bounds) = attrs.bounds() {
+        for type_param in ast.generics.type_params() {
+            if !bounds.contains_type_param(type_param) {
+                let type_param_skipped = attrs
+                    .skip_type_params()
+                    .map(|skip| skip.skip(type_param))
+                    .unwrap_or(false);
+                if !type_param_skipped {
+                    return Err(syn::Error::new(type_param.span(),
+                                          format!("Type parameter requires a `TypeInfo` bound, so either: \
+                                            add it to `#[scale_info(bounds({}: TypeInfo))]`, \
+                                            or skip it with `#[scale_info(skip_type_params({}))]`", type_param.ident, type_param.ident)))
+
+                }
+            }
+        }
+    }
 
     let where_clause = trait_bounds::make_where_clause(
         &attrs,

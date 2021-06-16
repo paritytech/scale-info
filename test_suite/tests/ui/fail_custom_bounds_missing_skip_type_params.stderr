@@ -1,0 +1,15 @@
+error[E0277]: the trait bound `T: TypeInfo` is not satisfied
+   --> $DIR/fail_custom_bounds_missing_skip_type_params.rs:6:10
+    |
+6   | struct A<T> {
+    |          ^ the trait `TypeInfo` is not implemented for `T`
+    |
+   ::: $WORKSPACE/src/lib.rs
+    |
+    |     T: ?Sized + TypeInfo + 'static,
+    |                 -------- required by this bound in `meta_type`
+    |
+help: consider further restricting this bound
+    |
+4   | #[derive(TypeInfo + scale_info::TypeInfo)]
+    |                   ^^^^^^^^^^^^^^^^^^^^^^
