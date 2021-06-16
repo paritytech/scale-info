@@ -613,6 +613,6 @@ fn doc_capture_works() {
 #[test]
 fn ui_tests() {
     let t = trybuild::TestCases::new();
-    t.compile_fail("tests/ui/fail_*");
+    t.compile_fail("tests/ui/fail_*.rs");
     t.pass("tests/ui/pass_*");
 }
