@@ -59,6 +59,14 @@ pub fn make_where_clause<'a>(
     // Use custom bounds as where clause.
     if let Some(custom_bounds) = attrs.bounds() {
         custom_bounds.extend_where_clause(&mut where_clause);
+
+        // `'static` lifetime bounds are always required for type parameters, because of the
+        // requirement on `std::any::TypeId::of` for any field type constructor.
+        for type_param in generics.type_params() {
+            let ident = &type_param.ident;
+            where_clause.predicates.push(parse_quote!(#ident: 'static))
+        }
+
         return Ok(where_clause)
     }
 
@@ -80,8 +88,6 @@ pub fn make_where_clause<'a>(
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
 
     types.into_iter().for_each(|(ty, is_compact)| {
-        // Compact types need extra bounds, T: HasCompact and <T as
-        // HasCompact>::Type: TypeInfo + 'static
         if is_compact {
             where_clause
                 .predicates
