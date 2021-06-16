@@ -30,7 +30,7 @@ use syn::{
     WhereClause,
 };
 
-use crate::utils;
+use crate::{utils, attr::ScaleInfoAttrList};
 
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
@@ -38,6 +38,7 @@ use crate::utils;
 ///
 /// Ignores any type parameters not included in `type_params`.
 pub fn make_where_clause<'a>(
+    attrs: &'a ScaleInfoAttrList,
     input_ident: &'a Ident,
     generics: &'a Generics,
     type_params: &[TypeParam],
@@ -51,6 +52,13 @@ pub fn make_where_clause<'a>(
             predicates: Punctuated::new(),
         }
     });
+
+    // Use custom bounds as where clause.
+    if let Some(custom_bounds) = attrs.bounds() {
+        custom_bounds.extend_where_clause(&mut where_clause);
+        return Ok(where_clause)
+    }
+
     for lifetime in generics.lifetimes() {
         where_clause
             .predicates

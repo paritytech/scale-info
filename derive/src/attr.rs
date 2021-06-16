@@ -76,7 +76,7 @@ impl Parse for ScaleInfoAttrList {
 }
 
 pub struct BoundsAttr {
-    pub predicates: Punctuated<syn::WherePredicate, Token![,]>,
+    predicates: Punctuated<syn::WherePredicate, Token![,]>,
 }
 
 impl Parse for BoundsAttr {
@@ -90,9 +90,11 @@ impl Parse for BoundsAttr {
 }
 
 impl BoundsAttr {
-    // pub fn predicates(&self) -> syn::punctuated::Pairs<syn::WherePredicate, Token![,]> {
-    //     self.predicates.pairs()
-    // }
+    pub fn extend_where_clause(&self, where_clause: &mut syn::WhereClause) {
+        where_clause
+            .predicates
+            .extend(self.predicates.clone());
+    }
 }
 
 pub struct SkipTypeParamsAttr {
@@ -110,8 +112,8 @@ impl Parse for SkipTypeParamsAttr {
 }
 
 impl SkipTypeParamsAttr {
-    pub fn iter(&self) -> impl Iterator<Item = &syn::TypeParam> {
-        self.type_params.iter()
+    pub fn skip(&self, type_param: &syn::TypeParam) -> bool {
+        self.type_params.iter().any(|tp| tp.ident == type_param.ident)
     }
 }
 
