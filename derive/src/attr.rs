@@ -91,9 +91,7 @@ impl Parse for BoundsAttr {
 
 impl BoundsAttr {
     pub fn extend_where_clause(&self, where_clause: &mut syn::WhereClause) {
-        where_clause
-            .predicates
-            .extend(self.predicates.clone());
+        where_clause.predicates.extend(self.predicates.clone());
     }
 }
 
@@ -113,7 +111,9 @@ impl Parse for SkipTypeParamsAttr {
 
 impl SkipTypeParamsAttr {
     pub fn skip(&self, type_param: &syn::TypeParam) -> bool {
-        self.type_params.iter().any(|tp| tp.ident == type_param.ident)
+        self.type_params
+            .iter()
+            .any(|tp| tp.ident == type_param.ident)
     }
 }
 

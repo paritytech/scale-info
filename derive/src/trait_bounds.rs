@@ -30,7 +30,10 @@ use syn::{
     WhereClause,
 };
 
-use crate::{utils, attr::ScaleInfoAttrList};
+use crate::{
+    attr::ScaleInfoAttrList,
+    utils,
+};
 
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
