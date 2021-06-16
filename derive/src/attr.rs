@@ -16,14 +16,7 @@ use syn::{
     punctuated::Punctuated,
     Token,
 };
-use syn::{
-    parse::Parse,
-    spanned::Spanned,
-    NestedMeta::Meta,
-};
-use std::iter::Scan;
-use syn::token::parsing::keyword;
-use syn::parse::ParseBuffer;
+use syn::parse::{Parse, ParseBuffer};
 
 const SCALE_INFO: &str = "scale_info";
 
@@ -34,20 +27,20 @@ mod keywords {
 }
 
 pub struct ScaleInfoAttrList {
-    attrs: Vec<ScaleInfoAttr>,
+    attrs: Punctuated<ScaleInfoAttr, Token![,]>,
 }
 
 impl ScaleInfoAttrList {
-    pub fn bounds(&self) -> Option<Vec<syn::WherePredicate>> {
+    pub fn bounds(&self) -> Option<&BoundsAttr> {
         self.attrs.iter().find_map(|attr| match attr {
-            ScaleInfoAttr::Bounds(bounds) => Some(bounds.iter().collect()),
+            ScaleInfoAttr::Bounds(bounds) => Some(bounds),
             _ => None,
         })
     }
 
-    pub fn skip_type_params(&self) -> Option<Vec<syn::TypeParam>> {
+    pub fn skip_type_params(&self) -> Option<&SkipTypeParamsAttr> {
         self.attrs.iter().find_map(|attr| match attr {
-            ScaleInfoAttr::SkipTypeParams(type_params) => Some(type_params.iter().collect()),
+            ScaleInfoAttr::SkipTypeParams(type_params) => Some(type_params),
             _ => None,
         })
     }
@@ -60,31 +53,67 @@ impl Parse for ScaleInfoAttrList {
             let content;
             syn::parenthesized!(content in input);
             let attrs = content.parse_terminated(ScaleInfoAttr::parse)?;
-            Ok(Self { attrs: attrs.iter().collect() })
+            Ok(Self { attrs })
         } else {
             Err(input.error("Expected a `#[scale_info(..)]` attribute"))
         }
     }
 }
 
+pub struct BoundsAttr {
+    pub predicates: Punctuated<syn::WherePredicate, Token![,]>
+}
+
+impl Parse for BoundsAttr {
+    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
+        input.parse::<keywords::bounds>()?;
+        let content;
+        syn::parenthesized!(content in input);
+        let predicates = content.parse_terminated(syn::WherePredicate::parse)?;
+        Ok(Self { predicates })
+    }
+}
+
+impl BoundsAttr {
+    // pub fn predicates(&self) -> syn::punctuated::Pairs<syn::WherePredicate, Token![,]> {
+    //     self.predicates.pairs()
+    // }
+}
+
+pub struct SkipTypeParamsAttr {
+    type_params: Punctuated<syn::TypeParam, Token![,]>
+}
+
+impl Parse for SkipTypeParamsAttr {
+    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
+        input.parse::<keywords::skip_type_params>()?;
+        let content;
+        syn::parenthesized!(content in input);
+        let type_params = content.parse_terminated(syn::TypeParam::parse)?;
+        Ok(Self { type_params })
+    }
+}
+
+impl SkipTypeParamsAttr {
+    pub fn iter(&self) -> impl Iterator<Item=&syn::TypeParam> {
+        self.type_params.iter()
+    }
+}
+
 pub enum ScaleInfoAttr {
-    Bounds(Punctuated<syn::WherePredicate, Token![,]>),
-    SkipTypeParams(Punctuated<syn::TypeParam, Token![,]>),
+    Bounds(BoundsAttr),
+    SkipTypeParams(SkipTypeParamsAttr),
 }
 
 impl Parse for ScaleInfoAttr {
     fn parse(input: &ParseBuffer) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(keywords::bounds) {
-            input.parse::<keywords::bounds>()?;
-            let content;
-            syn::parenthesized!(content in input);
-            content.parse_terminated(syn::WherePredicate::parse).map(Self::Bounds)
+            let bounds = input.parse()?;
+            Ok(Self::Bounds(bounds))
         } else if lookahead.peek(keywords::skip_type_params) {
-            input.parse::<keywords::skip_type_params>()?;
-            let content;
-            syn::parenthesized!(content in input);
-            content.parse_terminated(syn::TypeParam::parse).map(Self::SkipTypeParams)
+            let skip_type_params = input.parse()?;
+            Ok(Self::SkipTypeParams(skip_type_params))
         } else {
             Err(input.error("Expected either `bounds` or `skip_type_params`"))
         }
@@ -92,10 +121,10 @@ impl Parse for ScaleInfoAttr {
 }
 
 impl ScaleInfoAttrList {
-    fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
-        let mut attrs = Vec::new();
+    pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
+        let mut attrs = Punctuated::new();
         for attr in &item.attrs {
-            if attr.path.is_ident("scale_info") {
+            if !attr.path.is_ident(SCALE_INFO) {
                 continue;
             }
             let scale_info_attr_list = attr.parse_args_with(ScaleInfoAttrList::parse)?;

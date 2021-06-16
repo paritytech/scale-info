@@ -62,9 +62,7 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let mut ast: DeriveInput = syn::parse2(input.clone())?;
 
-    utils::check_attributes(&ast)?;
-
-    utils::check_attributes(&ast)?;
+    let attrs = attr::ScaleInfoAttrList::from_ast(&ast)?;
 
     let scale_info = crate_name_ident("scale-info")?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
@@ -72,7 +70,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let ident = &ast.ident;
 
     let type_params: Vec<_> =
-        if let Some(skip_type_params) = utils::skipped_type_params(&ast.attrs) {
+        if let Some(skip_type_params) = attrs.skip_type_params() {
             ast.generics
                 .type_params()
                 .filter(|tp| !skip_type_params.iter().any(|skip| skip.ident == tp.ident))
@@ -82,10 +80,10 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             ast.generics.type_params().into_iter().cloned().collect()
         };
 
-    let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
+    let where_clause = if let Some(custom_bounds) = attrs.bounds()
     {
         let where_clause = ast.generics.make_where_clause();
-        where_clause.predicates.extend(custom_bounds);
+        where_clause.predicates.extend(custom_bounds.predicates.clone());
         where_clause.clone()
     } else {
         trait_bounds::make_where_clause(
@@ -97,8 +95,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             &parity_scale_codec,
         )?
     };
-
-    let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 
