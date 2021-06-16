@@ -29,11 +29,13 @@ mod keywords {
     syn::custom_keyword!(skip_type_params);
 }
 
+/// List of `#[scale_info(...)]` attributes for an item.
 pub struct ScaleInfoAttrList {
     attrs: Punctuated<ScaleInfoAttr, Token![,]>,
 }
 
 impl ScaleInfoAttrList {
+    /// Extract out `#[scale_info(...)]` attributes from an item.
     pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
         let mut attrs = Punctuated::new();
         for attr in &item.attrs {
@@ -49,6 +51,7 @@ impl ScaleInfoAttrList {
         Ok(Self { attrs })
     }
 
+    /// Get the `#[scale_info(bounds(...))]` attribute, if present.
     pub fn bounds(&self) -> Option<&BoundsAttr> {
         self.attrs.iter().find_map(|attr| {
             match attr {
@@ -58,6 +61,7 @@ impl ScaleInfoAttrList {
         })
     }
 
+    /// Get the `#[scale_info(skip_type_params(...))]` attribute, if present.
     pub fn skip_type_params(&self) -> Option<&SkipTypeParamsAttr> {
         self.attrs.iter().find_map(|attr| {
             match attr {
@@ -75,6 +79,7 @@ impl Parse for ScaleInfoAttrList {
     }
 }
 
+/// Parsed representation of the `#[scale_info(bounds(...))]` attribute.
 pub struct BoundsAttr {
     predicates: Punctuated<syn::WherePredicate, Token![,]>,
 }
@@ -90,11 +95,13 @@ impl Parse for BoundsAttr {
 }
 
 impl BoundsAttr {
+    /// Add the predicates defined in this attribute to the given `where` clause.
     pub fn extend_where_clause(&self, where_clause: &mut syn::WhereClause) {
         where_clause.predicates.extend(self.predicates.clone());
     }
 }
 
+/// Parsed representation of the `#[scale_info(skip_type_params(...))]` attribute.
 pub struct SkipTypeParamsAttr {
     type_params: Punctuated<syn::TypeParam, Token![,]>,
 }
@@ -110,6 +117,7 @@ impl Parse for SkipTypeParamsAttr {
 }
 
 impl SkipTypeParamsAttr {
+    /// Returns `true` if the given type parameter should be skipped.
     pub fn skip(&self, type_param: &syn::TypeParam) -> bool {
         self.type_params
             .iter()
@@ -117,6 +125,7 @@ impl SkipTypeParamsAttr {
     }
 }
 
+/// Parsed representation of one of the `#[scale_info(..)]` attributes.
 pub enum ScaleInfoAttr {
     Bounds(BoundsAttr),
     SkipTypeParams(SkipTypeParamsAttr),
