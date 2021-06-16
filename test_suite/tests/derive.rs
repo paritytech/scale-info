@@ -747,9 +747,6 @@ fn skip_type_params_with_defaults() {
 #[test]
 fn ui_tests() {
     let t = trybuild::TestCases::new();
-    t.compile_fail("tests/ui/fail_missing_derive.rs");
-    t.compile_fail("tests/ui/fail_unions.rs");
-    t.compile_fail("tests/ui/fail_use_codec_attrs_without_deriving_encode.rs");
-    t.compile_fail("tests/ui/fail_with_invalid_codec_attrs.rs");
+    t.compile_fail("tests/ui/fail_*.rs");
     t.pass("tests/ui/pass_*");
 }
