@@ -1,0 +1,5 @@
+error: Duplicate `bounds` attributes
+ --> $DIR/fail_duplicate_bounds_params.rs:5:1
+  |
+5 | #[scale_info(bounds(), bounds())]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -18,6 +18,7 @@ use syn::{
         ParseBuffer,
     },
     punctuated::Punctuated,
+    spanned::Spanned,
     Token,
 };
 
@@ -38,16 +39,39 @@ impl ScaleInfoAttrList {
     /// Extract out `#[scale_info(...)]` attributes from an item.
     pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
         let mut attrs = Punctuated::new();
+        let mut existing_bounds_attr = false;
+        let mut existing_skip_type_params_attr = false;
         for attr in &item.attrs {
             if !attr.path.is_ident(SCALE_INFO) {
                 continue
             }
             let scale_info_attr_list = attr.parse_args_with(ScaleInfoAttrList::parse)?;
+
             for scale_info_attr in scale_info_attr_list.attrs {
+                match scale_info_attr {
+                    ScaleInfoAttr::Bounds(_) => {
+                        if existing_bounds_attr {
+                            return Err(syn::Error::new(
+                                attr.span(),
+                                "Duplicate `bounds` attributes",
+                            ))
+                        }
+                        existing_bounds_attr = true;
+                    }
+                    ScaleInfoAttr::SkipTypeParams(_) => {
+                        if existing_skip_type_params_attr {
+                            return Err(syn::Error::new(
+                                attr.span(),
+                                "Duplicate `skip_type_params` attributes",
+                            ))
+                        }
+                        existing_skip_type_params_attr = true;
+                    }
+                }
                 attrs.push(scale_info_attr);
             }
         }
-        // todo: [AJ] check for duplicates
+
         Ok(Self { attrs })
     }
 
@@ -80,6 +104,7 @@ impl Parse for ScaleInfoAttrList {
 }
 
 /// Parsed representation of the `#[scale_info(bounds(...))]` attribute.
+#[derive(Clone)]
 pub struct BoundsAttr {
     predicates: Punctuated<syn::WherePredicate, Token![,]>,
 }
@@ -102,6 +127,7 @@ impl BoundsAttr {
 }
 
 /// Parsed representation of the `#[scale_info(skip_type_params(...))]` attribute.
+#[derive(Clone)]
 pub struct SkipTypeParamsAttr {
     type_params: Punctuated<syn::TypeParam, Token![,]>,
 }
