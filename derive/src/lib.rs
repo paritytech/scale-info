@@ -69,21 +69,21 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let ident = &ast.ident;
 
-    let type_params: Vec<_> =
-        if let Some(skip_type_params) = attrs.skip_type_params() {
-            ast.generics
-                .type_params()
-                .filter(|tp| !skip_type_params.iter().any(|skip| skip.ident == tp.ident))
-                .cloned()
-                .collect()
-        } else {
-            ast.generics.type_params().into_iter().cloned().collect()
-        };
+    let type_params: Vec<_> = if let Some(skip_type_params) = attrs.skip_type_params() {
+        ast.generics
+            .type_params()
+            .filter(|tp| !skip_type_params.iter().any(|skip| skip.ident == tp.ident))
+            .cloned()
+            .collect()
+    } else {
+        ast.generics.type_params().into_iter().cloned().collect()
+    };
 
-    let where_clause = if let Some(custom_bounds) = attrs.bounds()
-    {
+    let where_clause = if let Some(custom_bounds) = attrs.bounds() {
         let where_clause = ast.generics.make_where_clause();
-        where_clause.predicates.extend(custom_bounds.predicates.clone());
+        where_clause
+            .predicates
+            .extend(custom_bounds.predicates.clone());
         where_clause.clone()
     } else {
         trait_bounds::make_where_clause(

@@ -13,10 +13,13 @@
 // limitations under the License.
 
 use syn::{
+    parse::{
+        Parse,
+        ParseBuffer,
+    },
     punctuated::Punctuated,
     Token,
 };
-use syn::parse::{Parse, ParseBuffer};
 
 const SCALE_INFO: &str = "scale_info";
 
@@ -32,16 +35,20 @@ pub struct ScaleInfoAttrList {
 
 impl ScaleInfoAttrList {
     pub fn bounds(&self) -> Option<&BoundsAttr> {
-        self.attrs.iter().find_map(|attr| match attr {
-            ScaleInfoAttr::Bounds(bounds) => Some(bounds),
-            _ => None,
+        self.attrs.iter().find_map(|attr| {
+            match attr {
+                ScaleInfoAttr::Bounds(bounds) => Some(bounds),
+                _ => None,
+            }
         })
     }
 
     pub fn skip_type_params(&self) -> Option<&SkipTypeParamsAttr> {
-        self.attrs.iter().find_map(|attr| match attr {
-            ScaleInfoAttr::SkipTypeParams(type_params) => Some(type_params),
-            _ => None,
+        self.attrs.iter().find_map(|attr| {
+            match attr {
+                ScaleInfoAttr::SkipTypeParams(type_params) => Some(type_params),
+                _ => None,
+            }
         })
     }
 }
@@ -54,7 +61,7 @@ impl Parse for ScaleInfoAttrList {
 }
 
 pub struct BoundsAttr {
-    pub predicates: Punctuated<syn::WherePredicate, Token![,]>
+    pub predicates: Punctuated<syn::WherePredicate, Token![,]>,
 }
 
 impl Parse for BoundsAttr {
@@ -74,7 +81,7 @@ impl BoundsAttr {
 }
 
 pub struct SkipTypeParamsAttr {
-    type_params: Punctuated<syn::TypeParam, Token![,]>
+    type_params: Punctuated<syn::TypeParam, Token![,]>,
 }
 
 impl Parse for SkipTypeParamsAttr {
@@ -88,7 +95,7 @@ impl Parse for SkipTypeParamsAttr {
 }
 
 impl SkipTypeParamsAttr {
-    pub fn iter(&self) -> impl Iterator<Item=&syn::TypeParam> {
+    pub fn iter(&self) -> impl Iterator<Item = &syn::TypeParam> {
         self.type_params.iter()
     }
 }
@@ -118,7 +125,7 @@ impl ScaleInfoAttrList {
         let mut attrs = Punctuated::new();
         for attr in &item.attrs {
             if !attr.path.is_ident(SCALE_INFO) {
-                continue;
+                continue
             }
             let scale_info_attr_list = attr.parse_args_with(ScaleInfoAttrList::parse)?;
             for scale_info_attr in scale_info_attr_list.attrs {
@@ -129,5 +136,3 @@ impl ScaleInfoAttrList {
         Ok(Self { attrs })
     }
 }
-
-
