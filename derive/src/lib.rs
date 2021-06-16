@@ -32,6 +32,7 @@ use syn::{
     },
     parse_quote,
     punctuated::Punctuated,
+    spanned::Spanned,
     token::Comma,
     visit_mut::VisitMut,
     Data,
@@ -44,7 +45,6 @@ use syn::{
     Lifetime,
     Variant,
 };
-use syn::spanned::Spanned;
 
 #[proc_macro_derive(TypeInfo, attributes(scale_info))]
 pub fn type_info(input: TokenStream) -> TokenStream {
