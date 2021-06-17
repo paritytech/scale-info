@@ -87,9 +87,9 @@ impl Attributes {
                         .unwrap_or(false);
                     if !type_param_skipped {
                         let msg = format!(
-                            "Type parameter requires a `TypeInfo` bound, so either: \
-                        add it to `#[scale_info(bounds({}: TypeInfo))]`, \
-                        or skip it with `#[scale_info(skip_type_params({}))]`",
+                            "Type parameter requires a `TypeInfo` bound, so either: \n \
+                        - add it to `#[scale_info(bounds({}: TypeInfo))]` \n \
+                        - skip it with `#[scale_info(skip_type_params({}))]`",
                             type_param.ident, type_param.ident
                         );
                         return Err(syn::Error::new(type_param.span(), msg))
