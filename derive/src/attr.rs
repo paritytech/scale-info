@@ -42,15 +42,17 @@ impl Attributes {
         let mut bounds = None;
         let mut skip_type_params = None;
 
+        let attributes_parser = |input: &ParseBuffer| {
+            let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
+                input.parse_terminated(ScaleInfoAttr::parse)?;
+            Ok(attrs)
+        };
+
         for attr in &item.attrs {
             if !attr.path.is_ident(SCALE_INFO) {
                 continue
             }
-            let scale_info_attrs = attr.parse_args_with(|input: &ParseBuffer| {
-                let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
-                    input.parse_terminated(ScaleInfoAttr::parse)?;
-                Ok(attrs)
-            })?;
+            let scale_info_attrs = attr.parse_args_with(attributes_parser)?;
 
             for scale_info_attr in scale_info_attrs {
                 // check for duplicates
@@ -88,8 +90,8 @@ impl Attributes {
                     if !type_param_skipped {
                         let msg = format!(
                             "Type parameter requires a `TypeInfo` bound, so either: \n \
-                        - add it to `#[scale_info(bounds({}: TypeInfo))]` \n \
-                        - skip it with `#[scale_info(skip_type_params({}))]`",
+                                - add it to `#[scale_info(bounds({}: TypeInfo))]` \n \
+                                - skip it with `#[scale_info(skip_type_params({}))]`",
                             type_param.ident, type_param.ident
                         );
                         return Err(syn::Error::new(type_param.span(), msg))
