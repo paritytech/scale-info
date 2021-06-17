@@ -31,7 +31,7 @@ use syn::{
 };
 
 use crate::{
-    attr::ScaleInfoAttrList,
+    attr::Attributes,
     utils,
 };
 
@@ -41,7 +41,7 @@ use crate::{
 ///
 /// Ignores any type parameters not included in `type_params`.
 pub fn make_where_clause<'a>(
-    attrs: &'a ScaleInfoAttrList,
+    attrs: &'a Attributes,
     input_ident: &'a Ident,
     generics: &'a Generics,
     type_params: &[TypeParam],

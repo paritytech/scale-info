@@ -32,7 +32,6 @@ use syn::{
     },
     parse_quote,
     punctuated::Punctuated,
-    spanned::Spanned,
     token::Comma,
     visit_mut::VisitMut,
     Data,
@@ -63,7 +62,7 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let ast: DeriveInput = syn::parse2(input.clone())?;
 
-    let attrs = attr::ScaleInfoAttrList::from_ast(&ast)?;
+    let attrs = attr::Attributes::from_ast(&ast)?;
 
     let scale_info = crate_name_ident("scale-info")?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
@@ -81,27 +80,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         })
         .cloned()
         .collect();
-
-    // validate type params which do not appear in custom bounds but are not skipped.
-    if let Some(bounds) = attrs.bounds() {
-        for type_param in ast.generics.type_params() {
-            if !bounds.contains_type_param(type_param) {
-                let type_param_skipped = attrs
-                    .skip_type_params()
-                    .map(|skip| skip.skip(type_param))
-                    .unwrap_or(false);
-                if !type_param_skipped {
-                    let msg = format!(
-                        "Type parameter requires a `TypeInfo` bound, so either: \
-                        add it to `#[scale_info(bounds({}: TypeInfo))]`, \
-                        or skip it with `#[scale_info(skip_type_params({}))]`",
-                        type_param.ident, type_param.ident
-                    );
-                    return Err(syn::Error::new(type_param.span(), msg))
-                }
-            }
-        }
-    }
 
     let where_clause = trait_bounds::make_where_clause(
         &attrs,

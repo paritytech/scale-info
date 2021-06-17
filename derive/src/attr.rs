@@ -30,76 +30,88 @@ mod keywords {
     syn::custom_keyword!(skip_type_params);
 }
 
-/// List of `#[scale_info(...)]` attributes for an item.
-pub struct ScaleInfoAttrList {
-    attrs: Punctuated<ScaleInfoAttr, Token![,]>,
+/// Parsed and validated set of `#[scale_info(...)]` attributes for an item.
+pub struct Attributes {
+    bounds: Option<BoundsAttr>,
+    skip_type_params: Option<SkipTypeParamsAttr>,
 }
 
-impl ScaleInfoAttrList {
+impl Attributes {
     /// Extract out `#[scale_info(...)]` attributes from an item.
     pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
-        let mut attrs = Punctuated::new();
-        let mut existing_bounds_attr = false;
-        let mut existing_skip_type_params_attr = false;
+        let mut bounds = None;
+        let mut skip_type_params = None;
+
         for attr in &item.attrs {
             if !attr.path.is_ident(SCALE_INFO) {
                 continue
             }
-            let scale_info_attr_list = attr.parse_args_with(ScaleInfoAttrList::parse)?;
+            let scale_info_attrs = attr.parse_args_with(|input: &ParseBuffer| {
+                let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
+                    input.parse_terminated(ScaleInfoAttr::parse)?;
+                Ok(attrs)
+            })?;
 
-            for scale_info_attr in scale_info_attr_list.attrs {
+            for scale_info_attr in scale_info_attrs {
+                // check for duplicates
                 match scale_info_attr {
-                    ScaleInfoAttr::Bounds(_) => {
-                        if existing_bounds_attr {
+                    ScaleInfoAttr::Bounds(parsed_bounds) => {
+                        if bounds.is_some() {
                             return Err(syn::Error::new(
                                 attr.span(),
                                 "Duplicate `bounds` attributes",
                             ))
                         }
-                        existing_bounds_attr = true;
+                        bounds = Some(parsed_bounds);
                     }
-                    ScaleInfoAttr::SkipTypeParams(_) => {
-                        if existing_skip_type_params_attr {
+                    ScaleInfoAttr::SkipTypeParams(parsed_skip_type_params) => {
+                        if skip_type_params.is_some() {
                             return Err(syn::Error::new(
                                 attr.span(),
                                 "Duplicate `skip_type_params` attributes",
                             ))
                         }
-                        existing_skip_type_params_attr = true;
+                        skip_type_params = Some(parsed_skip_type_params);
                     }
                 }
-                attrs.push(scale_info_attr);
             }
         }
 
-        Ok(Self { attrs })
+        // validate type params which do not appear in custom bounds but are not skipped.
+        if let Some(ref bounds) = bounds {
+            for type_param in item.generics.type_params() {
+                if !bounds.contains_type_param(type_param) {
+                    let type_param_skipped = skip_type_params
+                        .as_ref()
+                        .map(|skip| skip.skip(type_param))
+                        .unwrap_or(false);
+                    if !type_param_skipped {
+                        let msg = format!(
+                            "Type parameter requires a `TypeInfo` bound, so either: \
+                        add it to `#[scale_info(bounds({}: TypeInfo))]`, \
+                        or skip it with `#[scale_info(skip_type_params({}))]`",
+                            type_param.ident, type_param.ident
+                        );
+                        return Err(syn::Error::new(type_param.span(), msg))
+                    }
+                }
+            }
+        }
+
+        Ok(Self {
+            bounds,
+            skip_type_params,
+        })
     }
 
     /// Get the `#[scale_info(bounds(...))]` attribute, if present.
     pub fn bounds(&self) -> Option<&BoundsAttr> {
-        self.attrs.iter().find_map(|attr| {
-            match attr {
-                ScaleInfoAttr::Bounds(bounds) => Some(bounds),
-                _ => None,
-            }
-        })
+        self.bounds.as_ref()
     }
 
     /// Get the `#[scale_info(skip_type_params(...))]` attribute, if present.
     pub fn skip_type_params(&self) -> Option<&SkipTypeParamsAttr> {
-        self.attrs.iter().find_map(|attr| {
-            match attr {
-                ScaleInfoAttr::SkipTypeParams(type_params) => Some(type_params),
-                _ => None,
-            }
-        })
-    }
-}
-
-impl Parse for ScaleInfoAttrList {
-    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
-        let attrs = input.parse_terminated(ScaleInfoAttr::parse)?;
-        Ok(Self { attrs })
+        self.skip_type_params.as_ref()
     }
 }
 
