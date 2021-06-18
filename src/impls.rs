@@ -33,6 +33,7 @@ use crate::{
     Path,
     Type,
     TypeDefArray,
+    TypeDefBitVec,
     TypeDefCompact,
     TypeDefPhantom,
     TypeDefPrimitive,
@@ -284,5 +285,37 @@ where
     type Identity = Self;
     fn type_info() -> Type {
         TypeDefCompact::new(MetaType::new::<T>()).into()
+    }
+}
+
+impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
+where
+    O: bitvec::order::BitOrder + TypeInfo + 'static,
+    T: bitvec::store::BitStore + TypeInfo + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        TypeDefBitVec::new::<O, T>().into()
+    }
+}
+
+impl TypeInfo for bitvec::order::Lsb0 {
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::new("Lsb0", "bitvec::order"))
+            .composite(Fields::unit())
+    }
+}
+
+impl TypeInfo for bitvec::order::Msb0 {
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::new("Msb0", "bitvec::order"))
+            .composite(Fields::unit())
     }
 }
