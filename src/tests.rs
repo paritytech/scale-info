@@ -111,6 +111,7 @@ fn collections() {
     );
 }
 
+#[cfg(feature = "bit-vec")]
 #[test]
 fn bitvec() {
     use bitvec::{

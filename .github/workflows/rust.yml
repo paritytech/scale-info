@@ -51,7 +51,7 @@ jobs:
 
     - name: test
       run: |
-        cargo test --all
+        cargo test --all --all-features
 
     - name: test no-std
       run: |
