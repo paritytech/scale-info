@@ -33,7 +33,6 @@ use crate::{
     Path,
     Type,
     TypeDefArray,
-    TypeDefBitVec,
     TypeDefCompact,
     TypeDefPhantom,
     TypeDefPrimitive,
@@ -288,6 +287,7 @@ where
     }
 }
 
+#[cfg(feature = "bit-vec")]
 impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
 where
     O: bitvec::order::BitOrder + TypeInfo + 'static,
@@ -296,10 +296,11 @@ where
     type Identity = Self;
 
     fn type_info() -> Type {
-        TypeDefBitVec::new::<O, T>().into()
+        crate::TypeDefBitVec::new::<O, T>().into()
     }
 }
 
+#[cfg(feature = "bit-vec")]
 impl TypeInfo for bitvec::order::Lsb0 {
     type Identity = Self;
 
@@ -310,6 +311,7 @@ impl TypeInfo for bitvec::order::Lsb0 {
     }
 }
 
+#[cfg(feature = "bit-vec")]
 impl TypeInfo for bitvec::order::Msb0 {
     type Identity = Self;
 

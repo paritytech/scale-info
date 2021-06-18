@@ -116,8 +116,14 @@ impl_from_type_def_for_type!(
     TypeDefTuple,
     TypeDefCompact,
     TypeDefPhantom,
-    TypeDefBitVec,
 );
+
+#[cfg(feature = "bit-vec")]
+impl From<crate::TypeDefBitVec> for Type {
+    fn from(item: crate::TypeDefBitVec) -> Self {
+        Self::new(Path::voldemort(), Vec::new(), item, Vec::new())
+    }
+}
 
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
@@ -198,6 +204,7 @@ pub enum TypeDef<T: Form = MetaForm> {
     Compact(TypeDefCompact<T>),
     /// A PhantomData type.
     Phantom(TypeDefPhantom<T>),
+    #[cfg(feature = "bit-vec")]
     /// A BitVec type.
     BitVec(TypeDefBitVec<T>),
 }
@@ -215,6 +222,7 @@ impl IntoPortable for TypeDef {
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
+            #[cfg(feature = "bit-vec")]
             TypeDef::BitVec(bitvec) => bitvec.into_portable(registry).into(),
         }
     }
@@ -491,6 +499,7 @@ where
 }
 
 /// Type describing a [`bitvec::vec::BitVec`].
+#[cfg(feature = "bit-vec")]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
@@ -501,8 +510,9 @@ pub struct TypeDefBitVec<T: Form = MetaForm> {
     bit_order_type: T::Type,
 }
 
-impl IntoPortable for TypeDefBitVec {
-    type Output = TypeDefBitVec<PortableForm>;
+#[cfg(feature = "bit-vec")]
+impl IntoPortable for crate::TypeDefBitVec {
+    type Output = crate::TypeDefBitVec<PortableForm>;
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefBitVec {
@@ -512,6 +522,7 @@ impl IntoPortable for TypeDefBitVec {
     }
 }
 
+#[cfg(feature = "bit-vec")]
 impl TypeDefBitVec {
     /// Creates a new phantom type definition.
     pub fn new<O, T>() -> Self
@@ -526,6 +537,7 @@ impl TypeDefBitVec {
     }
 }
 
+#[cfg(feature = "bit-vec")]
 impl<T> TypeDefBitVec<T>
 where
     T: Form,
