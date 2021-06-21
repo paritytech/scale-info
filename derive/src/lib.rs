@@ -201,6 +201,7 @@ fn clean_type_string(input: &str) -> String {
         .replace("< ", "<")
         .replace(" >", ">")
         .replace("& \'", "&'")
+        .replace("&\'", "&'")
 }
 
 fn generate_composite_type(data_struct: &DataStruct, scale_info: &Ident) -> TokenStream2 {
