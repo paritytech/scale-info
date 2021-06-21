@@ -109,6 +109,11 @@ fn collections() {
             .type_params(tuple_meta_type![String])
             .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
     );
+
+    assert_type!(
+        std::collections::VecDeque<String>,
+        TypeDefSequence::new(meta_type::<String>())
+    );
 }
 
 #[test]

@@ -21,6 +21,7 @@ use crate::prelude::{
     collections::{
         BTreeMap,
         BTreeSet,
+        VecDeque,
     },
     marker::PhantomData,
     string::String,
@@ -120,6 +121,17 @@ where
     T: TypeInfo + 'static,
 {
     type Identity = [T];
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
+}
+
+impl<T> TypeInfo for VecDeque<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Vec<T>;
 
     fn type_info() -> Type {
         Self::Identity::type_info()
