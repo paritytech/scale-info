@@ -109,6 +109,38 @@ fn collections() {
             .type_params(tuple_meta_type![String])
             .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
     );
+
+    assert_type!(
+        std::collections::VecDeque<String>,
+        TypeDefSequence::new(meta_type::<String>())
+    );
+}
+
+#[cfg(feature = "bit-vec")]
+#[test]
+fn bitvec() {
+    use bitvec::{
+        order::{
+            Lsb0,
+            Msb0,
+        },
+        vec::BitVec,
+    };
+
+    assert_type!(
+        BitVec<Lsb0, u8>,
+        TypeDefBitSequence::new::<Lsb0, u8>()
+    );
+
+    assert_type!(
+        BitVec<Msb0, u16>,
+        TypeDefBitSequence::new::<Msb0, u16>()
+    );
+
+    assert_type!(
+        BitVec<Msb0, u32>,
+        TypeDefBitSequence::new::<Msb0, u32>()
+    );
 }
 
 #[test]

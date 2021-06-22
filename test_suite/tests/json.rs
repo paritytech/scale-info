@@ -18,6 +18,7 @@
 
 use scale_info::prelude::{
     boxed::Box,
+    collections::VecDeque,
     marker::PhantomData,
     string::String,
     vec,
@@ -63,6 +64,29 @@ fn test_primitives() {
     assert_json_for_type::<i32>(json!({ "def": { "primitive": "i32" } }));
     assert_json_for_type::<i64>(json!({ "def": { "primitive": "i64" } }));
     assert_json_for_type::<i128>(json!({ "def": { "primitive": "i128" } }));
+}
+
+#[test]
+fn test_sequences_have_same_type() {
+    #[derive(TypeInfo)]
+    struct Struct {
+        a: &'static [u8],
+        b: Vec<u8>,
+        c: VecDeque<u8>,
+    }
+
+    assert_json_for_type::<Struct>(json!({
+        "path": ["json", "Struct"],
+        "def": {
+            "composite": {
+                "fields": [
+                    { "name": "a", "type": 0, "typeName": "&'static[u8]" },
+                    { "name": "b", "type": 0, "typeName": "Vec<u8>" },
+                    { "name": "c", "type": 0, "typeName": "VecDeque<u8>" },
+                ],
+            },
+        }
+    }));
 }
 
 #[test]
