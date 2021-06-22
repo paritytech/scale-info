@@ -292,9 +292,9 @@ mod bit_vec {
     use super::*;
 
     impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
-        where
-            O: bitvec::order::BitOrder + TypeInfo + 'static,
-            T: bitvec::store::BitStore + TypeInfo + 'static,
+    where
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
+        T: bitvec::store::BitStore + TypeInfo + 'static,
     {
         type Identity = Self;
 
@@ -323,4 +323,3 @@ mod bit_vec {
         }
     }
 }
-
