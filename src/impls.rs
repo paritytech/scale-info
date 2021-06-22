@@ -21,6 +21,7 @@ use crate::prelude::{
     collections::{
         BTreeMap,
         BTreeSet,
+        VecDeque,
     },
     marker::PhantomData,
     string::String,
@@ -116,6 +117,17 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
 
 impl<T> TypeInfo for Vec<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = [T];
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
+}
+
+impl<T> TypeInfo for VecDeque<T>
 where
     T: TypeInfo + 'static,
 {
@@ -281,5 +293,42 @@ where
     type Identity = Self;
     fn type_info() -> Type {
         TypeDefCompact::new(MetaType::new::<T>()).into()
+    }
+}
+
+#[cfg(feature = "bit-vec")]
+mod bit_vec {
+    use super::*;
+
+    impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
+    where
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
+        T: bitvec::store::BitStore + TypeInfo + 'static,
+    {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            crate::TypeDefBitSequence::new::<O, T>().into()
+        }
+    }
+
+    impl TypeInfo for bitvec::order::Lsb0 {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("Lsb0", "bitvec::order"))
+                .composite(Fields::unit())
+        }
+    }
+
+    impl TypeInfo for bitvec::order::Msb0 {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("Msb0", "bitvec::order"))
+                .composite(Fields::unit())
+        }
     }
 }
