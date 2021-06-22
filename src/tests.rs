@@ -124,17 +124,17 @@ fn bitvec() {
 
     assert_type!(
         BitVec<Lsb0, u8>,
-        TypeDefBitVec::new::<Lsb0, u8>()
+        TypeDefBitSequence::new::<Lsb0, u8>()
     );
 
     assert_type!(
         BitVec<Msb0, u16>,
-        TypeDefBitVec::new::<Msb0, u16>()
+        TypeDefBitSequence::new::<Msb0, u16>()
     );
 
     assert_type!(
         BitVec<Msb0, u32>,
-        TypeDefBitVec::new::<Msb0, u32>()
+        TypeDefBitSequence::new::<Msb0, u32>()
     );
 }
 

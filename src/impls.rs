@@ -296,7 +296,7 @@ where
     type Identity = Self;
 
     fn type_info() -> Type {
-        crate::TypeDefBitVec::new::<O, T>().into()
+        crate::TypeDefBitSequence::new::<O, T>().into()
     }
 }
 

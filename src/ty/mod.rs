@@ -119,8 +119,8 @@ impl_from_type_def_for_type!(
 );
 
 #[cfg(feature = "bit-vec")]
-impl From<crate::TypeDefBitVec> for Type {
-    fn from(item: crate::TypeDefBitVec) -> Self {
+impl From<crate::TypeDefBitSequence> for Type {
+    fn from(item: crate::TypeDefBitSequence) -> Self {
         Self::new(Path::voldemort(), Vec::new(), item, Vec::new())
     }
 }
@@ -204,9 +204,8 @@ pub enum TypeDef<T: Form = MetaForm> {
     Compact(TypeDefCompact<T>),
     /// A PhantomData type.
     Phantom(TypeDefPhantom<T>),
-    #[cfg(feature = "bit-vec")]
-    /// A BitVec type.
-    BitVec(TypeDefBitVec<T>),
+    /// A type representing a sequence of bits.
+    BitSequence(TypeDefBitSequence<T>),
 }
 
 impl IntoPortable for TypeDef {
@@ -222,8 +221,7 @@ impl IntoPortable for TypeDef {
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
-            #[cfg(feature = "bit-vec")]
-            TypeDef::BitVec(bitvec) => bitvec.into_portable(registry).into(),
+            TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
         }
     }
 }
@@ -499,46 +497,33 @@ where
 }
 
 /// Type describing a [`bitvec::vec::BitVec`].
-#[cfg(feature = "bit-vec")]
+///
+/// # Note
+///
+/// This can only be constructed for `TypeInfo` in the `MetaForm` with the `bit-vec` feature
+/// enabled, but can be decoded or deserialized into the `PortableForm` without this feature.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
-pub struct TypeDefBitVec<T: Form = MetaForm> {
-    /// The type implementing [`::bitvec::store::BitStore`].
+pub struct TypeDefBitSequence<T: Form = MetaForm> {
+    /// The type implementing [`bitvec::store::BitStore`].
     bit_store_type: T::Type,
-    /// The type implementing [`::bitvec::order::BitOrder`].
+    /// The type implementing [`bitvec::order::BitOrder`].
     bit_order_type: T::Type,
 }
 
-#[cfg(feature = "bit-vec")]
-impl IntoPortable for crate::TypeDefBitVec {
-    type Output = crate::TypeDefBitVec<PortableForm>;
+impl IntoPortable for TypeDefBitSequence {
+    type Output = TypeDefBitSequence<PortableForm>;
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
-        TypeDefBitVec {
+        TypeDefBitSequence {
             bit_store_type: registry.register_type(&self.bit_store_type),
             bit_order_type: registry.register_type(&self.bit_order_type),
         }
     }
 }
 
-#[cfg(feature = "bit-vec")]
-impl TypeDefBitVec {
-    /// Creates a new phantom type definition.
-    pub fn new<O, T>() -> Self
-    where
-        O: bitvec::order::BitOrder + TypeInfo + 'static,
-        T: bitvec::store::BitStore + TypeInfo + 'static,
-    {
-        Self {
-            bit_order_type: MetaType::new::<O>(),
-            bit_store_type: MetaType::new::<T>(),
-        }
-    }
-}
-
-#[cfg(feature = "bit-vec")]
-impl<T> TypeDefBitVec<T>
+impl<T> TypeDefBitSequence<T>
 where
     T: Form,
 {
@@ -550,5 +535,20 @@ where
     /// Returns underlying type used to store the [`::bitvec::vec::BitVec`].
     pub fn bit_store_type(&self) -> &T::Type {
         &self.bit_store_type
+    }
+}
+
+#[cfg(feature = "bit-vec")]
+impl TypeDefBitSequence {
+    /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
+    pub fn new<O, T>() -> Self
+    where
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
+        T: bitvec::store::BitStore + TypeInfo + 'static,
+    {
+        Self {
+            bit_order_type: MetaType::new::<O>(),
+            bit_store_type: MetaType::new::<T>(),
+        }
     }
 }
