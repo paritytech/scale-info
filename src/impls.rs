@@ -288,36 +288,39 @@ where
 }
 
 #[cfg(feature = "bit-vec")]
-impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
-where
-    O: bitvec::order::BitOrder + TypeInfo + 'static,
-    T: bitvec::store::BitStore + TypeInfo + 'static,
-{
-    type Identity = Self;
+mod bit_vec {
+    use super::*;
 
-    fn type_info() -> Type {
-        crate::TypeDefBitSequence::new::<O, T>().into()
+    impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
+        where
+            O: bitvec::order::BitOrder + TypeInfo + 'static,
+            T: bitvec::store::BitStore + TypeInfo + 'static,
+    {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            crate::TypeDefBitSequence::new::<O, T>().into()
+        }
+    }
+
+    impl TypeInfo for bitvec::order::Lsb0 {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("Lsb0", "bitvec::order"))
+                .composite(Fields::unit())
+        }
+    }
+
+    impl TypeInfo for bitvec::order::Msb0 {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("Msb0", "bitvec::order"))
+                .composite(Fields::unit())
+        }
     }
 }
 
-#[cfg(feature = "bit-vec")]
-impl TypeInfo for bitvec::order::Lsb0 {
-    type Identity = Self;
-
-    fn type_info() -> Type {
-        Type::builder()
-            .path(Path::new("Lsb0", "bitvec::order"))
-            .composite(Fields::unit())
-    }
-}
-
-#[cfg(feature = "bit-vec")]
-impl TypeInfo for bitvec::order::Msb0 {
-    type Identity = Self;
-
-    fn type_info() -> Type {
-        Type::builder()
-            .path(Path::new("Msb0", "bitvec::order"))
-            .composite(Fields::unit())
-    }
-}

@@ -116,14 +116,8 @@ impl_from_type_def_for_type!(
     TypeDefTuple,
     TypeDefCompact,
     TypeDefPhantom,
+    TypeDefBitSequence,
 );
-
-#[cfg(feature = "bit-vec")]
-impl From<crate::TypeDefBitSequence> for Type {
-    fn from(item: crate::TypeDefBitSequence) -> Self {
-        Self::new(Path::voldemort(), Vec::new(), item, Vec::new())
-    }
-}
 
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
