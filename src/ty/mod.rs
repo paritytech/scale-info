@@ -197,7 +197,7 @@ pub enum TypeDef<T: Form = MetaForm> {
     /// A type using the [`Compact`] encoding
     Compact(TypeDefCompact<T>),
     /// A PhantomData type.
-    Phantom(TypeDefPhantom<T>),
+    Phantom(TypeDefPhantom),
     /// A type representing a sequence of bits.
     BitSequence(TypeDefBitSequence<T>),
 }
@@ -214,7 +214,7 @@ impl IntoPortable for TypeDef {
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
-            TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
+            TypeDef::Phantom(phantom) => phantom.into(),
             TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
         }
     }
