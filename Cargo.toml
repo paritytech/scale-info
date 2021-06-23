@@ -22,13 +22,17 @@ derive_more = { version = "0.99.1", default-features = false, features = ["from"
 scale = { package = "parity-scale-codec", version = "2.1", default-features = false, features = ["derive"] }
 
 [features]
-default = ["std"]
+default = ["std", "docs"]
 std = [
     "bitvec/std",
     "scale/std",
 ]
 derive = [
     "scale-info-derive"
+]
+# Include rustdoc strings in the type metadata.
+docs = [
+    "scale-info-derive/docs"
 ]
 # enables decoding and deserialization of portable scale-info type metadata
 decode = [

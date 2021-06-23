@@ -16,15 +16,10 @@
 //!
 //! NOTE: The code here is copied verbatim from `parity-scale-codec-derive`.
 
-use alloc::{
-    string::ToString,
-    vec::Vec,
-};
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
     parse::Parse,
-    parse_quote,
     spanned::Spanned,
     AttrStyle,
     Attribute,
@@ -33,28 +28,6 @@ use syn::{
     NestedMeta,
     Variant,
 };
-
-/// Return all doc attributes literals found.
-pub fn get_doc_literals(attrs: &[syn::Attribute]) -> Vec<syn::Lit> {
-    attrs
-        .iter()
-        .filter_map(|attr| {
-            if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
-                if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
-                    let lit = &meta.lit;
-                    let doc_lit = quote!(#lit).to_string();
-                    let trimmed_doc_lit =
-                        doc_lit.trim_start_matches(r#"" "#).trim_end_matches('"');
-                    Some(parse_quote!(#trimmed_doc_lit))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        })
-        .collect()
-}
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
 /// is found, fall back to the discriminant or just the variant index.

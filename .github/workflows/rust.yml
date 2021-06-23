@@ -40,6 +40,7 @@ jobs:
     - name: check-features
       run: |
         cargo check --no-default-features --features bit-vec
+        cargo check --no-default-features --features docs
         cargo check --no-default-features --features serde
         cargo check --no-default-features --features serde,decode
 
