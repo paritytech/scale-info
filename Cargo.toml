@@ -30,7 +30,7 @@ std = [
 derive = [
     "scale-info-derive"
 ]
-# Include code docs in type metadata.
+# Include rustdoc strings in the type metadata.
 docs = [
     "scale-info-derive/docs"
 ]
