@@ -21,6 +21,6 @@ proc-macro2 = "1.0"
 proc-macro-crate = "1"
 
 [features]
-default = []
+default = ["docs"]
 # Include code docs in type metadata.
 docs = []
