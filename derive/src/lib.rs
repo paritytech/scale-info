@@ -314,17 +314,34 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
     }
 }
 
-// #[cfg(feature = "docs")]
-#[cfg(not(feature = "docs"))]
+#[cfg(feature = "docs")]
 fn generate_docs(attrs: &[syn::Attribute]) -> Option<TokenStream2> {
-    let docs = utils::get_doc_literals(attrs);
+    let docs = attrs
+        .iter()
+        .filter_map(|attr| {
+            if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
+                if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
+                    let lit = &meta.lit;
+                    let doc_lit = quote!(#lit).to_string();
+                    let trimmed_doc_lit =
+                        doc_lit.trim_start_matches(r#"" "#).trim_end_matches('"');
+                    let lit: syn::Lit = parse_quote!(#trimmed_doc_lit);
+                    Some(lit)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
     Some(quote! {
         .docs(&[ #( #docs ),* ])
     })
 }
 
-// #[cfg(not(feature = "docs"))]
-#[cfg(feature = "docs")]
+#[cfg(not(feature = "docs"))]
 fn generate_docs(_: &[syn::Attribute]) -> Option<TokenStream2> {
     None
 }
