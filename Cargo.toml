@@ -30,6 +30,10 @@ std = [
 derive = [
     "scale-info-derive"
 ]
+# Include code docs in type metadata.
+docs = [
+    "scale-info-derive/docs"
+]
 # enables decoding and deserialization of portable scale-info type metadata
 decode = [
     "scale/full"
