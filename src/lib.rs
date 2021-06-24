@@ -70,7 +70,7 @@
 /// [`MetaType`](`crate::MetaType`) instances.
 ///
 /// This is useful for places that require inputs of iterators over [`MetaType`](`crate::MetaType`)
-/// instances and provide a way out of code bloat in these scenarious.
+/// instances and provide a way out of code bloat in these scenarios.
 ///
 /// # Example
 ///
@@ -98,6 +98,32 @@ macro_rules! tuple_meta_type {
                 )*
             ]
         }
+    }
+}
+
+/// Construct a vector of `TypeParameter`s from pairs of the name and the concrete type.
+#[macro_export]
+macro_rules! named_type_params {
+    ( $(($tp:ty, $ty:ty)),* ) => {
+        {
+            $crate::prelude::vec![
+                $(
+                    $crate::TypeParameter::new(
+                        ::core::stringify!($tp),
+                        Some($crate::MetaType::new::<$ty>())
+                    ),
+                )*
+            ]
+        }
+    }
+}
+
+/// Construct a vector of [`TypeParameter`] instances with the name of the type parameter,
+/// together with its concrete [`MetaType`].
+#[macro_export]
+macro_rules! type_params {
+    ( $($ty:ty),* ) => {
+        $crate::named_type_params!{ $( ($ty, $ty) ),* }
     }
 }
 

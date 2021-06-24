@@ -69,23 +69,10 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let ident = &ast.ident;
 
-    let type_params: Vec<_> = ast
-        .generics
-        .type_params()
-        .filter(|tp| {
-            attrs
-                .skip_type_params()
-                .map(|skip| !skip.skip(tp))
-                .unwrap_or(true)
-        })
-        .cloned()
-        .collect();
-
     let where_clause = trait_bounds::make_where_clause(
         &attrs,
         ident,
         &ast.generics,
-        &type_params,
         &ast.data,
         &scale_info,
         &parity_scale_codec,
@@ -93,10 +80,15 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 
-    let type_params_meta_types = type_params.iter().map(|ty| {
-        let ty_ident = &ty.ident;
+    let type_params = ast.generics.type_params().map(|tp| {
+        let ty_ident = &tp.ident;
+        let ty = if attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
+            quote! { Some(:: #scale_info ::meta_type::<#ty_ident>()) }
+        } else {
+            quote! { None }
+        };
         quote! {
-            :: #scale_info ::meta_type::<#ty_ident>()
+            :: #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
         }
     });
 
@@ -113,7 +105,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()
                     .path(:: #scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
-                    .type_params(:: #scale_info ::prelude::vec![ #( #type_params_meta_types ),* ])
+                    .type_params(:: #scale_info ::prelude::vec![ #( #type_params ),* ])
                     #docs
                     .#build_type
             }

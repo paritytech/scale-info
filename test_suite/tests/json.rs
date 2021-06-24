@@ -118,7 +118,9 @@ fn test_builtins() {
     // complex types
     assert_json_for_type::<Option<&str>>(json!({
         "path": ["Option"],
-        "params": [0],
+        "params": [
+            { "name": "T", "type": 0 }
+        ],
         "def": {
             "variant": {
                 "variants": [
@@ -135,7 +137,10 @@ fn test_builtins() {
     }));
     assert_json_for_type::<Result<u32, u64>>(json!({
         "path": ["Result"],
-        "params": [0, 1],
+        "params": [
+            { "name": "T", "type": 0 },
+            { "name": "E", "type": 1 }
+        ],
         "def": {
             "variant": {
                 "variants": [
@@ -276,7 +281,9 @@ fn test_struct_with_phantom() {
 
     assert_json_for_type::<Struct<u8>>(json!({
         "path": ["json", "Struct"],
-        "params": [0],
+        "params": [
+            { "name": "T", "type": 0 }
+        ],
         "def": {
             "composite": {
                 "fields": [

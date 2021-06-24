@@ -25,7 +25,6 @@ use syn::{
     Generics,
     Result,
     Type,
-    TypeParam,
     TypePath,
     WhereClause,
 };
@@ -39,12 +38,19 @@ use crate::{
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
 /// with self-referential types.
 ///
-/// Ignores any type parameters not included in `type_params`.
+/// # Effect of attributes
+///
+/// `#[scale_info(skip_type_params(..))]`
+///
+/// Will not add `TypeInfo` bounds for any type parameters skipped via this attribute.
+///
+/// `#[scale_info(bounds(..))]`
+///
+/// Replaces *all* auto-generated trait bounds with the user-defined ones.
 pub fn make_where_clause<'a>(
     attrs: &'a Attributes,
     input_ident: &'a Ident,
     generics: &'a Generics,
-    type_params: &[TypeParam],
     data: &'a syn::Data,
     scale_info: &Ident,
     parity_scale_codec: &Ident,
@@ -102,7 +108,10 @@ pub fn make_where_clause<'a>(
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        if type_params.iter().any(|tp| *tp == *type_param) {
+        if attrs
+            .skip_type_params()
+            .map_or(true, |skip| !skip.skip(type_param))
+        {
             bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
         }
         bounds.push(parse_quote!('static));

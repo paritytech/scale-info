@@ -18,15 +18,18 @@ use pretty_assertions::assert_eq;
 use scale::Encode;
 use scale_info::{
     build::*,
+    named_type_params,
     prelude::{
         boxed::Box,
         marker::PhantomData,
+        vec,
         vec::Vec,
     },
-    tuple_meta_type,
+    MetaType,
     Path,
     Type,
     TypeInfo,
+    TypeParameter,
 };
 
 fn assert_type<T, E>(expected: E)
@@ -57,7 +60,7 @@ fn struct_derive() {
 
     let struct_type = Type::builder()
         .path(Path::new("S", "derive"))
-        .type_params(tuple_meta_type!(bool, u8))
+        .type_params(named_type_params![(T, bool), (U, u8)])
         .docs(&["Type docs.", "Multiline."])
         .composite(
             Fields::named()
@@ -78,7 +81,7 @@ fn struct_derive() {
 
     let self_typed_type = Type::builder()
         .path(Path::new("S", "derive"))
-        .type_params(tuple_meta_type!(Box<S<bool, u8>>, bool))
+        .type_params(named_type_params!((T, Box<S<bool, u8>>), (U, bool)))
         .docs(&["Type docs.", "Multiline."])
         .composite(
             Fields::named()
@@ -104,7 +107,7 @@ fn phantom_data_is_part_of_the_type_info() {
 
     let ty = Type::builder()
         .path(Path::new("P", "derive"))
-        .type_params(tuple_meta_type!(bool))
+        .type_params(named_type_params!((T, bool)))
         .composite(
             Fields::named()
                 .field(|f| f.ty::<u8>().name("a").type_name("u8"))
@@ -130,7 +133,7 @@ fn tuple_struct_derive() {
 
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
-        .type_params(tuple_meta_type!(bool))
+        .type_params(named_type_params!((T, bool)))
         .docs(&["Type docs."])
         .composite(
             Fields::unnamed()
@@ -227,7 +230,7 @@ fn enum_derive() {
 
     let ty = Type::builder()
         .path(Path::new("E", "derive"))
-        .type_params(tuple_meta_type!(bool))
+        .type_params(named_type_params!((T, bool)))
         .docs(&["Enum docs."])
         .variant(
             Variants::new()
@@ -267,7 +270,7 @@ fn enum_derive_with_codec_index() {
 
     let ty = Type::builder()
         .path(Path::new("E", "derive"))
-        .type_params(tuple_meta_type!(bool))
+        .type_params(named_type_params!((T, bool)))
         .variant(
             Variants::new()
                 .variant("A", |v| {
@@ -357,7 +360,7 @@ fn associated_types_derive_without_bounds() {
 
     let struct_type = Type::builder()
         .path(Path::new("Assoc", "derive"))
-        .type_params(tuple_meta_type!(ConcreteTypes))
+        .type_params(named_type_params![(T, ConcreteTypes)])
         .composite(
             Fields::named()
                 .field(|f| f.ty::<bool>().name("a").type_name("T::A"))
@@ -389,7 +392,7 @@ fn associated_types_named_like_the_derived_type_works() {
 
     let struct_type = Type::builder()
         .path(Path::new("Assoc", "derive"))
-        .type_params(tuple_meta_type!(ConcreteTypes))
+        .type_params(named_type_params![(T, ConcreteTypes)])
         .composite(
             Fields::named()
                 .field(|f| f.ty::<Vec<bool>>().name("a").type_name("Vec<T::Assoc>"))
@@ -433,7 +436,7 @@ fn scale_compact_types_work_in_enums() {
 
     let ty = Type::builder()
         .path(Path::new("MutilatedMultiAddress", "derive"))
-        .type_params(tuple_meta_type!(u8, u16))
+        .type_params(named_type_params![(AccountId, u8), (AccountIndex, u16)])
         .variant(
             Variants::new()
                 .variant("Id", |v| {
@@ -546,7 +549,7 @@ fn type_parameters_with_default_bound_works() {
 
     let ty = Type::builder()
         .path(Path::new("Bat", "derive"))
-        .type_params(tuple_meta_type!(MetaFormy))
+        .type_params(named_type_params![(TTT, MetaFormy)])
         .composite(
             Fields::named().field(|f| f.ty::<MetaFormy>().name("one").type_name("TTT")),
         );
@@ -629,7 +632,10 @@ fn skip_type_params_nested() {
 
     let ty = Type::builder()
         .path(Path::new("SkipTypeParamsNested", "derive"))
-        .type_params(tuple_meta_type!(u16))
+        .type_params(vec![
+            TypeParameter::new("T", None),
+            TypeParameter::new("U", Some(MetaType::new::<u16>())),
+        ])
         .composite(
             Fields::named()
                 .field(|f| {
@@ -657,6 +663,10 @@ fn skip_all_type_params() {
 
     let ty = Type::builder()
         .path(Path::new("SkipAllTypeParams", "derive"))
+        .type_params(vec![
+            TypeParameter::new("T", None),
+            TypeParameter::new("U", None),
+        ])
         .composite(
             Fields::named()
                 .field(|f| {
@@ -682,7 +692,7 @@ fn skip_type_params_with_associated_types() {
 
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(skip_type_params(T, U))]
+    #[scale_info(skip_type_params(T))]
     struct SkipTypeParamsForTraitImpl<T>
     where
         T: Trait,
@@ -699,6 +709,7 @@ fn skip_type_params_with_associated_types() {
 
     let ty = Type::builder()
         .path(Path::new("SkipTypeParamsForTraitImpl", "derive"))
+        .type_params(vec![TypeParameter::new("T", None)])
         .composite(
             Fields::named()
                 .field(|f| {
@@ -726,6 +737,10 @@ fn skip_type_params_with_defaults() {
 
     let ty = Type::builder()
         .path(Path::new("SkipAllTypeParamsWithDefaults", "derive"))
+        .type_params(vec![
+            TypeParameter::new("T", None),
+            TypeParameter::new("U", None),
+        ])
         .composite(
             Fields::named()
                 .field(|f| {

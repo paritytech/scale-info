@@ -60,7 +60,7 @@ fn prelude_items() {
         Option<u128>,
         Type::builder()
             .path(Path::prelude("Option"))
-            .type_params(tuple_meta_type!(u128))
+            .type_params(named_type_params![(T, u128)])
             .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
                 v.fields(Fields::unnamed().field(|f| f.ty::<u128>()))
             }))
@@ -69,7 +69,7 @@ fn prelude_items() {
         Result<bool, String>,
         Type::builder()
             .path(Path::prelude("Result"))
-            .type_params(tuple_meta_type!(bool, String))
+            .type_params(named_type_params![(T, bool), (E, String)])
             .variant(
                 Variants::new()
                     .variant(
@@ -87,7 +87,7 @@ fn prelude_items() {
         Cow<u128>,
         Type::builder()
             .path(Path::prelude("Cow"))
-            .type_params(tuple_meta_type!(u128))
+            .type_params(named_type_params![(T, u128)])
             .composite(Fields::unnamed().field(|f| f.ty::<u128>()))
     );
 }
@@ -98,7 +98,7 @@ fn collections() {
         BTreeMap<String, u32>,
         Type::builder()
             .path(Path::prelude("BTreeMap"))
-            .type_params(tuple_meta_type![(String, u32)])
+            .type_params(named_type_params![(K, String), (V, u32)])
             .composite(Fields::unnamed().field(|f| f.ty::<[(String, u32)]>()))
     );
 
@@ -106,7 +106,7 @@ fn collections() {
         BTreeSet<String>,
         Type::builder()
             .path(Path::prelude("BTreeSet"))
-            .type_params(tuple_meta_type![String])
+            .type_params(named_type_params![(T, String)])
             .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
     );
 
@@ -197,7 +197,7 @@ fn struct_with_generics() {
         fn type_info() -> Type {
             Type::builder()
                 .path(Path::new("MyStruct", module_path!()))
-                .type_params(tuple_meta_type!(T))
+                .type_params(type_params!(T))
                 .composite(
                     Fields::named().field(|f| f.ty::<T>().name("data").type_name("T")),
                 )
@@ -207,7 +207,7 @@ fn struct_with_generics() {
     // Normal struct
     let struct_bool_type_info = Type::builder()
         .path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
-        .type_params(tuple_meta_type!(bool))
+        .type_params(named_type_params![(T, bool)])
         .composite(Fields::named().field(|f| f.ty::<bool>().name("data").type_name("T")));
 
     assert_type!(MyStruct<bool>, struct_bool_type_info);
@@ -216,7 +216,7 @@ fn struct_with_generics() {
     type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
     let expected_type = Type::builder()
         .path(Path::new("MyStruct", "scale_info::tests"))
-        .type_params(tuple_meta_type!(Box<MyStruct<bool>>))
+        .type_params(named_type_params![(T, Box<MyStruct<bool>>)])
         .composite(
             Fields::named()
                 .field(|f| f.ty::<Box<MyStruct<bool>>>().name("data").type_name("T")),
@@ -241,7 +241,7 @@ fn basic_struct_with_phantoms() {
         fn type_info() -> Type {
             Type::builder()
                 .path(Path::new("SomeStruct", module_path!()))
-                .type_params(tuple_meta_type!(T))
+                .type_params(type_params!(T))
                 .composite(
                     Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")),
                 )
@@ -250,7 +250,7 @@ fn basic_struct_with_phantoms() {
 
     let struct_bool_type_info = Type::builder()
         .path(Path::from_segments(vec!["scale_info", "tests", "SomeStruct"]).unwrap())
-        .type_params(tuple_meta_type!(bool))
+        .type_params(named_type_params![(T, bool)])
         .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")));
 
     assert_type!(SomeStruct<bool>, struct_bool_type_info);

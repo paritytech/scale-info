@@ -147,7 +147,7 @@ where
     fn type_info() -> Type {
         Type::builder()
             .path(Path::prelude("Option"))
-            .type_params(tuple_meta_type![T])
+            .type_params(type_params![T])
             .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
                 v.fields(Fields::unnamed().field(|f| f.ty::<T>()))
             }))
@@ -164,7 +164,7 @@ where
     fn type_info() -> Type {
         Type::builder()
             .path(Path::prelude("Result"))
-            .type_params(tuple_meta_type!(T, E))
+            .type_params(type_params!(T, E))
             .variant(
                 Variants::new()
                     .variant("Ok", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
@@ -184,7 +184,7 @@ where
     fn type_info() -> Type {
         Type::builder()
             .path(Path::prelude("Cow"))
-            .type_params(tuple_meta_type!(T))
+            .type_params(type_params!(T))
             .composite(Fields::unnamed().field(|f| f.ty::<T>()))
     }
 }
@@ -199,7 +199,7 @@ where
     fn type_info() -> Type {
         Type::builder()
             .path(Path::prelude("BTreeMap"))
-            .type_params(tuple_meta_type![(K, V)])
+            .type_params(type_params![K, V])
             .composite(Fields::unnamed().field(|f| f.ty::<[(K, V)]>()))
     }
 }
@@ -213,7 +213,7 @@ where
     fn type_info() -> Type {
         Type::builder()
             .path(Path::prelude("BTreeSet"))
-            .type_params(tuple_meta_type![T])
+            .type_params(type_params![T])
             .composite(Fields::unnamed().field(|f| f.ty::<[T]>()))
     }
 }
