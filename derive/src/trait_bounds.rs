@@ -72,9 +72,6 @@ pub fn make_where_clause<'a>(
             where_clause
                 .predicates
                 .push(parse_quote!(#ty : #parity_scale_codec ::HasCompact));
-            where_clause
-                .predicates
-                .push(parse_quote!(<#ty as #parity_scale_codec ::HasCompact>::Type : #scale_info ::TypeInfo + 'static));
         } else {
             where_clause
                 .predicates
