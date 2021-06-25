@@ -27,6 +27,7 @@ use crate::{
     *,
 };
 use core::marker::PhantomData;
+use std::num::NonZeroU32;
 use scale::Compact;
 
 fn assert_type<T, E>(expected: E)
@@ -90,6 +91,13 @@ fn prelude_items() {
             .type_params(tuple_meta_type!(u128))
             .composite(Fields::unnamed().field(|f| f.ty::<u128>()))
     );
+
+    assert_type!(
+        NonZeroU32,
+        Type::builder()
+            .path(Path::prelude("NonZeroU32"))
+            .composite(Fields::unnamed().field(|f| f.ty::<NonZeroU32>()))
+    )
 }
 
 #[test]
