@@ -109,6 +109,88 @@
 //! the programmer control of the `where` clause on the generated `impl`, to solve this and other
 //! issues that can't be foreseen by the auto-generated bounds heuristic.
 //!
+//! #### `#[scale_info(skip_type_params(..))]`
+//!
+//! Remove the requirement for the specified type params to implement `TypeInfo`.
+//!
+//! Consider a simple example of a type parameter which is used for associated types, but the type
+//! itself does not carry any type information. Consider this common pattern:
+//! 
+//! ```ignore
+//! trait Config {
+//!     type Balance;
+//! }
+//! 
+//! struct Runtime; // doesn't implement `TypeInfo`
+//! 
+//! impl Config for Runtime {
+//!     type Balance = u64;
+//! }
+//! 
+//! #[allow(unused)]
+//! #[derive(TypeInfo)]
+//! #[scale_info(skip_type_params(T))] 
+//! struct A<T: Config> {
+//!     balance: T::Balance,
+//!     marker: core::marker::PhantomData<T>,
+//! }
+//! 
+//! fn assert_type_info<T: scale_info::TypeInfo + 'static>() {}
+//! 
+//! fn main() {
+//!     // without the `skip_type_params` attribute this will fail.
+//!     assert_type_info::<A<Runtime>>();
+//! }
+//! ```
+//!
+//! By default, the derived `TypeInfo` implementation will add the type of all type parameters to
+//! the `TypeParameter` specification e.g.
+//!
+//! `type_params(vec![TypeParameter::new("T", Some(MetaType::new::<T>()))])`
+//!
+//! In the example above, this will cause a compiler error because `Runtime` is the concrete tyoe
+//! for `T`, which does not satisfy the `TypeInfo` requirement of `MetaType::new::<T>()`.
+//!
+//! Simply adding a `TypeInfo` derive to `Runtime` is one way of solving this, but that could be
+//! misleading (why does it need `TypeInfo` if a value of that type is never encoded?), and can
+//! sometimes require adding `TypeInfo` bounds in other impl blocks.
+//!
+//! The `skip_type_params` attribute solves this, providing an additional "escape hatch" which
+//! prevents the given type parameter's type information being required:
+//!
+//! `type_params(vec![TypeParameter::new("T", None)])`
+//!
+//! The generated type params do not now require `T` to implement `TypeInfo`, so the auto-generated
+//! bound is not added to the generated `TypeInfo` `where` clause.
+//!
+//! #### Combining `bounds` and `skip_type_params`
+//!
+//! These two attributes can complement one another, particularly in the case where using `bounds`
+//! would still require manually adding a `TypeInfo` bound for the type parameter:
+//!
+//! ```ignore
+//! #[derive(TypeInfo)]
+//! #[scale_info(bounds(), skip_type_params(T))]
+//! struct A<T> {
+//!     marker: core::marker::PhantomData<T>,
+//! }
+//! ```
+//!
+//! Without `skip_type_params` in the example above, it would require the `TypeInfo` bounds for `T`
+//! to be added manually e.g. `#[scale_info(bounds(T: TypeInfo + 'static))]`. Since the intention of
+//! the empty bounds is to **remove** all type bounds, then the addition of `skip_type_params`
+//! allows this to compile successfully.
+//!
+//! ##### Precedence
+//!
+//! When used independently, both attributes modify the `where` clause of the derived `TypeInfo`
+//! impl. When used together, the predicates supplied in the `bounds` attribute replaces *all*
+//! auto-generated bounds, and `skip_type_params` will have no effect on the resulting `where`
+//! clause.
+//!
+//! **Note:** When using `bounds` without `skip_type_params`, it is therefore required to manually
+//! add a `TypeInfo` bound for any non skipped type parameters. The compiler will let you know.
+//!
 //! # Forms
 //!
 //! To bridge between compile-time type information and runtime the
