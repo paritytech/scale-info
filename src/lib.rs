@@ -102,6 +102,19 @@ macro_rules! tuple_meta_type {
 }
 
 /// Construct a vector of `TypeParameter`s from pairs of the name and the concrete type.
+///
+/// # Example
+///
+/// ```
+/// # use scale_info::{named_type_params, MetaType, TypeParameter};
+/// assert_eq!(
+///     named_type_params![(T, u8), (U, u32)],
+///     vec! [
+///         TypeParameter::new("T", Some(MetaType::new::<u8>())),
+///         TypeParameter::new("U", Some(MetaType::new::<u32>())),
+///     ]
+/// );
+/// ```
 #[macro_export]
 macro_rules! named_type_params {
     ( $(($tp:ty, $ty:ty)),* ) => {
