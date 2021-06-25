@@ -121,7 +121,7 @@ macro_rules! named_type_params {
         {
             $crate::prelude::vec![
                 $(
-                    $crate::TypeParameter::new(
+                    $crate::TypeParameter::<$crate::form::MetaForm>::new(
                         ::core::stringify!($tp),
                         Some($crate::MetaType::new::<$ty>())
                     ),
