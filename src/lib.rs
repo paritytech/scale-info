@@ -36,6 +36,79 @@
 //! `scale-info` provides implementations for all commonly used Rust standard
 //! types and a derive macro for implementing of custom types.
 //!
+//! ## Deriving `TypeInfo`
+//!
+//! Enable the `derive` feature of this crate:
+//!
+//! ```toml
+//! scale-info = { version = "0.6.0", features = ["derive"] }
+//! ```
+//!
+//! ```ignore
+//! use scale_info::TypeInfo;
+//!
+//! #[derive(TypeInfo)]
+//! struct MyStruct {
+//!     a: u32,
+//!     b: MyEnum,
+//! }
+//!
+//! #[derive(TypeInfo)]
+//! enum MyEnum {
+//!     A(bool),
+//!     B { f: Vec<u8> },
+//!     C,
+//! }
+//! ```
+//!
+//! ### Attributes
+//!
+//! #### `#[scale_info(bounds(..))]`
+//!
+//! Replace the auto-generated `where` clause bounds for the derived `TypeInfo` implementation.
+//!
+//! ```ignore
+//! #[derive(TypeInfo)]
+//! #[scale_info(bounds(T: TypeInfo + 'static))]
+//! struct MyStruct<T> {
+//!     a: Vec<T>,
+//! }
+//! ```
+//!
+//! The derive macro automatically adds `TypeInfo` bounds for all type parameters, and all field
+//! types containing type parameters or associated types.
+//!
+//! This is naive and sometimes adds unnecessary bounds, since on a syntactical level there is no
+//! way to differentiate between a generic type constructor and a type alias with a generic argument
+//! e.g.
+//!
+//! ```ignore
+//! trait MyTrait {
+//!     type A;
+//! }
+//!
+//! type MyAlias<T> = <T as MyTrait>::A;
+//!
+//! #[derive(TypeInfo)]
+//! struct MyStruct<T> {
+//!     a: MyAlias<T>,
+//!     b: Vec<T>,
+//! }
+//!
+//! ```
+//!
+//! So for the above, since a `MyAlias<T>: TypeInfo` bound is required, and we can't distinguish
+//! between `MyAlias<T>` and `Vec<T>`, then the `TypeInfo` bound is simply added for all
+//! fields which contain any type param. In this case the redundant `Vec<T>: TypeInfo`
+//! would be added.
+//!
+//! This is usually okay, but in some circumstances can cause problems, for example with the
+//! [`overflow evaluating the requirement`] error [here](https://github.com/paritytech/scale-info/blob/master/test_suite/tests/ui/pass_custom_bounds_fix_overflow.rs).
+//!
+//! The `bounds` attribute provides an ["escape hatch"](https://serde.rs/attr-bound.html) to allow
+//! the programmer control of the `where` clause on the generated `impl`, to solve this and other
+//! issues that can't be foreseen by the auto-generated bounds heuristic.
+//!
 //! # Forms
 //!
 //! To bridge between compile-time type information and runtime the
