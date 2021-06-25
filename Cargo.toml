@@ -14,15 +14,17 @@ categories = ["no-std", "encoding"]
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 
 [dependencies]
+bitvec = { version = "0.20.1", default-features = false, features = ["alloc"], optional = true }
 cfg-if = "1.0"
 scale-info-derive = { version = "0.4.0", path = "derive", default-features = false, optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["derive", "alloc"] }
 derive_more = { version = "0.99.1", default-features = false, features = ["from"] }
-scale = { package = "parity-scale-codec", version = "2.0", default-features = false, features = ["derive"] }
+scale = { package = "parity-scale-codec", version = "2.2.0-rc.2", default-features = false, features = ["derive"] }
 
 [features]
-default = ["std"]
+default = ["std", "docs"]
 std = [
+    "bitvec/std",
     "scale/std",
 ]
 derive = [
@@ -33,8 +35,17 @@ dogfood = [
     "derive"
 ]
 # Enables decoding and deserialization of portable scale-info type metadata.
+# Include rustdoc strings in the type metadata.
+docs = [
+    "scale-info-derive/docs"
+]
+# enables decoding and deserialization of portable scale-info type metadata
 decode = [
     "scale/full"
+]
+# enables type information for bitvec types, matching the name of the parity-scale-codec feature
+bit-vec = [
+    "bitvec"
 ]
 
 [workspace]

@@ -12,12 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-
 extern crate alloc;
 extern crate proc_macro;
 
 mod trait_bounds;
+mod utils;
 
 use alloc::{
     string::{
@@ -41,25 +40,18 @@ use syn::{
     punctuated::Punctuated,
     token::Comma,
     visit_mut::VisitMut,
-    AttrStyle,
     Data,
     DataEnum,
     DataStruct,
     DeriveInput,
-    Expr,
-    ExprLit,
     Field,
     Fields,
     Ident,
     Lifetime,
-    Lit,
-    Meta,
-    MetaList,
-    NestedMeta,
     Variant,
 };
 
-#[proc_macro_derive(TypeInfo)]
+#[proc_macro_derive(TypeInfo, attributes(scale_info))]
 pub fn type_info(input: TokenStream) -> TokenStream {
     match generate(input.into()) {
         Ok(output) => output.into(),
@@ -74,21 +66,31 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
-    let ast: DeriveInput = syn::parse2(input.clone())?;
+    let mut ast: DeriveInput = syn::parse2(input.clone())?;
+
+    utils::check_attributes(&ast)?;
 
     let scale_info = scale_info_crate_tokens()?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
 
+    let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
+    {
+        let where_clause = ast.generics.make_where_clause();
+        where_clause.predicates.extend(custom_bounds);
+        where_clause.clone()
+    } else {
+        trait_bounds::make_where_clause(
+            ident,
+            &ast.generics,
+            &ast.data,
+            &scale_info,
+            &parity_scale_codec,
+        )?
+    };
+
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
-    let where_clause = trait_bounds::make_where_clause(
-        ident,
-        &ast.generics,
-        &ast.data,
-        &scale_info,
-        &parity_scale_codec,
-    )?;
     let generic_type_ids = ast.generics.type_params().map(|ty| {
         let ty_ident = &ty.ident;
         quote! {
@@ -101,13 +103,16 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         Data::Enum(ref e) => generate_variant_type(e, &scale_info),
         Data::Union(_) => return Err(Error::new_spanned(input, "Unions not supported")),
     };
+    let docs = generate_docs(&ast.attrs);
+
     let type_info_impl = quote! {
         impl #impl_generics #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
             type Identity = Self;
             fn type_info() -> #scale_info::Type {
                 #scale_info::Type::builder()
-                    .path(#scale_info::Path::new(stringify!(#ident), module_path!()))
+                    .path(#scale_info::Path::new(::core::stringify!(#ident), ::core::module_path!()))
                     .type_params(#scale_info::prelude::vec![ #( #generic_type_ids ),* ])
+                    #docs
                     .#build_type
             }
         };
@@ -123,7 +128,13 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 /// Get the name of a crate, to be robust against renamed dependencies.
 fn crate_name_ident(name: &str) -> Result<Ident> {
     proc_macro_crate::crate_name(name)
-        .map(|crate_name| Ident::new(&crate_name, Span::call_site()))
+        .map(|crate_name| {
+            use proc_macro_crate::FoundCrate::*;
+            match crate_name {
+                Itself => Ident::new("self", Span::call_site()),
+                Name(name) => Ident::new(&name, Span::call_site()),
+            }
+        })
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
 }
 
@@ -132,27 +143,18 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
 /// types for the scale-info crate itself, in which case we need to rename
 /// "self" to something, so the object paths keep working.
 fn scale_info_crate_tokens() -> Result<TokenStream2> {
+    use proc_macro_crate::FoundCrate;
     const SCALE_INFO_CRATE_NAME: &str = "scale-info";
-    let actual_crate_name = proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME);
-    if let Err(e) = actual_crate_name {
-        // A proper error type would be good here (https://github.com/bkchr/proc-macro-crate/issues/7)
-        if e.starts_with(&alloc::format!(
-            "Could not find `{}`",
-            SCALE_INFO_CRATE_NAME
-        )) {
-            Ok(quote! { crate })
-        } else {
-            Err(syn::Error::new(Span::call_site(), e))
+
+    let crate_ident = match proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME) {
+        Ok(FoundCrate::Itself) => quote! { crate },
+        Ok(FoundCrate::Name(name)) => {
+            let ident = Ident::new(&name, Span::call_site());
+            quote! { :: #ident }
         }
-    } else {
-        let ident = Ident::new(
-            &actual_crate_name.unwrap_or_else(|_| {
-                panic!("Checked for Err above and now it's not Ok. The world is broken.")
-            }),
-            Span::call_site(),
-        );
-        Ok(quote! { :: #ident })
-    }
+        Err(e) => return Err(syn::Error::new(Span::call_site(), e)),
+    };
+    Ok(crate_ident)
 }
 
 type FieldsList = Punctuated<Field, Comma>;
@@ -160,6 +162,7 @@ type FieldsList = Punctuated<Field, Comma>;
 fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
     fields
         .iter()
+        .filter(|f| !utils::should_skip(&f.attrs))
         .map(|f| {
             let (ty, ident) = (&f.ty, &f.ident);
             // Replace any field lifetime params with `static to prevent "unnecessary lifetime parameter"
@@ -174,35 +177,27 @@ fn generate_fields(fields: &FieldsList) -> Vec<TokenStream2> {
             StaticLifetimesReplace.visit_type_mut(&mut ty);
 
             let type_name = clean_type_string(&quote!(#ty).to_string());
-            let method_call = if is_compact(f) {
-                quote!(.compact_of::<#ty>)
+            let docs = generate_docs(&f.attrs);
+            let type_of_method = if utils::is_compact(f) {
+                quote!(compact)
             } else {
-                quote!(.field_of::<#ty>)
+                quote!(ty)
             };
-            if let Some(ident) = ident {
-                quote!(#method_call(stringify!(#ident), #type_name))
+            let name = if let Some(ident) = ident {
+                quote!(.name(::core::stringify!(#ident)))
             } else {
-                quote!(#method_call(#type_name))
-            }
+                quote!()
+            };
+            quote!(
+                .field(|f| f
+                    .#type_of_method::<#ty>()
+                    #name
+                    .type_name(#type_name)
+                    #docs
+                )
+            )
         })
         .collect()
-}
-
-/// Look for a `#[codec(compact)]` outer attribute.
-fn is_compact(f: &Field) -> bool {
-    f.attrs.iter().any(|attr| {
-        let mut is_compact = false;
-        if attr.style == AttrStyle::Outer && attr.path.is_ident("codec") {
-            if let Ok(Meta::List(MetaList { nested, .. })) = attr.parse_meta() {
-                if let Some(NestedMeta::Meta(Meta::Path(path))) = nested.iter().next() {
-                    if path.is_ident("compact") {
-                        is_compact = true;
-                    }
-                }
-            }
-        }
-        is_compact
-    })
 }
 
 fn clean_type_string(input: &str) -> String {
@@ -223,6 +218,7 @@ fn clean_type_string(input: &str) -> String {
         .replace("< ", "<")
         .replace(" >", ">")
         .replace("& \'", "&'")
+        .replace("&\'", "&'")
 }
 
 fn generate_composite_type(
@@ -255,39 +251,34 @@ fn generate_c_like_enum_def(
     variants: &VariantList,
     scale_info: &TokenStream2,
 ) -> TokenStream2 {
-    let variants = variants.into_iter().enumerate().map(|(i, v)| {
-        let name = &v.ident;
-        let discriminant = if let Some((
-            _,
-            Expr::Lit(ExprLit {
-                lit: Lit::Int(lit_int),
-                ..
-            }),
-        )) = &v.discriminant
-        {
-            match lit_int.base10_parse::<u64>() {
-                Ok(i) => i,
-                Err(err) => return err.to_compile_error(),
+    let variants = variants
+        .into_iter()
+        .enumerate()
+        .filter(|(_, v)| !utils::should_skip(&v.attrs))
+        .map(|(i, v)| {
+            let name = &v.ident;
+            let discriminant = utils::variant_index(v, i);
+            let docs = generate_docs(&v.attrs);
+            quote! {
+                .variant(::core::stringify!(#name), |v|
+                    v
+                        .discriminant(#discriminant as ::core::primitive::u64)
+                        #docs
+                )
             }
-        } else {
-            i as u64
-        };
-        quote! {
-            .variant(stringify!(#name), #discriminant)
-        }
-    });
+        });
     quote! {
         variant(
-            #scale_info::build::Variants::fieldless()
+            #scale_info::build::Variants::new()
                 #( #variants )*
         )
     }
 }
 
 fn is_c_like_enum(variants: &VariantList) -> bool {
-    // any variant has an explicit discriminant
+    // One of the variants has an explicit discriminant, or…
     variants.iter().any(|v| v.discriminant.is_some()) ||
-        // all variants are unit
+        // …all variants are unit
         variants.iter().all(|v| matches!(v.fields, Fields::Unit))
 }
 
@@ -297,45 +288,86 @@ fn generate_variant_type(
 ) -> TokenStream2 {
     let variants = &data_enum.variants;
 
-    if is_c_like_enum(&variants) {
+    if is_c_like_enum(variants) {
         return generate_c_like_enum_def(variants, scale_info)
     }
 
-    let variants = variants.into_iter().map(|v| {
-        let ident = &v.ident;
-        let v_name = quote! {stringify!(#ident) };
-        match v.fields {
-            Fields::Named(ref fs) => {
-                let fields = generate_fields(&fs.named);
-                quote! {
-                    .variant(
-                        #v_name,
+    let variants = variants
+        .into_iter()
+        .filter(|v| !utils::should_skip(&v.attrs))
+        .map(|v| {
+            let ident = &v.ident;
+            let v_name = quote! {::core::stringify!(#ident) };
+            let docs = generate_docs(&v.attrs);
+            let index = utils::maybe_index(v).map(|i| quote!(.index(#i)));
+
+            let fields = match v.fields {
+                Fields::Named(ref fs) => {
+                    let fields = generate_fields(&fs.named);
+                    quote! {
                         #scale_info::build::Fields::named()
-                            #( #fields)*
-                    )
+                            #( #fields )*
+                    }
                 }
-            }
-            Fields::Unnamed(ref fs) => {
-                let fields = generate_fields(&fs.unnamed);
-                quote! {
-                    .variant(
-                        #v_name,
+                Fields::Unnamed(ref fs) => {
+                    let fields = generate_fields(&fs.unnamed);
+                    quote! {
                         #scale_info::build::Fields::unnamed()
-                            #( #fields)*
-                    )
+                            #( #fields )*
+                    }
                 }
-            }
-            Fields::Unit => {
-                quote! {
-                    .variant_unit(#v_name)
+                Fields::Unit => {
+                    quote! {
+                        #scale_info::build::Fields::unit()
+                    }
                 }
+            };
+
+            quote! {
+                .variant(#v_name, |v|
+                    v
+                        .fields(#fields)
+                        #docs
+                        #index
+                )
             }
-        }
-    });
+        });
     quote! {
         variant(
-            #scale_info::build::Variants::with_fields()
-                #( #variants)*
+            #scale_info ::build::Variants::new()
+                #( #variants )*
         )
     }
+}
+
+#[cfg(feature = "docs")]
+fn generate_docs(attrs: &[syn::Attribute]) -> Option<TokenStream2> {
+    let docs = attrs
+        .iter()
+        .filter_map(|attr| {
+            if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
+                if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
+                    let lit = &meta.lit;
+                    let doc_lit = quote!(#lit).to_string();
+                    let trimmed_doc_lit =
+                        doc_lit.trim_start_matches(r#"" "#).trim_end_matches('"');
+                    let lit: syn::Lit = parse_quote!(#trimmed_doc_lit);
+                    Some(lit)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>();
+
+    Some(quote! {
+        .docs(&[ #( #docs ),* ])
+    })
+}
+
+#[cfg(not(feature = "docs"))]
+fn generate_docs(_: &[syn::Attribute]) -> Option<TokenStream2> {
+    None
 }

@@ -13,8 +13,16 @@
 // limitations under the License.
 
 use crate::prelude::{
+    borrow::{
+        Cow,
+        ToOwned,
+    },
     boxed::Box,
-    collections::BTreeMap,
+    collections::{
+        BTreeMap,
+        BTreeSet,
+        VecDeque,
+    },
     marker::PhantomData,
     string::String,
     vec::Vec,
@@ -33,18 +41,18 @@ use crate::{
     TypeDefTuple,
     TypeInfo,
 };
-use core::num::{
-    NonZeroI128,
-    NonZeroI16,
-    NonZeroI32,
-    NonZeroI64,
-    NonZeroI8,
-    NonZeroU128,
-    NonZeroU16,
-    NonZeroU32,
-    NonZeroU64,
-    NonZeroU8,
-};
+// use core::num::{
+//     NonZeroI128,
+//     NonZeroI16,
+//     NonZeroI32,
+//     NonZeroI64,
+//     NonZeroI8,
+//     NonZeroU128,
+//     NonZeroU16,
+//     NonZeroU32,
+//     NonZeroU64,
+//     NonZeroU8,
+// };
 
 macro_rules! impl_metadata_for_primitives {
     ( $( $t:ty => $ident_kind:expr, )* ) => { $(
@@ -73,28 +81,13 @@ impl_metadata_for_primitives!(
     i128 => TypeDefPrimitive::I128,
 );
 
-macro_rules! impl_metadata_for_array {
-    ( $( $n:expr )* ) => {
-        $(
-            impl<T: TypeInfo + 'static> TypeInfo for [T; $n] {
-                type Identity = Self;
+impl<T: TypeInfo + 'static, const N: usize> TypeInfo for [T; N] {
+    type Identity = Self;
 
-                fn type_info() -> Type {
-                    TypeDefArray::new($n, MetaType::new::<T>()).into()
-                }
-            }
-        )*
+    fn type_info() -> Type {
+        TypeDefArray::new(N as u32, MetaType::new::<T>()).into()
     }
 }
-
-#[rustfmt::skip]
-impl_metadata_for_array!(
-        1  2  3  4  5  6  7  8  9
-    10 11 12 13 14 15 16 17 18 19
-    20 21 22 23 24 25 26 27 28 29
-    30 31 32
-    40 48 56 64 72 96 128 160 192 224 256
-);
 
 macro_rules! impl_metadata_for_tuple {
     ( $($ty:ident),* ) => {
@@ -130,36 +123,51 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O);
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S);
+impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
 
-macro_rules! impl_for_non_zero {
-    ( $( $t: ty ),* $(,)? ) => {
-        $(
-            impl TypeInfo for $t {
-                type Identity = Self;
-                fn type_info() -> Type {
-                    Type::builder()
-                        .path(Path::prelude(stringify!($t)))
-                        .composite(Fields::unnamed().field_of::<$t>(stringify!($t)))
-                }
-            }
-        )*
-    };
-}
+// macro_rules! impl_for_non_zero {
+//     ( $( $t: ty ),* $(,)? ) => {
+//         $(
+//             impl TypeInfo for $t {
+//                 type Identity = Self;
+//                 fn type_info() -> Type {
+//                     Type::builder()
+//                         .path(Path::prelude(stringify!($t)))
+//                         .composite(Fields::unnamed().field(|f| f.ty::<$t>()))
+//                 }
+//             }
+//         )*
+//     };
+// }
 
-impl_for_non_zero!(
-    NonZeroI8,
-    NonZeroI16,
-    NonZeroI32,
-    NonZeroI64,
-    NonZeroI128,
-    NonZeroU8,
-    NonZeroU16,
-    NonZeroU32,
-    NonZeroU64,
-    NonZeroU128
-);
+// impl_for_non_zero!(
+//     NonZeroI8,
+//     NonZeroI16,
+//     NonZeroI32,
+//     NonZeroI64,
+//     NonZeroI128,
+//     NonZeroU8,
+//     NonZeroU16,
+//     NonZeroU32,
+//     NonZeroU64,
+//     NonZeroU128
+// );
 
 impl<T> TypeInfo for Vec<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = [T];
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
+}
+
+impl<T> TypeInfo for VecDeque<T>
 where
     T: TypeInfo + 'static,
 {
@@ -180,11 +188,9 @@ where
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(tuple_meta_type![T])
-            .variant(
-                Variants::with_fields()
-                    .variant_unit("None")
-                    .variant("Some", Fields::unnamed().field_of::<T>("T")),
-            )
+            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
+                v.fields(Fields::unnamed().field(|f| f.ty::<T>()))
+            }))
     }
 }
 
@@ -200,10 +206,26 @@ where
             .path(Path::prelude("Result"))
             .type_params(tuple_meta_type!(T, E))
             .variant(
-                Variants::with_fields()
-                    .variant("Ok", Fields::unnamed().field_of::<T>("T"))
-                    .variant("Err", Fields::unnamed().field_of::<E>("E")),
+                Variants::new()
+                    .variant("Ok", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
+                    .variant("Err", |v| {
+                        v.fields(Fields::unnamed().field(|f| f.ty::<E>()))
+                    }),
             )
+    }
+}
+
+impl<T> TypeInfo for Cow<'static, T>
+where
+    T: ToOwned + TypeInfo + ?Sized + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("Cow"))
+            .type_params(tuple_meta_type!(T))
+            .composite(Fields::unnamed().field(|f| f.ty::<T>()))
     }
 }
 
@@ -218,7 +240,21 @@ where
         Type::builder()
             .path(Path::prelude("BTreeMap"))
             .type_params(tuple_meta_type![(K, V)])
-            .composite(Fields::unnamed().field_of::<[(K, V)]>("[(K, V)]"))
+            .composite(Fields::unnamed().field(|f| f.ty::<[(K, V)]>()))
+    }
+}
+
+impl<T> TypeInfo for BTreeSet<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("BTreeSet"))
+            .type_params(tuple_meta_type![T])
+            .composite(Fields::unnamed().field(|f| f.ty::<[T]>()))
     }
 }
 
@@ -300,5 +336,42 @@ where
     type Identity = Self;
     fn type_info() -> Type {
         TypeDefCompact::new(MetaType::new::<T>()).into()
+    }
+}
+
+#[cfg(feature = "bit-vec")]
+mod bit_vec {
+    use super::*;
+
+    impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
+    where
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
+        T: bitvec::store::BitStore + TypeInfo + 'static,
+    {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            crate::TypeDefBitSequence::new::<O, T>().into()
+        }
+    }
+
+    impl TypeInfo for bitvec::order::Lsb0 {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("Lsb0", "bitvec::order"))
+                .composite(Fields::unit())
+        }
+    }
+
+    impl TypeInfo for bitvec::order::Msb0 {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("Msb0", "bitvec::order"))
+                .composite(Fields::unit())
+        }
     }
 }

@@ -52,6 +52,7 @@ pub use self::{
 
 /// A [`Type`] definition with optional metadata.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[cfg_attr(
     feature = "serde",
     serde(bound(
@@ -78,30 +79,36 @@ pub struct Type<T: Form = MetaForm> {
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
     type_def: TypeDef<T>,
+    /// Documentation
+    #[cfg_attr(
+        feature = "serde",
+        serde(skip_serializing_if = "Vec::is_empty", default)
+    )]
+    docs: Vec<T::String>,
 }
 
-// Issue https://github.com/paritytech/scale-info/issues/73 is why we can't derive `TypeInfo` for `Type`
-impl<T: Form> TypeInfo for Type<T>
-where
-    Path<T>: TypeInfo + 'static,
-    TypeDef<T>: TypeInfo + 'static,
-    T: Form + TypeInfo + 'static,
-    // We need this and the derive does not handle that yet.
-    T::Type: TypeInfo + 'static,
-{
-    type Identity = Self;
-    fn type_info() -> Type {
-        Type::builder()
-            .path(Path::new("Type", "scale_info::ty"))
-            .type_params(tuple_meta_type!(T))
-            .composite(
-                crate::build::Fields::named()
-                    .field_of::<Path<T>>("path", "Path<T>")
-                    .field_of::<Vec<T::Type>>("type_params", "Vec<T::Type>")
-                    .field_of::<TypeDef<T>>("type_def", "TypeDef<T>"),
-            )
-    }
-}
+// // Issue https://github.com/paritytech/scale-info/issues/73 is why we can't derive `TypeInfo` for `Type`
+// impl<T: Form> TypeInfo for Type<T>
+// where
+//     Path<T>: TypeInfo + 'static,
+//     TypeDef<T>: TypeInfo + 'static,
+//     T: Form + TypeInfo + 'static,
+//     // We need this and the derive does not handle that yet.
+//     T::Type: TypeInfo + 'static,
+// {
+//     type Identity = Self;
+//     fn type_info() -> Type {
+//         Type::builder()
+//             .path(Path::new("Type", "scale_info::ty"))
+//             .type_params(tuple_meta_type!(T))
+//             .composite(
+//                 crate::build::Fields::named()
+//                     .field_of::<Path<T>>("path", "Path<T>")
+//                     .field_of::<Vec<T::Type>>("type_params", "Vec<T::Type>")
+//                     .field_of::<TypeDef<T>>("type_def", "TypeDef<T>"),
+//             )
+//     }
+// }
 
 impl IntoPortable for Type {
     type Output = Type<PortableForm>;
@@ -111,6 +118,7 @@ impl IntoPortable for Type {
             path: self.path.into_portable(registry),
             type_params: registry.register_types(self.type_params),
             type_def: self.type_def.into_portable(registry),
+            docs: registry.map_into_portable(self.docs),
         }
     }
 }
@@ -119,7 +127,7 @@ macro_rules! impl_from_type_def_for_type {
     ( $( $t:ty  ), + $(,)?) => { $(
         impl From<$t> for Type {
             fn from(item: $t) -> Self {
-                Self::new(Path::voldemort(), Vec::new(), item)
+                Self::new(Path::voldemort(), Vec::new(), item, Vec::new())
             }
         }
     )* }
@@ -132,6 +140,7 @@ impl_from_type_def_for_type!(
     TypeDefTuple,
     TypeDefCompact,
     TypeDefPhantom,
+    TypeDefBitSequence,
 );
 
 impl Type {
@@ -140,7 +149,12 @@ impl Type {
         TypeBuilder::default()
     }
 
-    pub(crate) fn new<I, D>(path: Path, type_params: I, type_def: D) -> Self
+    pub(crate) fn new<I, D>(
+        path: Path,
+        type_params: I,
+        type_def: D,
+        docs: Vec<&'static str>,
+    ) -> Self
     where
         I: IntoIterator<Item = MetaType>,
         D: Into<TypeDef>,
@@ -149,6 +163,7 @@ impl Type {
             path,
             type_params: type_params.into_iter().collect(),
             type_def: type_def.into(),
+            docs,
         }
     }
 }
@@ -170,6 +185,11 @@ where
     /// Returns the definition of the type
     pub fn type_def(&self) -> &TypeDef<T> {
         &self.type_def
+    }
+
+    /// Returns the documentation of the type
+    pub fn docs(&self) -> &[T::String] {
+        &self.docs
     }
 }
 
@@ -203,6 +223,8 @@ pub enum TypeDef<T: Form = MetaForm> {
     Compact(TypeDefCompact<T>),
     /// A PhantomData type.
     Phantom(TypeDefPhantom<T>),
+    /// A type representing a sequence of bits.
+    BitSequence(TypeDefBitSequence<T>),
 }
 
 impl IntoPortable for TypeDef {
@@ -218,6 +240,7 @@ impl IntoPortable for TypeDef {
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
+            TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
         }
     }
 }
@@ -495,5 +518,62 @@ where
     /// Returns the type parameter type of the phantom type.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
+    }
+}
+
+/// Type describing a [`bitvec::vec::BitVec`].
+///
+/// # Note
+///
+/// This can only be constructed for `TypeInfo` in the `MetaForm` with the `bit-vec` feature
+/// enabled, but can be decoded or deserialized into the `PortableForm` without this feature.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+pub struct TypeDefBitSequence<T: Form = MetaForm> {
+    /// The type implementing [`bitvec::store::BitStore`].
+    bit_store_type: T::Type,
+    /// The type implementing [`bitvec::order::BitOrder`].
+    bit_order_type: T::Type,
+}
+
+impl IntoPortable for TypeDefBitSequence {
+    type Output = TypeDefBitSequence<PortableForm>;
+
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+        TypeDefBitSequence {
+            bit_store_type: registry.register_type(&self.bit_store_type),
+            bit_order_type: registry.register_type(&self.bit_order_type),
+        }
+    }
+}
+
+impl<T> TypeDefBitSequence<T>
+where
+    T: Form,
+{
+    /// Returns the type of the bit ordering of the [`::bitvec::vec::BitVec`].
+    pub fn bit_order_type(&self) -> &T::Type {
+        &self.bit_order_type
+    }
+
+    /// Returns underlying type used to store the [`::bitvec::vec::BitVec`].
+    pub fn bit_store_type(&self) -> &T::Type {
+        &self.bit_store_type
+    }
+}
+
+#[cfg(feature = "bit-vec")]
+impl TypeDefBitSequence {
+    /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
+    pub fn new<O, T>() -> Self
+    where
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
+        T: bitvec::store::BitStore + TypeInfo + 'static,
+    {
+        Self {
+            bit_order_type: MetaType::new::<O>(),
+            bit_store_type: MetaType::new::<T>(),
+        }
     }
 }
