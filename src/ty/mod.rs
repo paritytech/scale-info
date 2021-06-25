@@ -87,29 +87,6 @@ pub struct Type<T: Form = MetaForm> {
     docs: Vec<T::String>,
 }
 
-// // Issue https://github.com/paritytech/scale-info/issues/73 is why we can't derive `TypeInfo` for `Type`
-// impl<T: Form> TypeInfo for Type<T>
-// where
-//     Path<T>: TypeInfo + 'static,
-//     TypeDef<T>: TypeInfo + 'static,
-//     T: Form + TypeInfo + 'static,
-//     // We need this and the derive does not handle that yet.
-//     T::Type: TypeInfo + 'static,
-// {
-//     type Identity = Self;
-//     fn type_info() -> Type {
-//         Type::builder()
-//             .path(Path::new("Type", "scale_info::ty"))
-//             .type_params(tuple_meta_type!(T))
-//             .composite(
-//                 crate::build::Fields::named()
-//                     .field_of::<Path<T>>("path", "Path<T>")
-//                     .field_of::<Vec<T::Type>>("type_params", "Vec<T::Type>")
-//                     .field_of::<TypeDef<T>>("type_def", "TypeDef<T>"),
-//             )
-//     }
-// }
-
 impl IntoPortable for Type {
     type Output = Type<PortableForm>;
 
