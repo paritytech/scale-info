@@ -94,7 +94,6 @@
 //!     a: MyAlias<T>,
 //!     b: Vec<T>,
 //! }
-//!
 //! ```
 //!
 //! So for the above, since a `MyAlias<T>: TypeInfo` bound is required, and we can't distinguish
@@ -115,28 +114,28 @@
 //!
 //! Consider a simple example of a type parameter which is used for associated types, but the type
 //! itself does not carry any type information. Consider this common pattern:
-//! 
+//!
 //! ```ignore
 //! trait Config {
 //!     type Balance;
 //! }
-//! 
+//!
 //! struct Runtime; // doesn't implement `TypeInfo`
-//! 
+//!
 //! impl Config for Runtime {
 //!     type Balance = u64;
 //! }
-//! 
+//!
 //! #[allow(unused)]
 //! #[derive(TypeInfo)]
-//! #[scale_info(skip_type_params(T))] 
+//! #[scale_info(skip_type_params(T))]
 //! struct A<T: Config> {
 //!     balance: T::Balance,
 //!     marker: core::marker::PhantomData<T>,
 //! }
-//! 
+//!
 //! fn assert_type_info<T: scale_info::TypeInfo + 'static>() {}
-//! 
+//!
 //! fn main() {
 //!     // without the `skip_type_params` attribute this will fail.
 //!     assert_type_info::<A<Runtime>>();
