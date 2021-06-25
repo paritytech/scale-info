@@ -27,8 +27,8 @@ use crate::{
     *,
 };
 use core::marker::PhantomData;
-use std::num::NonZeroU32;
 use scale::Compact;
+use std::num::NonZeroU32;
 
 fn assert_type<T, E>(expected: E)
 where
