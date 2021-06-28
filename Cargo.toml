@@ -34,12 +34,11 @@ derive = [
 dogfood = [
     "derive"
 ]
-# Enables decoding and deserialization of portable scale-info type metadata.
 # Include rustdoc strings in the type metadata.
 docs = [
     "scale-info-derive/docs"
 ]
-# enables decoding and deserialization of portable scale-info type metadata
+# Enables decoding and deserialization of portable scale-info type metadata.
 decode = [
     "scale/full"
 ]

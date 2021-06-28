@@ -138,10 +138,9 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
 }
 
-/// Find the name given to the `scale-info` crate in the context we run in.
-/// If scale-info is not among the dependencies then we must be deriving
-/// types for the scale-info crate itself, in which case we need to rename
-/// "self" to something, so the object paths keep working.
+/// Find the name given to the `scale-info` crate in the context we run in. If scale-info is not among the dependencies
+/// then we must be deriving types for the scale-info crate itself, in which case we need to refer to it using the
+/// reserved word "crate", so the object paths keep working.
 fn scale_info_crate_tokens() -> Result<TokenStream2> {
     use proc_macro_crate::FoundCrate;
     const SCALE_INFO_CRATE_NAME: &str = "scale-info";
