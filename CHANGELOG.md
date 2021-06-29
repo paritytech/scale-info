@@ -29,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replace NonZeroU32 type lookup ids with u32 [(#90)](https://github.com/paritytech/scale-info/pull/90)
 - Remove HasCompact::Type bounds [(#83)](https://github.com/paritytech/scale-info/pull/83)
 - Unify sequence types [(#100)](https://github.com/paritytech/scale-info/pull/100)
-- Bump parity-scale-codec to 2.2.0-rc.2 [(#102)](https://github.com/paritytech/scale-info/pull/102) // todo: [AJ] remove this for 0.7.0 and make a 0.8.0-rc.0 release with it?
 
 ### Fixed
 
