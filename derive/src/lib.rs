@@ -275,10 +275,7 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
         variants.iter().all(|v| matches!(v.fields, Fields::Unit))
 }
 
-fn generate_variant_type(
-    data_enum: &DataEnum,
-    scale_info: &syn::Path,
-) -> TokenStream2 {
+fn generate_variant_type(data_enum: &DataEnum, scale_info: &syn::Path) -> TokenStream2 {
     let variants = &data_enum.variants;
 
     if is_c_like_enum(variants) {
