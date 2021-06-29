@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.7.0] - 2021-06-25 // todo: [AJ] update for day of release
+## [0.7.0] - 2021-06-29
 ### Added
 
 - Handle more SCALE attributes: skip, index [(#44)](https://github.com/paritytech/scale-info/pull/44)
