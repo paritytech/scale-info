@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0-rc.1] - 2021-06-29
+### Changed
+
+- Bump parity-scale-codec to 2.2.0-rc.2 [(#102)](https://github.com/paritytech/scale-info/pull/102)
+
 ## [0.7.0] - 2021-06-29
 ### Added
 
