@@ -308,6 +308,9 @@ mod utils;
 #[cfg(test)]
 mod tests;
 
+#[doc(hidden)]
+pub use codec;
+
 pub use self::{
     meta_type::MetaType,
     registry::{
