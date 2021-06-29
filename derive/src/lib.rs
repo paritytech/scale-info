@@ -15,16 +15,10 @@
 extern crate alloc;
 extern crate proc_macro;
 
+mod attr;
 mod trait_bounds;
 mod utils;
 
-use alloc::{
-    string::{
-        String,
-        ToString,
-    },
-    vec::Vec,
-};
 use proc_macro::TokenStream;
 use proc_macro2::{
     Span,
@@ -66,36 +60,35 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 }
 
 fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
-    let mut ast: DeriveInput = syn::parse2(input.clone())?;
+    let ast: DeriveInput = syn::parse2(input.clone())?;
 
-    utils::check_attributes(&ast)?;
+    let attrs = attr::Attributes::from_ast(&ast)?;
 
     let scale_info = crate_name_ident("scale-info")?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
 
-    let where_clause = if let Some(custom_bounds) = utils::custom_trait_bounds(&ast.attrs)
-    {
-        let where_clause = ast.generics.make_where_clause();
-        where_clause.predicates.extend(custom_bounds);
-        where_clause.clone()
-    } else {
-        trait_bounds::make_where_clause(
-            ident,
-            &ast.generics,
-            &ast.data,
-            &scale_info,
-            &parity_scale_codec,
-        )?
-    };
+    let where_clause = trait_bounds::make_where_clause(
+        &attrs,
+        ident,
+        &ast.generics,
+        &ast.data,
+        &scale_info,
+        &parity_scale_codec,
+    )?;
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
 
-    let generic_type_ids = ast.generics.type_params().map(|ty| {
-        let ty_ident = &ty.ident;
+    let type_params = ast.generics.type_params().map(|tp| {
+        let ty_ident = &tp.ident;
+        let ty = if attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
+            quote! { Some(:: #scale_info ::meta_type::<#ty_ident>()) }
+        } else {
+            quote! { None }
+        };
         quote! {
-            :: #scale_info ::meta_type::<#ty_ident>()
+            :: #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
         }
     });
 
@@ -112,7 +105,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
             fn type_info() -> :: #scale_info ::Type {
                 :: #scale_info ::Type::builder()
                     .path(:: #scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
-                    .type_params(:: #scale_info ::prelude::vec![ #( #generic_type_ids ),* ])
+                    .type_params(:: #scale_info ::prelude::vec![ #( #type_params ),* ])
                     #docs
                     .#build_type
             }

@@ -74,7 +74,7 @@ pub struct Type<T: Form = MetaForm> {
         feature = "serde",
         serde(rename = "params", skip_serializing_if = "Vec::is_empty", default)
     )]
-    type_params: Vec<T::Type>,
+    type_params: Vec<TypeParameter<T>>,
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
     type_def: TypeDef<T>,
@@ -92,7 +92,7 @@ impl IntoPortable for Type {
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Type {
             path: self.path.into_portable(registry),
-            type_params: registry.register_types(self.type_params),
+            type_params: registry.map_into_portable(self.type_params),
             type_def: self.type_def.into_portable(registry),
             docs: registry.map_into_portable(self.docs),
         }
@@ -132,7 +132,7 @@ impl Type {
         docs: Vec<&'static str>,
     ) -> Self
     where
-        I: IntoIterator<Item = MetaType>,
+        I: IntoIterator<Item = TypeParameter>,
         D: Into<TypeDef>,
     {
         Self {
@@ -154,7 +154,7 @@ where
     }
 
     /// Returns the generic type parameters of the type
-    pub fn type_params(&self) -> &[T::Type] {
+    pub fn type_params(&self) -> &[TypeParameter<T>] {
         &self.type_params
     }
 
@@ -166,6 +166,48 @@ where
     /// Returns the documentation of the type
     pub fn docs(&self) -> &[T::String] {
         &self.docs
+    }
+}
+
+/// A generic type parameter.
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
+pub struct TypeParameter<T: Form = MetaForm> {
+    /// The name of the generic type parameter e.g. "T".
+    name: T::String,
+    /// The concrete type for the type parameter.
+    ///
+    /// `None` if the type parameter is skipped.
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    ty: Option<T::Type>,
+}
+
+impl IntoPortable for TypeParameter {
+    type Output = TypeParameter<PortableForm>;
+
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+        TypeParameter {
+            name: self.name.into_portable(registry),
+            ty: self.ty.map(|ty| registry.register_type(&ty)),
+        }
+    }
+}
+
+impl<T> TypeParameter<T>
+where
+    T: Form,
+{
+    /// Create a new [`TypeParameter`].
+    pub fn new(name: T::String, ty: Option<T::Type>) -> Self {
+        Self { name, ty }
     }
 }
 
@@ -197,7 +239,7 @@ pub enum TypeDef<T: Form = MetaForm> {
     /// A type using the [`Compact`] encoding
     Compact(TypeDefCompact<T>),
     /// A PhantomData type.
-    Phantom(TypeDefPhantom<T>),
+    Phantom(TypeDefPhantom),
     /// A type representing a sequence of bits.
     BitSequence(TypeDefBitSequence<T>),
 }
@@ -214,7 +256,7 @@ impl IntoPortable for TypeDef {
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
-            TypeDef::Phantom(phantom) => phantom.into_portable(registry).into(),
+            TypeDef::Phantom(phantom) => phantom.into(),
             TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
         }
     }
@@ -457,38 +499,7 @@ where
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
-pub struct TypeDefPhantom<T: Form = MetaForm> {
-    /// The PhantomData type parameter
-    #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    type_param: T::Type,
-}
-
-impl IntoPortable for TypeDefPhantom {
-    type Output = TypeDefPhantom<PortableForm>;
-
-    fn into_portable(self, registry: &mut Registry) -> Self::Output {
-        TypeDefPhantom {
-            type_param: registry.register_type(&self.type_param),
-        }
-    }
-}
-
-impl TypeDefPhantom {
-    /// Creates a new phantom type definition.
-    pub fn new(type_param: MetaType) -> Self {
-        Self { type_param }
-    }
-}
-
-impl<T> TypeDefPhantom<T>
-where
-    T: Form,
-{
-    /// Returns the type parameter type of the phantom type.
-    pub fn type_param(&self) -> &T::Type {
-        &self.type_param
-    }
-}
+pub struct TypeDefPhantom;
 
 /// Type describing a [`bitvec::vec::BitVec`].
 ///

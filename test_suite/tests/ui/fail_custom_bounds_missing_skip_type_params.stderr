@@ -1,0 +1,7 @@
+error: Type parameter requires a `TypeInfo` bound, so either:
+ - add it to `#[scale_info(bounds(T: TypeInfo))]`
+ - skip it with `#[scale_info(skip_type_params(T))]`
+ --> $DIR/fail_custom_bounds_missing_skip_type_params.rs:6:10
+  |
+6 | struct A<T> {
+  |          ^

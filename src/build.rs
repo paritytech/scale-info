@@ -22,7 +22,7 @@
 //!
 //! ## Generic struct
 //! ```
-//! # use scale_info::{build::Fields, MetaType, Path, Type, TypeInfo};
+//! # use scale_info::{build::Fields, type_params, MetaType, Path, Type, TypeInfo};
 //! struct Foo<T> {
 //!     bar: T,
 //!     data: u64,
@@ -37,7 +37,7 @@
 //!     fn type_info() -> Type {
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
-//!             .type_params(vec![MetaType::new::<T>()])
+//!             .type_params(type_params!(T))
 //!             .composite(Fields::named()
 //!                 .field(|f| f.ty::<T>().name("bar").type_name("T"))
 //!                 .field(|f| f.ty::<u64>().name("data").type_name("u64"))
@@ -65,7 +65,7 @@
 //! ```
 //! ## Enum with fields
 //! ```
-//! # use scale_info::{build::{Fields, Variants}, MetaType, Path, Type, TypeInfo, Variant};
+//! # use scale_info::{build::{Fields, Variants}, type_params, MetaType, Path, Type, TypeInfo, Variant};
 //! enum Foo<T>{
 //!     A(T),
 //!     B { f: u32 },
@@ -81,7 +81,7 @@
 //!     fn type_info() -> Type {
 //!         Type::builder()
 //!             .path(Path::new("Foo", module_path!()))
-//!                .type_params(vec![MetaType::new::<T>()])
+//!                .type_params(type_params!(T))
 //!             .variant(
 //!                 Variants::new()
 //!                     .variant("A", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>().type_name("T"))))
@@ -131,6 +131,7 @@ use crate::{
     TypeDefComposite,
     TypeDefVariant,
     TypeInfo,
+    TypeParameter,
     Variant,
 };
 
@@ -145,7 +146,7 @@ pub mod state {
 /// Builds a [`Type`](`crate::Type`)
 pub struct TypeBuilder<S = state::PathNotAssigned> {
     path: Option<Path>,
-    type_params: Vec<MetaType>,
+    type_params: Vec<TypeParameter>,
     docs: Vec<&'static str>,
     marker: PhantomData<fn() -> S>,
 }
@@ -197,7 +198,7 @@ impl<S> TypeBuilder<S> {
     /// Set the type parameters if it's a generic type
     pub fn type_params<I>(mut self, type_params: I) -> Self
     where
-        I: IntoIterator<Item = MetaType>,
+        I: IntoIterator<Item = TypeParameter>,
     {
         self.type_params = type_params.into_iter().collect();
         self
