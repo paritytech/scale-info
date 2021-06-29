@@ -20,52 +20,14 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{
     parse::Parse,
-    punctuated::Punctuated,
     spanned::Spanned,
-    token,
     AttrStyle,
     Attribute,
-    DeriveInput,
     Lit,
     Meta,
     NestedMeta,
     Variant,
 };
-
-/// Trait bounds.
-pub type TraitBounds = Punctuated<syn::WherePredicate, token::Comma>;
-
-/// Parse `name(T: Bound, N: Bound)` as a custom trait bound.
-struct CustomTraitBound<N> {
-    _name: N,
-    _paren_token: token::Paren,
-    bounds: TraitBounds,
-}
-
-impl<N: Parse> Parse for CustomTraitBound<N> {
-    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-        let content;
-        let _name = input.parse()?;
-        let _paren_token = syn::parenthesized!(content in input);
-        let bounds = content.parse_terminated(syn::WherePredicate::parse)?;
-        Ok(Self {
-            _name,
-            _paren_token,
-            bounds,
-        })
-    }
-}
-
-syn::custom_keyword!(bounds);
-
-/// Look for a `#[scale_info(bounds(…))]`in the given attributes.
-///
-/// If found, use the given trait bounds when deriving the `TypeInfo` trait.
-pub fn custom_trait_bounds(attrs: &[Attribute]) -> Option<TraitBounds> {
-    scale_info_meta_item(attrs.iter(), |meta: CustomTraitBound<bounds>| {
-        Some(meta.bounds)
-    })
-}
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
 /// is found, fall back to the discriminant or just the variant index.
@@ -146,15 +108,6 @@ where
     find_meta_item("codec", itr, pred)
 }
 
-fn scale_info_meta_item<'a, F, R, I, M>(itr: I, pred: F) -> Option<R>
-where
-    F: FnMut(M) -> Option<R> + Clone,
-    I: Iterator<Item = &'a Attribute>,
-    M: Parse,
-{
-    find_meta_item("scale_info", itr, pred)
-}
-
 fn find_meta_item<'a, F, R, I, M>(kind: &str, mut itr: I, mut pred: F) -> Option<R>
 where
     F: FnMut(M) -> Option<R> + Clone,
@@ -167,27 +120,4 @@ where
             .then(|| pred(attr.parse_args().ok()?))
             .flatten()
     })
-}
-
-/// Ensure attributes are correctly applied. This *must* be called before using
-/// any of the attribute finder methods or the macro may panic if it encounters
-/// misapplied attributes.
-/// `#[scale_info(bounds())]` is the only accepted attribute.
-pub fn check_attributes(input: &DeriveInput) -> syn::Result<()> {
-    for attr in &input.attrs {
-        check_top_attribute(attr)?;
-    }
-    Ok(())
-}
-
-// Only `#[scale_info(bounds())]` is a valid top attribute.
-fn check_top_attribute(attr: &Attribute) -> syn::Result<()> {
-    if attr.path.is_ident("scale_info") {
-        match attr.parse_args::<CustomTraitBound<bounds>>() {
-            Ok(_) => Ok(()),
-            Err(e) => Err(syn::Error::new(attr.span(), format!("Invalid attribute: {:?}. Only `#[scale_info(bounds(…))]` is a valid top attribute", e)))
-        }
-    } else {
-        Ok(())
-    }
 }

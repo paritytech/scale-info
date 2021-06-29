@@ -1,3 +1,4 @@
+
 # Changelog
 All notable changes to this project will be documented in this file.
 
@@ -5,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.7.0] - 2021-06-29
+### Added
+
+- Handle more SCALE attributes: skip, index [(#44)](https://github.com/paritytech/scale-info/pull/44)
+- Implement `TypeInfo` for `BTreeSet` [(#85)](https://github.com/paritytech/scale-info/pull/85)
+- Implement `TypeInfo` for `Cow` [(#84)](https://github.com/paritytech/scale-info/pull/84)
+- Implement `TypeInfo` for up to 20 element tuples [(#92)](https://github.com/paritytech/scale-info/pull/92)
+- Add `StaticTypeInfo` convenience trait [(#91)](https://github.com/paritytech/scale-info/pull/91)
+- Capture doc comments, add variant and field builders [(#87)](https://github.com/paritytech/scale-info/pull/87)
+- Handle `#[codec(index = …)]` in regular enums [(#80)](https://github.com/paritytech/scale-info/pull/80)
+- Add new top-level attribute `scale_info(bounds(T: SomeTrait + OtherTrait))` [(#88)](https://github.com/paritytech/scale-info/pull/88)
+- (aj-vecdeque) Implement TypeInfo for VecDeque [(#99)](https://github.com/paritytech/scale-info/pull/99)
+- Add BitVec support [(#98)](https://github.com/paritytech/scale-info/pull/98)
+- Add `docs` feature [(#101)](https://github.com/paritytech/scale-info/pull/101)
+
+### Changed
+
+- Upgrade proc-macro-crate to v1 [(#77)](https://github.com/paritytech/scale-info/pull/77)
+- Use const generics for array TypeInfo impls [(#54)](https://github.com/paritytech/scale-info/pull/54)
+- Replace NonZeroU32 type lookup ids with u32 [(#90)](https://github.com/paritytech/scale-info/pull/90)
+- Remove HasCompact::Type bounds [(#83)](https://github.com/paritytech/scale-info/pull/83)
+- Unify sequence types [(#100)](https://github.com/paritytech/scale-info/pull/100)
+
+### Fixed
+
+- Fix serde and decode features without default features [(#74)](https://github.com/paritytech/scale-info/pull/74)
+- Remove type parameter defaults [(#71)](https://github.com/paritytech/scale-info/pull/71)
+- Fix trait bounds for associated types [(#76)](https://github.com/paritytech/scale-info/pull/76)
 
 ## [0.6.0] - 2021-02-05
 ### Added

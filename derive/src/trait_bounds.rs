@@ -32,12 +32,26 @@ use syn::{
     WhereClause,
 };
 
-use crate::utils;
+use crate::{
+    attr::Attributes,
+    utils,
+};
 
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
 /// with self-referential types.
+///
+/// # Effect of attributes
+///
+/// `#[scale_info(skip_type_params(..))]`
+///
+/// Will not add `TypeInfo` bounds for any type parameters skipped via this attribute.
+///
+/// `#[scale_info(bounds(..))]`
+///
+/// Replaces *all* auto-generated trait bounds with the user-defined ones.
 pub fn make_where_clause<'a>(
+    attrs: &'a Attributes,
     input_ident: &'a Ident,
     generics: &'a Generics,
     data: &'a syn::Data,
@@ -50,14 +64,29 @@ pub fn make_where_clause<'a>(
             predicates: Punctuated::new(),
         }
     });
+
+    // Use custom bounds as where clause.
+    if let Some(custom_bounds) = attrs.bounds() {
+        custom_bounds.extend_where_clause(&mut where_clause);
+
+        // `'static` lifetime bounds are always required for type parameters, because of the
+        // requirement on `std::any::TypeId::of` for any field type constructor.
+        for type_param in generics.type_params() {
+            let ident = &type_param.ident;
+            where_clause.predicates.push(parse_quote!(#ident: 'static))
+        }
+
+        return Ok(where_clause)
+    }
+
     for lifetime in generics.lifetimes() {
         where_clause
             .predicates
             .push(parse_quote!(#lifetime: 'static))
     }
 
-    let type_params = generics.type_params();
-    let ty_params_ids = type_params
+    let ty_params_ids = generics
+        .type_params()
         .map(|type_param| type_param.ident.clone())
         .collect::<Vec<Ident>>();
 
@@ -82,7 +111,12 @@ pub fn make_where_clause<'a>(
     generics.type_params().into_iter().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
-        bounds.push(parse_quote!(#scale_info ::TypeInfo));
+        if attrs
+            .skip_type_params()
+            .map_or(true, |skip| !skip.skip(type_param))
+        {
+            bounds.push(parse_quote!(#scale_info ::TypeInfo));
+        }
         bounds.push(parse_quote!('static));
         where_clause
             .predicates
