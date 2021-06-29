@@ -64,7 +64,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
 
     let attrs = attr::Attributes::from_ast(&ast)?;
 
-    let scale_info = scale_info_crate_tokens()?;
+    let scale_info = scale_info_crate_path()?;
     let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
@@ -135,15 +135,15 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
 /// Find the name given to the `scale-info` crate in the context we run in. If scale-info is not
 /// among the dependencies then we must be deriving types for the scale-info crate itself, in which
 /// case we need to refer to it using the reserved word "crate", so the object paths keep working.
-fn scale_info_crate_tokens() -> Result<TokenStream2> {
+fn scale_info_crate_path() -> Result<syn::Path> {
     use proc_macro_crate::FoundCrate;
     const SCALE_INFO_CRATE_NAME: &str = "scale-info";
 
     let crate_ident = match proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME) {
-        Ok(FoundCrate::Itself) => quote! { crate },
+        Ok(FoundCrate::Itself) => parse_quote! { crate },
         Ok(FoundCrate::Name(name)) => {
             let ident = Ident::new(&name, Span::call_site());
-            quote! { :: #ident }
+            parse_quote! { :: #ident }
         }
         Err(e) => return Err(syn::Error::new(Span::call_site(), e)),
     };
@@ -216,7 +216,7 @@ fn clean_type_string(input: &str) -> String {
 
 fn generate_composite_type(
     data_struct: &DataStruct,
-    scale_info: &TokenStream2,
+    scale_info: &syn::Path,
 ) -> TokenStream2 {
     let fields = match data_struct.fields {
         Fields::Named(ref fs) => {
@@ -242,7 +242,7 @@ type VariantList = Punctuated<Variant, Comma>;
 
 fn generate_c_like_enum_def(
     variants: &VariantList,
-    scale_info: &TokenStream2,
+    scale_info: &syn::Path,
 ) -> TokenStream2 {
     let variants = variants
         .into_iter()
@@ -277,7 +277,7 @@ fn is_c_like_enum(variants: &VariantList) -> bool {
 
 fn generate_variant_type(
     data_enum: &DataEnum,
-    scale_info: &TokenStream2,
+    scale_info: &syn::Path,
 ) -> TokenStream2 {
     let variants = &data_enum.variants;
 

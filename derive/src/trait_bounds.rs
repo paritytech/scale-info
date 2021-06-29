@@ -13,10 +13,7 @@
 // limitations under the License.
 
 use alloc::vec::Vec;
-use proc_macro2::{
-    Ident,
-    TokenStream,
-};
+use proc_macro2::Ident;
 use syn::{
     parse_quote,
     punctuated::Punctuated,
@@ -55,7 +52,7 @@ pub fn make_where_clause<'a>(
     input_ident: &'a Ident,
     generics: &'a Generics,
     data: &'a syn::Data,
-    scale_info: &TokenStream,
+    scale_info: &syn::Path,
     parity_scale_codec: &Ident,
 ) -> Result<WhereClause> {
     let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
