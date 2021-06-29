@@ -309,7 +309,7 @@ mod utils;
 mod tests;
 
 #[doc(hidden)]
-pub use codec;
+pub use scale;
 
 pub use self::{
     meta_type::MetaType,
