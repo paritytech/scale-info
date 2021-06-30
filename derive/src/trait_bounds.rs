@@ -53,7 +53,6 @@ pub fn make_where_clause<'a>(
     generics: &'a Generics,
     data: &'a syn::Data,
     scale_info: &Ident,
-    parity_scale_codec: &Ident,
 ) -> Result<WhereClause> {
     let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
         WhereClause {
@@ -97,7 +96,7 @@ pub fn make_where_clause<'a>(
         if is_compact {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : :: #parity_scale_codec ::HasCompact));
+                .push(parse_quote!(#ty : :: #scale_info :: scale::HasCompact));
         } else {
             where_clause
                 .predicates
