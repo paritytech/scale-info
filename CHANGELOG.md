@@ -10,7 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.9.0] - 2021-06-30
 ### Changed
 
-- Reverted parity-scale-codec prerelease requirement
+- Reverted parity-scale-codec prerelease requirement from [0.8.0-rc.1]
+- Reexport parity-scale-codec for derive [(#106)](https://github.com/paritytech/scale-info/pull/106)
 
 ### Added
 
