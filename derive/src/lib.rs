@@ -65,7 +65,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let attrs = attr::Attributes::from_ast(&ast)?;
 
     let scale_info = crate_name_ident("scale-info")?;
-    let parity_scale_codec = crate_name_ident("parity-scale-codec")?;
 
     let ident = &ast.ident;
 
@@ -75,7 +74,6 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         &ast.generics,
         &ast.data,
         &scale_info,
-        &parity_scale_codec,
     )?;
 
     let (impl_generics, ty_generics, _) = ast.generics.split_for_impl();
