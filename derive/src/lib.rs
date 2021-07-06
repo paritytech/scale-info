@@ -82,7 +82,7 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
         let ty_ident = &tp.ident;
         let ty = if attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
             quote! { ::core::Option::Some(:: #scale_info ::meta_type::<#ty_ident>()) }
-        } else {j
+        } else {
             quote! { ::core::Option::None }
         };
         quote! {
