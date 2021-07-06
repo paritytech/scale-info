@@ -81,9 +81,9 @@ fn generate_type(input: TokenStream2) -> Result<TokenStream2> {
     let type_params = ast.generics.type_params().map(|tp| {
         let ty_ident = &tp.ident;
         let ty = if attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
-            quote! { ::core::Option::Some(:: #scale_info ::meta_type::<#ty_ident>()) }
+            quote! { ::core::option::Option::Some(:: #scale_info ::meta_type::<#ty_ident>()) }
         } else {
-            quote! { ::core::Option::None }
+            quote! { ::core::option::Option::None }
         };
         quote! {
             :: #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
