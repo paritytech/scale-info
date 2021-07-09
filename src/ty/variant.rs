@@ -230,6 +230,11 @@ where
         &self.fields
     }
 
+    /// Returns the index of the variant.
+    pub fn index(&self) -> Option<u8> {
+        self.index
+    }
+
     /// Returns the discriminant of the variant.
     pub fn discriminant(&self) -> Option<u64> {
         self.discriminant
