@@ -230,7 +230,7 @@ where
         &self.fields
     }
 
-    /// Returns the index of the variant.
+    /// Returns the index of the variant, if specified.
     pub fn index(&self) -> Option<u8> {
         self.index
     }
