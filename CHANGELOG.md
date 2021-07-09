@@ -7,7 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.2] - 2021-07-09
+### Added
+
+- Add index getter to Variant [(#110)](https://github.com/paritytech/scale-info/pull/110)
+
 ## [0.9.1] - 2021-07-06
+### Fixed
 
 - Option constructor macro hygiene [(#108)](https://github.com/paritytech/scale-info/pull/108)
 
