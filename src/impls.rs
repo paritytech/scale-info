@@ -323,7 +323,7 @@ impl<T> TypeInfo for PhantomData<T> {
     type Identity = PhantomIdentity;
 
     fn type_info() -> Type {
-        panic!("PhantomData types should be filtered out by the FieldsBuilder")
+        panic!("PhantomData type instances should be filtered out.")
     }
 }
 

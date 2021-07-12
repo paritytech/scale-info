@@ -183,6 +183,15 @@ fn tuple_primitives() {
 }
 
 #[test]
+fn tuple_phantom_data_erased() {
+    // nested tuple
+    assert_type!(
+        (u64, PhantomData<u8>),
+        TypeDefTuple::new(vec![meta_type::<u64>(),])
+    );
+}
+
+#[test]
 fn array_primitives() {
     // array
     assert_type!([bool; 3], TypeDefArray::new(3, meta_type::<bool>()));

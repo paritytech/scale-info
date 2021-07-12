@@ -376,7 +376,10 @@ impl TypeDefTuple {
         T: IntoIterator<Item = MetaType>,
     {
         Self {
-            fields: type_params.into_iter().collect(),
+            fields: type_params
+                .into_iter()
+                .filter(|ty| !ty.is_phantom())
+                .collect(),
         }
     }
 

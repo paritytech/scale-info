@@ -698,10 +698,7 @@ fn skip_type_params_with_associated_types() {
     let ty = Type::builder()
         .path(Path::new("SkipTypeParamsForTraitImpl", "derive"))
         .type_params(vec![TypeParameter::new("T", None)])
-        .composite(
-            Fields::named()
-                .field(|f| f.ty::<u32>().name("b").type_name("T::A")),
-        );
+        .composite(Fields::named().field(|f| f.ty::<u32>().name("b").type_name("T::A")));
 
     assert_type!(SkipTypeParamsForTraitImpl<NoScaleInfoImpl>, ty);
 }

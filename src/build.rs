@@ -272,7 +272,7 @@ impl FieldsBuilder<NamedFields> {
         let builder = builder(FieldBuilder::new());
         let field = builder.finalize();
         // filter out fields of PhantomData
-        if field.ty() != &MetaType::new::<crate::impls::PhantomIdentity>() {
+        if !field.ty().is_phantom() {
             self.fields.push(field);
         }
         self

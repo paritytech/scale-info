@@ -105,4 +105,9 @@ impl MetaType {
     pub fn type_id(&self) -> TypeId {
         self.type_id
     }
+
+    /// Returns true if this represents a type of [`core::marker::PhantomData`].
+    pub(crate) fn is_phantom(&self) -> bool {
+        self == &MetaType::new::<crate::impls::PhantomIdentity>()
+    }
 }
