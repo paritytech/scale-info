@@ -89,9 +89,9 @@ impl IntoPortable for TypeDefComposite {
     }
 }
 
-impl TypeDefComposite {
+impl TypeDefComposit0e {
     /// Creates a new struct definition with named fields.
-    pub fn new<I>(fields: I) -> Self
+    pub(crate) fn new<I>(fields: I) -> Self
     where
         I: IntoIterator<Item = Field>,
     {
