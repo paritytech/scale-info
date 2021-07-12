@@ -35,7 +35,6 @@ use crate::{
     Type,
     TypeDefArray,
     TypeDefCompact,
-    TypeDefPhantom,
     TypeDefPrimitive,
     TypeDefSequence,
     TypeDefTuple,
@@ -324,7 +323,7 @@ impl<T> TypeInfo for PhantomData<T> {
     type Identity = PhantomIdentity;
 
     fn type_info() -> Type {
-        TypeDefPhantom.into()
+        panic!("PhantomData types should be filtered out by the FieldsBuilder")
     }
 }
 
