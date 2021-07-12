@@ -318,8 +318,10 @@ impl TypeInfo for String {
     }
 }
 
+pub(crate) type PhantomIdentity = PhantomData<()>;
+
 impl<T> TypeInfo for PhantomData<T> {
-    type Identity = PhantomData<()>;
+    type Identity = PhantomIdentity;
 
     fn type_info() -> Type {
         TypeDefPhantom.into()
