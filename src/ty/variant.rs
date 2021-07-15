@@ -157,12 +157,12 @@ pub struct Variant<T: Form = MetaForm> {
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
     fields: Vec<Field<T>>,
-    /// Index of the variant, used in `parity-scale-codec`
-    #[cfg_attr(
-        feature = "serde",
-        serde(skip_serializing_if = "Option::is_none", default)
-    )]
-    index: Option<u8>,
+    /// Index of the variant, used in `parity-scale-codec`.
+    ///
+    /// The value of this will be, in order of precedence:
+    ///     1. The explicit index defined by a `#[codec(index = N)]` attribute.
+    ///     2. The implicit index from the position of the variant in the `enum` definition.
+    index: u8,
     /// The discriminant of the variant.
     ///
     /// # Note
@@ -202,7 +202,7 @@ impl Variant {
     pub(crate) fn new(
         name: &'static str,
         fields: Vec<Field<MetaForm>>,
-        index: Option<u8>,
+        index: u8,
         discriminant: Option<u64>,
         docs: Vec<&'static str>,
     ) -> Self {
@@ -230,8 +230,8 @@ where
         &self.fields
     }
 
-    /// Returns the index of the variant, if specified.
-    pub fn index(&self) -> Option<u8> {
+    /// Returns the index of the variant.
+    pub fn index(&self) -> u8 {
         self.index
     }
 

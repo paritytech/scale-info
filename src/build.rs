@@ -135,7 +135,7 @@ use crate::{
     Variant,
 };
 
-/// State types for type builders which require a Path
+/// State types for type builders which require a Path.
 pub mod state {
     /// State where the builder has not assigned a Path to the type
     pub enum PathNotAssigned {}
@@ -429,7 +429,7 @@ impl Variants {
     /// Add a variant
     pub fn variant<F>(mut self, name: &'static str, builder: F) -> Self
     where
-        F: Fn(VariantBuilder) -> VariantBuilder,
+        F: Fn(VariantBuilder) -> VariantBuilder<variant_state::IndexAssigned>,
     {
         let builder = builder(VariantBuilder::new(name));
         self.variants.push(builder.finalize());
@@ -437,8 +437,8 @@ impl Variants {
     }
 
     /// Add a unit variant (without fields).
-    pub fn variant_unit(mut self, name: &'static str) -> Self {
-        let builder = VariantBuilder::new(name);
+    pub fn variant_unit(mut self, name: &'static str, index: u8) -> Self {
+        let builder = VariantBuilder::new(name).index(index);
         self.variants.push(builder.finalize());
         self
     }
@@ -449,16 +449,25 @@ impl Variants {
     }
 }
 
-/// Build a [`Variant`].
-pub struct VariantBuilder {
-    name: &'static str,
-    fields: Vec<Field<MetaForm>>,
-    index: Option<u8>,
-    discriminant: Option<u64>,
-    docs: Vec<&'static str>,
+/// State types for the `VariantBuilder` which requires an index.
+pub mod variant_state {
+    /// State where the builder has not assigned an index to a variant.
+    pub enum IndexNotAssigned {}
+    /// State where the builder has assigned an index to a variant.
+    pub enum IndexAssigned {}
 }
 
-impl VariantBuilder {
+/// Build a [`Variant`].
+pub struct VariantBuilder<S = variant_state::IndexNotAssigned> {
+    name: &'static str,
+    index: Option<u8>,
+    fields: Vec<Field<MetaForm>>,
+    discriminant: Option<u64>,
+    docs: Vec<&'static str>,
+    marker: PhantomData<S>,
+}
+
+impl VariantBuilder<variant_state::IndexNotAssigned> {
     /// Create a new [`VariantBuilder`].
     pub fn new(name: &'static str) -> Self {
         Self {
@@ -467,18 +476,27 @@ impl VariantBuilder {
             discriminant: None,
             index: None,
             docs: Vec::new(),
+            marker: Default::default(),
         }
     }
 
+    /// Set the variant's codec index.
+    pub fn index(mut self, index: u8) -> VariantBuilder<variant_state::IndexAssigned> {
+        VariantBuilder {
+            name: self.name,
+            index: Some(index),
+            fields: self.fields,
+            discriminant: self.discriminant,
+            docs: self.docs,
+            marker: Default::default(),
+        }
+    }
+}
+
+impl<S> VariantBuilder<S> {
     /// Set the variant's discriminant.
     pub fn discriminant(mut self, discriminant: u64) -> Self {
         self.discriminant = Some(discriminant);
-        self
-    }
-
-    /// Set the variant's codec index.
-    pub fn index(mut self, index: u8) -> Self {
-        self.index = Some(index);
         self
     }
 
@@ -493,13 +511,15 @@ impl VariantBuilder {
         self.docs = docs.to_vec();
         self
     }
+}
 
+impl VariantBuilder<variant_state::IndexAssigned> {
     /// Complete building and create final [`Variant`] instance.
     pub fn finalize(self) -> Variant<MetaForm> {
         Variant::new(
             self.name,
             self.fields,
-            self.index,
+            self.index.expect("Index should be assigned by the builder"),
             self.discriminant,
             self.docs,
         )

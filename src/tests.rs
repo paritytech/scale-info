@@ -62,9 +62,13 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(named_type_params![(T, u128)])
-            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
-                v.fields(Fields::unnamed().field(|f| f.ty::<u128>()))
-            }))
+            .variant(Variants::new().variant("None", |v| v.index(0)).variant(
+                "Some",
+                |v| {
+                    v.index(1)
+                        .fields(Fields::unnamed().field(|f| f.ty::<u128>()))
+                }
+            ))
     );
     assert_type!(
         Result<bool, String>,
@@ -75,10 +79,12 @@ fn prelude_items() {
                 Variants::new()
                     .variant(
                         "Ok", |v| v
+                            .index(0)
                             .fields(Fields::unnamed().field(|f| f.ty::<bool>()))
                     )
                     .variant(
                         "Err", |v| v
+                            .index(1)
                             .fields(Fields::unnamed().field(|f| f.ty::<String>()))
                     )
             )
@@ -301,13 +307,13 @@ fn basic_enum_with_index() {
                             )
                         })
                         .variant("C", |v| {
-                            v.fields(
+                            v.index(2).fields(
                                 Fields::unnamed()
                                     .field(|f| f.ty::<u16>().type_name("u16"))
                                     .field(|f| f.ty::<u32>().type_name("u32")),
                             )
                         })
-                        .variant_unit("D"),
+                        .variant_unit("D", 3),
                 )
         }
     }
@@ -327,13 +333,13 @@ fn basic_enum_with_index() {
                     )
                 })
                 .variant("C", |v| {
-                    v.fields(
+                    v.index(2).fields(
                         Fields::unnamed()
                             .field(|f| f.ty::<u16>().type_name("u16"))
                             .field(|f| f.ty::<u32>().type_name("u32")),
                     )
                 })
-                .variant_unit("D"),
+                .variant_unit("D", 3),
         );
 
     assert_type!(IndexedRustEnum, ty);

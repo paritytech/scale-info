@@ -188,9 +188,13 @@ where
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(type_params![T])
-            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
-                v.fields(Fields::unnamed().field(|f| f.ty::<T>()))
-            }))
+            .variant(
+                Variants::new()
+                    .variant("None", |v| v.index(0))
+                    .variant("Some", |v| {
+                        v.index(1).fields(Fields::unnamed().field(|f| f.ty::<T>()))
+                    }),
+            )
     }
 }
 
@@ -207,9 +211,11 @@ where
             .type_params(type_params!(T, E))
             .variant(
                 Variants::new()
-                    .variant("Ok", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
+                    .variant("Ok", |v| {
+                        v.index(0).fields(Fields::unnamed().field(|f| f.ty::<T>()))
+                    })
                     .variant("Err", |v| {
-                        v.fields(Fields::unnamed().field(|f| f.ty::<E>()))
+                        v.index(1).fields(Fields::unnamed().field(|f| f.ty::<E>()))
                     }),
             )
     }

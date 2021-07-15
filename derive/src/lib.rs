@@ -259,12 +259,14 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
 
     let variants = variants
         .into_iter()
-        .filter(|v| !utils::should_skip(&v.attrs))
-        .map(|v| {
+        .enumerate()
+        .filter(|(_, v)| !utils::should_skip(&v.attrs))
+        .map(|(i, v)| {
             let ident = &v.ident;
             let v_name = quote! {::core::stringify!(#ident) };
             let docs = generate_docs(&v.attrs);
-            let index = utils::maybe_index(v).map(|i| quote!(.index(#i)));
+            // let index = utils::maybe_index(v).map(|i| quote!(.index(#i)));
+            let index = utils::variant_index(v, i);
 
             let fields = match v.fields {
                 Fields::Named(ref fs) => {
@@ -291,9 +293,9 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
             quote! {
                 .variant(#v_name, |v|
                     v
+                        .index(#i as u8)
                         .fields(#fields)
                         #docs
-                        #index
                 )
             }
         });
