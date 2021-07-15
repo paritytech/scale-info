@@ -496,7 +496,7 @@ fn enum_variants_marked_scale_skip_are_skipped() {
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
         Variants::new()
             .variant("A", |v| v.index(0))
-            .variant("C", |v| v.index(2)),
+            .variant("C", |v| v.index(1)),
     );
     assert_type!(Skippy, ty);
 }
@@ -519,12 +519,12 @@ fn enum_variants_with_fields_marked_scale_skip_are_skipped() {
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
         Variants::new()
             .variant("Bajs", |v| {
-                v.index(1).fields(
+                v.index(0).fields(
                     Fields::named().field(|f| f.ty::<bool>().name("b").type_name("bool")),
                 )
             })
             .variant("Coo", |v| {
-                v.index(2)
+                v.index(1)
                     .fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
             }),
     );

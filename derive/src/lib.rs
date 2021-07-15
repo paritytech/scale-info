@@ -221,8 +221,8 @@ type VariantList = Punctuated<Variant, Comma>;
 fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> TokenStream2 {
     let variants = variants
         .into_iter()
+        .filter(|v| !utils::should_skip(&v.attrs))
         .enumerate()
-        .filter(|(_, v)| !utils::should_skip(&v.attrs))
         .map(|(i, v)| {
             let name = &v.ident;
             let index = utils::variant_index(v, i);
@@ -259,8 +259,8 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
 
     let variants = variants
         .into_iter()
+        .filter(|v| !utils::should_skip(&v.attrs))
         .enumerate()
-        .filter(|(_, v)| !utils::should_skip(&v.attrs))
         .map(|(i, v)| {
             let ident = &v.ident;
             let v_name = quote! {::core::stringify!(#ident) };
