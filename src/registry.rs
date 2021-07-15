@@ -170,7 +170,16 @@ pub struct PortableRegistry {
 impl From<Registry> for PortableRegistry {
     fn from(registry: Registry) -> Self {
         PortableRegistry {
-            types: registry.types.iter().map(|(k, v)| PortableType { id: k.id(), ty: v.clone() }).collect::<Vec<_>>(),
+            types: registry
+                .types
+                .iter()
+                .map(|(k, v)| {
+                    PortableType {
+                        id: k.id(),
+                        ty: v.clone(),
+                    }
+                })
+                .collect::<Vec<_>>(),
         }
     }
 }
