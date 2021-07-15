@@ -270,7 +270,11 @@ impl FieldsBuilder<NamedFields> {
             -> FieldBuilder<field_state::NameAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
-        self.fields.push(builder.finalize());
+        let field = builder.finalize();
+        // filter out fields of PhantomData
+        if !field.ty().is_phantom() {
+            self.fields.push(field);
+        }
         self
     }
 }

@@ -97,7 +97,7 @@ fn struct_derive() {
 }
 
 #[test]
-fn phantom_data_is_part_of_the_type_info() {
+fn phantom_data_field_is_erased() {
     #[allow(unused)]
     #[derive(TypeInfo)]
     struct P<T> {
@@ -667,19 +667,7 @@ fn skip_all_type_params() {
             TypeParameter::new("T", None),
             TypeParameter::new("U", None),
         ])
-        .composite(
-            Fields::named()
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("a")
-                        .type_name("PhantomData<T>")
-                })
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("b")
-                        .type_name("PhantomData<U>")
-                }),
-        );
+        .composite(Fields::named());
 
     assert_type!(SkipAllTypeParams<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
 }
@@ -710,15 +698,7 @@ fn skip_type_params_with_associated_types() {
     let ty = Type::builder()
         .path(Path::new("SkipTypeParamsForTraitImpl", "derive"))
         .type_params(vec![TypeParameter::new("T", None)])
-        .composite(
-            Fields::named()
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("a")
-                        .type_name("PhantomData<T>")
-                })
-                .field(|f| f.ty::<u32>().name("b").type_name("T::A")),
-        );
+        .composite(Fields::named().field(|f| f.ty::<u32>().name("b").type_name("T::A")));
 
     assert_type!(SkipTypeParamsForTraitImpl<NoScaleInfoImpl>, ty);
 }
@@ -741,19 +721,7 @@ fn skip_type_params_with_defaults() {
             TypeParameter::new("T", None),
             TypeParameter::new("U", None),
         ])
-        .composite(
-            Fields::named()
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("a")
-                        .type_name("PhantomData<T>")
-                })
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("b")
-                        .type_name("PhantomData<U>")
-                }),
-        );
+        .composite(Fields::named());
 
     assert_type!(SkipAllTypeParamsWithDefaults<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
 }

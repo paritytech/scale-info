@@ -35,7 +35,6 @@ use crate::{
     Type,
     TypeDefArray,
     TypeDefCompact,
-    TypeDefPhantom,
     TypeDefPrimitive,
     TypeDefSequence,
     TypeDefTuple,
@@ -318,11 +317,13 @@ impl TypeInfo for String {
     }
 }
 
+pub(crate) type PhantomIdentity = PhantomData<()>;
+
 impl<T> TypeInfo for PhantomData<T> {
-    type Identity = PhantomData<()>;
+    type Identity = PhantomIdentity;
 
     fn type_info() -> Type {
-        TypeDefPhantom.into()
+        panic!("PhantomData type instances should be filtered out.")
     }
 }
 

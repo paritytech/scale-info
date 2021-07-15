@@ -163,8 +163,6 @@ fn test_builtins() {
     // strings
     assert_json_for_type::<String>(json!({ "def": { "primitive": "str" } }));
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
-    // PhantomData
-    assert_json_for_type::<PhantomData<bool>>(json!({ "def": { "phantom": null }, }))
 }
 
 #[test]
@@ -271,7 +269,7 @@ fn test_struct_with_some_fields_marked_as_compact() {
 }
 
 #[test]
-fn test_struct_with_phantom() {
+fn test_struct_with_phantom_field_erased() {
     use scale_info::prelude::marker::PhantomData;
     #[derive(TypeInfo)]
     struct Struct<T> {
@@ -288,8 +286,6 @@ fn test_struct_with_phantom() {
             "composite": {
                 "fields": [
                     { "name": "a", "type": 1, "typeName": "i32" },
-                    // type 1 is the `u8` in the `PhantomData`
-                    { "name": "b", "type": 2, "typeName": "PhantomData<T>" },
                 ],
             },
         }

@@ -83,7 +83,6 @@ fn prelude_items() {
                     )
             )
     );
-    assert_type!(PhantomData<i32>, TypeDefPhantom);
     assert_type!(
         Cow<u128>,
         Type::builder()
@@ -98,6 +97,12 @@ fn prelude_items() {
             .path(Path::prelude("NonZeroU32"))
             .composite(Fields::unnamed().field(|f| f.ty::<NonZeroU32>()))
     )
+}
+
+#[test]
+#[should_panic]
+fn phantom_data() {
+    PhantomData::<i32>::type_info();
 }
 
 #[test]
@@ -174,6 +179,15 @@ fn tuple_primitives() {
     assert_type!(
         ((i8, i16), (u32, u64)),
         TypeDefTuple::new(vec![meta_type::<(i8, i16)>(), meta_type::<(u32, u64)>(),])
+    );
+}
+
+#[test]
+fn tuple_phantom_data_erased() {
+    // nested tuple
+    assert_type!(
+        (u64, PhantomData<u8>),
+        TypeDefTuple::new(vec![meta_type::<u64>(),])
     );
 }
 

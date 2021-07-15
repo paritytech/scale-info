@@ -115,7 +115,6 @@ impl_from_type_def_for_type!(
     TypeDefSequence,
     TypeDefTuple,
     TypeDefCompact,
-    TypeDefPhantom,
     TypeDefBitSequence,
 );
 
@@ -238,8 +237,6 @@ pub enum TypeDef<T: Form = MetaForm> {
     Primitive(TypeDefPrimitive),
     /// A type using the [`Compact`] encoding
     Compact(TypeDefCompact<T>),
-    /// A PhantomData type.
-    Phantom(TypeDefPhantom),
     /// A type representing a sequence of bits.
     BitSequence(TypeDefBitSequence<T>),
 }
@@ -256,7 +253,6 @@ impl IntoPortable for TypeDef {
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
-            TypeDef::Phantom(phantom) => phantom.into(),
             TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
         }
     }
@@ -380,7 +376,10 @@ impl TypeDefTuple {
         T: IntoIterator<Item = MetaType>,
     {
         Self {
-            fields: type_params.into_iter().collect(),
+            fields: type_params
+                .into_iter()
+                .filter(|ty| !ty.is_phantom())
+                .collect(),
         }
     }
 
@@ -485,21 +484,6 @@ where
         &self.type_param
     }
 }
-
-/// A type describing a `PhantomData<T>` type.
-///
-/// In the context of SCALE encoded types, including `PhantomData<T>` types in
-/// the type info  might seem surprising. The reason to include this information
-/// is that there could be situations where it's useful and because removing
-/// `PhantomData` items from the derive input quickly becomes a messy
-/// syntax-level hack (see PR https://github.com/paritytech/scale-info/pull/31).
-/// Instead we take the same approach as `parity-scale-codec` where users are
-/// required to explicitly skip fields that cannot be represented in SCALE
-/// encoding, using the `#[codec(skip)]` attribute.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
-pub struct TypeDefPhantom;
 
 /// Type describing a [`bitvec::vec::BitVec`].
 ///
