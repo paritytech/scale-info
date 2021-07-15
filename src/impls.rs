@@ -267,10 +267,10 @@ impl<T> TypeInfo for Box<T>
 where
     T: TypeInfo + ?Sized + 'static,
 {
-    type Identity = T;
+    type Identity = Self;
 
     fn type_info() -> Type {
-        Self::Identity::type_info()
+        Type::new_indirection::<Self>("Box")
     }
 }
 

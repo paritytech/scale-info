@@ -332,7 +332,7 @@ pub trait TypeInfo {
     ///
     /// This is used to uniquely identify a type via [`core::any::TypeId::of`]. In most cases it
     /// will just be `Self`, but can be used to unify different types which have the same encoded
-    /// representation e.g. reference types `Box<T>`, `&T` and `&mut T`.
+    /// representation e.g. reference types `&T` and `&mut T`.
     type Identity: ?Sized + 'static;
 
     /// Returns the static type identifier for `Self`.

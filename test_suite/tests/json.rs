@@ -163,7 +163,12 @@ fn test_builtins() {
     // references
     assert_json_for_type::<&bool>(json!({ "def": { "primitive": "bool" } }));
     assert_json_for_type::<&mut str>(json!({ "def": { "primitive": "str" } }));
-    assert_json_for_type::<Box<u32>>(json!({ "def": { "primitive": "u32" } }));
+    assert_json_for_type::<Box<u32>>(json!({
+        "path": ["Box"],
+        "def": {
+            "indirection": { "type": 0 }
+        },
+    }));
     // strings
     assert_json_for_type::<String>(json!({ "def": { "primitive": "str" } }));
     assert_json_for_type::<str>(json!({ "def": { "primitive": "str" } }));
@@ -441,8 +446,8 @@ fn test_recursive_type_with_box() {
                                 "name": "Node",
                                 "index": 1,
                                 "fields": [
-                                    { "name": "right", "type": 0, "typeName": "Box<Tree>" },
-                                    { "name": "left", "type": 0, "typeName": "Box<Tree>" },
+                                    { "name": "right", "type": 2, "typeName": "Box<Tree>" },
+                                    { "name": "left", "type": 2, "typeName": "Box<Tree>" },
                                 ],
                             }
                         ],
@@ -452,6 +457,12 @@ fn test_recursive_type_with_box() {
             {
                 "def": { "primitive": "i32" },
             },
+            {
+                "path": ["Box"],
+                "def": {
+                    "indirection": { "type": 2 }
+                },
+            }
         ]
     });
 

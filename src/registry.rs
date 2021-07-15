@@ -223,7 +223,6 @@ mod tests {
     fn recursive_struct_with_references() {
         #[allow(unused)]
         struct RecursiveRefs<'a> {
-            boxed: Box<RecursiveRefs<'a>>,
             reference: &'a RecursiveRefs<'a>,
             mutable_reference: &'a mut RecursiveRefs<'a>,
         }
@@ -236,11 +235,6 @@ mod tests {
                     .path(Path::new("RecursiveRefs", module_path!()))
                     .composite(
                         Fields::named()
-                            .field(|f| {
-                                f.ty::<Box<RecursiveRefs>>()
-                                    .name("boxed")
-                                    .type_name("Box < RecursiveRefs >")
-                            })
                             .field(|f| {
                                 f.ty::<&'static RecursiveRefs<'static>>()
                                     .name("reference")
