@@ -164,13 +164,13 @@ impl Registry {
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {
-    types: Vec<Type<PortableForm>>,
+    types: Vec<PortableType>,
 }
 
 impl From<Registry> for PortableRegistry {
     fn from(registry: Registry) -> Self {
         PortableRegistry {
-            types: registry.types.values().cloned().collect::<Vec<_>>(),
+            types: registry.types.iter().map(|(k, v)| PortableType { id: k.id(), ty: v.clone() }).collect::<Vec<_>>(),
         }
     }
 }
@@ -178,15 +178,34 @@ impl From<Registry> for PortableRegistry {
 impl PortableRegistry {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
     pub fn resolve(&self, id: u32) -> Option<&Type<PortableForm>> {
-        self.types.get(id as usize)
+        self.types.get(id as usize).map(|ty| ty.ty())
     }
 
-    /// Returns an iterator for all types paired with their associated u32 identifier.
-    pub fn enumerate(&self) -> impl Iterator<Item = (u32, &Type<PortableForm>)> {
-        self.types.iter().enumerate().map(|(i, ty)| {
-            let id = i as u32;
-            (id, ty)
-        })
+    /// Returns all types with their associated identifiers.
+    pub fn types(&self) -> &[PortableType] {
+        &self.types
+    }
+}
+
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(Clone, Debug, PartialEq, Eq, Encode)]
+pub struct PortableType {
+    id: u32,
+    #[cfg_attr(feature = "serde", serde(rename = "type"))]
+    ty: Type<PortableForm>,
+}
+
+impl PortableType {
+    /// Returns the index of the [`PortableType`].
+    pub fn id(&self) -> u32 {
+        self.id
+    }
+
+    /// Returns the type of the [`PortableType`].
+    pub fn ty(&self) -> &Type<PortableForm> {
+        &self.ty
     }
 }
 
@@ -202,7 +221,7 @@ mod tests {
     };
 
     #[test]
-    fn readonly_enumerate() {
+    fn readonly_type_ids() {
         let mut registry = Registry::new();
         registry.register_type(&MetaType::new::<u32>());
         registry.register_type(&MetaType::new::<bool>());
@@ -210,11 +229,11 @@ mod tests {
 
         let readonly: PortableRegistry = registry.into();
 
-        assert_eq!(4, readonly.enumerate().count());
+        assert_eq!(4, readonly.types().len());
 
         let mut expected = 0;
-        for (i, _) in readonly.enumerate() {
-            assert_eq!(expected, i);
+        for ty in readonly.types() {
+            assert_eq!(expected, ty.id());
             expected += 1;
         }
     }
