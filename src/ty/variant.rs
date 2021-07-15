@@ -163,18 +163,6 @@ pub struct Variant<T: Form = MetaForm> {
     ///     1. The explicit index defined by a `#[codec(index = N)]` attribute.
     ///     2. The implicit index from the position of the variant in the `enum` definition.
     index: u8,
-    /// The discriminant of the variant.
-    ///
-    /// # Note
-    ///
-    /// Even though setting the discriminant is optional
-    /// every C-like enum variant has a discriminant specified
-    /// upon compile-time.
-    #[cfg_attr(
-        feature = "serde",
-        serde(skip_serializing_if = "Option::is_none", default)
-    )]
-    discriminant: Option<u64>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
@@ -191,7 +179,6 @@ impl IntoPortable for Variant {
             name: self.name.into_portable(registry),
             fields: registry.map_into_portable(self.fields),
             index: self.index,
-            discriminant: self.discriminant,
             docs: registry.map_into_portable(self.docs),
         }
     }
@@ -203,14 +190,12 @@ impl Variant {
         name: &'static str,
         fields: Vec<Field<MetaForm>>,
         index: u8,
-        discriminant: Option<u64>,
         docs: Vec<&'static str>,
     ) -> Self {
         Self {
             name,
             fields,
             index,
-            discriminant,
             docs,
         }
     }
@@ -233,11 +218,6 @@ where
     /// Returns the index of the variant.
     pub fn index(&self) -> u8 {
         self.index
-    }
-
-    /// Returns the discriminant of the variant.
-    pub fn discriminant(&self) -> Option<u64> {
-        self.discriminant
     }
 
     /// Returns the documentation of the variant.

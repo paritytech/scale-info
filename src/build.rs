@@ -84,9 +84,15 @@
 //!                .type_params(type_params!(T))
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant("A", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>().type_name("T"))))
-//!                     .variant("B", |v| v.fields(Fields::named().field(|f| f.ty::<u32>().name("f").type_name("u32"))))
-//!                     .variant_unit("A")
+//!                     .variant("A", |v| v
+//!                         .index(0)
+//!                         .fields(Fields::unnamed().field(|f| f.ty::<T>().type_name("T")))
+//!                     )
+//!                     .variant("B", |v| v
+//!                         .index(1)
+//!                         .fields(Fields::named().field(|f| f.ty::<u32>().name("f").type_name("u32")))
+//!                     )
+//!                     .variant_unit("A", 2)
 //!             )
 //!     }
 //! }
@@ -108,9 +114,9 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant("A", |v| v.discriminant(1))
-//!                     .variant("B", |v| v.discriminant(2))
-//!                     .variant("C", |v| v.discriminant(33))
+//!                     .variant("A", |v| v.index(1))
+//!                     .variant("B", |v| v.index(2))
+//!                     .variant("C", |v| v.index(33))
 //!             )
 //!     }
 //! }
@@ -481,7 +487,7 @@ impl VariantBuilder<variant_state::IndexNotAssigned> {
     }
 
     /// Set the variant's codec index.
-    pub fn index(mut self, index: u8) -> VariantBuilder<variant_state::IndexAssigned> {
+    pub fn index(self, index: u8) -> VariantBuilder<variant_state::IndexAssigned> {
         VariantBuilder {
             name: self.name,
             index: Some(index),
@@ -520,7 +526,6 @@ impl VariantBuilder<variant_state::IndexAssigned> {
             self.name,
             self.fields,
             self.index.expect("Index should be assigned by the builder"),
-            self.discriminant,
             self.docs,
         )
     }

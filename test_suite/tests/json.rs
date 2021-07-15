@@ -126,9 +126,11 @@ fn test_builtins() {
                 "variants": [
                     {
                         "name": "None",
+                        "index": 0,
                     },
                     {
                         "name": "Some",
+                        "index": 1,
                         "fields": [ { "type": 0 } ]
                     },
                 ]
@@ -146,10 +148,12 @@ fn test_builtins() {
                 "variants": [
                     {
                         "name": "Ok",
+                        "index": 0,
                         "fields": [ { "type": 0 } ]
                     },
                     {
                         "name": "Err",
+                        "index": 1,
                         "fields": [ { "type": 1 } ]
                     }
                 ]
@@ -310,9 +314,9 @@ fn test_clike_enum() {
         "def": {
             "variant": {
                 "variants": [
-                    { "name": "A", "discriminant": 0, },
-                    { "name": "B", "discriminant": 42, },
-                    { "name": "C", "discriminant": 2, },
+                    { "name": "A", "index": 0, },
+                    { "name": "B", "index": 42, },
+                    { "name": "C", "index": 2, },
                 ],
             },
         }
@@ -333,9 +337,13 @@ fn test_enum() {
         "def": {
             "variant": {
                 "variants": [
-                    { "name": "ClikeVariant" },
+                    {
+                        "name": "ClikeVariant",
+                        "index": 0,
+                    },
                     {
                         "name": "TupleStructVariant",
+                        "index": 1,
                         "fields": [
                             { "type": 0, "typeName": "u32" },
                             { "type": 1, "typeName": "bool" },
@@ -343,6 +351,7 @@ fn test_enum() {
                     },
                     {
                         "name": "StructVariant",
+                        "index": 2,
                         "fields": [
                             { "name": "a", "type": 0, "typeName": "u32" },
                             { "name": "b", "type": 2, "typeName": "[u8; 32]" },
@@ -427,12 +436,14 @@ fn test_recursive_type_with_box() {
                         "variants": [
                             {
                                 "name": "Leaf",
+                                "index": 0,
                                 "fields": [
                                     { "name": "value", "type": 1, "typeName": "i32" },
                                 ],
                             },
                             {
                                 "name": "Node",
+                                "index": 1,
                                 "fields": [
                                     { "name": "right", "type": 0, "typeName": "Box<Tree>" },
                                     { "name": "left", "type": 0, "typeName": "Box<Tree>" },
@@ -645,15 +656,15 @@ fn test_registry() {
                         "variants": [
                             {
                                 "name": "A",
-                                "discriminant": 0,
+                                "index": 0,
                             },
                             {
                                 "name": "B",
-                                "discriminant": 1,
+                                "index": 1,
                             },
                             {
                                 "name": "C",
-                                "discriminant": 2,
+                                "index": 2,
                             },
                         ]
                     }
@@ -668,10 +679,12 @@ fn test_registry() {
                     "variant": {
                         "variants": [
                             {
-                                "name": "A"
+                                "name": "A",
+                                "index": 0,
                             },
                             {
                                 "name": "B",
+                                "index": 1,
                                 "fields": [
                                     { "type": 2, "typeName": "u8" }, // u8
                                     { "type": 3, "typeName": "u32" }, // u32
@@ -679,6 +692,7 @@ fn test_registry() {
                             },
                             {
                                 "name": "C",
+                                "index": 2,
                                 "fields": [
                                     {
                                         "name": "a",

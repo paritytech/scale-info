@@ -225,12 +225,12 @@ fn generate_c_like_enum_def(variants: &VariantList, scale_info: &Ident) -> Token
         .filter(|(_, v)| !utils::should_skip(&v.attrs))
         .map(|(i, v)| {
             let name = &v.ident;
-            let discriminant = utils::variant_index(v, i);
+            let index = utils::variant_index(v, i);
             let docs = generate_docs(&v.attrs);
             quote! {
                 .variant(::core::stringify!(#name), |v|
                     v
-                        .discriminant(#discriminant as ::core::primitive::u64)
+                        .index(#index as ::core::primitive::u8)
                         #docs
                 )
             }
@@ -265,7 +265,6 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
             let ident = &v.ident;
             let v_name = quote! {::core::stringify!(#ident) };
             let docs = generate_docs(&v.attrs);
-            // let index = utils::maybe_index(v).map(|i| quote!(.index(#i)));
             let index = utils::variant_index(v, i);
 
             let fields = match v.fields {
@@ -293,7 +292,7 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
             quote! {
                 .variant(#v_name, |v|
                     v
-                        .index(#i as u8)
+                        .index(#index as ::core::primitive::u8)
                         .fields(#fields)
                         #docs
                 )
