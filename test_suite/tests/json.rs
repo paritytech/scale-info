@@ -612,20 +612,20 @@ fn test_registry() {
                                 { "type": 2, "typeName": "u8" },
                                 { "type": 3, "typeName": "u32" },
                             ],
-                        },
+                        }
                     }
                 }
             },
             {
                 "id": 2,
-                "type" {
-                    "def": { "primitive": "u8" },
+                "type": {
+                    "def": { "primitive": "u8" }
                 }
             },
             {
                 "id": 3,
-                "type" {
-                    "def": { "primitive": "u32" },
+                "type": {
+                    "def": { "primitive": "u32" }
                 }
             },
             {
@@ -654,7 +654,7 @@ fn test_registry() {
                                     "typeName": "[u8; 32]"
                                 }
                             ]
-                        },
+                        }
                     }
                 }
             },
@@ -665,7 +665,7 @@ fn test_registry() {
                         "array": {
                             "len": 32,
                             "type": 2, // u8
-                        },
+                        }
                     }
                 }
             },
@@ -685,7 +685,7 @@ fn test_registry() {
                                     "typeName": "Vec<RecursiveStruct>"
                                 }
                             ]
-                        },
+                        }
                     }
                 }
             },
@@ -770,10 +770,10 @@ fn test_registry() {
                                     ]
                                 }
                             ]
-                        },
+                        }
                     }
                 }
-            },
+            }
         ]
     });
 
