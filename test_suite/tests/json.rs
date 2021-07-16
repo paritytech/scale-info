@@ -426,31 +426,37 @@ fn test_recursive_type_with_box() {
     let expected_json = json!({
         "types": [
             {
-                "path": ["json", "Tree"],
-                "def": {
-                    "variant": {
-                        "variants": [
-                            {
-                                "name": "Leaf",
-                                "index": 0,
-                                "fields": [
-                                    { "name": "value", "type": 1, "typeName": "i32" },
-                                ],
-                            },
-                            {
-                                "name": "Node",
-                                "index": 1,
-                                "fields": [
-                                    { "name": "right", "type": 0, "typeName": "Box<Tree>" },
-                                    { "name": "left", "type": 0, "typeName": "Box<Tree>" },
-                                ],
-                            }
-                        ],
-                    },
+                "id": 0,
+                "type": {
+                    "path": ["json", "Tree"],
+                    "def": {
+                        "variant": {
+                            "variants": [
+                                {
+                                    "name": "Leaf",
+                                    "index": 0,
+                                    "fields": [
+                                        { "name": "value", "type": 1, "typeName": "i32" },
+                                    ],
+                                },
+                                {
+                                    "name": "Node",
+                                    "index": 1,
+                                    "fields": [
+                                        { "name": "right", "type": 0, "typeName": "Box<Tree>" },
+                                        { "name": "left", "type": 0, "typeName": "Box<Tree>" },
+                                    ],
+                                }
+                            ],
+                        },
+                    }
                 }
             },
             {
-                "def": { "primitive": "i32" },
+                "id": 1,
+                "type": {
+                    "def": { "primitive": "i32" },
+                }
             },
         ]
     });
@@ -476,37 +482,64 @@ fn registry_knows_about_compact_types() {
 
     let expected_json = json!({
         "types": [
-            { // type 1
-                "path": ["json", "Dense"],
-                "def": {
-                    "composite": {
-                        "fields": [
-                            { "name": "a", "type": 1, "typeName": "u128" },
-                            { "name": "a_not_compact", "type": 2, "typeName": "u128" },
-                            { "name": "b", "type": 3, "typeName": "[u8; 32]" },
-                            { "name": "c", "type": 5, "typeName": "u64" }
-                        ]
+            {
+                "id": 0,
+                "type": {
+                    "path": ["json", "Dense"],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                { "name": "a", "type": 1, "typeName": "u128" },
+                                { "name": "a_not_compact", "type": 2, "typeName": "u128" },
+                                { "name": "b", "type": 3, "typeName": "[u8; 32]" },
+                                { "name": "c", "type": 5, "typeName": "u64" }
+                            ]
+                        }
                     }
                 }
             },
-            { // type 2, the `Compact<u128>` of field `a`.
-                "def": { "compact": { "type": 2 } },
+            {
+                "id": 1,
+                "type": {
+                    // type 1, the `Compact<u128>` of field `a`.
+                    "def": { "compact": { "type": 2 } },
+                }
             },
-            { // type 3, the `u128` used by type 2 and field `a_not_compact`.
-                "def": { "primitive": "u128" }
+            {
+                "id": 2,
+                "type": {
+                    // type 2, the `u128` used by type 2 and field `a_not_compact`.
+                    "def": { "primitive": "u128" }
+                }
             },
-            { // type 4, the `[u8; 32]` of field `b`.
-                "def": { "array": { "len": 32, "type": 4 }}
+            {
+                "id": 3,
+                "type": {
+                    // type 3, the `[u8; 32]` of field `b`.
+                    "def": { "array": { "len": 32, "type": 4 }}
+                }
             },
-            { // type 5, the `u8` in `[u8; 32]`
-                "def": { "primitive": "u8" }
+            {
+                "id": 4,
+                "type": {
+                    // type 4, the `u8` in `[u8; 32]`
+                    "def": { "primitive": "u8" }
+                }
             },
-            { // type 6, the `Compact<u64>` of field `c`
-                "def": { "compact": { "type": 6 } },
+            {
+                "id": 5,
+                "type": {
+                    // type 5, the `Compact<u64>` of field `c`
+                    "def": { "compact": { "type": 6 } },
+                }
             },
-            { // type 7, the `u64` in `Compact<u64>` of field `c`
-                "def": { "primitive": "u64" }
-            },
+            {
+                "id": 6,
+                "type": {
+                    // type 6, the `u64` in `Compact<u64>` of field `c`
+                    "def": { "primitive": "u64" }
+                }
+            }
         ]
     });
 
@@ -554,163 +587,193 @@ fn test_registry() {
 
     let expected_json = json!({
         "types": [
-            { // type 0
-                "path": [
-                    "json",
-                    "UnitStruct",
-                ],
-                "def": {
-                    "composite": {},
-                }
-            },
-            { // type 1
-                "path": [
-                    "json",
-                    "TupleStruct",
-                ],
-                "def": {
-                    "composite": {
-                        "fields": [
-                            { "type": 2, "typeName": "u8" },
-                            { "type": 3, "typeName": "u32" },
-                        ],
-                    },
-                }
-            },
-            { // type 2
-                "def": { "primitive": "u8" },
-            },
-            { // type 3
-                "def": { "primitive": "u32" },
-            },
-            { // type 4
-                "path": [
-                    "json",
-                    "Struct",
-                ],
-                "def": {
-                    "composite": {
-                        "fields": [
-                            {
-                                "name": "a",
-                                "type": 2,
-                                "typeName": "u8"
-                            },
-                            {
-                                "name": "b",
-                                "type": 3,
-                                "typeName": "u32"
-                            },
-                            {
-                                "name": "c",
-                                "type": 5,
-                                "typeName": "[u8; 32]"
-                            }
-                        ]
-                    },
-                }
-            },
-            { // type 5
-                "def": {
-                    "array": {
-                        "len": 32,
-                        "type": 2, // u8
-                    },
-                }
-            },
-            { // type 6
-                "path": [
-                    "json",
-                    "RecursiveStruct",
-                ],
-                "def": {
-                    "composite": {
-                        "fields": [
-                            {
-                                "name": "rec",
-                                "type": 7,
-                                "typeName": "Vec<RecursiveStruct>"
-                            }
-                        ]
-                    },
-                }
-            },
-            { // type 7
-                "def": {
-                    "sequence": {
-                        "type": 6, // RecursiveStruct
-                    },
-                }
-            },
-            { // type 8
-                "path": [
-                    "json",
-                    "ClikeEnum",
-                ],
-                "def": {
-                    "variant": {
-                        "variants": [
-                            {
-                                "name": "A",
-                                "index": 0,
-                            },
-                            {
-                                "name": "B",
-                                "index": 1,
-                            },
-                            {
-                                "name": "C",
-                                "index": 2,
-                            },
-                        ]
+            {
+                "id": 0,
+                "type": {
+                    "path": [
+                        "json",
+                        "UnitStruct",
+                    ],
+                    "def": {
+                        "composite": {},
                     }
                 }
             },
-            { // type 9
-                "path": [
-                    "json",
-                    "RustEnum"
-                ],
-                "def": {
-                    "variant": {
-                        "variants": [
-                            {
-                                "name": "A",
-                                "index": 0,
-                            },
-                            {
-                                "name": "B",
-                                "index": 1,
-                                "fields": [
-                                    { "type": 2, "typeName": "u8" }, // u8
-                                    { "type": 3, "typeName": "u32" }, // u32
-                                ]
-                            },
-                            {
-                                "name": "C",
-                                "index": 2,
-                                "fields": [
-                                    {
-                                        "name": "a",
-                                        "type": 2, // u8
-                                        "typeName": "u8"
-                                    },
-                                    {
-                                        "name": "b",
-                                        "type": 3, // u32
-                                        "typeName": "u32"
-                                    },
-                                    {
-                                        "name": "c",
-                                        "type": 5,
-                                        "typeName": "[u8; 32]"
-                                    }
-                                ]
-                            }
-                        ]
-                    },
+            {
+                "id": 1,
+                "type": {
+                    "path": [
+                        "json",
+                        "TupleStruct",
+                    ],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                { "type": 2, "typeName": "u8" },
+                                { "type": 3, "typeName": "u32" },
+                            ],
+                        }
+                    }
                 }
             },
+            {
+                "id": 2,
+                "type": {
+                    "def": { "primitive": "u8" }
+                }
+            },
+            {
+                "id": 3,
+                "type": {
+                    "def": { "primitive": "u32" }
+                }
+            },
+            {
+                "id": 4,
+                "type": {
+                    "path": [
+                        "json",
+                        "Struct",
+                    ],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                {
+                                    "name": "a",
+                                    "type": 2,
+                                    "typeName": "u8"
+                                },
+                                {
+                                    "name": "b",
+                                    "type": 3,
+                                    "typeName": "u32"
+                                },
+                                {
+                                    "name": "c",
+                                    "type": 5,
+                                    "typeName": "[u8; 32]"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "id": 5,
+                "type": {
+                    "def": {
+                        "array": {
+                            "len": 32,
+                            "type": 2, // u8
+                        }
+                    }
+                }
+            },
+            {
+                "id": 6,
+                "type": {
+                     "path": [
+                        "json",
+                        "RecursiveStruct",
+                    ],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                {
+                                    "name": "rec",
+                                    "type": 7,
+                                    "typeName": "Vec<RecursiveStruct>"
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "id": 7,
+                "type": {
+                    "def": {
+                        "sequence": {
+                            "type": 6, // RecursiveStruct
+                        },
+                    }
+                }
+            },
+            {
+                "id": 8,
+                "type": {
+                    "path": [
+                        "json",
+                        "ClikeEnum",
+                    ],
+                    "def": {
+                        "variant": {
+                            "variants": [
+                                {
+                                    "name": "A",
+                                    "index": 0,
+                                },
+                                {
+                                    "name": "B",
+                                    "index": 1,
+                                },
+                                {
+                                    "name": "C",
+                                    "index": 2,
+                                },
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "id": 9,
+                "type": {
+                    "path": [
+                        "json",
+                        "RustEnum"
+                    ],
+                    "def": {
+                        "variant": {
+                            "variants": [
+                                {
+                                    "name": "A",
+                                    "index": 0,
+                                },
+                                {
+                                    "name": "B",
+                                    "index": 1,
+                                    "fields": [
+                                        { "type": 2, "typeName": "u8" }, // u8
+                                        { "type": 3, "typeName": "u32" }, // u32
+                                    ]
+                                },
+                                {
+                                    "name": "C",
+                                    "index": 2,
+                                    "fields": [
+                                        {
+                                            "name": "a",
+                                            "type": 2, // u8
+                                            "typeName": "u8"
+                                        },
+                                        {
+                                            "name": "b",
+                                            "type": 3, // u32
+                                            "typeName": "u32"
+                                        },
+                                        {
+                                            "name": "c",
+                                            "type": 5,
+                                            "typeName": "[u8; 32]"
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         ]
     });
 

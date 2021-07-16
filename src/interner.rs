@@ -48,6 +48,7 @@ use serde::{
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
+    #[codec(compact)]
     id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> T>,
