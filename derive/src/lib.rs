@@ -313,12 +313,14 @@ fn generate_docs(attrs: &[syn::Attribute]) -> Option<TokenStream2> {
         .filter_map(|attr| {
             if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
                 if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
-                    let lit = &meta.lit;
-                    let doc_lit = quote!(#lit).to_string();
-                    let trimmed_doc_lit =
-                        doc_lit.trim_start_matches(r#"" "#).trim_end_matches('"');
-                    let lit: syn::Lit = parse_quote!(#trimmed_doc_lit);
-                    Some(lit)
+                    if let syn::Lit::Str(lit) = &meta.lit {
+                        let lit_value = lit.value();
+                        let stripped = lit_value.strip_prefix(' ');
+                        let lit: syn::LitStr = parse_quote!(#stripped);
+                        Some(lit)
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
