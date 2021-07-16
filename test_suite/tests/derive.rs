@@ -122,6 +122,26 @@ fn phantom_data_field_is_erased() {
 }
 
 #[test]
+fn phantom_data_tuple_struct_field_is_erased() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct P<T>(u8, PhantomData<T>);
+
+    let ty = Type::builder()
+        .path(Path::new("P", "derive"))
+        .type_params(named_type_params!((T, bool)))
+        .composite(
+            Fields::unnamed()
+                .field(|f| f.ty::<u8>().type_name("u8"))
+                .field(|f| {
+                    f.ty::<PhantomData<bool>>().type_name("PhantomData<T>")
+                }),
+        );
+
+    assert_type!(P<bool>, ty);
+}
+
+#[test]
 fn tuple_struct_derive() {
     #[allow(unused)]
     #[derive(TypeInfo)]
