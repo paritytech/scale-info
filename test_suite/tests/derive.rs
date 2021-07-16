@@ -108,10 +108,7 @@ fn phantom_data_field_is_erased() {
     let ty = Type::builder()
         .path(Path::new("P", "derive"))
         .type_params(named_type_params!((T, bool)))
-        .composite(
-            Fields::named()
-                .field(|f| f.ty::<u8>().name("a").type_name("u8"))
-        );
+        .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")));
 
     assert_type!(P<bool>, ty);
 }
@@ -125,10 +122,7 @@ fn phantom_data_tuple_struct_field_is_erased() {
     let ty = Type::builder()
         .path(Path::new("P", "derive"))
         .type_params(named_type_params!((T, bool)))
-        .composite(
-            Fields::unnamed()
-                .field(|f| f.ty::<u8>().type_name("u8"))
-        );
+        .composite(Fields::unnamed().field(|f| f.ty::<u8>().type_name("u8")));
 
     assert_type!(P<bool>, ty);
 }
