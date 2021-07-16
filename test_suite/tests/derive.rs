@@ -111,11 +111,6 @@ fn phantom_data_field_is_erased() {
         .composite(
             Fields::named()
                 .field(|f| f.ty::<u8>().name("a").type_name("u8"))
-                .field(|f| {
-                    f.ty::<PhantomData<bool>>()
-                        .name("m")
-                        .type_name("PhantomData<T>")
-                }),
         );
 
     assert_type!(P<bool>, ty);
@@ -133,7 +128,6 @@ fn phantom_data_tuple_struct_field_is_erased() {
         .composite(
             Fields::unnamed()
                 .field(|f| f.ty::<u8>().type_name("u8"))
-                .field(|f| f.ty::<PhantomData<bool>>().type_name("PhantomData<T>")),
         );
 
     assert_type!(P<bool>, ty);
