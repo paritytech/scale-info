@@ -306,7 +306,6 @@ fn generate_variant_type(data_enum: &DataEnum, scale_info: &Ident) -> TokenStrea
     }
 }
 
-#[cfg(feature = "docs")]
 fn generate_docs(attrs: &[syn::Attribute]) -> Option<TokenStream2> {
     let docs = attrs
         .iter()
@@ -335,9 +334,4 @@ fn generate_docs(attrs: &[syn::Attribute]) -> Option<TokenStream2> {
     Some(quote! {
         .docs(&[ #( #docs ),* ])
     })
-}
-
-#[cfg(not(feature = "docs"))]
-fn generate_docs(_: &[syn::Attribute]) -> Option<TokenStream2> {
-    None
 }
