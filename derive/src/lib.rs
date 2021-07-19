@@ -45,7 +45,7 @@ use syn::{
     Variant,
 };
 
-#[proc_macro_derive(TypeInfo, attributes(scale_info))]
+#[proc_macro_derive(TypeInfo, attributes(scale_info, codec))]
 pub fn type_info(input: TokenStream) -> TokenStream {
     match generate(input.into()) {
         Ok(output) => output.into(),
