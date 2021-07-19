@@ -532,6 +532,7 @@ impl<S> VariantBuilder<S> {
         self
     }
 
+    #[cfg(feature = "docs")]
     /// Initialize the variant's documentation.
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
         self.docs = docs.to_vec();
