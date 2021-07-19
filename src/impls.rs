@@ -329,7 +329,11 @@ impl<T> TypeInfo for PhantomData<T> {
     type Identity = PhantomIdentity;
 
     fn type_info() -> Type {
-        panic!("PhantomData type instances should be filtered out.")
+        // Fields of this type should be filtered out and never appear in the type graph.
+        Type::builder()
+            .path(Path::prelude("PhantomData"))
+            .docs(&["PhantomData placeholder, this type should be filtered out"])
+            .composite(Fields::unit())
     }
 }
 

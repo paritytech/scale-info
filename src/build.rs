@@ -264,19 +264,8 @@ impl<T> FieldsBuilder<T> {
     pub fn finalize(self) -> Vec<Field<MetaForm>> {
         self.fields
     }
-}
 
-impl FieldsBuilder<NamedFields> {
-    /// Add a named field constructed using the builder.
-    pub fn field<F>(mut self, builder: F) -> Self
-    where
-        F: Fn(
-            FieldBuilder,
-        )
-            -> FieldBuilder<field_state::NameAssigned, field_state::TypeAssigned>,
-    {
-        let builder = builder(FieldBuilder::new());
-        let field = builder.finalize();
+    fn push_field(mut self, field: Field) -> Self {
         // filter out fields of PhantomData
         if !field.ty().is_phantom() {
             self.fields.push(field);
@@ -285,9 +274,23 @@ impl FieldsBuilder<NamedFields> {
     }
 }
 
+impl FieldsBuilder<NamedFields> {
+    /// Add a named field constructed using the builder.
+    pub fn field<F>(self, builder: F) -> Self
+    where
+        F: Fn(
+            FieldBuilder,
+        )
+            -> FieldBuilder<field_state::NameAssigned, field_state::TypeAssigned>,
+    {
+        let builder = builder(FieldBuilder::new());
+        self.push_field(builder.finalize())
+    }
+}
+
 impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field constructed using the builder.
-    pub fn field<F>(mut self, builder: F) -> Self
+    pub fn field<F>(self, builder: F) -> Self
     where
         F: Fn(
             FieldBuilder,
@@ -295,8 +298,7 @@ impl FieldsBuilder<UnnamedFields> {
             -> FieldBuilder<field_state::NameNotAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
-        self.fields.push(builder.finalize());
-        self
+        self.push_field(builder.finalize())
     }
 }
 
