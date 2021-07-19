@@ -314,9 +314,7 @@ fn generate_docs(attrs: &[syn::Attribute]) -> Option<TokenStream2> {
                 if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
                     if let syn::Lit::Str(lit) = &meta.lit {
                         let lit_value = lit.value();
-                        let stripped = lit_value
-                            .strip_prefix(' ')
-                            .unwrap_or(&lit_value);
+                        let stripped = lit_value.strip_prefix(' ').unwrap_or(&lit_value);
                         let lit: syn::Lit = parse_quote!(#stripped);
                         Some(lit)
                     } else {
