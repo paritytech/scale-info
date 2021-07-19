@@ -106,9 +106,14 @@ fn prelude_items() {
 }
 
 #[test]
-#[should_panic]
 fn phantom_data() {
-    PhantomData::<i32>::type_info();
+    assert_type!(
+        PhantomData<i32>,
+        Type::builder()
+            .path(Path::prelude("PhantomData"))
+            .docs(&["PhantomData placeholder, this type should be filtered out"])
+            .composite(Fields::unit())
+    )
 }
 
 #[test]
