@@ -316,7 +316,7 @@ fn generate_docs(attrs: &[syn::Attribute]) -> Option<TokenStream2> {
                     if let syn::Lit::Str(lit) = &meta.lit {
                         let lit_value = lit.value();
                         let stripped = lit_value.strip_prefix(' ');
-                        let lit: syn::LitStr = parse_quote!(#stripped);
+                        let lit: syn::Lit = parse_quote!(#stripped);
                         Some(lit)
                     } else {
                         None
