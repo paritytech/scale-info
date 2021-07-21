@@ -218,8 +218,8 @@ impl<S> TypeBuilder<S> {
     }
 
     #[cfg(not(feature = "docs"))]
-    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     pub fn docs(self, _docs: &'static [&'static str]) -> Self {
         self
     }
@@ -421,8 +421,8 @@ impl<N, T> FieldBuilder<N, T> {
     }
 
     #[cfg(not(feature = "docs"))]
-    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     pub fn docs(self, _docs: &'static [&'static str]) -> FieldBuilder<N, T> {
         self
     }
@@ -542,8 +542,8 @@ impl<S> VariantBuilder<S> {
     }
 
     #[cfg(not(feature = "docs"))]
-    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     pub fn docs(self, _docs: &[&'static str]) -> Self {
         self
     }
