@@ -733,6 +733,21 @@ fn skip_type_params_with_defaults() {
     assert_type!(SkipAllTypeParamsWithDefaults<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
 }
 
+#[test]
+fn docs_attr() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[doc = "Docs attr"]
+    pub struct S;
+
+    let ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .docs(&["Docs attr"])
+        .composite(Fields::unit());
+
+    assert_type!(S, ty);
+}
+
 #[rustversion::nightly]
 #[test]
 fn ui_tests() {

@@ -210,9 +210,17 @@ impl<S> TypeBuilder<S> {
         self
     }
 
+    #[cfg(feature = "docs")]
     /// Set the type documentation
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
         self.docs = docs.to_vec();
+        self
+    }
+
+    #[cfg(not(feature = "docs"))]
+    #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
+    pub fn docs(self, _docs: &'static [&'static str]) -> Self {
         self
     }
 }
@@ -400,6 +408,7 @@ impl<N, T> FieldBuilder<N, T> {
         }
     }
 
+    #[cfg(feature = "docs")]
     /// Initialize the documentation of a field (optional).
     pub fn docs(self, docs: &'static [&'static str]) -> FieldBuilder<N, T> {
         FieldBuilder {
@@ -409,6 +418,13 @@ impl<N, T> FieldBuilder<N, T> {
             docs,
             marker: PhantomData,
         }
+    }
+
+    #[cfg(not(feature = "docs"))]
+    #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
+    pub fn docs(self, _docs: &'static [&'static str]) -> FieldBuilder<N, T> {
+        self
     }
 }
 
@@ -518,9 +534,17 @@ impl<S> VariantBuilder<S> {
         self
     }
 
+    #[cfg(feature = "docs")]
     /// Initialize the variant's documentation.
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
         self.docs = docs.to_vec();
+        self
+    }
+
+    #[cfg(not(feature = "docs"))]
+    #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
+    pub fn docs(self, _docs: &[&'static str]) -> Self {
         self
     }
 }
