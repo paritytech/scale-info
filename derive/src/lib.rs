@@ -278,9 +278,9 @@ impl TypeInfoImpl {
             .collect::<Vec<_>>();
 
         let docs_builder_fn = if self.attrs.always_capture_docs() {
-            quote!(docs)
-        } else {
             quote!(docs_always)
+        } else {
+            quote!(docs)
         };
 
         Some(quote! {
