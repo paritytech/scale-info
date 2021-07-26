@@ -684,26 +684,26 @@ fn always_capture_docs() {
 
     let enum_ty = Type::builder()
         .path(Path::new("E", "derive"))
-        .docs(&["Type docs"])
+        .docs_always(&["Type docs"])
         .variant(Variants::new().variant("A", |v| {
             v.index(0)
                 .fields(Fields::named().field(|f| {
                     f.ty::<u32>()
                         .name("a")
                         .type_name("u32")
-                        .docs(&["field docs"])
+                        .docs_always(&["field docs"])
                 }))
-                .docs(&["Variant docs"])
+                .docs_always(&["Variant docs"])
         }));
 
     let struct_ty = Type::builder()
         .path(Path::new("S", "derive"))
-        .docs(&["Type docs"])
+        .docs_always(&["Type docs"])
         .composite(Fields::named().field(|f| {
             f.ty::<bool>()
                 .name("a")
                 .type_name("bool")
-                .docs(&["field docs"])
+                .docs_always(&["field docs"])
         }));
 
     assert_type!(E, enum_ty);
