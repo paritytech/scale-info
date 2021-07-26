@@ -111,7 +111,7 @@ impl TypeInfoImpl {
 
         let build_type = match &self.ast.data {
             Data::Struct(ref s) => self.generate_composite_type(s),
-            Data::Enum(ref e) => self.generate_variant_type(e, &scale_info),
+            Data::Enum(ref e) => self.generate_variant_type(e, scale_info),
             Data::Union(_) => {
                 return Err(Error::new_spanned(&self.ast, "Unions not supported"))
             }
