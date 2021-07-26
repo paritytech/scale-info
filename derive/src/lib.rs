@@ -72,7 +72,7 @@ struct TypeInfoImpl {
 
 impl TypeInfoImpl {
     fn parse(input: TokenStream2) -> Result<Self> {
-        let ast: DeriveInput = syn::parse2(input.clone())?;
+        let ast: DeriveInput = syn::parse2(input)?;
         let scale_info = crate_name_ident("scale-info")?;
         let attrs = attr::Attributes::from_ast(&ast)?;
 
