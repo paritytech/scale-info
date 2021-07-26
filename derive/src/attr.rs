@@ -129,9 +129,14 @@ impl Attributes {
         self.skip_type_params.as_ref()
     }
 
-    /// Get the `#[scale_info(capture_docs = {bool})]` attribute, if present.
-    pub fn capture_docs(&self) -> Option<&CaptureDocsAttr> {
-        self.capture_docs.as_ref()
+    /// Returns true if the type is annotated with `#[scale_info(capture_docs = false)]`
+    pub fn never_capture_docs(&self) -> bool {
+        self.capture_docs.as_ref().map_or(false, |attr| attr.capture_docs == false)
+    }
+
+    /// Returns true if the type is annotated with `#[scale_info(capture_docs = true)]`
+    pub fn always_capture_docs(&self) -> bool {
+        self.capture_docs.as_ref().map_or(false, |attr| attr.capture_docs == true)
     }
 }
 
@@ -212,14 +217,6 @@ impl Parse for CaptureDocsAttr {
         Ok(Self {
             capture_docs: capture_docs_lit.value(),
         })
-    }
-}
-
-impl CaptureDocsAttr {
-    /// Returns `true` if docs should *always* be captured for a type.
-    /// Returns `false` if docs should *never* be captured for a type.
-    pub fn capture_docs(&self) -> bool {
-        self.capture_docs
     }
 }
 

@@ -250,6 +250,10 @@ impl TypeInfoImpl {
     }
 
     fn generate_docs(&self, attrs: &[syn::Attribute]) -> Option<TokenStream2> {
+        if self.attrs.never_capture_docs() {
+            return None;
+        }
+
         let docs = attrs
             .iter()
             .filter_map(|attr| {
@@ -273,8 +277,14 @@ impl TypeInfoImpl {
             })
             .collect::<Vec<_>>();
 
+        let docs_builder_fn = if self.attrs.always_capture_docs() {
+            quote!( docs )
+        } else {
+            quote!( docs_always )
+        };
+
         Some(quote! {
-            .docs(&[ #( #docs ),* ])
+            .#docs_builder_fn(&[ #( #docs ),* ])
         })
     }
 }

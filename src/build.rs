@@ -223,6 +223,12 @@ impl<S> TypeBuilder<S> {
     pub fn docs(self, _docs: &'static [&'static str]) -> Self {
         self
     }
+
+    /// Set the type documentation, always captured even if the "docs" feature is not enabled.
+    pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
+        self
+    }
 }
 
 /// A fields builder has no fields (e.g. a unit struct)
@@ -426,6 +432,18 @@ impl<N, T> FieldBuilder<N, T> {
     pub fn docs(self, _docs: &'static [&'static str]) -> FieldBuilder<N, T> {
         self
     }
+
+    /// Initialize the documentation of a field, always captured even if the "docs" feature is not
+    /// enabled.
+    pub fn docs_always(self, docs: &'static[&'static str]) -> Self {
+        FieldBuilder {
+            name: self.name,
+            ty: self.ty,
+            type_name: self.type_name,
+            docs,
+            marker: PhantomData,
+        }
+    }
 }
 
 impl<N> FieldBuilder<N, field_state::TypeAssigned> {
@@ -545,6 +563,13 @@ impl<S> VariantBuilder<S> {
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     pub fn docs(self, _docs: &[&'static str]) -> Self {
+        self
+    }
+
+    /// Initialize the variant's documentation, always captured even if the "docs" feature is not
+    /// enabled.
+    pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
         self
     }
 }
