@@ -209,7 +209,9 @@ impl Parse for CaptureDocsAttr {
         input.parse::<keywords::capture_docs>()?;
         input.parse::<syn::Token![=]>()?;
         let capture_docs_lit = input.parse::<syn::LitBool>()?;
-        Ok(Self { capture_docs: capture_docs_lit.value() })
+        Ok(Self {
+            capture_docs: capture_docs_lit.value(),
+        })
     }
 }
 
@@ -241,7 +243,8 @@ impl Parse for ScaleInfoAttr {
             let capture_docs = input.parse()?;
             Ok(Self::CaptureDocs(capture_docs))
         } else {
-            Err(input.error("Expected one of: `bounds`, `skip_type_params` or `capture_docs"))
+            Err(input
+                .error("Expected one of: `bounds`, `skip_type_params` or `capture_docs"))
         }
     }
 }

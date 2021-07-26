@@ -19,6 +19,7 @@ mod attr;
 mod trait_bounds;
 mod utils;
 
+use crate::attr::Attributes;
 use proc_macro::TokenStream;
 use proc_macro2::{
     Span,
@@ -43,7 +44,6 @@ use syn::{
     Ident,
     Lifetime,
 };
-use crate::attr::Attributes;
 
 #[proc_macro_derive(TypeInfo, attributes(scale_info, codec))]
 pub fn type_info(input: TokenStream) -> TokenStream {
@@ -76,7 +76,11 @@ impl TypeInfoImpl {
         let scale_info = crate_name_ident("scale-info")?;
         let attrs = attr::Attributes::from_ast(&ast)?;
 
-        Ok(Self { ast, scale_info, attrs })
+        Ok(Self {
+            ast,
+            scale_info,
+            attrs,
+        })
     }
 
     fn expand(&self) -> Result<TokenStream2> {
@@ -108,7 +112,9 @@ impl TypeInfoImpl {
         let build_type = match &self.ast.data {
             Data::Struct(ref s) => self.generate_composite_type(s),
             Data::Enum(ref e) => self.generate_variant_type(e, &scale_info),
-            Data::Union(_) => return Err(Error::new_spanned(&self.ast, "Unions not supported")),
+            Data::Union(_) => {
+                return Err(Error::new_spanned(&self.ast, "Unions not supported"))
+            }
         };
         let docs = self.generate_docs(&self.ast.attrs);
 
@@ -189,7 +195,11 @@ impl TypeInfoImpl {
             .collect()
     }
 
-    fn generate_variant_type(&self, data_enum: &DataEnum, scale_info: &Ident) -> TokenStream2 {
+    fn generate_variant_type(
+        &self,
+        data_enum: &DataEnum,
+        scale_info: &Ident,
+    ) -> TokenStream2 {
         let variants = &data_enum.variants;
 
         let variants = variants
@@ -219,7 +229,7 @@ impl TypeInfoImpl {
                             )
                         })
                     }
-                    Fields::Unit => None
+                    Fields::Unit => None,
                 };
 
                 quote! {
@@ -247,7 +257,8 @@ impl TypeInfoImpl {
                     if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
                         if let syn::Lit::Str(lit) = &meta.lit {
                             let lit_value = lit.value();
-                            let stripped = lit_value.strip_prefix(' ').unwrap_or(&lit_value);
+                            let stripped =
+                                lit_value.strip_prefix(' ').unwrap_or(&lit_value);
                             let lit: syn::Lit = parse_quote!(#stripped);
                             Some(lit)
                         } else {
