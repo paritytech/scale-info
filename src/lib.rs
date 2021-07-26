@@ -190,6 +190,21 @@
 //! **Note:** When using `bounds` without `skip_type_params`, it is therefore required to manually
 //! add a `TypeInfo` bound for any non skipped type parameters. The compiler will let you know.
 //!
+//! #### `#[scale_info(capture_docs = {bool})]`
+//!
+//! Docs for types, fields and variants can all be captured by the `docs` feature being enabled.
+//! This can be overridden using the `capture_docs` attribute:
+//!
+//! `#[scale_info(capture_docs = false)]` will *not* capture docs for the annotated type even if
+//! the `docs` is enabled.
+//!
+//! `#[scale_info(capture_docs = true)]` will capture docs for the annotated type even if the
+//! `docs` feature is *not* enabled.
+//!
+//! This is useful e.g. when compiling metadata into a Wasm blob, and it is desirable to keep the
+//! binary size as small as possible, so the `docs` feature would be disabled. In case the docs for
+//! some types is necessary they could be enabled on a per-type basis with the above attribute.
+//!
 //! # Forms
 //!
 //! To bridge between compile-time type information and runtime the
