@@ -131,12 +131,16 @@ impl Attributes {
 
     /// Returns true if the type is annotated with `#[scale_info(capture_docs = false)]`
     pub fn never_capture_docs(&self) -> bool {
-        self.capture_docs.as_ref().map_or(false, |attr| attr.capture_docs == false)
+        self.capture_docs
+            .as_ref()
+            .map_or(false, |attr| attr.capture_docs == false)
     }
 
     /// Returns true if the type is annotated with `#[scale_info(capture_docs = true)]`
     pub fn always_capture_docs(&self) -> bool {
-        self.capture_docs.as_ref().map_or(false, |attr| attr.capture_docs == true)
+        self.capture_docs
+            .as_ref()
+            .map_or(false, |attr| attr.capture_docs == true)
     }
 }
 

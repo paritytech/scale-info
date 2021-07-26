@@ -435,7 +435,7 @@ impl<N, T> FieldBuilder<N, T> {
 
     /// Initialize the documentation of a field, always captured even if the "docs" feature is not
     /// enabled.
-    pub fn docs_always(self, docs: &'static[&'static str]) -> Self {
+    pub fn docs_always(self, docs: &'static [&'static str]) -> Self {
         FieldBuilder {
             name: self.name,
             ty: self.ty,

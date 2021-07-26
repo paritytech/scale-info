@@ -629,8 +629,8 @@ fn never_capture_docs() {
         /// Variant docs
         A {
             /// field docs
-            a: u32
-        }
+            a: u32,
+        },
     }
 
     #[allow(unused)]
@@ -639,27 +639,21 @@ fn never_capture_docs() {
     /// Type docs
     struct S {
         /// field docs
-        a: bool
+        a: bool,
     }
 
-    let enum_ty = Type::builder().path(Path::new("E", "derive")).variant(
-        Variants::new()
-            .variant("A", |v| {
+    let enum_ty =
+        Type::builder()
+            .path(Path::new("E", "derive"))
+            .variant(Variants::new().variant("A", |v| {
                 v.index(0).fields(
                     Fields::named().field(|f| f.ty::<u32>().name("a").type_name("u32")),
                 )
-            })
-    );
+            }));
 
-    let struct_ty = Type::builder().path(Path::new("S", "derive"))
-        .composite(
-        Fields::named()
-            .field(|f| {
-                f.ty::<bool>()
-                    .name("a")
-                    .type_name("bool")
-            })
-    );
+    let struct_ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .composite(Fields::named().field(|f| f.ty::<bool>().name("a").type_name("bool")));
 
     assert_type!(E, enum_ty);
     assert_type!(S, struct_ty);
@@ -675,8 +669,8 @@ fn always_capture_docs() {
         /// Variant docs
         A {
             /// field docs
-            a: u32
-        }
+            a: u32,
+        },
     }
 
     #[allow(unused)]
@@ -685,33 +679,32 @@ fn always_capture_docs() {
     /// Type docs
     struct S {
         /// field docs
-        a: bool
+        a: bool,
     }
 
     let enum_ty = Type::builder()
         .path(Path::new("E", "derive"))
         .docs(&["Type docs"])
-        .variant(
-            Variants::new()
-                .variant("A", |v| {
-                    v.index(0).fields(
-                        Fields::named().field(|f|
-                            f.ty::<u32>().name("a").type_name("u32").docs(&["field docs"])),
-                    ).docs(&["Variant docs"])
-                })
-        );
-
-    let struct_ty = Type::builder().path(Path::new("S", "derive"))
-        .docs(&["Type docs"])
-        .composite(
-            Fields::named()
-                .field(|f| {
-                    f.ty::<bool>()
+        .variant(Variants::new().variant("A", |v| {
+            v.index(0)
+                .fields(Fields::named().field(|f| {
+                    f.ty::<u32>()
                         .name("a")
-                        .type_name("bool")
+                        .type_name("u32")
                         .docs(&["field docs"])
-                })
-        );
+                }))
+                .docs(&["Variant docs"])
+        }));
+
+    let struct_ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .docs(&["Type docs"])
+        .composite(Fields::named().field(|f| {
+            f.ty::<bool>()
+                .name("a")
+                .type_name("bool")
+                .docs(&["field docs"])
+        }));
 
     assert_type!(E, enum_ty);
     assert_type!(S, struct_ty);
