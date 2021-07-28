@@ -28,12 +28,14 @@ mod keywords {
     syn::custom_keyword!(scale_info);
     syn::custom_keyword!(bounds);
     syn::custom_keyword!(skip_type_params);
+    syn::custom_keyword!(capture_docs);
 }
 
 /// Parsed and validated set of `#[scale_info(...)]` attributes for an item.
 pub struct Attributes {
     bounds: Option<BoundsAttr>,
     skip_type_params: Option<SkipTypeParamsAttr>,
+    capture_docs: Option<CaptureDocsAttr>,
 }
 
 impl Attributes {
@@ -41,6 +43,7 @@ impl Attributes {
     pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
         let mut bounds = None;
         let mut skip_type_params = None;
+        let mut capture_docs = None;
 
         let attributes_parser = |input: &ParseBuffer| {
             let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
@@ -75,6 +78,15 @@ impl Attributes {
                         }
                         skip_type_params = Some(parsed_skip_type_params);
                     }
+                    ScaleInfoAttr::CaptureDocs(parsed_capture_docs) => {
+                        if capture_docs.is_some() {
+                            return Err(syn::Error::new(
+                                attr.span(),
+                                "Duplicate `capture_docs` attributes",
+                            ))
+                        }
+                        capture_docs = Some(parsed_capture_docs);
+                    }
                 }
             }
         }
@@ -103,6 +115,7 @@ impl Attributes {
         Ok(Self {
             bounds,
             skip_type_params,
+            capture_docs,
         })
     }
 
@@ -114,6 +127,15 @@ impl Attributes {
     /// Get the `#[scale_info(skip_type_params(...))]` attribute, if present.
     pub fn skip_type_params(&self) -> Option<&SkipTypeParamsAttr> {
         self.skip_type_params.as_ref()
+    }
+
+    /// Returns the value of `#[scale_info(capture_docs = "..")]`.
+    ///
+    /// Defaults to `CaptureDocsAttr::Default` if the attribute is not present.
+    pub fn capture_docs(&self) -> &CaptureDocsAttr {
+        self.capture_docs
+            .as_ref()
+            .unwrap_or(&CaptureDocsAttr::Default)
     }
 }
 
@@ -180,10 +202,39 @@ impl SkipTypeParamsAttr {
     }
 }
 
+/// Parsed representation of the `#[scale_info(capture_docs = "..")]` attribute.
+#[derive(Clone)]
+pub enum CaptureDocsAttr {
+    Default,
+    Always,
+    Never,
+}
+
+impl Parse for CaptureDocsAttr {
+    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
+        input.parse::<keywords::capture_docs>()?;
+        input.parse::<syn::Token![=]>()?;
+        let capture_docs_lit = input.parse::<syn::LitStr>()?;
+
+        match capture_docs_lit.value().to_lowercase().as_str() {
+            "default" => Ok(Self::Default),
+            "always" => Ok(Self::Always),
+            "never" => Ok(Self::Never),
+            _ => {
+                Err(syn::Error::new_spanned(
+                    capture_docs_lit,
+                    r#"Invalid capture_docs value. Expected one of: "default", "always", "never" "#,
+                ))
+            }
+        }
+    }
+}
+
 /// Parsed representation of one of the `#[scale_info(..)]` attributes.
 pub enum ScaleInfoAttr {
     Bounds(BoundsAttr),
     SkipTypeParams(SkipTypeParamsAttr),
+    CaptureDocs(CaptureDocsAttr),
 }
 
 impl Parse for ScaleInfoAttr {
@@ -195,8 +246,12 @@ impl Parse for ScaleInfoAttr {
         } else if lookahead.peek(keywords::skip_type_params) {
             let skip_type_params = input.parse()?;
             Ok(Self::SkipTypeParams(skip_type_params))
+        } else if lookahead.peek(keywords::capture_docs) {
+            let capture_docs = input.parse()?;
+            Ok(Self::CaptureDocs(capture_docs))
         } else {
-            Err(input.error("Expected either `bounds` or `skip_type_params`"))
+            Err(input
+                .error("Expected one of: `bounds`, `skip_type_params` or `capture_docs"))
         }
     }
 }

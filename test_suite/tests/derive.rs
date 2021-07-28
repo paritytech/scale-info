@@ -620,6 +620,97 @@ fn doc_capture_works() {
 }
 
 #[test]
+fn never_capture_docs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "never")]
+    /// Type docs
+    enum E {
+        /// Variant docs
+        A {
+            /// field docs
+            a: u32,
+        },
+    }
+
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "never")]
+    /// Type docs
+    struct S {
+        /// field docs
+        a: bool,
+    }
+
+    let enum_ty =
+        Type::builder()
+            .path(Path::new("E", "derive"))
+            .variant(Variants::new().variant("A", |v| {
+                v.index(0).fields(
+                    Fields::named().field(|f| f.ty::<u32>().name("a").type_name("u32")),
+                )
+            }));
+
+    let struct_ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .composite(Fields::named().field(|f| f.ty::<bool>().name("a").type_name("bool")));
+
+    assert_type!(E, enum_ty);
+    assert_type!(S, struct_ty);
+}
+
+#[test]
+fn always_capture_docs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "always")]
+    /// Type docs
+    enum E {
+        /// Variant docs
+        A {
+            /// field docs
+            a: u32,
+        },
+    }
+
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "always")]
+    /// Type docs
+    struct S {
+        /// field docs
+        a: bool,
+    }
+
+    let enum_ty = Type::builder()
+        .path(Path::new("E", "derive"))
+        .docs_always(&["Type docs"])
+        .variant(Variants::new().variant("A", |v| {
+            v.index(0)
+                .fields(Fields::named().field(|f| {
+                    f.ty::<u32>()
+                        .name("a")
+                        .type_name("u32")
+                        .docs_always(&["field docs"])
+                }))
+                .docs_always(&["Variant docs"])
+        }));
+
+    let struct_ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .docs_always(&["Type docs"])
+        .composite(Fields::named().field(|f| {
+            f.ty::<bool>()
+                .name("a")
+                .type_name("bool")
+                .docs_always(&["field docs"])
+        }));
+
+    assert_type!(E, enum_ty);
+    assert_type!(S, struct_ty);
+}
+
+#[test]
 fn skip_type_params_nested() {
     #[allow(unused)]
     #[derive(TypeInfo)]

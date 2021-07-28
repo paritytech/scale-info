@@ -1,0 +1,5 @@
+error: Invalid capture_docs value. Expected one of: "default", "always", "never"
+ --> $DIR/fail_with_invalid_capture_docs_attr.rs:5:29
+  |
+5 | #[scale_info(capture_docs = "invalid")]
+  |                             ^^^^^^^^^
