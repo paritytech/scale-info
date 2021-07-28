@@ -271,12 +271,11 @@ impl TypeInfoImpl {
                             if lit_value.trim() == "" {
                                 paragraph_count += 1;
                                 if paragraph_count == max_paragraph_count {
-                                    break;
+                                    break
                                 }
                             }
                         }
-                        let stripped =
-                            lit_value.strip_prefix(' ').unwrap_or(&lit_value);
+                        let stripped = lit_value.strip_prefix(' ').unwrap_or(&lit_value);
                         let lit: syn::Lit = parse_quote!(#stripped);
                         docs.push(lit)
                     }

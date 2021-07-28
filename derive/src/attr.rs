@@ -166,8 +166,7 @@ impl Parse for ScaleInfoAttr {
             let docs = input.parse()?;
             Ok(Self::Docs(docs))
         } else {
-            Err(input
-                .error("Expected one of: `bounds`, `skip_type_params` or `docs"))
+            Err(input.error("Expected one of: `bounds`, `skip_type_params` or `docs"))
         }
     }
 }
@@ -247,7 +246,9 @@ impl Parse for DocsAttr {
             MaxParagraphs(syn::LitInt),
         }
 
-        fn parse_docs_attr_field(input: &ParseBuffer) -> syn::Result<(syn::Ident, DocsAttrField)> {
+        fn parse_docs_attr_field(
+            input: &ParseBuffer,
+        ) -> syn::Result<(syn::Ident, DocsAttrField)> {
             let ident = syn::Ident::parse_any(input)?;
             input.parse::<syn::Token![=]>()?;
 
@@ -283,14 +284,20 @@ impl Parse for DocsAttr {
                 }
                 DocsAttrField::MaxParagraphs(parsed_max_paragraphs) => {
                     if max_paragraphs.is_some() {
-                        return Err(syn::Error::new_spanned(ident, "Duplicate `max_paragraphs`"))
+                        return Err(syn::Error::new_spanned(
+                            ident,
+                            "Duplicate `max_paragraphs`",
+                        ))
                     }
                     max_paragraphs = Some(parsed_max_paragraphs.base10_parse()?);
                 }
             }
         }
 
-        Ok(Self { capture, max_paragraphs })
+        Ok(Self {
+            capture,
+            max_paragraphs,
+        })
     }
 }
 

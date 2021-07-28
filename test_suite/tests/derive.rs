@@ -748,7 +748,6 @@ fn docs_max_paragraphs() {
     assert_type!(E, ty);
 }
 
-
 #[test]
 fn skip_type_params_nested() {
     #[allow(unused)]
