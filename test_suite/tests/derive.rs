@@ -623,7 +623,7 @@ fn doc_capture_works() {
 fn never_capture_docs() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = false)]
+    #[scale_info(capture_docs = "never")]
     /// Type docs
     enum E {
         /// Variant docs
@@ -635,7 +635,7 @@ fn never_capture_docs() {
 
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = false)]
+    #[scale_info(capture_docs = "never")]
     /// Type docs
     struct S {
         /// field docs
@@ -663,7 +663,7 @@ fn never_capture_docs() {
 fn always_capture_docs() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = true)]
+    #[scale_info(capture_docs = "always")]
     /// Type docs
     enum E {
         /// Variant docs
@@ -675,7 +675,7 @@ fn always_capture_docs() {
 
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = true)]
+    #[scale_info(capture_docs = "always")]
     /// Type docs
     struct S {
         /// field docs

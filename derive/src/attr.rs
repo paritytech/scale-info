@@ -129,18 +129,11 @@ impl Attributes {
         self.skip_type_params.as_ref()
     }
 
-    /// Returns true if the type is annotated with `#[scale_info(capture_docs = false)]`
-    pub fn never_capture_docs(&self) -> bool {
-        self.capture_docs
-            .as_ref()
-            .map_or(false, |attr| !attr.capture_docs)
-    }
-
-    /// Returns true if the type is annotated with `#[scale_info(capture_docs = true)]`
-    pub fn always_capture_docs(&self) -> bool {
-        self.capture_docs
-            .as_ref()
-            .map_or(false, |attr| attr.capture_docs)
+    /// Returns the value of `#[scale_info(capture_docs = "..")]`.
+    ///
+    /// Defaults to `CaptureDocsAttr::Default` if the attribute is not present.
+    pub fn capture_docs(&self) -> &CaptureDocsAttr {
+        self.capture_docs.as_ref().unwrap_or(&CaptureDocsAttr::Default)
     }
 }
 
@@ -207,20 +200,31 @@ impl SkipTypeParamsAttr {
     }
 }
 
-/// Parsed representation of the `#[scale_info(capture_docs = {bool})]` attribute.
+/// Parsed representation of the `#[scale_info(capture_docs = "..")]` attribute.
 #[derive(Clone)]
-pub struct CaptureDocsAttr {
-    capture_docs: bool,
+pub enum CaptureDocsAttr {
+    Default,
+    Always,
+    Never,
 }
 
 impl Parse for CaptureDocsAttr {
     fn parse(input: &ParseBuffer) -> syn::Result<Self> {
         input.parse::<keywords::capture_docs>()?;
         input.parse::<syn::Token![=]>()?;
-        let capture_docs_lit = input.parse::<syn::LitBool>()?;
-        Ok(Self {
-            capture_docs: capture_docs_lit.value(),
-        })
+        let capture_docs_lit = input.parse::<syn::LitStr>()?;
+
+        match capture_docs_lit.value().to_lowercase().as_str() {
+            "default" => Ok(Self::Default),
+            "always" => Ok(Self::Always),
+            "never" => Ok(Self::Never),
+            _ => Err(
+                syn::Error::new_spanned(
+                    capture_docs_lit,
+                    r#"Invalid capture_docs value. Expected one of: "default", "always", "never" "#
+                )
+            )
+        }
     }
 }
 

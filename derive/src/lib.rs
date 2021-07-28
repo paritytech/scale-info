@@ -19,7 +19,10 @@ mod attr;
 mod trait_bounds;
 mod utils;
 
-use crate::attr::Attributes;
+use self::attr::{
+    Attributes,
+    CaptureDocsAttr,
+};
 use proc_macro::TokenStream;
 use proc_macro2::{
     Span,
@@ -250,9 +253,11 @@ impl TypeInfoImpl {
     }
 
     fn generate_docs(&self, attrs: &[syn::Attribute]) -> Option<TokenStream2> {
-        if self.attrs.never_capture_docs() {
-            return None
-        }
+        let docs_builder_fn = match self.attrs.capture_docs() {
+            CaptureDocsAttr::Never => None, // early return if we never capture docs.
+            CaptureDocsAttr::Default => Some(quote!(docs)),
+            CaptureDocsAttr::Always => Some(quote!(docs_always)),
+        }?;
 
         let docs = attrs
             .iter()
@@ -276,12 +281,6 @@ impl TypeInfoImpl {
                 }
             })
             .collect::<Vec<_>>();
-
-        let docs_builder_fn = if self.attrs.always_capture_docs() {
-            quote!(docs_always)
-        } else {
-            quote!(docs)
-        };
 
         Some(quote! {
             .#docs_builder_fn(&[ #( #docs ),* ])
