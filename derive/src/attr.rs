@@ -133,7 +133,9 @@ impl Attributes {
     ///
     /// Defaults to `CaptureDocsAttr::Default` if the attribute is not present.
     pub fn capture_docs(&self) -> &CaptureDocsAttr {
-        self.capture_docs.as_ref().unwrap_or(&CaptureDocsAttr::Default)
+        self.capture_docs
+            .as_ref()
+            .unwrap_or(&CaptureDocsAttr::Default)
     }
 }
 
@@ -218,12 +220,12 @@ impl Parse for CaptureDocsAttr {
             "default" => Ok(Self::Default),
             "always" => Ok(Self::Always),
             "never" => Ok(Self::Never),
-            _ => Err(
-                syn::Error::new_spanned(
+            _ => {
+                Err(syn::Error::new_spanned(
                     capture_docs_lit,
-                    r#"Invalid capture_docs value. Expected one of: "default", "always", "never" "#
-                )
-            )
+                    r#"Invalid capture_docs value. Expected one of: "default", "always", "never" "#,
+                ))
+            }
         }
     }
 }
