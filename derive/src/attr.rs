@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use syn::{
+    ext::IdentExt as _,
     parse::{
         Parse,
         ParseBuffer,
@@ -28,14 +29,14 @@ mod keywords {
     syn::custom_keyword!(scale_info);
     syn::custom_keyword!(bounds);
     syn::custom_keyword!(skip_type_params);
-    syn::custom_keyword!(capture_docs);
+    syn::custom_keyword!(docs);
 }
 
 /// Parsed and validated set of `#[scale_info(...)]` attributes for an item.
 pub struct Attributes {
     bounds: Option<BoundsAttr>,
     skip_type_params: Option<SkipTypeParamsAttr>,
-    capture_docs: Option<CaptureDocsAttr>,
+    docs: Option<DocsAttr>,
 }
 
 impl Attributes {
@@ -43,7 +44,7 @@ impl Attributes {
     pub fn from_ast(item: &syn::DeriveInput) -> syn::Result<Self> {
         let mut bounds = None;
         let mut skip_type_params = None;
-        let mut capture_docs = None;
+        let mut docs = None;
 
         let attributes_parser = |input: &ParseBuffer| {
             let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
@@ -78,14 +79,14 @@ impl Attributes {
                         }
                         skip_type_params = Some(parsed_skip_type_params);
                     }
-                    ScaleInfoAttr::CaptureDocs(parsed_capture_docs) => {
-                        if capture_docs.is_some() {
+                    ScaleInfoAttr::Docs(parsed_docs) => {
+                        if docs.is_some() {
                             return Err(syn::Error::new(
                                 attr.span(),
                                 "Duplicate `capture_docs` attributes",
                             ))
                         }
-                        capture_docs = Some(parsed_capture_docs);
+                        docs = Some(parsed_docs);
                     }
                 }
             }
@@ -115,7 +116,7 @@ impl Attributes {
         Ok(Self {
             bounds,
             skip_type_params,
-            capture_docs,
+            docs,
         })
     }
 
@@ -129,13 +130,45 @@ impl Attributes {
         self.skip_type_params.as_ref()
     }
 
-    /// Returns the value of `#[scale_info(capture_docs = "..")]`.
+    /// Returns the value of `#[scale_info(docs(capture = ".."))]`.
     ///
     /// Defaults to `CaptureDocsAttr::Default` if the attribute is not present.
     pub fn capture_docs(&self) -> &CaptureDocsAttr {
-        self.capture_docs
+        self.docs
             .as_ref()
+            .and_then(|docs| docs.capture.as_ref())
             .unwrap_or(&CaptureDocsAttr::Default)
+    }
+
+    /// Returns the value of `#[scale_info(docs(max_paragraphs = N))]`, if present.
+    pub fn max_paragraphs(&self) -> Option<u32> {
+        self.docs.as_ref().and_then(|docs| docs.max_paragraphs)
+    }
+}
+
+/// Parsed representation of one of the `#[scale_info(..)]` attributes.
+pub enum ScaleInfoAttr {
+    Bounds(BoundsAttr),
+    SkipTypeParams(SkipTypeParamsAttr),
+    Docs(DocsAttr),
+}
+
+impl Parse for ScaleInfoAttr {
+    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(keywords::bounds) {
+            let bounds = input.parse()?;
+            Ok(Self::Bounds(bounds))
+        } else if lookahead.peek(keywords::skip_type_params) {
+            let skip_type_params = input.parse()?;
+            Ok(Self::SkipTypeParams(skip_type_params))
+        } else if lookahead.peek(keywords::docs) {
+            let docs = input.parse()?;
+            Ok(Self::Docs(docs))
+        } else {
+            Err(input
+                .error("Expected one of: `bounds`, `skip_type_params` or `docs"))
+        }
     }
 }
 
@@ -202,8 +235,66 @@ impl SkipTypeParamsAttr {
     }
 }
 
+pub struct DocsAttr {
+    capture: Option<CaptureDocsAttr>,
+    max_paragraphs: Option<u32>,
+}
+
+impl Parse for DocsAttr {
+    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
+        enum DocsAttrField {
+            Capture(CaptureDocsAttr),
+            MaxParagraphs(syn::LitInt),
+        }
+
+        fn parse_docs_attr_field(input: &ParseBuffer) -> syn::Result<(syn::Ident, DocsAttrField)> {
+            let ident = syn::Ident::parse_any(input)?;
+            input.parse::<syn::Token![=]>()?;
+
+            match ident.to_string().as_str() {
+                "capture" =>
+                    Ok((ident, input.parse().map(DocsAttrField::Capture)?)),
+                    // Ok((ident, DocsAttrField::Capture(CaptureDocsAttr::Default))),
+                "max_paragraphs" => Ok((ident, input.parse().map(DocsAttrField::MaxParagraphs)?)),
+                _ => Err(syn::Error::new_spanned(
+                    ident,
+                    "Invalid docs attribute. Expected either `capture` or `max_paragraphs`"
+                ))
+            }
+        }
+
+        input.parse::<keywords::docs>()?;
+
+        let content;
+        syn::parenthesized!(content in input);
+        let fields: Punctuated<_, Token![,]> =
+            content.parse_terminated(parse_docs_attr_field)?;
+
+        let mut capture = None;
+        let mut max_paragraphs = None;
+
+        for (ident, field) in fields {
+            match field {
+                DocsAttrField::Capture(parsed_capture) => {
+                    if capture.is_some() {
+                        return Err(syn::Error::new_spanned(ident, "Duplicate `capture`"))
+                    }
+                    capture = Some(parsed_capture);
+                }
+                DocsAttrField::MaxParagraphs(parsed_max_paragraphs) => {
+                    if max_paragraphs.is_some() {
+                        return Err(syn::Error::new_spanned(ident, "Duplicate `max_paragraphs`"))
+                    }
+                    max_paragraphs = Some(parsed_max_paragraphs.base10_parse()?);
+                }
+            }
+        }
+
+        Ok(Self { capture, max_paragraphs })
+    }
+}
+
 /// Parsed representation of the `#[scale_info(capture_docs = "..")]` attribute.
-#[derive(Clone)]
 pub enum CaptureDocsAttr {
     Default,
     Always,
@@ -212,10 +303,7 @@ pub enum CaptureDocsAttr {
 
 impl Parse for CaptureDocsAttr {
     fn parse(input: &ParseBuffer) -> syn::Result<Self> {
-        input.parse::<keywords::capture_docs>()?;
-        input.parse::<syn::Token![=]>()?;
         let capture_docs_lit = input.parse::<syn::LitStr>()?;
-
         match capture_docs_lit.value().to_lowercase().as_str() {
             "default" => Ok(Self::Default),
             "always" => Ok(Self::Always),
@@ -226,32 +314,6 @@ impl Parse for CaptureDocsAttr {
                     r#"Invalid capture_docs value. Expected one of: "default", "always", "never" "#,
                 ))
             }
-        }
-    }
-}
-
-/// Parsed representation of one of the `#[scale_info(..)]` attributes.
-pub enum ScaleInfoAttr {
-    Bounds(BoundsAttr),
-    SkipTypeParams(SkipTypeParamsAttr),
-    CaptureDocs(CaptureDocsAttr),
-}
-
-impl Parse for ScaleInfoAttr {
-    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(keywords::bounds) {
-            let bounds = input.parse()?;
-            Ok(Self::Bounds(bounds))
-        } else if lookahead.peek(keywords::skip_type_params) {
-            let skip_type_params = input.parse()?;
-            Ok(Self::SkipTypeParams(skip_type_params))
-        } else if lookahead.peek(keywords::capture_docs) {
-            let capture_docs = input.parse()?;
-            Ok(Self::CaptureDocs(capture_docs))
-        } else {
-            Err(input
-                .error("Expected one of: `bounds`, `skip_type_params` or `capture_docs"))
         }
     }
 }

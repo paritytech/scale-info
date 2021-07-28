@@ -198,10 +198,10 @@
 //! `#[scale_info(capture_docs = "default")]` will capture docs iff the `docs` feature is enabled.
 //! This is the default if `capture_docs` is not specified.
 //!
-//! `#[scale_info(capture_docs = "always")]` will capture docs for the annotated type even if the
+//! `#[scale_info(docs(capture = "always"))]` will capture docs for the annotated type even if the
 //! `docs` feature is *not* enabled.
 //!
-//! `#[scale_info(capture_docs = "never")]` will *not* capture docs for the annotated type even if
+//! `#[scale_info(docs(capture = "never"))]` will *not* capture docs for the annotated type even if
 //! the `docs` is enabled.
 //!
 //! This is useful e.g. when compiling metadata into a Wasm blob, and it is desirable to keep the

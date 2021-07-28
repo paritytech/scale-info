@@ -259,28 +259,30 @@ impl TypeInfoImpl {
             CaptureDocsAttr::Always => Some(quote!(docs_always)),
         }?;
 
-        let docs = attrs
-            .iter()
-            .filter_map(|attr| {
-                if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
-                    if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
-                        if let syn::Lit::Str(lit) = &meta.lit {
-                            let lit_value = lit.value();
-                            let stripped =
-                                lit_value.strip_prefix(' ').unwrap_or(&lit_value);
-                            let lit: syn::Lit = parse_quote!(#stripped);
-                            Some(lit)
-                        } else {
-                            None
+        let mut docs = Vec::new();
+        let mut paragraph_count = 0;
+
+        for attr in attrs {
+            if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
+                if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
+                    if let syn::Lit::Str(lit) = &meta.lit {
+                        let lit_value = lit.value();
+                        if let Some(max_paragraph_count) = self.attrs.max_paragraphs() {
+                            if lit_value.trim() == "" {
+                                paragraph_count += 1;
+                                if paragraph_count == max_paragraph_count {
+                                    break;
+                                }
+                            }
                         }
-                    } else {
-                        None
+                        let stripped =
+                            lit_value.strip_prefix(' ').unwrap_or(&lit_value);
+                        let lit: syn::Lit = parse_quote!(#stripped);
+                        docs.push(lit)
                     }
-                } else {
-                    None
                 }
-            })
-            .collect::<Vec<_>>();
+            }
+        }
 
         Some(quote! {
             .#docs_builder_fn(&[ #( #docs ),* ])

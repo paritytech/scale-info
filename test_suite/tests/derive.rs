@@ -623,7 +623,7 @@ fn doc_capture_works() {
 fn never_capture_docs() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = "never")]
+    #[scale_info(docs(capture = "never"))]
     /// Type docs
     enum E {
         /// Variant docs
@@ -635,7 +635,7 @@ fn never_capture_docs() {
 
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = "never")]
+    #[scale_info(docs(capture = "never"))]
     /// Type docs
     struct S {
         /// field docs
@@ -663,7 +663,7 @@ fn never_capture_docs() {
 fn always_capture_docs() {
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = "always")]
+    #[scale_info(docs(capture = "always"))]
     /// Type docs
     enum E {
         /// Variant docs
@@ -675,7 +675,7 @@ fn always_capture_docs() {
 
     #[allow(unused)]
     #[derive(TypeInfo)]
-    #[scale_info(capture_docs = "always")]
+    #[scale_info(docs(capture = "always"))]
     /// Type docs
     struct S {
         /// field docs
@@ -709,6 +709,45 @@ fn always_capture_docs() {
     assert_type!(E, enum_ty);
     assert_type!(S, struct_ty);
 }
+
+#[test]
+fn docs_max_paragraphs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(docs(capture = "always", max_paragraphs = 1))]
+    /// Type Paragraph 1 L1
+    /// Type Paragraph 1 L2
+    ///
+    /// Type Paragraph 2
+    enum E {
+        /// Variant Paragraph 1
+        ///
+        /// Variant Paragraph 2
+        A {
+            /// Field Paragraph 1
+            ///
+            /// Field Paragraph 2
+            a: u32,
+        },
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("E", "derive"))
+        .docs_always(&["Type Paragraph 1 L1", "Type Paragraph 1 L2"])
+        .variant(Variants::new().variant("A", |v| {
+            v.index(0)
+                .fields(Fields::named().field(|f| {
+                    f.ty::<u32>()
+                        .name("a")
+                        .type_name("u32")
+                        .docs_always(&["Field Paragraph 1"])
+                }))
+                .docs_always(&["Variant Paragraph 1"])
+        }));
+
+    assert_type!(E, ty);
+}
+
 
 #[test]
 fn skip_type_params_nested() {
