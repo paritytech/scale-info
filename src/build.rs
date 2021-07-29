@@ -211,9 +211,9 @@ impl<S> TypeBuilder<S> {
     }
 
     #[cfg(feature = "docs")]
-    /// Append to the type documentation
+    /// Set the type documentation
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
-        self.docs.extend_from_slice(docs);
+        self.docs = docs.to_vec();
         self
     }
 
@@ -224,9 +224,9 @@ impl<S> TypeBuilder<S> {
         self
     }
 
-    /// Append to the type documentation, always captured even if the "docs" feature is not enabled.
+    /// Set the type documentation, always captured even if the "docs" feature is not enabled.
     pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
-        self.docs.extend_from_slice(docs);
+        self.docs = docs.to_vec();
         self
     }
 }
@@ -336,7 +336,7 @@ pub struct FieldBuilder<
     name: Option<&'static str>,
     ty: Option<MetaType>,
     type_name: Option<&'static str>,
-    docs: Vec<&'static str>,
+    docs: &'static [&'static str],
     marker: PhantomData<fn() -> (N, T)>,
 }
 
@@ -415,17 +415,15 @@ impl<N, T> FieldBuilder<N, T> {
     }
 
     #[cfg(feature = "docs")]
-    /// Append to the documentation of a field (optional).
+    /// Initialize the documentation of a field (optional).
     pub fn docs(self, docs: &'static [&'static str]) -> FieldBuilder<N, T> {
-        let mut builder = FieldBuilder {
+        FieldBuilder {
             name: self.name,
             ty: self.ty,
             type_name: self.type_name,
-            docs: self.docs,
+            docs,
             marker: PhantomData,
-        };
-        builder.docs.extend_from_slice(docs);
-        builder
+        }
     }
 
     #[cfg(not(feature = "docs"))]
@@ -435,18 +433,16 @@ impl<N, T> FieldBuilder<N, T> {
         self
     }
 
-    /// Append to the documentation of a field, always captured even if the "docs" feature is not
+    /// Initialize the documentation of a field, always captured even if the "docs" feature is not
     /// enabled.
     pub fn docs_always(self, docs: &'static [&'static str]) -> Self {
-        let mut builder = FieldBuilder {
+        FieldBuilder {
             name: self.name,
             ty: self.ty,
             type_name: self.type_name,
-            docs: self.docs,
+            docs,
             marker: PhantomData,
-        };
-        builder.docs.extend_from_slice(docs);
-        builder
+        }
     }
 }
 
@@ -457,7 +453,7 @@ impl<N> FieldBuilder<N, field_state::TypeAssigned> {
             self.name,
             self.ty.expect("Type should be set by builder"),
             self.type_name,
-            &self.docs,
+            self.docs,
         )
     }
 }
@@ -557,9 +553,9 @@ impl<S> VariantBuilder<S> {
     }
 
     #[cfg(feature = "docs")]
-    /// Append to the variant's documentation.
+    /// Initialize the variant's documentation.
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
-        self.docs.extend_from_slice(docs);
+        self.docs = docs.to_vec();
         self
     }
 
@@ -570,10 +566,10 @@ impl<S> VariantBuilder<S> {
         self
     }
 
-    /// Append to the variant's documentation, always captured even if the "docs" feature is not
+    /// Initialize the variant's documentation, always captured even if the "docs" feature is not
     /// enabled.
     pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
-        self.docs.extend_from_slice(docs);
+        self.docs = docs.to_vec();
         self
     }
 }
