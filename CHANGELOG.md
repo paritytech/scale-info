@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Allow codec attributes, in case missing Encode/Decode derives [(#117)](https://github.com/paritytech/scale-info/pull/117)
 
 ### Changed
-- Erase PhantomData fields [(#111)](https://github.com/paritytech/scale-info/pull/111)[(#115)](https://github.com/paritytech/scale-info/pull/115)
+- Erase PhantomData fields [(#111](https://github.com/paritytech/scale-info/pull/111), [#115)](https://github.com/paritytech/scale-info/pull/115)
 - Make variant index explicit, remove discriminant [(#112)](https://github.com/paritytech/scale-info/pull/112)
 - Include type id in serialized type registry [(#114)](https://github.com/paritytech/scale-info/pull/114)
 - Improve docs feature [(#116)](https://github.com/paritytech/scale-info/pull/116)
