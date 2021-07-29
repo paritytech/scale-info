@@ -7,34 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2021-07-29
+### Added
+- Add capture_docs attribute [(#118)](https://github.com/paritytech/scale-info/pull/118)
+
+### Fixed
+- Allow codec attributes, in case missing Encode/Decode derives [(#117)](https://github.com/paritytech/scale-info/pull/117)
+
+### Changed
+- Erase PhantomData fields [(#111](https://github.com/paritytech/scale-info/pull/111), [#115)](https://github.com/paritytech/scale-info/pull/115)
+- Make variant index explicit, remove discriminant [(#112)](https://github.com/paritytech/scale-info/pull/112)
+- Include type id in serialized type registry [(#114)](https://github.com/paritytech/scale-info/pull/114)
+- Improve docs feature [(#116)](https://github.com/paritytech/scale-info/pull/116)
+
 ## [0.9.2] - 2021-07-09
 ### Added
-
 - Add index getter to Variant [(#110)](https://github.com/paritytech/scale-info/pull/110)
 
 ## [0.9.1] - 2021-07-06
 ### Fixed
-
 - Option constructor macro hygiene [(#108)](https://github.com/paritytech/scale-info/pull/108)
 
 ## [0.9.0] - 2021-06-30
 ### Changed
-
 - Reverted parity-scale-codec prerelease requirement from [0.8.0-rc.1]
 - Reexport parity-scale-codec for derive [(#106)](https://github.com/paritytech/scale-info/pull/106)
 
 ### Added
-
 - Add `skip_type_params` attribute [(#96)](https://github.com/paritytech/scale-info/pull/96)
 
 ## [0.8.0-rc.1] - 2021-06-29
 ### Changed
-
 - Bump parity-scale-codec to 2.2.0-rc.2 [(#102)](https://github.com/paritytech/scale-info/pull/102)
 
 ## [0.7.0] - 2021-06-29
 ### Added
-
 - Handle more SCALE attributes: skip, index [(#44)](https://github.com/paritytech/scale-info/pull/44)
 - Implement `TypeInfo` for `BTreeSet` [(#85)](https://github.com/paritytech/scale-info/pull/85)
 - Implement `TypeInfo` for `Cow` [(#84)](https://github.com/paritytech/scale-info/pull/84)
@@ -48,7 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `docs` feature [(#101)](https://github.com/paritytech/scale-info/pull/101)
 
 ### Changed
-
 - Upgrade proc-macro-crate to v1 [(#77)](https://github.com/paritytech/scale-info/pull/77)
 - Use const generics for array TypeInfo impls [(#54)](https://github.com/paritytech/scale-info/pull/54)
 - Replace NonZeroU32 type lookup ids with u32 [(#90)](https://github.com/paritytech/scale-info/pull/90)
@@ -56,7 +62,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unify sequence types [(#100)](https://github.com/paritytech/scale-info/pull/100)
 
 ### Fixed
-
 - Fix serde and decode features without default features [(#74)](https://github.com/paritytech/scale-info/pull/74)
 - Remove type parameter defaults [(#71)](https://github.com/paritytech/scale-info/pull/71)
 - Fix trait bounds for associated types [(#76)](https://github.com/paritytech/scale-info/pull/76)
