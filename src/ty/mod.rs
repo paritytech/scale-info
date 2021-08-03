@@ -208,6 +208,13 @@ where
     pub fn new(name: T::String, ty: Option<T::Type>) -> Self {
         Self { name, ty }
     }
+
+    /// Get the type of the parameter.
+    ///
+    /// `None` if the parameter is skipped.
+    pub fn ty(&self) -> Option<&T::Type> {
+        self.ty.as_ref()
+    }
 }
 
 /// The possible types a SCALE encodable Rust value could have.
