@@ -215,6 +215,11 @@ where
     pub fn ty(&self) -> Option<&T::Type> {
         self.ty.as_ref()
     }
+
+    /// Get the name of the parameter.
+    pub fn name(&self) -> &T::String {
+        &self.name
+    }
 }
 
 /// The possible types a SCALE encodable Rust value could have.
