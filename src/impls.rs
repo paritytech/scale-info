@@ -24,9 +24,12 @@ use crate::prelude::{
         VecDeque,
     },
     marker::PhantomData,
+    ops::{
+        Range,
+        RangeInclusive,
+    },
     string::String,
     vec::Vec,
-    ops::Range,
 };
 
 use crate::{
@@ -37,10 +40,10 @@ use crate::{
     TypeDefArray,
     TypeDefCompact,
     TypeDefPrimitive,
-    TypeDefSequence,
-    TypeDefTuple,
     TypeDefRange,
     TypeDefRangeInclusive,
+    TypeDefSequence,
+    TypeDefTuple,
     TypeInfo,
 };
 use core::num::{
@@ -55,7 +58,6 @@ use core::num::{
     NonZeroU64,
     NonZeroU8,
 };
-use std::ops::RangeInclusive;
 
 macro_rules! impl_metadata_for_primitives {
     ( $( $t:ty => $ident_kind:expr, )* ) => { $(
