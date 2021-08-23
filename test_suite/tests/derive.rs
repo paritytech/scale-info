@@ -14,6 +14,8 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use core::ops::{Range, RangeInclusive};
+
 use pretty_assertions::assert_eq;
 use scale::Encode;
 use scale_info::{
@@ -837,6 +839,25 @@ fn docs_attr() {
         .composite(Fields::unit());
 
     assert_type!(S, ty);
+}
+
+#[test]
+fn ranges() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Rangey {
+        open: Range<u8>,
+        closed: RangeInclusive<u16>,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Rangey", "derive"))
+        .composite(Fields::named()
+            .field(|f| f.ty::<Range<u8>>().name("open").type_name("Range<u8>"))
+            .field(|f| f.ty::<RangeInclusive<u16>>().name("closed").type_name("RangeInclusive<u16>"))
+        );
+
+    assert_type!(Rangey, ty);
 }
 
 #[rustversion::nightly]

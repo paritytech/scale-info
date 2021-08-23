@@ -26,6 +26,7 @@ use crate::prelude::{
     marker::PhantomData,
     string::String,
     vec::Vec,
+    ops::Range,
 };
 
 use crate::{
@@ -38,6 +39,8 @@ use crate::{
     TypeDefPrimitive,
     TypeDefSequence,
     TypeDefTuple,
+    TypeDefRange,
+    TypeDefRangeInclusive,
     TypeInfo,
 };
 use core::num::{
@@ -52,6 +55,7 @@ use core::num::{
     NonZeroU64,
     NonZeroU8,
 };
+use std::ops::RangeInclusive;
 
 macro_rules! impl_metadata_for_primitives {
     ( $( $t:ty => $ident_kind:expr, )* ) => { $(
@@ -344,6 +348,26 @@ where
     type Identity = Self;
     fn type_info() -> Type {
         TypeDefCompact::new(MetaType::new::<T>()).into()
+    }
+}
+
+impl<Idx> TypeInfo for Range<Idx>
+where
+    Idx: TypeInfo + 'static + PartialOrd + core::fmt::Debug,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        TypeDefRange::new::<Idx>().into()
+    }
+}
+
+impl<Idx> TypeInfo for RangeInclusive<Idx>
+where
+    Idx: TypeInfo + 'static + PartialOrd + core::fmt::Debug,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        TypeDefRangeInclusive::new::<Idx>().into()
     }
 }
 

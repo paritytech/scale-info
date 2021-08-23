@@ -35,6 +35,7 @@ cfg_if! {
             marker,
             mem,
             num,
+            ops,
             string,
             vec,
         };
@@ -56,6 +57,7 @@ cfg_if! {
             marker,
             mem,
             num,
+            ops,
         };
     }
 }
