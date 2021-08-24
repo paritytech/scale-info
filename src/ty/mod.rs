@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::prelude::{
+    fmt,
     vec,
     vec::Vec,
 };
@@ -434,10 +435,10 @@ pub struct TypeDefRange<T: Form = MetaForm> {
 
 impl TypeDefRange {
     /// Creates a new [`TypeDefRange`] for the supplied index type. Use the `inclusive` parameter to
-    /// distinguish between [`Range`] and [`RangeInclusive`] range types.
+    /// distinguish between [`core::ops::Range`] and [`core::ops::RangeInclusive`] range types.
     pub fn new<Idx>(inclusive: bool) -> Self
     where
-        Idx: PartialOrd + core::fmt::Debug + TypeInfo + 'static,
+        Idx: PartialOrd + fmt::Debug + TypeInfo + 'static,
     {
         Self {
             start: MetaType::new::<Idx>(),

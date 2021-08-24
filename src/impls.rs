@@ -23,6 +23,7 @@ use crate::prelude::{
         BTreeSet,
         VecDeque,
     },
+    fmt,
     marker::PhantomData,
     ops::{
         Range,
@@ -354,7 +355,7 @@ where
 
 impl<Idx> TypeInfo for Range<Idx>
 where
-    Idx: TypeInfo + 'static + PartialOrd + core::fmt::Debug,
+    Idx: TypeInfo + 'static + PartialOrd + fmt::Debug,
 {
     type Identity = Self;
     fn type_info() -> Type {
@@ -364,7 +365,7 @@ where
 
 impl<Idx> TypeInfo for RangeInclusive<Idx>
 where
-    Idx: TypeInfo + 'static + PartialOrd + core::fmt::Debug,
+    Idx: TypeInfo + 'static + PartialOrd + fmt::Debug,
 {
     type Identity = Self;
     fn type_info() -> Type {
