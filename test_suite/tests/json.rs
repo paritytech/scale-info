@@ -20,6 +20,10 @@ use scale_info::prelude::{
     boxed::Box,
     collections::VecDeque,
     marker::PhantomData,
+    ops::{
+        Range,
+        RangeInclusive,
+    },
     string::String,
     vec,
     vec::Vec,
@@ -354,6 +358,27 @@ fn test_enum() {
                             { "name": "c", "type": 4, "typeName": "char" },
                         ],
                     }
+                ],
+            },
+        }
+    }));
+}
+
+#[test]
+fn test_ranges() {
+    #[derive(TypeInfo)]
+    struct TypeWithRanges {
+        open_range: Range<u8>,
+        closed_range: RangeInclusive<u64>,
+    }
+
+    assert_json_for_type::<TypeWithRanges>(json!({
+        "path": ["json", "TypeWithRanges"],
+        "def": {
+            "composite": {
+                "fields": [
+                    { "name": "open_range", "type": 0, "typeName": "Range<u8>" },
+                    { "name": "closed_range", "type": 2, "typeName": "RangeInclusive<u64>" },
                 ],
             },
         }

@@ -41,7 +41,6 @@ use crate::{
     TypeDefCompact,
     TypeDefPrimitive,
     TypeDefRange,
-    TypeDefRangeInclusive,
     TypeDefSequence,
     TypeDefTuple,
     TypeInfo,
@@ -359,7 +358,7 @@ where
 {
     type Identity = Self;
     fn type_info() -> Type {
-        TypeDefRange::new::<Idx>().into()
+        TypeDefRange::new::<Idx>(false).into()
     }
 }
 
@@ -369,7 +368,7 @@ where
 {
     type Identity = Self;
     fn type_info() -> Type {
-        TypeDefRangeInclusive::new::<Idx>().into()
+        TypeDefRange::new::<Idx>(true).into()
     }
 }
 
