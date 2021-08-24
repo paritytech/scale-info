@@ -23,7 +23,12 @@ use crate::prelude::{
         BTreeSet,
         VecDeque,
     },
+    fmt,
     marker::PhantomData,
+    ops::{
+        Range,
+        RangeInclusive,
+    },
     string::String,
     vec::Vec,
 };
@@ -35,8 +40,8 @@ use crate::{
     Type,
     TypeDefArray,
     TypeDefCompact,
-    TypeDefPhantom,
     TypeDefPrimitive,
+    TypeDefRange,
     TypeDefSequence,
     TypeDefTuple,
     TypeInfo,
@@ -188,9 +193,13 @@ where
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(type_params![T])
-            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
-                v.fields(Fields::unnamed().field(|f| f.ty::<T>()))
-            }))
+            .variant(
+                Variants::new()
+                    .variant("None", |v| v.index(0))
+                    .variant("Some", |v| {
+                        v.index(1).fields(Fields::unnamed().field(|f| f.ty::<T>()))
+                    }),
+            )
     }
 }
 
@@ -207,9 +216,11 @@ where
             .type_params(type_params!(T, E))
             .variant(
                 Variants::new()
-                    .variant("Ok", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>())))
+                    .variant("Ok", |v| {
+                        v.index(0).fields(Fields::unnamed().field(|f| f.ty::<T>()))
+                    })
                     .variant("Err", |v| {
-                        v.fields(Fields::unnamed().field(|f| f.ty::<E>()))
+                        v.index(1).fields(Fields::unnamed().field(|f| f.ty::<E>()))
                     }),
             )
     }
@@ -318,11 +329,17 @@ impl TypeInfo for String {
     }
 }
 
+pub(crate) type PhantomIdentity = PhantomData<()>;
+
 impl<T> TypeInfo for PhantomData<T> {
-    type Identity = PhantomData<()>;
+    type Identity = PhantomIdentity;
 
     fn type_info() -> Type {
-        TypeDefPhantom.into()
+        // Fields of this type should be filtered out and never appear in the type graph.
+        Type::builder()
+            .path(Path::prelude("PhantomData"))
+            .docs(&["PhantomData placeholder, this type should be filtered out"])
+            .composite(Fields::unit())
     }
 }
 
@@ -333,6 +350,26 @@ where
     type Identity = Self;
     fn type_info() -> Type {
         TypeDefCompact::new(MetaType::new::<T>()).into()
+    }
+}
+
+impl<Idx> TypeInfo for Range<Idx>
+where
+    Idx: TypeInfo + 'static + PartialOrd + fmt::Debug,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        TypeDefRange::new::<Idx>(false).into()
+    }
+}
+
+impl<Idx> TypeInfo for RangeInclusive<Idx>
+where
+    Idx: TypeInfo + 'static + PartialOrd + fmt::Debug,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        TypeDefRange::new::<Idx>(true).into()
     }
 }
 

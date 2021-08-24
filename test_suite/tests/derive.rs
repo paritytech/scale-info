@@ -14,6 +14,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use core::ops::{
+    Range,
+    RangeInclusive,
+};
+
 use pretty_assertions::assert_eq;
 use scale::Encode;
 use scale_info::{
@@ -97,7 +102,7 @@ fn struct_derive() {
 }
 
 #[test]
-fn phantom_data_is_part_of_the_type_info() {
+fn phantom_data_field_is_erased() {
     #[allow(unused)]
     #[derive(TypeInfo)]
     struct P<T> {
@@ -108,15 +113,21 @@ fn phantom_data_is_part_of_the_type_info() {
     let ty = Type::builder()
         .path(Path::new("P", "derive"))
         .type_params(named_type_params!((T, bool)))
-        .composite(
-            Fields::named()
-                .field(|f| f.ty::<u8>().name("a").type_name("u8"))
-                .field(|f| {
-                    f.ty::<PhantomData<bool>>()
-                        .name("m")
-                        .type_name("PhantomData<T>")
-                }),
-        );
+        .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")));
+
+    assert_type!(P<bool>, ty);
+}
+
+#[test]
+fn phantom_data_tuple_struct_field_is_erased() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct P<T>(u8, PhantomData<T>);
+
+    let ty = Type::builder()
+        .path(Path::new("P", "derive"))
+        .type_params(named_type_params!((T, bool)))
+        .composite(Fields::unnamed().field(|f| f.ty::<u8>().type_name("u8")));
 
     assert_type!(P<bool>, ty);
 }
@@ -173,10 +184,8 @@ fn c_like_enum_derive() {
         .docs(&["Enum docs."])
         .variant(
             Variants::new()
-                .variant("A", |v| v.discriminant(0).docs(&["Unit variant."]))
-                .variant("B", |v| {
-                    v.discriminant(10).docs(&["Variant with discriminant."])
-                }),
+                .variant("A", |v| v.index(0).docs(&["Unit variant."]))
+                .variant("B", |v| v.index(10).docs(&["Variant with discriminant."])),
         );
 
     assert_type!(E, ty);
@@ -198,11 +207,11 @@ fn c_like_enum_derive_with_scale_index_set() {
 
     let ty = Type::builder().path(Path::new("E", "derive")).variant(
         Variants::new()
-            .variant("A", |v| v.discriminant(0))
-            .variant("B", |v| v.discriminant(10))
-            .variant("C", |v| v.discriminant(13))
-            .variant("D", |v| v.discriminant(3))
-            .variant("E", |v| v.discriminant(14)),
+            .variant("A", |v| v.index(0))
+            .variant("B", |v| v.index(10))
+            .variant("C", |v| v.index(13))
+            .variant("D", |v| v.index(3))
+            .variant("E", |v| v.index(14)),
     );
 
     assert_type!(E, ty);
@@ -235,21 +244,23 @@ fn enum_derive() {
         .variant(
             Variants::new()
                 .variant("A", |v| {
-                    v.fields(Fields::unnamed().field(|f| {
-                        f.ty::<bool>().type_name("T").docs(&["Unnamed field."])
-                    }))
-                    .docs(&["Unnamed fields variant."])
+                    v.index(0)
+                        .fields(Fields::unnamed().field(|f| {
+                            f.ty::<bool>().type_name("T").docs(&["Unnamed field."])
+                        }))
+                        .docs(&["Unnamed fields variant."])
                 })
                 .variant("B", |v| {
-                    v.fields(Fields::named().field(|f| {
-                        f.ty::<bool>()
-                            .name("b")
-                            .type_name("T")
-                            .docs(&["Named field."])
-                    }))
-                    .docs(&["Named fields variant."])
+                    v.index(1)
+                        .fields(Fields::named().field(|f| {
+                            f.ty::<bool>()
+                                .name("b")
+                                .type_name("T")
+                                .docs(&["Named field."])
+                        }))
+                        .docs(&["Named fields variant."])
                 })
-                .variant("C", |v| v.docs(&["Unit variant."])),
+                .variant("C", |v| v.index(2).docs(&["Unit variant."])),
         );
 
     assert_type!(E<bool>, ty);
@@ -302,13 +313,13 @@ fn recursive_type_derive() {
     let ty = Type::builder().path(Path::new("Tree", "derive")).variant(
         Variants::new()
             .variant("Leaf", |v| {
-                v.fields(
+                v.index(0).fields(
                     Fields::named()
                         .field(|f| f.ty::<i32>().name("value").type_name("i32")),
                 )
             })
             .variant("Node", |v| {
-                v.fields(
+                v.index(1).fields(
                     Fields::named()
                         .field(|f| {
                             f.ty::<Box<Tree>>().name("right").type_name("Box<Tree>")
@@ -440,18 +451,18 @@ fn scale_compact_types_work_in_enums() {
         .variant(
             Variants::new()
                 .variant("Id", |v| {
-                    v.fields(
+                    v.index(0).fields(
                         Fields::unnamed().field(|f| f.ty::<u8>().type_name("AccountId")),
                     )
                 })
                 .variant("Index", |v| {
-                    v.fields(
+                    v.index(1).fields(
                         Fields::unnamed()
                             .field(|f| f.compact::<u16>().type_name("AccountIndex")),
                     )
                 })
                 .variant("Address32", |v| {
-                    v.fields(
+                    v.index(2).fields(
                         Fields::unnamed()
                             .field(|f| f.ty::<[u8; 32]>().type_name("[u8; 32]")),
                     )
@@ -495,8 +506,8 @@ fn enum_variants_marked_scale_skip_are_skipped() {
 
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
         Variants::new()
-            .variant("A", |v| v.discriminant(0))
-            .variant("C", |v| v.discriminant(2)),
+            .variant("A", |v| v.index(0))
+            .variant("C", |v| v.index(1)),
     );
     assert_type!(Skippy, ty);
 }
@@ -519,12 +530,13 @@ fn enum_variants_with_fields_marked_scale_skip_are_skipped() {
     let ty = Type::builder().path(Path::new("Skippy", "derive")).variant(
         Variants::new()
             .variant("Bajs", |v| {
-                v.fields(
+                v.index(0).fields(
                     Fields::named().field(|f| f.ty::<bool>().name("b").type_name("bool")),
                 )
             })
             .variant("Coo", |v| {
-                v.fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
+                v.index(1)
+                    .fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
             }),
     );
     assert_type!(Skippy, ty);
@@ -613,6 +625,97 @@ fn doc_capture_works() {
 }
 
 #[test]
+fn never_capture_docs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "never")]
+    /// Type docs
+    enum E {
+        /// Variant docs
+        A {
+            /// field docs
+            a: u32,
+        },
+    }
+
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "never")]
+    /// Type docs
+    struct S {
+        /// field docs
+        a: bool,
+    }
+
+    let enum_ty =
+        Type::builder()
+            .path(Path::new("E", "derive"))
+            .variant(Variants::new().variant("A", |v| {
+                v.index(0).fields(
+                    Fields::named().field(|f| f.ty::<u32>().name("a").type_name("u32")),
+                )
+            }));
+
+    let struct_ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .composite(Fields::named().field(|f| f.ty::<bool>().name("a").type_name("bool")));
+
+    assert_type!(E, enum_ty);
+    assert_type!(S, struct_ty);
+}
+
+#[test]
+fn always_capture_docs() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "always")]
+    /// Type docs
+    enum E {
+        /// Variant docs
+        A {
+            /// field docs
+            a: u32,
+        },
+    }
+
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(capture_docs = "always")]
+    /// Type docs
+    struct S {
+        /// field docs
+        a: bool,
+    }
+
+    let enum_ty = Type::builder()
+        .path(Path::new("E", "derive"))
+        .docs_always(&["Type docs"])
+        .variant(Variants::new().variant("A", |v| {
+            v.index(0)
+                .fields(Fields::named().field(|f| {
+                    f.ty::<u32>()
+                        .name("a")
+                        .type_name("u32")
+                        .docs_always(&["field docs"])
+                }))
+                .docs_always(&["Variant docs"])
+        }));
+
+    let struct_ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .docs_always(&["Type docs"])
+        .composite(Fields::named().field(|f| {
+            f.ty::<bool>()
+                .name("a")
+                .type_name("bool")
+                .docs_always(&["field docs"])
+        }));
+
+    assert_type!(E, enum_ty);
+    assert_type!(S, struct_ty);
+}
+
+#[test]
 fn skip_type_params_nested() {
     #[allow(unused)]
     #[derive(TypeInfo)]
@@ -667,19 +770,7 @@ fn skip_all_type_params() {
             TypeParameter::new("T", None),
             TypeParameter::new("U", None),
         ])
-        .composite(
-            Fields::named()
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("a")
-                        .type_name("PhantomData<T>")
-                })
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("b")
-                        .type_name("PhantomData<U>")
-                }),
-        );
+        .composite(Fields::named());
 
     assert_type!(SkipAllTypeParams<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
 }
@@ -710,15 +801,7 @@ fn skip_type_params_with_associated_types() {
     let ty = Type::builder()
         .path(Path::new("SkipTypeParamsForTraitImpl", "derive"))
         .type_params(vec![TypeParameter::new("T", None)])
-        .composite(
-            Fields::named()
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("a")
-                        .type_name("PhantomData<T>")
-                })
-                .field(|f| f.ty::<u32>().name("b").type_name("T::A")),
-        );
+        .composite(Fields::named().field(|f| f.ty::<u32>().name("b").type_name("T::A")));
 
     assert_type!(SkipTypeParamsForTraitImpl<NoScaleInfoImpl>, ty);
 }
@@ -741,21 +824,48 @@ fn skip_type_params_with_defaults() {
             TypeParameter::new("T", None),
             TypeParameter::new("U", None),
         ])
+        .composite(Fields::named());
+
+    assert_type!(SkipAllTypeParamsWithDefaults<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
+}
+
+#[test]
+fn docs_attr() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[doc = "Docs attr"]
+    pub struct S;
+
+    let ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .docs(&["Docs attr"])
+        .composite(Fields::unit());
+
+    assert_type!(S, ty);
+}
+
+#[test]
+fn ranges() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    struct Rangey {
+        open: Range<u8>,
+        closed: RangeInclusive<u16>,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("Rangey", "derive"))
         .composite(
             Fields::named()
+                .field(|f| f.ty::<Range<u8>>().name("open").type_name("Range<u8>"))
                 .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("a")
-                        .type_name("PhantomData<T>")
-                })
-                .field(|f| {
-                    f.ty::<PhantomData<NoScaleInfoImpl>>()
-                        .name("b")
-                        .type_name("PhantomData<U>")
+                    f.ty::<RangeInclusive<u16>>()
+                        .name("closed")
+                        .type_name("RangeInclusive<u16>")
                 }),
         );
 
-    assert_type!(SkipAllTypeParamsWithDefaults<NoScaleInfoImpl, NoScaleInfoImpl>, ty);
+    assert_type!(Rangey, ty);
 }
 
 #[rustversion::nightly]

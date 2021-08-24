@@ -84,9 +84,15 @@
 //!                .type_params(type_params!(T))
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant("A", |v| v.fields(Fields::unnamed().field(|f| f.ty::<T>().type_name("T"))))
-//!                     .variant("B", |v| v.fields(Fields::named().field(|f| f.ty::<u32>().name("f").type_name("u32"))))
-//!                     .variant_unit("A")
+//!                     .variant("A", |v| v
+//!                         .index(0)
+//!                         .fields(Fields::unnamed().field(|f| f.ty::<T>().type_name("T")))
+//!                     )
+//!                     .variant("B", |v| v
+//!                         .index(1)
+//!                         .fields(Fields::named().field(|f| f.ty::<u32>().name("f").type_name("u32")))
+//!                     )
+//!                     .variant_unit("A", 2)
 //!             )
 //!     }
 //! }
@@ -108,9 +114,9 @@
 //!             .path(Path::new("Foo", module_path!()))
 //!             .variant(
 //!                 Variants::new()
-//!                     .variant("A", |v| v.discriminant(1))
-//!                     .variant("B", |v| v.discriminant(2))
-//!                     .variant("C", |v| v.discriminant(33))
+//!                     .variant("A", |v| v.index(1))
+//!                     .variant("B", |v| v.index(2))
+//!                     .variant("C", |v| v.index(33))
 //!             )
 //!     }
 //! }
@@ -135,7 +141,7 @@ use crate::{
     Variant,
 };
 
-/// State types for type builders which require a Path
+/// State types for type builders which require a Path.
 pub mod state {
     /// State where the builder has not assigned a Path to the type
     pub enum PathNotAssigned {}
@@ -204,8 +210,22 @@ impl<S> TypeBuilder<S> {
         self
     }
 
+    #[cfg(feature = "docs")]
     /// Set the type documentation
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
+        self
+    }
+
+    #[cfg(not(feature = "docs"))]
+    #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
+    pub fn docs(self, _docs: &'static [&'static str]) -> Self {
+        self
+    }
+
+    /// Set the type documentation, always captured even if the "docs" feature is not enabled.
+    pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
         self.docs = docs.to_vec();
         self
     }
@@ -258,11 +278,19 @@ impl<T> FieldsBuilder<T> {
     pub fn finalize(self) -> Vec<Field<MetaForm>> {
         self.fields
     }
+
+    fn push_field(mut self, field: Field) -> Self {
+        // filter out fields of PhantomData
+        if !field.ty().is_phantom() {
+            self.fields.push(field);
+        }
+        self
+    }
 }
 
 impl FieldsBuilder<NamedFields> {
     /// Add a named field constructed using the builder.
-    pub fn field<F>(mut self, builder: F) -> Self
+    pub fn field<F>(self, builder: F) -> Self
     where
         F: Fn(
             FieldBuilder,
@@ -270,14 +298,13 @@ impl FieldsBuilder<NamedFields> {
             -> FieldBuilder<field_state::NameAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
-        self.fields.push(builder.finalize());
-        self
+        self.push_field(builder.finalize())
     }
 }
 
 impl FieldsBuilder<UnnamedFields> {
     /// Add an unnamed field constructed using the builder.
-    pub fn field<F>(mut self, builder: F) -> Self
+    pub fn field<F>(self, builder: F) -> Self
     where
         F: Fn(
             FieldBuilder,
@@ -285,8 +312,7 @@ impl FieldsBuilder<UnnamedFields> {
             -> FieldBuilder<field_state::NameNotAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
-        self.fields.push(builder.finalize());
-        self
+        self.push_field(builder.finalize())
     }
 }
 
@@ -388,8 +414,28 @@ impl<N, T> FieldBuilder<N, T> {
         }
     }
 
+    #[cfg(feature = "docs")]
     /// Initialize the documentation of a field (optional).
     pub fn docs(self, docs: &'static [&'static str]) -> FieldBuilder<N, T> {
+        FieldBuilder {
+            name: self.name,
+            ty: self.ty,
+            type_name: self.type_name,
+            docs,
+            marker: PhantomData,
+        }
+    }
+
+    #[cfg(not(feature = "docs"))]
+    #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
+    pub fn docs(self, _docs: &'static [&'static str]) -> FieldBuilder<N, T> {
+        self
+    }
+
+    /// Initialize the documentation of a field, always captured even if the "docs" feature is not
+    /// enabled.
+    pub fn docs_always(self, docs: &'static [&'static str]) -> Self {
         FieldBuilder {
             name: self.name,
             ty: self.ty,
@@ -429,7 +475,7 @@ impl Variants {
     /// Add a variant
     pub fn variant<F>(mut self, name: &'static str, builder: F) -> Self
     where
-        F: Fn(VariantBuilder) -> VariantBuilder,
+        F: Fn(VariantBuilder) -> VariantBuilder<variant_state::IndexAssigned>,
     {
         let builder = builder(VariantBuilder::new(name));
         self.variants.push(builder.finalize());
@@ -437,8 +483,8 @@ impl Variants {
     }
 
     /// Add a unit variant (without fields).
-    pub fn variant_unit(mut self, name: &'static str) -> Self {
-        let builder = VariantBuilder::new(name);
+    pub fn variant_unit(mut self, name: &'static str, index: u8) -> Self {
+        let builder = VariantBuilder::new(name).index(index);
         self.variants.push(builder.finalize());
         self
     }
@@ -449,16 +495,25 @@ impl Variants {
     }
 }
 
-/// Build a [`Variant`].
-pub struct VariantBuilder {
-    name: &'static str,
-    fields: Vec<Field<MetaForm>>,
-    index: Option<u8>,
-    discriminant: Option<u64>,
-    docs: Vec<&'static str>,
+/// State types for the `VariantBuilder` which requires an index.
+pub mod variant_state {
+    /// State where the builder has not assigned an index to a variant.
+    pub enum IndexNotAssigned {}
+    /// State where the builder has assigned an index to a variant.
+    pub enum IndexAssigned {}
 }
 
-impl VariantBuilder {
+/// Build a [`Variant`].
+pub struct VariantBuilder<S = variant_state::IndexNotAssigned> {
+    name: &'static str,
+    index: Option<u8>,
+    fields: Vec<Field<MetaForm>>,
+    discriminant: Option<u64>,
+    docs: Vec<&'static str>,
+    marker: PhantomData<S>,
+}
+
+impl VariantBuilder<variant_state::IndexNotAssigned> {
     /// Create a new [`VariantBuilder`].
     pub fn new(name: &'static str) -> Self {
         Self {
@@ -467,18 +522,27 @@ impl VariantBuilder {
             discriminant: None,
             index: None,
             docs: Vec::new(),
+            marker: Default::default(),
         }
     }
 
+    /// Set the variant's codec index.
+    pub fn index(self, index: u8) -> VariantBuilder<variant_state::IndexAssigned> {
+        VariantBuilder {
+            name: self.name,
+            index: Some(index),
+            fields: self.fields,
+            discriminant: self.discriminant,
+            docs: self.docs,
+            marker: Default::default(),
+        }
+    }
+}
+
+impl<S> VariantBuilder<S> {
     /// Set the variant's discriminant.
     pub fn discriminant(mut self, discriminant: u64) -> Self {
         self.discriminant = Some(discriminant);
-        self
-    }
-
-    /// Set the variant's codec index.
-    pub fn index(mut self, index: u8) -> Self {
-        self.index = Some(index);
         self
     }
 
@@ -488,19 +552,35 @@ impl VariantBuilder {
         self
     }
 
+    #[cfg(feature = "docs")]
     /// Initialize the variant's documentation.
     pub fn docs(mut self, docs: &[&'static str]) -> Self {
         self.docs = docs.to_vec();
         self
     }
 
+    #[cfg(not(feature = "docs"))]
+    #[inline]
+    /// Doc capture is not enabled via the "docs" feature so this is a no-op.
+    pub fn docs(self, _docs: &[&'static str]) -> Self {
+        self
+    }
+
+    /// Initialize the variant's documentation, always captured even if the "docs" feature is not
+    /// enabled.
+    pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
+        self
+    }
+}
+
+impl VariantBuilder<variant_state::IndexAssigned> {
     /// Complete building and create final [`Variant`] instance.
     pub fn finalize(self) -> Variant<MetaForm> {
         Variant::new(
             self.name,
             self.fields,
-            self.index,
-            self.discriminant,
+            self.index.expect("Index should be assigned by the builder"),
             self.docs,
         )
     }

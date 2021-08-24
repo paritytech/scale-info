@@ -62,9 +62,13 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(named_type_params![(T, u128)])
-            .variant(Variants::new().variant("None", |v| v).variant("Some", |v| {
-                v.fields(Fields::unnamed().field(|f| f.ty::<u128>()))
-            }))
+            .variant(Variants::new().variant("None", |v| v.index(0)).variant(
+                "Some",
+                |v| {
+                    v.index(1)
+                        .fields(Fields::unnamed().field(|f| f.ty::<u128>()))
+                }
+            ))
     );
     assert_type!(
         Result<bool, String>,
@@ -75,15 +79,16 @@ fn prelude_items() {
                 Variants::new()
                     .variant(
                         "Ok", |v| v
+                            .index(0)
                             .fields(Fields::unnamed().field(|f| f.ty::<bool>()))
                     )
                     .variant(
                         "Err", |v| v
+                            .index(1)
                             .fields(Fields::unnamed().field(|f| f.ty::<String>()))
                     )
             )
     );
-    assert_type!(PhantomData<i32>, TypeDefPhantom);
     assert_type!(
         Cow<u128>,
         Type::builder()
@@ -97,6 +102,17 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("NonZeroU32"))
             .composite(Fields::unnamed().field(|f| f.ty::<NonZeroU32>()))
+    )
+}
+
+#[test]
+fn phantom_data() {
+    assert_type!(
+        PhantomData<i32>,
+        Type::builder()
+            .path(Path::prelude("PhantomData"))
+            .docs(&["PhantomData placeholder, this type should be filtered out"])
+            .composite(Fields::unit())
     )
 }
 
@@ -174,6 +190,15 @@ fn tuple_primitives() {
     assert_type!(
         ((i8, i16), (u32, u64)),
         TypeDefTuple::new(vec![meta_type::<(i8, i16)>(), meta_type::<(u32, u64)>(),])
+    );
+}
+
+#[test]
+fn tuple_phantom_data_erased() {
+    // nested tuple
+    assert_type!(
+        (u64, PhantomData<u8>),
+        TypeDefTuple::new(vec![meta_type::<u64>(),])
     );
 }
 
@@ -301,13 +326,13 @@ fn basic_enum_with_index() {
                             )
                         })
                         .variant("C", |v| {
-                            v.fields(
+                            v.index(2).fields(
                                 Fields::unnamed()
                                     .field(|f| f.ty::<u16>().type_name("u16"))
                                     .field(|f| f.ty::<u32>().type_name("u32")),
                             )
                         })
-                        .variant_unit("D"),
+                        .variant_unit("D", 3),
                 )
         }
     }
@@ -327,13 +352,13 @@ fn basic_enum_with_index() {
                     )
                 })
                 .variant("C", |v| {
-                    v.fields(
+                    v.index(2).fields(
                         Fields::unnamed()
                             .field(|f| f.ty::<u16>().type_name("u16"))
                             .field(|f| f.ty::<u32>().type_name("u32")),
                     )
                 })
-                .variant_unit("D"),
+                .variant_unit("D", 3),
         );
 
     assert_type!(IndexedRustEnum, ty);

@@ -49,6 +49,7 @@ use serde::{
 #[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
+    #[codec(compact)]
     id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> T>,

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::prelude::{
+    fmt,
     vec,
     vec::Vec,
 };
@@ -115,8 +116,8 @@ impl_from_type_def_for_type!(
     TypeDefArray,
     TypeDefSequence,
     TypeDefTuple,
+    TypeDefRange,
     TypeDefCompact,
-    TypeDefPhantom,
     TypeDefBitSequence,
 );
 
@@ -210,6 +211,18 @@ where
     pub fn new(name: T::String, ty: Option<T::Type>) -> Self {
         Self { name, ty }
     }
+
+    /// Get the type of the parameter.
+    ///
+    /// `None` if the parameter is skipped.
+    pub fn ty(&self) -> Option<&T::Type> {
+        self.ty.as_ref()
+    }
+
+    /// Get the name of the parameter.
+    pub fn name(&self) -> &T::String {
+        &self.name
+    }
 }
 
 /// The possible types a SCALE encodable Rust value could have.
@@ -236,12 +249,12 @@ pub enum TypeDef<T: Form = MetaForm> {
     Array(TypeDefArray<T>),
     /// A tuple type.
     Tuple(TypeDefTuple<T>),
+    /// A Range type.
+    Range(TypeDefRange<T>),
     /// A Rust primitive type.
     Primitive(TypeDefPrimitive),
     /// A type using the [`Compact`] encoding
     Compact(TypeDefCompact<T>),
-    /// A PhantomData type.
-    Phantom(TypeDefPhantom),
     /// A type representing a sequence of bits.
     BitSequence(TypeDefBitSequence<T>),
 }
@@ -256,9 +269,9 @@ impl IntoPortable for TypeDef {
             TypeDef::Sequence(sequence) => sequence.into_portable(registry).into(),
             TypeDef::Array(array) => array.into_portable(registry).into(),
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
+            TypeDef::Range(range) => range.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
-            TypeDef::Phantom(phantom) => phantom.into(),
             TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
         }
     }
@@ -385,7 +398,10 @@ impl TypeDefTuple {
         T: IntoIterator<Item = MetaType>,
     {
         Self {
-            fields: type_params.into_iter().collect(),
+            fields: type_params
+                .into_iter()
+                .filter(|ty| !ty.is_phantom())
+                .collect(),
         }
     }
 
@@ -402,6 +418,50 @@ where
     /// Returns the types of the tuple fields.
     pub fn fields(&self) -> &[T::Type] {
         &self.fields
+    }
+}
+
+/// Type describing a [`Range`].
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    serde(bound(
+        serialize = "T::Type: Serialize, T::String: Serialize",
+        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
+    ))
+)]
+#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+pub struct TypeDefRange<T: Form = MetaForm> {
+    start: T::Type,
+    end: T::Type,
+    inclusive: bool,
+}
+
+impl TypeDefRange {
+    /// Creates a new [`TypeDefRange`] for the supplied index type. Use the `inclusive` parameter to
+    /// distinguish between [`core::ops::Range`] and [`core::ops::RangeInclusive`] range types.
+    pub fn new<Idx>(inclusive: bool) -> Self
+    where
+        Idx: PartialOrd + fmt::Debug + TypeInfo + 'static,
+    {
+        Self {
+            start: MetaType::new::<Idx>(),
+            end: MetaType::new::<Idx>(),
+            inclusive,
+        }
+    }
+}
+
+impl IntoPortable for TypeDefRange {
+    type Output = TypeDefRange<PortableForm>;
+
+    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+        TypeDefRange {
+            start: registry.register_type(&self.start),
+            end: registry.register_type(&self.end),
+            inclusive: self.inclusive,
+        }
     }
 }
 
@@ -492,22 +552,6 @@ where
         &self.type_param
     }
 }
-
-/// A type describing a `PhantomData<T>` type.
-///
-/// In the context of SCALE encoded types, including `PhantomData<T>` types in
-/// the type info  might seem surprising. The reason to include this information
-/// is that there could be situations where it's useful and because removing
-/// `PhantomData` items from the derive input quickly becomes a messy
-/// syntax-level hack (see PR https://github.com/paritytech/scale-info/pull/31).
-/// Instead we take the same approach as `parity-scale-codec` where users are
-/// required to explicitly skip fields that cannot be represented in SCALE
-/// encoding, using the `#[codec(skip)]` attribute.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
-#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
-pub struct TypeDefPhantom;
 
 /// Type describing a [`bitvec::vec::BitVec`].
 ///
