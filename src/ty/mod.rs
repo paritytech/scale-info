@@ -428,8 +428,7 @@ where
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefRange<T: Form = MetaForm> {
-    start: T::Type,
-    end: T::Type,
+    index_type: T::Type,
     inclusive: bool,
 }
 
@@ -441,10 +440,24 @@ impl TypeDefRange {
         Idx: PartialOrd + fmt::Debug + TypeInfo + 'static,
     {
         Self {
-            start: MetaType::new::<Idx>(),
-            end: MetaType::new::<Idx>(),
+            index_type: MetaType::new::<Idx>(),
             inclusive,
         }
+    }
+}
+
+impl<T> TypeDefRange<T>
+where
+    T: Form,
+{
+    /// Returns the type of the index of the range.
+    pub fn index_type(&self) -> &T::Type {
+        &self.index_type
+    }
+
+    /// Returns true if the range is inclusive as with [`core::ops::RangeInclusive`].
+    pub fn inclusive(&self) -> bool {
+        self.inclusive
     }
 }
 
@@ -453,8 +466,7 @@ impl IntoPortable for TypeDefRange {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefRange {
-            start: registry.register_type(&self.start),
-            end: registry.register_type(&self.end),
+            index_type: registry.register_type(&self.index_type),
             inclusive: self.inclusive,
         }
     }
