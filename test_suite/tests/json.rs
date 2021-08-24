@@ -394,7 +394,7 @@ fn test_ranges() {
             {
                 "id": 1,
                 "type": {
-                    "def": { "range": { "start": 2, "end": 2, "inclusive": false} },
+                    "def": { "range": { "index_type": 2, "inclusive": false} },
                 }
             },
             {
@@ -406,7 +406,7 @@ fn test_ranges() {
             {
                 "id": 3,
                 "type": {
-                    "def": { "range": { "start": 4, "end": 4, "inclusive": true} },
+                    "def": { "range": { "index_type": 4, "inclusive": true} },
                 }
             },
             {
