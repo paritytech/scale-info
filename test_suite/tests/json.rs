@@ -420,8 +420,6 @@ fn test_ranges() {
 
     let registry: PortableRegistry = registry.into();
     assert_eq!(serde_json::to_value(registry).unwrap(), expected);
-
-    // assert_json_for_type::<TypeWithRanges>();
 }
 
 #[test]
