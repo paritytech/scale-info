@@ -20,6 +20,10 @@ use scale_info::prelude::{
     boxed::Box,
     collections::VecDeque,
     marker::PhantomData,
+    ops::{
+        Range,
+        RangeInclusive,
+    },
     string::String,
     vec,
     vec::Vec,
@@ -358,6 +362,64 @@ fn test_enum() {
             },
         }
     }));
+}
+
+#[test]
+fn test_ranges() {
+    #[derive(TypeInfo)]
+    struct TypeWithRanges {
+        open_range: Range<u8>,
+        closed_range: RangeInclusive<u64>,
+    }
+
+    let mut registry = Registry::new();
+    registry.register_type(&meta_type::<TypeWithRanges>());
+
+    let expected = json!({
+        "types": [
+            {
+                "id": 0,
+                "type": {
+                    "path": ["json", "TypeWithRanges"],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                { "name": "open_range", "type": 1, "typeName": "Range<u8>" },
+                                { "name": "closed_range", "type": 3, "typeName": "RangeInclusive<u64>" },
+                            ],
+                        },
+                    }
+                }
+            },
+            {
+                "id": 1,
+                "type": {
+                    "def": { "range": { "start": 2, "end": 2, "inclusive": false} },
+                }
+            },
+            {
+                "id": 2,
+                "type": {
+                    "def": { "primitive": "u8" },
+                }
+            },
+            {
+                "id": 3,
+                "type": {
+                    "def": { "range": { "start": 4, "end": 4, "inclusive": true} },
+                }
+            },
+            {
+                "id": 4,
+                "type": {
+                    "def": { "primitive": "u64" },
+                }
+            }
+        ],
+    });
+
+    let registry: PortableRegistry = registry.into();
+    assert_eq!(serde_json::to_value(registry).unwrap(), expected);
 }
 
 #[test]

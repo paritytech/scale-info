@@ -23,7 +23,12 @@ use crate::prelude::{
         BTreeSet,
         VecDeque,
     },
+    fmt,
     marker::PhantomData,
+    ops::{
+        Range,
+        RangeInclusive,
+    },
     string::String,
     vec::Vec,
 };
@@ -36,6 +41,7 @@ use crate::{
     TypeDefArray,
     TypeDefCompact,
     TypeDefPrimitive,
+    TypeDefRange,
     TypeDefSequence,
     TypeDefTuple,
     TypeInfo,
@@ -344,6 +350,26 @@ where
     type Identity = Self;
     fn type_info() -> Type {
         TypeDefCompact::new(MetaType::new::<T>()).into()
+    }
+}
+
+impl<Idx> TypeInfo for Range<Idx>
+where
+    Idx: TypeInfo + 'static + PartialOrd + fmt::Debug,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        TypeDefRange::new::<Idx>(false).into()
+    }
+}
+
+impl<Idx> TypeInfo for RangeInclusive<Idx>
+where
+    Idx: TypeInfo + 'static + PartialOrd + fmt::Debug,
+{
+    type Identity = Self;
+    fn type_info() -> Type {
+        TypeDefRange::new::<Idx>(true).into()
     }
 }
 
