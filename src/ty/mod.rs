@@ -247,14 +247,14 @@ pub enum TypeDef<T: Form = MetaForm> {
     Array(TypeDefArray<T>),
     /// A tuple type.
     Tuple(TypeDefTuple<T>),
-    /// A Range type.
-    Range(TypeDefRange<T>),
     /// A Rust primitive type.
     Primitive(TypeDefPrimitive),
     /// A type using the [`Compact`] encoding
     Compact(TypeDefCompact<T>),
     /// A type representing a sequence of bits.
     BitSequence(TypeDefBitSequence<T>),
+    /// A Range type.
+    Range(TypeDefRange<T>),
 }
 
 impl IntoPortable for TypeDef {
@@ -267,10 +267,10 @@ impl IntoPortable for TypeDef {
             TypeDef::Sequence(sequence) => sequence.into_portable(registry).into(),
             TypeDef::Array(array) => array.into_portable(registry).into(),
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
-            TypeDef::Range(range) => range.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
+            TypeDef::Range(range) => range.into_portable(registry).into(),
         }
     }
 }
