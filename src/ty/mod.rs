@@ -225,6 +225,16 @@ where
 }
 
 /// The possible types a SCALE encodable Rust value could have.
+///
+/// # Note
+///
+/// In order to preserve backwards compatibility, variant indices are explicitly specified instead
+/// of depending on the default implicit ordering.
+///
+/// When adding a new variant, it must be added at the end with an incremented index.
+///
+/// When removing an existing variant, the rest of variant indices remain the same, and the removed
+/// index should not be reused.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -238,22 +248,31 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
+    #[codec(index = 0)]
     Composite(TypeDefComposite<T>),
     /// A variant type (e.g. an enum)
+    #[codec(index = 1)]
     Variant(TypeDefVariant<T>),
     /// A sequence type with runtime known length.
+    #[codec(index = 2)]
     Sequence(TypeDefSequence<T>),
     /// An array type with compile-time known length.
+    #[codec(index = 3)]
     Array(TypeDefArray<T>),
     /// A tuple type.
+    #[codec(index = 4)]
     Tuple(TypeDefTuple<T>),
     /// A Rust primitive type.
+    #[codec(index = 5)]
     Primitive(TypeDefPrimitive),
     /// A type using the [`Compact`] encoding
+    #[codec(index = 6)]
     Compact(TypeDefCompact<T>),
     /// A type representing a sequence of bits.
+    #[codec(index = 7)]
     BitSequence(TypeDefBitSequence<T>),
     /// A Range type.
+    #[codec(index = 8)]
     Range(TypeDefRange<T>),
 }
 
@@ -276,40 +295,59 @@ impl IntoPortable for TypeDef {
 }
 
 /// A primitive Rust type.
+///
+/// # Note
+///
+/// Explicit codec indices specified to ensure backwards compatibility. See [`TypeDef`].
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub enum TypeDefPrimitive {
     /// `bool` type
+    #[codec(index = 0)]
     Bool,
     /// `char` type
+    #[codec(index = 1)]
     Char,
     /// `str` type
+    #[codec(index = 2)]
     Str,
     /// `u8`
+    #[codec(index = 3)]
     U8,
     /// `u16`
+    #[codec(index = 4)]
     U16,
     /// `u32`
+    #[codec(index = 5)]
     U32,
     /// `u64`
+    #[codec(index = 6)]
     U64,
     /// `u128`
+    #[codec(index = 7)]
     U128,
     /// 256 bits unsigned int (no rust equivalent)
+    #[codec(index = 8)]
     U256,
     /// `i8`
+    #[codec(index = 9)]
     I8,
     /// `i16`
+    #[codec(index = 10)]
     I16,
     /// `i32`
+    #[codec(index = 11)]
     I32,
     /// `i64`
+    #[codec(index = 12)]
     I64,
     /// `i128`
+    #[codec(index = 13)]
     I128,
     /// 256 bits signed int (no rust equivalent)
+    #[codec(index = 14)]
     I256,
 }
 
