@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2021-08-25
+### Changed
+- Add range getters, combine start and end types [(#126)](https://github.com/paritytech/scale-info/pull/126)
+
 ## [0.11.0] - 2021-08-25
 ### Added
 - Add type parameter getters [(#122)](https://github.com/paritytech/scale-info/pull/122)
-- Add support for Range and RangeInclusive [(#124)](https://github.com/paritytech/scale-info/pull/124), [(#126)](https://github.com/paritytech/scale-info/pull/126)
+- Add support for Range and RangeInclusive [(#124)](https://github.com/paritytech/scale-info/pull/124)
 - Explicit codec indices for `TypeDef` and `TypeDefPrimitive` enums [(#127)](https://github.com/paritytech/scale-info/pull/127)
 
 ## [0.10.0] - 2021-07-29
