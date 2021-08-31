@@ -41,7 +41,6 @@ use crate::{
     TypeDefArray,
     TypeDefCompact,
     TypeDefPrimitive,
-    TypeDefRange,
     TypeDefSequence,
     TypeDefTuple,
     TypeInfo,
@@ -359,7 +358,13 @@ where
 {
     type Identity = Self;
     fn type_info() -> Type {
-        TypeDefRange::new::<Idx>(false).into()
+        Type::builder()
+            .path(Path::prelude("Range"))
+            .type_params(type_params![Idx])
+            .composite(Fields::named()
+                .field(|f| f.name("start").ty::<Idx>().type_name("Idx"))
+                .field(|f| f.name("end").ty::<Idx>().type_name("Idx"))
+            )
     }
 }
 
@@ -369,7 +374,13 @@ where
 {
     type Identity = Self;
     fn type_info() -> Type {
-        TypeDefRange::new::<Idx>(true).into()
+        Type::builder()
+            .path(Path::prelude("RangeInclusive"))
+            .type_params(type_params![Idx])
+            .composite(Fields::named()
+                .field(|f| f.name("start").ty::<Idx>().type_name("Idx"))
+                .field(|f| f.name("end").ty::<Idx>().type_name("Idx"))
+            )
     }
 }
 
