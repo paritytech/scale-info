@@ -361,9 +361,10 @@ where
         Type::builder()
             .path(Path::prelude("Range"))
             .type_params(type_params![Idx])
-            .composite(Fields::named()
-                .field(|f| f.name("start").ty::<Idx>().type_name("Idx"))
-                .field(|f| f.name("end").ty::<Idx>().type_name("Idx"))
+            .composite(
+                Fields::named()
+                    .field(|f| f.name("start").ty::<Idx>().type_name("Idx"))
+                    .field(|f| f.name("end").ty::<Idx>().type_name("Idx")),
             )
     }
 }
@@ -377,9 +378,10 @@ where
         Type::builder()
             .path(Path::prelude("RangeInclusive"))
             .type_params(type_params![Idx])
-            .composite(Fields::named()
-                .field(|f| f.name("start").ty::<Idx>().type_name("Idx"))
-                .field(|f| f.name("end").ty::<Idx>().type_name("Idx"))
+            .composite(
+                Fields::named()
+                    .field(|f| f.name("start").ty::<Idx>().type_name("Idx"))
+                    .field(|f| f.name("end").ty::<Idx>().type_name("Idx")),
             )
     }
 }
