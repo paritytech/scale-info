@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use crate::prelude::{
-    fmt,
     vec,
     vec::Vec,
 };
@@ -115,7 +114,6 @@ impl_from_type_def_for_type!(
     TypeDefArray,
     TypeDefSequence,
     TypeDefTuple,
-    TypeDefRange,
     TypeDefCompact,
     TypeDefBitSequence,
 );
@@ -271,9 +269,6 @@ pub enum TypeDef<T: Form = MetaForm> {
     /// A type representing a sequence of bits.
     #[codec(index = 7)]
     BitSequence(TypeDefBitSequence<T>),
-    /// A Range type.
-    #[codec(index = 8)]
-    Range(TypeDefRange<T>),
 }
 
 impl IntoPortable for TypeDef {
@@ -289,7 +284,6 @@ impl IntoPortable for TypeDef {
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
-            TypeDef::Range(range) => range.into_portable(registry).into(),
         }
     }
 }
@@ -451,62 +445,6 @@ where
     /// Returns the types of the tuple fields.
     pub fn fields(&self) -> &[T::Type] {
         &self.fields
-    }
-}
-
-/// Type describing a [`Range`].
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-    ))
-)]
-#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
-pub struct TypeDefRange<T: Form = MetaForm> {
-    index_type: T::Type,
-    inclusive: bool,
-}
-
-impl TypeDefRange {
-    /// Creates a new [`TypeDefRange`] for the supplied index type. Use the `inclusive` parameter to
-    /// distinguish between [`core::ops::Range`] and [`core::ops::RangeInclusive`] range types.
-    pub fn new<Idx>(inclusive: bool) -> Self
-    where
-        Idx: PartialOrd + fmt::Debug + TypeInfo + 'static,
-    {
-        Self {
-            index_type: MetaType::new::<Idx>(),
-            inclusive,
-        }
-    }
-}
-
-impl<T> TypeDefRange<T>
-where
-    T: Form,
-{
-    /// Returns the type of the index of the range.
-    pub fn index_type(&self) -> &T::Type {
-        &self.index_type
-    }
-
-    /// Returns true if the range is inclusive as with [`core::ops::RangeInclusive`].
-    pub fn inclusive(&self) -> bool {
-        self.inclusive
-    }
-}
-
-impl IntoPortable for TypeDefRange {
-    type Output = TypeDefRange<PortableForm>;
-
-    fn into_portable(self, registry: &mut Registry) -> Self::Output {
-        TypeDefRange {
-            index_type: registry.register_type(&self.index_type),
-            inclusive: self.inclusive,
-        }
     }
 }
 
