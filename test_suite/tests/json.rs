@@ -394,7 +394,18 @@ fn test_ranges() {
             {
                 "id": 1,
                 "type": {
-                    "def": { "range": { "index_type": 2, "inclusive": false} },
+                    "path": ["Range"],
+                    "params": [
+                        { "name": "Idx", "type": 2 }
+                    ],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                { "name": "start", "type": 2, "typeName": "Idx" },
+                                { "name": "end", "type": 2, "typeName": "Idx" },
+                            ],
+                        },
+                    }
                 }
             },
             {
@@ -406,7 +417,18 @@ fn test_ranges() {
             {
                 "id": 3,
                 "type": {
-                    "def": { "range": { "index_type": 4, "inclusive": true} },
+                    "path": ["RangeInclusive"],
+                    "params": [
+                        { "name": "Idx", "type": 4 }
+                    ],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                { "name": "start", "type": 4, "typeName": "Idx" },
+                                { "name": "end", "type": 4, "typeName": "Idx" },
+                            ],
+                        },
+                    }
                 }
             },
             {
