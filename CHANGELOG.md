@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## [1.0.0] - 2021-08-31
+### Changed
+- Replace Range variant with built-in composite definitions [(#130)](https://github.com/paritytech/scale-info/pull/130)
 
 ## [0.12.0] - 2021-08-25
 ### Changed
