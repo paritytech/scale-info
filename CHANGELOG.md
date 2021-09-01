@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2021-09-01
+### Changed
+- Replace Range variant with built-in composite definitions [(#130)](https://github.com/paritytech/scale-info/pull/130)
+
 ## [0.12.0] - 2021-08-25
 ### Changed
 - Add range getters, combine start and end types [(#126)](https://github.com/paritytech/scale-info/pull/126)
