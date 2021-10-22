@@ -340,7 +340,7 @@ pub struct FieldBuilder<
     marker: PhantomData<fn() -> (N, T)>,
 }
 
-impl Default for FieldBuilder {
+impl<N, T> Default for FieldBuilder<N, T> {
     fn default() -> Self {
         FieldBuilder {
             name: Default::default(),
