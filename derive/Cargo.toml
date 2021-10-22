@@ -2,7 +2,7 @@
 name = "scale-info-derive"
 version = "1.0.0"
 authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
-edition = "2018"
+edition = "2021"
 
 license = "Apache-2.0"
 repository = "https://github.com/paritytech/scale-info"
