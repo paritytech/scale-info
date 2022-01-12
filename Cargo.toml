@@ -14,7 +14,7 @@ categories = ["no-std", "encoding"]
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 
 [dependencies]
-bitvec = { version = "0.20.1", default-features = false, features = ["alloc"], optional = true }
+bitvec = { version = "1", default-features = false, features = ["alloc"], optional = true }
 cfg-if = "1.0"
 scale-info-derive = { version = "1.0.0", path = "derive", default-features = false, optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["derive", "alloc"] }
