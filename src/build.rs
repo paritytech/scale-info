@@ -150,6 +150,7 @@ pub mod state {
 }
 
 /// Builds a [`Type`](`crate::Type`)
+#[must_use]
 pub struct TypeBuilder<S = state::PathNotAssigned> {
     path: Option<Path>,
     type_params: Vec<TypeParameter>,
@@ -259,6 +260,7 @@ impl Fields {
 }
 
 /// Build a set of either all named (e.g. for a struct) or all unnamed (e.g. for a tuple struct)
+#[must_use]
 pub struct FieldsBuilder<T> {
     fields: Vec<Field>,
     marker: PhantomData<fn() -> T>,
@@ -329,6 +331,7 @@ pub mod field_state {
 }
 
 /// Construct a valid [`Field`].
+#[must_use]
 pub struct FieldBuilder<
     N = field_state::NameNotAssigned,
     T = field_state::TypeNotAssigned,
@@ -460,6 +463,7 @@ impl<N> FieldBuilder<N, field_state::TypeAssigned> {
 
 /// Builds a definition of a variant type i.e an `enum`
 #[derive(Default)]
+#[must_use]
 pub struct Variants {
     variants: Vec<Variant>,
 }
@@ -504,6 +508,7 @@ pub mod variant_state {
 }
 
 /// Build a [`Variant`].
+#[must_use]
 pub struct VariantBuilder<S = variant_state::IndexNotAssigned> {
     name: &'static str,
     index: Option<u8>,
