@@ -544,10 +544,10 @@ where
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefBitSequence<T: Form = MetaForm> {
-    /// The type implementing [`bitvec::store::BitStore`].
-    bit_store_type: T::Type,
     /// The type implementing [`bitvec::order::BitOrder`].
     bit_order_type: T::Type,
+    /// The type implementing [`bitvec::store::BitStore`].
+    bit_store_type: T::Type,
 }
 
 impl IntoPortable for TypeDefBitSequence {
@@ -555,8 +555,8 @@ impl IntoPortable for TypeDefBitSequence {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeDefBitSequence {
-            bit_store_type: registry.register_type(&self.bit_store_type),
             bit_order_type: registry.register_type(&self.bit_order_type),
+            bit_store_type: registry.register_type(&self.bit_store_type),
         }
     }
 }
@@ -581,12 +581,12 @@ impl TypeDefBitSequence {
     /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
     pub fn new<T, O>() -> Self
     where
-        O: bitvec::order::BitOrder + TypeInfo + 'static,
         T: bitvec::store::BitStore + TypeInfo + 'static,
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
     {
         Self {
-            bit_order_type: MetaType::new::<O>(),
             bit_store_type: MetaType::new::<T>(),
+            bit_order_type: MetaType::new::<O>(),
         }
     }
 }
