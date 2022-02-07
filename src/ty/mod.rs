@@ -579,7 +579,7 @@ where
 #[cfg(feature = "bit-vec")]
 impl TypeDefBitSequence {
     /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
-    pub fn new<O, T>() -> Self
+    pub fn new<T, O>() -> Self
     where
         O: bitvec::order::BitOrder + TypeInfo + 'static,
         T: bitvec::store::BitStore + TypeInfo + 'static,
