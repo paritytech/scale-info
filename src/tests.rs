@@ -152,18 +152,18 @@ fn bitvec() {
     };
 
     assert_type!(
-        BitVec<Lsb0, u8>,
-        TypeDefBitSequence::new::<Lsb0, u8>()
+        BitVec<u8,Lsb0>,
+        TypeDefBitSequence::new::<u8,Lsb0>()
     );
 
     assert_type!(
-        BitVec<Msb0, u16>,
-        TypeDefBitSequence::new::<Msb0, u16>()
+        BitVec<u16,Msb0>,
+        TypeDefBitSequence::new::<u16,Msb0>()
     );
 
     assert_type!(
-        BitVec<Msb0, u32>,
-        TypeDefBitSequence::new::<Msb0, u32>()
+        BitVec<u32,Msb0>,
+        TypeDefBitSequence::new::<u32,Msb0>()
     );
 }
 

@@ -390,15 +390,15 @@ where
 mod bit_vec {
     use super::*;
 
-    impl<O, T> TypeInfo for bitvec::vec::BitVec<O, T>
+    impl<T, O> TypeInfo for bitvec::vec::BitVec<T, O>
     where
-        O: bitvec::order::BitOrder + TypeInfo + 'static,
         T: bitvec::store::BitStore + TypeInfo + 'static,
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
     {
         type Identity = Self;
 
         fn type_info() -> Type {
-            crate::TypeDefBitSequence::new::<O, T>().into()
+            crate::TypeDefBitSequence::new::<T, O>().into()
         }
     }
 
