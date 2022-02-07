@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2022-02-07
+
+## Changed
+- Upgraded to parity-scale-codec 3.0
+- Upgraded to bitvec 1.0
+- Minimum Rust version is 1.56.1 for editition 2021
+
 ## [1.0.0] - 2021-09-01
 ### Changed
 - Replace Range variant with built-in composite definitions [(#130)](https://github.com/paritytech/scale-info/pull/130)
