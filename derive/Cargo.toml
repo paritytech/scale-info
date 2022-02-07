@@ -1,8 +1,12 @@
 [package]
 name = "scale-info-derive"
-version = "1.0.0"
-authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
+version = "2.0.0"
+authors = [
+    "Parity Technologies <admin@parity.io>",
+    "Centrality Developers <support@centrality.ai>",
+]
 edition = "2021"
+rust-version = "1.56.1"
 
 license = "Apache-2.0"
 repository = "https://github.com/paritytech/scale-info"
