@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 - Upgraded to parity-scale-codec 3.0
 - Upgraded to bitvec 1.0
-- Minimum Rust version is 1.56.1 for editition 2021
+- Minimum Rust version is 1.56.1 for edition 2021
 
 ## [1.0.0] - 2021-09-01
 ### Changed
