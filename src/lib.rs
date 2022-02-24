@@ -41,7 +41,7 @@
 //! Enable the `derive` feature of this crate:
 //!
 //! ```toml
-//! scale-info = { version = "0.6.0", features = ["derive"] }
+//! scale-info = { version = "2.0.0", features = ["derive"] }
 //! ```
 //!
 //! ```ignore
