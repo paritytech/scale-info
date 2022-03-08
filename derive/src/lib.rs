@@ -22,6 +22,7 @@ mod utils;
 use self::attr::{
     Attributes,
     CaptureDocsAttr,
+    CratePathAttr,
 };
 use proc_macro::TokenStream;
 use proc_macro2::{
@@ -69,33 +70,27 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 
 struct TypeInfoImpl {
     ast: DeriveInput,
-    scale_info: Ident,
     attrs: Attributes,
 }
 
 impl TypeInfoImpl {
     fn parse(input: TokenStream2) -> Result<Self> {
         let ast: DeriveInput = syn::parse2(input)?;
-        let scale_info = crate_name_ident("scale-info")?;
         let attrs = attr::Attributes::from_ast(&ast)?;
 
-        Ok(Self {
-            ast,
-            scale_info,
-            attrs,
-        })
+        Ok(Self { ast, attrs })
     }
 
     fn expand(&self) -> Result<TokenStream2> {
         let ident = &self.ast.ident;
-        let scale_info = &self.scale_info;
+        let scale_info = crate_path(self.attrs.crate_path())?;
 
         let where_clause = trait_bounds::make_where_clause(
             &self.attrs,
             ident,
             &self.ast.generics,
             &self.ast.data,
-            &self.scale_info,
+            &scale_info,
         )?;
 
         let (impl_generics, ty_generics, _) = self.ast.generics.split_for_impl();
@@ -103,18 +98,18 @@ impl TypeInfoImpl {
         let type_params = self.ast.generics.type_params().map(|tp| {
             let ty_ident = &tp.ident;
             let ty = if self.attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
-                quote! { ::core::option::Option::Some(:: #scale_info ::meta_type::<#ty_ident>()) }
+                quote! { ::core::option::Option::Some(#scale_info ::meta_type::<#ty_ident>()) }
             } else {
                 quote! { ::core::option::Option::None }
             };
             quote! {
-                :: #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
+                #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
             }
         });
 
         let build_type = match &self.ast.data {
-            Data::Struct(ref s) => self.generate_composite_type(s),
-            Data::Enum(ref e) => self.generate_variant_type(e, scale_info),
+            Data::Struct(ref s) => self.generate_composite_type(s, &scale_info),
+            Data::Enum(ref e) => self.generate_variant_type(e, &scale_info),
             Data::Union(_) => {
                 return Err(Error::new_spanned(&self.ast, "Unions not supported"))
             }
@@ -122,12 +117,12 @@ impl TypeInfoImpl {
         let docs = self.generate_docs(&self.ast.attrs);
 
         Ok(quote! {
-            impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+            impl #impl_generics #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
                 type Identity = Self;
-                fn type_info() -> :: #scale_info ::Type {
-                    :: #scale_info ::Type::builder()
-                        .path(:: #scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
-                        .type_params(:: #scale_info ::prelude::vec![ #( #type_params ),* ])
+                fn type_info() -> #scale_info ::Type {
+                    #scale_info ::Type::builder()
+                        .path(#scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
+                        .type_params(#scale_info ::prelude::vec![ #( #type_params ),* ])
                         #docs
                         .#build_type
                 }
@@ -135,7 +130,11 @@ impl TypeInfoImpl {
         })
     }
 
-    fn generate_composite_type(&self, data_struct: &DataStruct) -> TokenStream2 {
+    fn generate_composite_type(
+        &self,
+        data_struct: &DataStruct,
+        scale_info: &syn::Path,
+    ) -> TokenStream2 {
         let fields = match data_struct.fields {
             Fields::Named(ref fs) => {
                 let fields = self.generate_fields(&fs.named);
@@ -151,9 +150,9 @@ impl TypeInfoImpl {
                 }
             }
         };
-        let scale_info = &self.scale_info;
+
         quote! {
-            composite(:: #scale_info ::build::Fields::#fields)
+            composite(#scale_info ::build::Fields::#fields)
         }
     }
 
@@ -201,7 +200,7 @@ impl TypeInfoImpl {
     fn generate_variant_type(
         &self,
         data_enum: &DataEnum,
-        scale_info: &Ident,
+        scale_info: &syn::Path,
     ) -> TokenStream2 {
         let variants = &data_enum.variants;
 
@@ -219,7 +218,7 @@ impl TypeInfoImpl {
                     Fields::Named(ref fs) => {
                         let fields = self.generate_fields(&fs.named);
                         Some(quote! {
-                            .fields(:: #scale_info::build::Fields::named()
+                            .fields(#scale_info::build::Fields::named()
                                 #( #fields )*
                             )
                         })
@@ -227,7 +226,7 @@ impl TypeInfoImpl {
                     Fields::Unnamed(ref fs) => {
                         let fields = self.generate_fields(&fs.unnamed);
                         Some(quote! {
-                            .fields(:: #scale_info::build::Fields::unnamed()
+                            .fields(#scale_info::build::Fields::unnamed()
                                 #( #fields )*
                             )
                         })
@@ -246,7 +245,7 @@ impl TypeInfoImpl {
             });
         quote! {
             variant(
-                :: #scale_info ::build::Variants::new()
+                #scale_info ::build::Variants::new()
                     #( #variants )*
             )
         }
@@ -299,6 +298,12 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
             }
         })
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
+}
+
+fn crate_path(crate_path_attr: Option<&CratePathAttr>) -> Result<syn::Path> {
+    crate_path_attr
+        .map(|path_attr| Ok(path_attr.path().clone()))
+        .unwrap_or_else(|| crate_name_ident("scale-info").map(|ident| ident.into()))
 }
 
 fn clean_type_string(input: &str) -> String {

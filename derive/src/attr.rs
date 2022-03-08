@@ -36,6 +36,7 @@ pub struct Attributes {
     bounds: Option<BoundsAttr>,
     skip_type_params: Option<SkipTypeParamsAttr>,
     capture_docs: Option<CaptureDocsAttr>,
+    crate_path: Option<CratePathAttr>,
 }
 
 impl Attributes {
@@ -44,6 +45,7 @@ impl Attributes {
         let mut bounds = None;
         let mut skip_type_params = None;
         let mut capture_docs = None;
+        let mut crate_path = None;
 
         let attributes_parser = |input: &ParseBuffer| {
             let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
@@ -87,6 +89,17 @@ impl Attributes {
                         }
                         capture_docs = Some(parsed_capture_docs);
                     }
+
+                    ScaleInfoAttr::CratePath(parsed_crate_path) => {
+                        if crate_path.is_some() {
+                            return Err(syn::Error::new(
+                                attr.span(),
+                                "Duplicate `crate` attributes",
+                            ))
+                        }
+
+                        crate_path = Some(parsed_crate_path);
+                    }
                 }
             }
         }
@@ -116,6 +129,7 @@ impl Attributes {
             bounds,
             skip_type_params,
             capture_docs,
+            crate_path,
         })
     }
 
@@ -136,6 +150,11 @@ impl Attributes {
         self.capture_docs
             .as_ref()
             .unwrap_or(&CaptureDocsAttr::Default)
+    }
+
+    /// Get the `#[scale_info(crate = path::to::crate)]` attribute, if present.
+    pub fn crate_path(&self) -> Option<&CratePathAttr> {
+        self.crate_path.as_ref()
     }
 }
 
@@ -230,11 +249,34 @@ impl Parse for CaptureDocsAttr {
     }
 }
 
+/// Parsed representation of the `#[scale_info(crate = "..")]` attribute.
+#[derive(Clone)]
+pub struct CratePathAttr {
+    path: syn::Path,
+}
+
+impl CratePathAttr {
+    pub fn path(&self) -> &syn::Path {
+        &self.path
+    }
+}
+
+impl Parse for CratePathAttr {
+    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
+        input.parse::<Token![crate]>()?;
+        input.parse::<Token![=]>()?;
+        let path = input.parse::<syn::Path>()?;
+
+        Ok(Self { path })
+    }
+}
+
 /// Parsed representation of one of the `#[scale_info(..)]` attributes.
 pub enum ScaleInfoAttr {
     Bounds(BoundsAttr),
     SkipTypeParams(SkipTypeParamsAttr),
     CaptureDocs(CaptureDocsAttr),
+    CratePath(CratePathAttr),
 }
 
 impl Parse for ScaleInfoAttr {
@@ -249,6 +291,9 @@ impl Parse for ScaleInfoAttr {
         } else if lookahead.peek(keywords::capture_docs) {
             let capture_docs = input.parse()?;
             Ok(Self::CaptureDocs(capture_docs))
+        } else if lookahead.peek(Token![crate]) {
+            let crate_path = input.parse()?;
+            Ok(Self::CratePath(crate_path))
         } else {
             Err(lookahead.error())
         }
