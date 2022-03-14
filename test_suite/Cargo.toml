@@ -13,11 +13,11 @@ license = "Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-scale-info = { path = "..", features = ["derive", "serde", "decode"] }
+# Deliberately renamed from scale-info to test that `crate` attr works.
+info = { package = "scale-info", path = "..", features = ["derive", "serde", "decode"] }
 
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 serde = "1.0"
 serde_json = "1.0"
 pretty_assertions = "0.6.1"
 trybuild = "1.0.54"
-rustversion = "1"

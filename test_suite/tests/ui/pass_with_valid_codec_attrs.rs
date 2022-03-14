@@ -1,7 +1,8 @@
-use scale_info::TypeInfo;
+use info::TypeInfo;
 use scale::{Encode, HasCompact};
 
 #[derive(TypeInfo, Encode)]
+#[scale_info(crate = info)]
 struct ValidStruct {
     #[codec(skip)]
     a: u8,
@@ -12,6 +13,7 @@ struct ValidStruct {
 }
 
 #[derive(TypeInfo, Encode)]
+#[scale_info(crate = info)]
 enum ValidEnum {
     #[allow(unused)]
     #[codec(index = 3)]

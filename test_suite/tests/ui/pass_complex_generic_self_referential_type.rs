@@ -1,3 +1,4 @@
+use info::{self as scale_info};
 use scale_info::TypeInfo;
 
 

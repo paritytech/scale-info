@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ use core::ops::{
     RangeInclusive,
 };
 
+use info::{self as scale_info,};
 use pretty_assertions::assert_eq;
 use scale::Encode;
 use scale_info::{
@@ -598,7 +599,6 @@ fn doc_capture_works() {
     struct S {
         #[doc = " Field a"]
         a: bool,
-        #[doc(primitive)]
         b: u8,
         ///     Indented
         c: u16,
@@ -866,12 +866,4 @@ fn ranges() {
         );
 
     assert_type!(Rangey, ty);
-}
-
-#[rustversion::nightly]
-#[test]
-fn ui_tests() {
-    let t = trybuild::TestCases::new();
-    t.compile_fail("tests/ui/fail_*.rs");
-    t.pass("tests/ui/pass_*");
 }

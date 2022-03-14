@@ -11,3 +11,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#[test]
+fn ui_tests() {
+    let t = trybuild::TestCases::new();
+    t.compile_fail("tests/ui/fail_*.rs");
+    t.pass("tests/ui/pass_*.rs");
+}
