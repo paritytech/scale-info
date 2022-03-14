@@ -208,6 +208,22 @@
 //! binary size as small as possible, so the `docs` feature would be disabled. In case the docs for
 //! some types is necessary they could be enabled on a per-type basis with the above attribute.
 //!
+//! #### `#[scale_info(crate = path::to::crate)]`
+//!
+//! Specify a path to the scale-info crate instance to use when referring to the APIs from generated
+//! code. This is normally only applicable when invoking re-exported scale-info derives from a public
+//! macro in a different crate. For example:
+//! ```ignore
+//! use scale_info_reexport::info::TypeInfo;
+//!
+//! #[derive(TypeInfo)]
+//! #[scale_info(crate = scale_info_reexport::info)]
+//! enum TestEnum {
+//!     FirstVariant,
+//!     SecondVariant,
+//! }
+//! ```
+//!
 //! # Forms
 //!
 //! To bridge between compile-time type information and runtime the

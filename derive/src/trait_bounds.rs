@@ -52,7 +52,7 @@ pub fn make_where_clause<'a>(
     input_ident: &'a Ident,
     generics: &'a Generics,
     data: &'a syn::Data,
-    scale_info: &Ident,
+    scale_info: &syn::Path,
 ) -> Result<WhereClause> {
     let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
         WhereClause {
