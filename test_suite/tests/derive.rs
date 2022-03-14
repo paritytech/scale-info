@@ -599,7 +599,6 @@ fn doc_capture_works() {
     struct S {
         #[doc = " Field a"]
         a: bool,
-        #[doc(primitive)]
         b: u8,
         ///     Indented
         c: u16,
