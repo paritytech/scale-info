@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ use core::ops::{
     RangeInclusive,
 };
 
-use info::{self as scale_info};
+use info::{self as scale_info,};
 use pretty_assertions::assert_eq;
 use scale::Encode;
 use scale_info::{
