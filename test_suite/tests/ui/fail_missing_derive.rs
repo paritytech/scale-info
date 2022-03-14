@@ -1,3 +1,4 @@
+use info::{self as scale_info};
 use scale_info::TypeInfo;
 
 enum PawType<Paw> {
@@ -5,6 +6,7 @@ enum PawType<Paw> {
     Small(Paw),
 }
 #[derive(TypeInfo)]
+#[scale_info(crate = info)]
 struct Cat<Tail, Ear, Paw> {
     tail: Tail,
     ears: [Ear; 3],

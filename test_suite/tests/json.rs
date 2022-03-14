@@ -16,6 +16,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
+use info::{self as scale_info};
 use scale_info::prelude::{
     boxed::Box,
     collections::VecDeque,

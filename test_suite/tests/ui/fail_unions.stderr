@@ -1,21 +1,21 @@
 error: Unions not supported
- --> $DIR/fail_unions.rs:4:1
+ --> tests/ui/fail_unions.rs:5:1
   |
-4 | / #[repr(C)]
-5 | | union Commonwealth {
-6 | |     a: u8,
-7 | |     b: f32,
-8 | | }
+5 | / #[repr(C)]
+6 | | union Commonwealth {
+7 | |     a: u8,
+8 | |     b: f32,
+9 | | }
   | |_^
 
 error[E0277]: the trait bound `Commonwealth: TypeInfo` is not satisfied
-  --> $DIR/fail_unions.rs:13:24
+  --> tests/ui/fail_unions.rs:14:24
    |
-13 |     assert_type_info::<Commonwealth>();
+14 |     assert_type_info::<Commonwealth>();
    |                        ^^^^^^^^^^^^ the trait `TypeInfo` is not implemented for `Commonwealth`
    |
 note: required by a bound in `assert_type_info`
-  --> $DIR/fail_unions.rs:10:24
+  --> tests/ui/fail_unions.rs:11:24
    |
-10 | fn assert_type_info<T: TypeInfo + 'static>() {}
+11 | fn assert_type_info<T: TypeInfo + 'static>() {}
    |                        ^^^^^^^^ required by this bound in `assert_type_info`

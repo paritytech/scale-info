@@ -24,6 +24,7 @@ use scale::{
     Decode,
     Encode,
 };
+use info::{self as scale_info};
 use scale_info::{
     form::PortableForm,
     prelude::{

@@ -19,6 +19,7 @@ use core::ops::{
     RangeInclusive,
 };
 
+use info::{self as scale_info};
 use pretty_assertions::assert_eq;
 use scale::Encode;
 use scale_info::{
@@ -866,12 +867,4 @@ fn ranges() {
         );
 
     assert_type!(Rangey, ty);
-}
-
-#[rustversion::nightly]
-#[test]
-fn ui_tests() {
-    let t = trybuild::TestCases::new();
-    t.compile_fail("tests/ui/fail_*.rs");
-    t.pass("tests/ui/pass_*");
 }

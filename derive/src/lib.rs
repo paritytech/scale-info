@@ -98,12 +98,12 @@ impl TypeInfoImpl {
         let type_params = self.ast.generics.type_params().map(|tp| {
             let ty_ident = &tp.ident;
             let ty = if self.attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
-                quote! { ::core::option::Option::Some(#scale_info ::meta_type::<#ty_ident>()) }
+                quote! { ::core::option::Option::Some(#scale_info::meta_type::<#ty_ident>()) }
             } else {
                 quote! { ::core::option::Option::None }
             };
             quote! {
-                #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
+                #scale_info::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
             }
         });
 
@@ -117,12 +117,12 @@ impl TypeInfoImpl {
         let docs = self.generate_docs(&self.ast.attrs);
 
         Ok(quote! {
-            impl #impl_generics #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+            impl #impl_generics #scale_info::TypeInfo for #ident #ty_generics #where_clause {
                 type Identity = Self;
-                fn type_info() -> #scale_info ::Type {
-                    #scale_info ::Type::builder()
-                        .path(#scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
-                        .type_params(#scale_info ::prelude::vec![ #( #type_params ),* ])
+                fn type_info() -> #scale_info::Type {
+                    #scale_info::Type::builder()
+                        .path(#scale_info::Path::new(::core::stringify!(#ident), ::core::module_path!()))
+                        .type_params(#scale_info::prelude::vec![ #( #type_params ),* ])
                         #docs
                         .#build_type
                 }
@@ -152,7 +152,7 @@ impl TypeInfoImpl {
         };
 
         quote! {
-            composite(#scale_info ::build::Fields::#fields)
+            composite(#scale_info::build::Fields::#fields)
         }
     }
 
@@ -245,7 +245,7 @@ impl TypeInfoImpl {
             });
         quote! {
             variant(
-                #scale_info ::build::Variants::new()
+                #scale_info::build::Variants::new()
                     #( #variants )*
             )
         }

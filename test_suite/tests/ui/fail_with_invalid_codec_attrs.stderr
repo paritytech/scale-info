@@ -1,23 +1,23 @@
 error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` and `#[codec(encoded_as = "$EncodeAs")]` are accepted.
- --> $DIR/fail_with_invalid_codec_attrs.rs:7:7
+ --> tests/ui/fail_with_invalid_codec_attrs.rs:8:7
   |
-7 |     #[codec(skip, compact)]
-  |       ^^^^^^^^^^^^^^^^^^^^
+8 |     #[codec(skip, compact)]
+  |       ^^^^^
 
 error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` and `#[codec(encoded_as = "$EncodeAs")]` are accepted.
-  --> $DIR/fail_with_invalid_codec_attrs.rs:13:19
+  --> tests/ui/fail_with_invalid_codec_attrs.rs:14:19
    |
-13 |     Thing(#[codec(index = 3)] u32),
-   |                   ^^^^^^^^^
+14 |     Thing(#[codec(index = 3)] u32),
+   |                   ^^^^^
 
 error: expected literal
-  --> $DIR/fail_with_invalid_codec_attrs.rs:18:21
+  --> tests/ui/fail_with_invalid_codec_attrs.rs:19:21
    |
-18 |     #[codec(index = a)]
+19 |     #[codec(index = a)]
    |                     ^
 
 error: expected literal
-  --> $DIR/fail_with_invalid_codec_attrs.rs:24:25
+  --> tests/ui/fail_with_invalid_codec_attrs.rs:25:25
    |
-24 |     #[codec(encode_as = u8, compact)]
+25 |     #[codec(encode_as = u8, compact)]
    |                         ^^
