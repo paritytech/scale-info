@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// #[rustversion::nightly]
 #[test]
 fn ui_tests() {
     let t = trybuild::TestCases::new();
