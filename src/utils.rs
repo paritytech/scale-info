@@ -19,7 +19,9 @@ pub fn is_rust_identifier(s: &str) -> bool {
     if !s.is_ascii() {
         return false
     }
-    if let Some((&head, tail)) = s.as_bytes().split_first() {
+    // Trim valid raw identifier prefix
+    let trimmed = s.trim_start_matches("r#");
+    if let Some((&head, tail)) = trimmed.as_bytes().split_first() {
         // Check if head and tail make up a proper Rust identifier.
         let head_ok = head == b'_'
             || (b'a'..=b'z').contains(&head)

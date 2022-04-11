@@ -4,6 +4,16 @@ error[E0277]: the trait bound `PawType<u16>: TypeInfo` is not satisfied
 19 |     assert_type_info::<Cat<bool, u8, u16>>();
    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `TypeInfo` is not implemented for `PawType<u16>`
    |
+   = help: the following other types implement trait `TypeInfo`:
+             &T
+             &mut T
+             ()
+             (A, B)
+             (A, B, C)
+             (A, B, C, D)
+             (A, B, C, D, E)
+             (A, B, C, D, E, F)
+           and 54 others
 note: required because of the requirements on the impl of `TypeInfo` for `Cat<bool, u8, u16>`
   --> tests/ui/fail_missing_derive.rs:8:10
    |

@@ -206,6 +206,16 @@ mod tests {
     }
 
     #[test]
+    fn path_with_raw_identifers_ok() {
+        assert_eq!(
+            Path::from_segments(vec!["r#mod", "r#Struct"]),
+            Ok(Path {
+                segments: vec!["r#mod", "r#Struct"]
+            })
+        );
+    }
+
+    #[test]
     fn path_err() {
         assert_eq!(Path::from_segments(vec![]), Err(PathError::MissingSegments));
         assert_eq!(
