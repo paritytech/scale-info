@@ -7,14 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2022-04-11
+
+### Added
+- Add ability to reexport crate [(#145)](https://github.com/paritytech/scale-info/pull/145)
+
+### Fixed
+- Allow raw identifiers e.g. `r#mod` [(#149)](https://github.com/paritytech/scale-info/pull/149)
+
 ## [2.0.1] - 2022-02-24
 
-## Changed
+### Changed
 - Revert bitvec field order to maintain binary compatiblilty
 
 ## [2.0.0] - 2022-02-07
 
-## Changed
+### Changed
 - Upgraded to parity-scale-codec 3.0
 - Upgraded to bitvec 1.0
 - Minimum Rust version is 1.56.1 for edition 2021
