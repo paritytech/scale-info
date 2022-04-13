@@ -16,7 +16,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-use info::{self as scale_info,};
 use pretty_assertions::{
     assert_eq,
     assert_ne,
@@ -25,7 +24,7 @@ use scale::{
     Decode,
     Encode,
 };
-use scale_info::{
+use info::{
     form::PortableForm,
     prelude::{
         num::NonZeroU32,

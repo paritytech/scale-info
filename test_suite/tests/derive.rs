@@ -19,10 +19,9 @@ use core::ops::{
     RangeInclusive,
 };
 
-use info::{self as scale_info,};
 use pretty_assertions::assert_eq;
 use scale::Encode;
-use scale_info::{
+use info::{
     build::*,
     named_type_params,
     prelude::{
