@@ -16,14 +16,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-use pretty_assertions::{
-    assert_eq,
-    assert_ne,
-};
-use scale::{
-    Decode,
-    Encode,
-};
 use info::{
     form::PortableForm,
     prelude::{
@@ -37,6 +29,14 @@ use info::{
     PortableRegistry,
     Registry,
     TypeInfo,
+};
+use pretty_assertions::{
+    assert_eq,
+    assert_ne,
+};
+use scale::{
+    Decode,
+    Encode,
 };
 
 #[derive(TypeInfo)]

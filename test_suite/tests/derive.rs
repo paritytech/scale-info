@@ -19,8 +19,6 @@ use core::ops::{
     RangeInclusive,
 };
 
-use pretty_assertions::assert_eq;
-use scale::Encode;
 use info::{
     build::*,
     named_type_params,
@@ -36,6 +34,8 @@ use info::{
     TypeInfo,
     TypeParameter,
 };
+use pretty_assertions::assert_eq;
+use scale::Encode;
 
 fn assert_type<T, E>(expected: E)
 where
