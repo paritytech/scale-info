@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.1] - 2022-04-11
+
+### Fixed
+- Restore leading `::` for crate access [(#152)](https://github.com/paritytech/scale-info/pull/152)
+
 ## [2.1.0] - 2022-04-11
 
 ### Added
