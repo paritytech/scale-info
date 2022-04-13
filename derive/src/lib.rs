@@ -303,7 +303,9 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
 fn crate_path(crate_path_attr: Option<&CratePathAttr>) -> Result<syn::Path> {
     crate_path_attr
         .map(|path_attr| Ok(path_attr.path().clone()))
-        .unwrap_or_else(|| crate_name_ident("scale-info").map(|ident| parse_quote!(::#ident)))
+        .unwrap_or_else(|| {
+            crate_name_ident("scale-info").map(|ident| parse_quote!(::#ident))
+        })
 }
 
 fn clean_type_string(input: &str) -> String {
