@@ -288,13 +288,16 @@ impl TypeInfoImpl {
 }
 
 /// Get the name of a crate, to be robust against renamed dependencies.
-fn crate_name_ident(name: &str) -> Result<Ident> {
+fn crate_name_path(name: &str) -> Result<syn::Path> {
     proc_macro_crate::crate_name(name)
         .map(|crate_name| {
             use proc_macro_crate::FoundCrate::*;
             match crate_name {
-                Itself => Ident::new("self", Span::call_site()),
-                Name(name) => Ident::new(&name, Span::call_site()),
+                Itself => Ident::new("self", Span::call_site()).into(),
+                Name(name) => {
+                    let crate_ident = Ident::new(&name, Span::call_site());
+                    parse_quote!( ::#crate_ident )
+                }
             }
         })
         .map_err(|e| syn::Error::new(Span::call_site(), &e))
@@ -303,7 +306,7 @@ fn crate_name_ident(name: &str) -> Result<Ident> {
 fn crate_path(crate_path_attr: Option<&CratePathAttr>) -> Result<syn::Path> {
     crate_path_attr
         .map(|path_attr| Ok(path_attr.path().clone()))
-        .unwrap_or_else(|| crate_name_ident("scale-info").map(|ident| ident.into()))
+        .unwrap_or_else(|| crate_name_path("scale-info"))
 }
 
 fn clean_type_string(input: &str) -> String {

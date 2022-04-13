@@ -96,11 +96,11 @@ pub fn make_where_clause<'a>(
         if is_compact {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : :: #scale_info :: scale::HasCompact));
+                .push(parse_quote!(#ty : #scale_info :: scale::HasCompact));
         } else {
             where_clause
                 .predicates
-                .push(parse_quote!(#ty : :: #scale_info ::TypeInfo + 'static));
+                .push(parse_quote!(#ty : #scale_info ::TypeInfo + 'static));
         }
     });
 
@@ -111,7 +111,7 @@ pub fn make_where_clause<'a>(
             .skip_type_params()
             .map_or(true, |skip| !skip.skip(type_param))
         {
-            bounds.push(parse_quote!(:: #scale_info ::TypeInfo));
+            bounds.push(parse_quote!(#scale_info ::TypeInfo));
         }
         bounds.push(parse_quote!('static));
         where_clause
