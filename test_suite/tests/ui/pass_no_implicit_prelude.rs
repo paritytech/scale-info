@@ -1,6 +1,6 @@
 #![no_implicit_prelude]
 
-use info::{self as scale_info};
+use ::info::{self as scale_info};
 use scale_info::TypeInfo;
 
 #[allow(dead_code)]
