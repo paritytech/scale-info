@@ -19,7 +19,10 @@ use core::ops::{
     RangeInclusive,
 };
 
-use info::{
+use info::{self as scale_info,};
+use pretty_assertions::assert_eq;
+use scale::Encode;
+use scale_info::{
     build::*,
     named_type_params,
     prelude::{
@@ -34,8 +37,6 @@ use info::{
     TypeInfo,
     TypeParameter,
 };
-use pretty_assertions::assert_eq;
-use scale::Encode;
 
 fn assert_type<T, E>(expected: E)
 where
