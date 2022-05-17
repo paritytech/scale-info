@@ -170,7 +170,10 @@ impl TypeInfoImpl {
                         *lifetime = parse_quote!('static)
                     }
                 }
-                let mut ty = ty.clone();
+                let mut ty = match ty {
+                    syn::Type::Group(group) => (*group.elem).clone(),
+                    _ => ty.clone(),
+                };
                 StaticLifetimesReplace.visit_type_mut(&mut ty);
 
                 let type_name = clean_type_string(&quote!(#ty).to_string());
