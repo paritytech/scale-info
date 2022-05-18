@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2022-05-18
+
+### Fixed
+- Strip invisible delimiters from type name [(#156)](https://github.com/paritytech/scale-info/pull/156)
+
 ## [2.1.1] - 2022-04-11
 
 ### Fixed
