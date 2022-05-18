@@ -870,8 +870,6 @@ fn ranges() {
 
 #[test]
 fn strips_invisible_delimiters_from_type_name() {
-    // When a type is specified as part of a macro, the tokens passed to the `TypeInfo` derive macro
-    // are a type `Group`, which is pretty printed with invisible delimiters e.g. /*«*/ bool /*»*/.
     macro_rules! gen_struct {
         ( $ty:ty ) => {
             #[allow(unused)]

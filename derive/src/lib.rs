@@ -171,6 +171,10 @@ impl TypeInfoImpl {
                     }
                 }
                 let mut ty = match ty {
+                    // When a type is specified as part of a `macro_rules!`, the tokens passed to
+                    // the `TypeInfo` derive macro are a type `Group`, which is pretty printed with
+                    // invisible delimiters e.g. /*«*/ bool /*»*/. To avoid printing the delimiters
+                    // the inner type element is extracted.
                     syn::Type::Group(group) => (*group.elem).clone(),
                     _ => ty.clone(),
                 };
