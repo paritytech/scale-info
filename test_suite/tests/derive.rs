@@ -867,3 +867,22 @@ fn ranges() {
 
     assert_type!(Rangey, ty);
 }
+
+#[test]
+fn strips_invisible_delimiters_from_type_name() {
+    macro_rules! gen_struct {
+        ( $ty:ty ) => {
+            #[allow(unused)]
+            #[derive(TypeInfo)]
+            struct S($ty);
+        };
+    }
+
+    gen_struct!(bool);
+
+    let expected = Type::builder()
+        .path(Path::new("S", "derive"))
+        .composite(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")));
+
+    assert_type!(S, expected);
+}
