@@ -13,32 +13,19 @@
 // limitations under the License.
 
 use crate::prelude::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     vec,
     vec::Vec,
 };
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
+    form::{Form, MetaForm, PortableForm},
     utils::is_rust_identifier,
-    IntoPortable,
-    Registry,
+    IntoPortable, Registry,
 };
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// Represents the path of a type definition.
 ///
@@ -57,7 +44,7 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode, schemars::JsonSchema)]
 pub struct Path<T: Form = MetaForm> {
     /// The segments of the namespace.
     segments: Vec<T::String>,
@@ -133,10 +120,10 @@ impl Path {
     {
         let segments = segments.into_iter().collect::<Vec<_>>();
         if segments.is_empty() {
-            return Err(PathError::MissingSegments)
+            return Err(PathError::MissingSegments);
         }
         if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
-            return Err(PathError::InvalidIdentifier { segment: err_at })
+            return Err(PathError::InvalidIdentifier { segment: err_at });
         }
         Ok(Path { segments })
     }

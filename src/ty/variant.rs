@@ -15,23 +15,13 @@
 use crate::prelude::vec::Vec;
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    Field,
-    IntoPortable,
-    Registry,
+    form::{Form, MetaForm, PortableForm},
+    Field, IntoPortable, Registry,
 };
 use derive_more::From;
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A Enum type (consisting of variants).
 ///
@@ -81,7 +71,9 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, schemars::JsonSchema,
+)]
 pub struct TypeDefVariant<T: Form = MetaForm> {
     /// The variants of a variant type
     #[cfg_attr(
@@ -147,7 +139,7 @@ where
     ))
 )]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, schemars::JsonSchema)]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
     name: T::String,

@@ -76,7 +76,7 @@ impl Form for MetaForm {
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
 #[cfg_attr(feature = "serde", derive(Serialize))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, schemars::JsonSchema)]
 pub enum PortableForm {}
 
 /// Need this since TypeId doesn't implement JsonSchema

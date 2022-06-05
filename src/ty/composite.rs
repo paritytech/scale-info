@@ -15,23 +15,13 @@
 use crate::prelude::vec::Vec;
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    Field,
-    IntoPortable,
-    Registry,
+    form::{Form, MetaForm, PortableForm},
+    Field, IntoPortable, Registry,
 };
 use derive_more::From;
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A composite type, consisting of either named (struct) or unnamed (tuple
 /// struct) fields
@@ -69,7 +59,9 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode, schemars::JsonSchema,
+)]
 pub struct TypeDefComposite<T: Form = MetaForm> {
     /// The fields of the composite type.
     #[cfg_attr(
