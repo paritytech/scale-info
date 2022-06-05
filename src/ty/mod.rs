@@ -12,43 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::prelude::{
-    vec,
-    vec::Vec,
-};
+use crate::prelude::{vec, vec::Vec};
 
 use crate::{
     build::TypeBuilder,
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    IntoPortable,
-    MetaType,
-    Registry,
-    TypeInfo,
+    form::{Form, MetaForm, PortableForm},
+    IntoPortable, MetaType, Registry, TypeInfo,
 };
 use derive_more::From;
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 mod composite;
 mod fields;
 mod path;
 mod variant;
 
-pub use self::{
-    composite::*,
-    fields::*,
-    path::*,
-    variant::*,
-};
+pub use self::{composite::*, fields::*, path::*, variant::*};
 
 /// A [`Type`] definition with optional metadata.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -296,7 +277,7 @@ impl IntoPortable for TypeDef {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug, schemars::JsonSchema)]
 pub enum TypeDefPrimitive {
     /// `bool` type
     #[codec(index = 0)]

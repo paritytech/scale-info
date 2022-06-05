@@ -23,26 +23,29 @@
 //! registry.
 
 use crate::prelude::{
-    collections::btree_map::{
-        BTreeMap,
-        Entry,
-    },
+    collections::btree_map::{BTreeMap, Entry},
     marker::PhantomData,
     vec::Vec,
 };
 
 #[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 /// A symbol that is not lifetime tracked.
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
 #[derive(
-    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, scale::Encode, scale::Decode,
+    Debug,
+    Copy,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    scale::Encode,
+    scale::Decode,
+    schemars::JsonSchema,
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
@@ -172,11 +175,9 @@ where
     /// Returns the symbol of the given element or `None` if it hasn't been
     /// interned already.
     pub fn get(&self, sym: &T) -> Option<Symbol<T>> {
-        self.map.get(sym).map(|&id| {
-            Symbol {
-                id: id as u32,
-                marker: PhantomData,
-            }
+        self.map.get(sym).map(|&id| Symbol {
+            id: id as u32,
+            marker: PhantomData,
         })
     }
 
@@ -185,7 +186,7 @@ where
     pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
         let idx = sym.id as usize;
         if idx >= self.vec.len() {
-            return None
+            return None;
         }
         self.vec.get(idx)
     }

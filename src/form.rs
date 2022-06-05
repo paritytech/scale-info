@@ -29,15 +29,9 @@
 //! Other forms, such as a portable form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
-use crate::prelude::{
-    any::TypeId,
-    fmt::Debug,
-};
+use crate::prelude::{any::TypeId, fmt::Debug};
 
-use crate::{
-    interner::UntrackedSymbol,
-    meta_type::MetaType,
-};
+use crate::{interner::UntrackedSymbol, meta_type::MetaType};
 
 #[cfg(feature = "serde")]
 use serde::Serialize;
@@ -49,9 +43,16 @@ use serde::Serialize;
 /// interning data structures.
 pub trait Form {
     /// The type representing the type.
-    type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+    type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug + schemars::JsonSchema;
     /// The string type.
-    type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+    type String: AsRef<str>
+        + PartialEq
+        + Eq
+        + PartialOrd
+        + Ord
+        + Clone
+        + Debug
+        + schemars::JsonSchema;
 }
 
 /// A meta meta-type.
@@ -78,16 +79,44 @@ impl Form for MetaForm {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}
 
+/// Need this since TypeId doesn't implement JsonSchema
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
+pub struct TypeIdDef(pub TypeId);
+
+impl core::ops::Deref for TypeIdDef {
+    type Target = TypeId;
+
+    fn deref(&self) -> &TypeId {
+        &self.0
+    }
+}
+
+impl From<TypeId> for TypeIdDef {
+    fn from(id: TypeId) -> Self {
+        Self(id)
+    }
+}
+
+impl schemars::JsonSchema for TypeIdDef {
+    fn schema_name() -> String {
+        "TypeId".into()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        gen.subschema_for::<u64>()
+    }
+}
+
 cfg_if::cfg_if! {
     if #[cfg(any(feature = "std", feature = "decode"))] {
         impl Form for PortableForm {
-            type Type = UntrackedSymbol<TypeId>;
+            type Type = UntrackedSymbol<TypeIdDef>;
             // Owned string required for decoding/deserialization
             type String = crate::prelude::string::String;
         }
     } else {
         impl Form for PortableForm {
-            type Type = UntrackedSymbol<TypeId>;
+            type Type = UntrackedSymbol<TypeIdDef>;
             type String = &'static str;
         }
     }

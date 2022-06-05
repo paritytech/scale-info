@@ -15,22 +15,11 @@
 use crate::prelude::{
     any::TypeId,
     cmp::Ordering,
-    fmt::{
-        Debug,
-        Error as FmtError,
-        Formatter,
-    },
-    hash::{
-        Hash,
-        Hasher,
-    },
+    fmt::{Debug, Error as FmtError, Formatter},
+    hash::{Hash, Hasher},
 };
 
-use crate::{
-    form::MetaForm,
-    Type,
-    TypeInfo,
-};
+use crate::{form::MetaForm, Type, TypeInfo};
 
 /// A metatype abstraction.
 ///
@@ -46,7 +35,23 @@ pub struct MetaType {
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
+    //
+    // NANDO: This is a Rust type
     type_id: TypeId,
+}
+
+impl schemars::JsonSchema for MetaType {
+    fn schema_name() -> String {
+        "MetaType".into()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        todo!()
+    }
+
+    fn is_referenceable() -> bool {
+        todo!()
+    }
 }
 
 impl PartialEq for MetaType {

@@ -14,23 +14,13 @@
 
 use crate::{
     build::FieldBuilder,
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
+    form::{Form, MetaForm, PortableForm},
     prelude::vec::Vec,
-    IntoPortable,
-    MetaType,
-    Registry,
+    IntoPortable, MetaType, Registry,
 };
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A field of a struct-like data type.
 ///
@@ -72,7 +62,7 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode, schemars::JsonSchema)]
 pub struct Field<T: Form = MetaForm> {
     /// The name of the field. None for unnamed fields.
     #[cfg_attr(
@@ -96,6 +86,25 @@ pub struct Field<T: Form = MetaForm> {
     )]
     docs: Vec<T::String>,
 }
+
+// impl<T: Form> schemars::JsonSchema for Field<T> {
+//     fn schema_name() -> String {
+//         // TODO: Check case here
+//         "Field".into()
+//     }
+//
+//     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+//         // let mut schema = gen.subschema_for::<Option<String>>();
+//         todo!()
+//         // schemars::schema::SchemaObject {
+//
+//         // }.into()
+//     }
+//
+//     fn is_referenceable() -> bool {
+//         todo!()
+//     }
+// }
 
 impl IntoPortable for Field {
     type Output = Field<PortableForm>;
