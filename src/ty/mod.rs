@@ -42,7 +42,9 @@ pub use self::{composite::*, fields::*, path::*, variant::*};
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
+#[derive(
+    PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode, schemars::JsonSchema,
+)]
 pub struct Type<T: Form = MetaForm> {
     /// The unique path to the type. Can be empty for built-in types
     #[cfg_attr(
