@@ -241,10 +241,8 @@ mod tests {
 
         assert_eq!(4, readonly.types().len());
 
-        let mut expected = 0;
-        for ty in readonly.types() {
-            assert_eq!(expected, ty.id());
-            expected += 1;
+        for (expected, ty) in readonly.types().iter().enumerate() {
+            assert_eq!(expected as u32, ty.id());
         }
     }
 
