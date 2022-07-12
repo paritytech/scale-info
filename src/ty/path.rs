@@ -44,7 +44,7 @@ use serde::{
 ///
 /// This consists of several segments that each have to be a valid Rust
 /// identifier. The first segment represents the crate name in which the type
-/// has been defined. The last
+/// has been defined. The last segment is the identifier accessed with `ident()`.
 ///
 /// Rust prelude type may have an empty namespace definition.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
