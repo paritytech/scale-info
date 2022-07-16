@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -241,10 +241,8 @@ mod tests {
 
         assert_eq!(4, readonly.types().len());
 
-        let mut expected = 0;
-        for ty in readonly.types() {
-            assert_eq!(expected, ty.id());
-            expected += 1;
+        for (expected, ty) in readonly.types().iter().enumerate() {
+            assert_eq!(expected as u32, ty.id());
         }
     }
 

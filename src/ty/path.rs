@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ use serde::{
 ///
 /// This consists of several segments that each have to be a valid Rust
 /// identifier. The first segment represents the crate name in which the type
-/// has been defined. The last
+/// has been defined. The last segment is the identifier accessed with `ident()`.
 ///
 /// Rust prelude type may have an empty namespace definition.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -202,6 +202,16 @@ mod tests {
             Path::from_segments(vec!["_"]),
             Ok(Path {
                 segments: vec!["_"]
+            })
+        );
+    }
+
+    #[test]
+    fn path_with_raw_identifers_ok() {
+        assert_eq!(
+            Path::from_segments(vec!["r#mod", "r#Struct"]),
+            Ok(Path {
+                segments: vec!["r#mod", "r#Struct"]
             })
         );
     }

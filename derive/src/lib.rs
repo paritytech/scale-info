@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ mod utils;
 use self::attr::{
     Attributes,
     CaptureDocsAttr,
+    CratePathAttr,
 };
 use proc_macro::TokenStream;
 use proc_macro2::{
@@ -69,33 +70,28 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
 
 struct TypeInfoImpl {
     ast: DeriveInput,
-    scale_info: syn::Path,
     attrs: Attributes,
 }
 
 impl TypeInfoImpl {
     fn parse(input: TokenStream2) -> Result<Self> {
         let ast: DeriveInput = syn::parse2(input)?;
-        let scale_info = scale_info_crate_path()?;
+
         let attrs = attr::Attributes::from_ast(&ast)?;
 
-        Ok(Self {
-            ast,
-            scale_info,
-            attrs,
-        })
+        Ok(Self { ast, attrs })
     }
 
     fn expand(&self) -> Result<TokenStream2> {
         let ident = &self.ast.ident;
-        let scale_info = &self.scale_info;
+        let scale_info = crate_path(self.attrs.crate_path())?;
 
         let where_clause = trait_bounds::make_where_clause(
             &self.attrs,
             ident,
             &self.ast.generics,
             &self.ast.data,
-            &self.scale_info,
+            &scale_info,
         )?;
 
         let (impl_generics, ty_generics, _) = self.ast.generics.split_for_impl();
@@ -103,18 +99,22 @@ impl TypeInfoImpl {
         let type_params = self.ast.generics.type_params().map(|tp| {
             let ty_ident = &tp.ident;
             let ty = if self.attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
-                quote! { ::core::option::Option::Some(#scale_info ::meta_type::<#ty_ident>()) }
+
+            quote! { ::core::option::Option::Some(:: #scale_info ::meta_type::<#ty_ident>()) }
+
             } else {
                 quote! { ::core::option::Option::None }
             };
             quote! {
-                #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
+
+                :: #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
+
             }
         });
 
         let build_type = match &self.ast.data {
-            Data::Struct(ref s) => self.generate_composite_type(s),
-            Data::Enum(ref e) => self.generate_variant_type(e, scale_info),
+            Data::Struct(ref s) => self.generate_composite_type(s, &scale_info),
+            Data::Enum(ref e) => self.generate_variant_type(e, &scale_info),
             Data::Union(_) => {
                 return Err(Error::new_spanned(&self.ast, "Unions not supported"))
             }
@@ -122,9 +122,11 @@ impl TypeInfoImpl {
         let docs = self.generate_docs(&self.ast.attrs);
 
         Ok(quote! {
-            impl #impl_generics #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+            impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+
                 type Identity = Self;
-                fn type_info() -> #scale_info ::Type {
+
+                fn type_info() -> #scale_info::Type {
                     #scale_info ::Type::builder()
                         .path(#scale_info ::Path::new(::core::stringify!(#ident), ::core::module_path!()))
                         .type_params(#scale_info ::prelude::vec![ #( #type_params ),* ])
@@ -135,7 +137,11 @@ impl TypeInfoImpl {
         })
     }
 
-    fn generate_composite_type(&self, data_struct: &DataStruct) -> TokenStream2 {
+    fn generate_composite_type(
+        &self,
+        data_struct: &DataStruct,
+        scale_info: &syn::Path,
+    ) -> TokenStream2 {
         let fields = match data_struct.fields {
             Fields::Named(ref fs) => {
                 let fields = self.generate_fields(&fs.named);
@@ -151,9 +157,9 @@ impl TypeInfoImpl {
                 }
             }
         };
-        let scale_info = &self.scale_info;
+
         quote! {
-            composite(#scale_info ::build::Fields::#fields)
+            composite(:: #scale_info ::build::Fields::#fields)
         }
     }
 
@@ -171,7 +177,14 @@ impl TypeInfoImpl {
                         *lifetime = parse_quote!('static)
                     }
                 }
-                let mut ty = ty.clone();
+                let mut ty = match ty {
+                    // When a type is specified as part of a `macro_rules!`, the tokens passed to
+                    // the `TypeInfo` derive macro are a type `Group`, which is pretty printed with
+                    // invisible delimiters e.g. /*«*/ bool /*»*/. To avoid printing the delimiters
+                    // the inner type element is extracted.
+                    syn::Type::Group(group) => (*group.elem).clone(),
+                    _ => ty.clone(),
+                };
                 StaticLifetimesReplace.visit_type_mut(&mut ty);
 
                 let type_name = clean_type_string(&quote!(#ty).to_string());
@@ -246,7 +259,8 @@ impl TypeInfoImpl {
             });
         quote! {
             variant(
-                #scale_info ::build::Variants::new()
+                :: #scale_info ::build::Variants::new()
+
                     #( #variants )*
             )
         }
@@ -288,22 +302,43 @@ impl TypeInfoImpl {
     }
 }
 
-/// Find the name given to the `scale-info` crate in the context we run in. If scale-info is not
-/// among the dependencies then we must be deriving types for the scale-info crate itself, in which
-/// case we need to refer to it using the reserved word "crate", so the object paths keep working.
-fn scale_info_crate_path() -> Result<syn::Path> {
-    use proc_macro_crate::FoundCrate;
-    const SCALE_INFO_CRATE_NAME: &str = "scale-info";
+// /// Find the name given to the `scale-info` crate in the context we run in. If scale-info is not
+// /// among the dependencies then we must be deriving types for the scale-info crate itself, in which
+// /// case we need to refer to it using the reserved word "crate", so the object paths keep working.
+// fn scale_info_crate_path() -> Result<syn::Path> {
+//     use proc_macro_crate::FoundCrate;
+//     const SCALE_INFO_CRATE_NAME: &str = "scale-info";
 
-    let crate_ident = match proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME) {
-        Ok(FoundCrate::Itself) => parse_quote! { crate },
-        Ok(FoundCrate::Name(name)) => {
-            let ident = Ident::new(&name, Span::call_site());
-            parse_quote! { :: #ident }
-        }
-        Err(e) => return Err(syn::Error::new(Span::call_site(), e)),
-    };
-    Ok(crate_ident)
+//     let crate_ident = match proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME) {
+//         Ok(FoundCrate::Itself) => parse_quote! { crate },
+//         Ok(FoundCrate::Name(name)) => {
+//             let crate_ident = Ident::new(&name, Span::call_site());
+//             parse_quote! { :: #crate_ident }
+//         }
+//         Err(e) => return Err(syn::Error::new(Span::call_site(), e)),
+//     };
+//     Ok(crate_ident)
+
+/// Get the name of a crate, to be robust against renamed dependencies.
+fn crate_name_path(name: &str) -> Result<syn::Path> {
+    proc_macro_crate::crate_name(name)
+        .map(|crate_name| {
+            use proc_macro_crate::FoundCrate::*;
+            match crate_name {
+                Itself => Ident::new("self", Span::call_site()).into(),
+                Name(name) => {
+                    let crate_ident = Ident::new(&name, Span::call_site());
+                    parse_quote!( ::#crate_ident )
+                }
+            }
+        })
+        .map_err(|e| syn::Error::new(Span::call_site(), &e))
+}
+
+fn crate_path(crate_path_attr: Option<&CratePathAttr>) -> Result<syn::Path> {
+    crate_path_attr
+        .map(|path_attr| Ok(path_attr.path().clone()))
+        .unwrap_or_else(|| crate_name_path("scale-info"))
 }
 
 fn clean_type_string(input: &str) -> String {
@@ -324,5 +359,4 @@ fn clean_type_string(input: &str) -> String {
         .replace("< ", "<")
         .replace(" >", ">")
         .replace("& \'", "&'")
-        .replace("&\'", "&'")
 }

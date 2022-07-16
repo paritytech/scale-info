@@ -7,6 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.2] - 2022-05-18
+
+### Fixed
+- Strip invisible delimiters from type name [(#156)](https://github.com/paritytech/scale-info/pull/156)
+
+## [2.1.1] - 2022-04-11
+
+### Fixed
+- Restore leading `::` for crate access [(#152)](https://github.com/paritytech/scale-info/pull/152)
+
+## [2.1.0] - 2022-04-11
+
+### Added
+- Add ability to reexport crate [(#145)](https://github.com/paritytech/scale-info/pull/145)
+
+### Fixed
+- Allow raw identifiers e.g. `r#mod` [(#149)](https://github.com/paritytech/scale-info/pull/149)
+
+## [2.0.1] - 2022-02-24
+
+### Changed
+- Revert bitvec field order to maintain binary compatiblilty
+
+## [2.0.0] - 2022-02-07
+
+### Changed
+- Upgraded to parity-scale-codec 3.0
+- Upgraded to bitvec 1.0
+- Minimum Rust version is 1.56.1 for edition 2021
+
+## [1.0.0] - 2021-09-01
+### Changed
+- Replace Range variant with built-in composite definitions [(#130)](https://github.com/paritytech/scale-info/pull/130)
+
+## [0.12.0] - 2021-08-25
+### Changed
+- Add range getters, combine start and end types [(#126)](https://github.com/paritytech/scale-info/pull/126)
+
+## [0.11.0] - 2021-08-25
+### Added
+- Add type parameter getters [(#122)](https://github.com/paritytech/scale-info/pull/122)
+- Add support for Range and RangeInclusive [(#124)](https://github.com/paritytech/scale-info/pull/124)
+- Explicit codec indices for `TypeDef` and `TypeDefPrimitive` enums [(#127)](https://github.com/paritytech/scale-info/pull/127)
+
 ## [0.10.0] - 2021-07-29
 ### Added
 - Add capture_docs attribute [(#118)](https://github.com/paritytech/scale-info/pull/118)

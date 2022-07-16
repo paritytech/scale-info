@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -41,7 +41,7 @@
 //! Enable the `derive` feature of this crate:
 //!
 //! ```toml
-//! scale-info = { version = "0.6.0", features = ["derive"] }
+//! scale-info = { version = "2.0.0", features = ["derive"] }
 //! ```
 //!
 //! ```ignore
@@ -207,6 +207,22 @@
 //! This is useful e.g. when compiling metadata into a Wasm blob, and it is desirable to keep the
 //! binary size as small as possible, so the `docs` feature would be disabled. In case the docs for
 //! some types is necessary they could be enabled on a per-type basis with the above attribute.
+//!
+//! #### `#[scale_info(crate = path::to::crate)]`
+//!
+//! Specify a path to the scale-info crate instance to use when referring to the APIs from generated
+//! code. This is normally only applicable when invoking re-exported scale-info derives from a public
+//! macro in a different crate. For example:
+//! ```ignore
+//! use scale_info_reexport::info::TypeInfo;
+//!
+//! #[derive(TypeInfo)]
+//! #[scale_info(crate = scale_info_reexport::info)]
+//! enum TestEnum {
+//!     FirstVariant,
+//!     SecondVariant,
+//! }
+//! ```
 //!
 //! # Forms
 //!

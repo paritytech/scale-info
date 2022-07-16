@@ -79,8 +79,8 @@ fields have a name (e.g. structs) or all fields are unnamed (e.g. tuples).
 ### Path
 
 The path of a type is a unique sequence of identifiers. Rust types typically construct a path from
-the namespace and the identifier e.g. `foo::bar::Baz` is converted to the path `["foo", "bar
-", "Baz"]`.
+the namespace and the identifier e.g. `foo::bar::Baz` is converted to the path `["foo", "bar", 
+"Baz"]`.
 
 ### Composite
 

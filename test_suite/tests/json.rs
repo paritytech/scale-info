@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
+use info::{self as scale_info,};
 use scale_info::prelude::{
     boxed::Box,
     collections::VecDeque,
@@ -394,7 +395,18 @@ fn test_ranges() {
             {
                 "id": 1,
                 "type": {
-                    "def": { "range": { "start": 2, "end": 2, "inclusive": false} },
+                    "path": ["Range"],
+                    "params": [
+                        { "name": "Idx", "type": 2 }
+                    ],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                { "name": "start", "type": 2, "typeName": "Idx" },
+                                { "name": "end", "type": 2, "typeName": "Idx" },
+                            ],
+                        },
+                    }
                 }
             },
             {
@@ -406,7 +418,18 @@ fn test_ranges() {
             {
                 "id": 3,
                 "type": {
-                    "def": { "range": { "start": 4, "end": 4, "inclusive": true} },
+                    "path": ["RangeInclusive"],
+                    "params": [
+                        { "name": "Idx", "type": 4 }
+                    ],
+                    "def": {
+                        "composite": {
+                            "fields": [
+                                { "name": "start", "type": 4, "typeName": "Idx" },
+                                { "name": "end", "type": 4, "typeName": "Idx" },
+                            ],
+                        },
+                    }
                 }
             },
             {

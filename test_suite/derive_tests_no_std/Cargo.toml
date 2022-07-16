@@ -2,7 +2,7 @@
 name = "scale-info-derive-tests-no-std"
 version = "0.0.0"
 authors = ["Parity Technologies <admin@parity.io>", "Centrality Developers <support@centrality.ai>"]
-edition = "2018"
+edition = "2021"
 publish = false
 
 license = "Apache-2.0"

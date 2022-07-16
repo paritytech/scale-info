@@ -1,4 +1,4 @@
-// Copyright 2019-2021 Parity Technologies (UK) Ltd.
+// Copyright 2019-2022 Parity Technologies (UK) Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
 // limitations under the License.
 
 use crate::prelude::{
-    fmt,
     vec,
     vec::Vec,
 };
@@ -116,7 +115,6 @@ impl_from_type_def_for_type!(
     TypeDefArray,
     TypeDefSequence,
     TypeDefTuple,
-    TypeDefRange,
     TypeDefCompact,
     TypeDefBitSequence,
 );
@@ -226,6 +224,16 @@ where
 }
 
 /// The possible types a SCALE encodable Rust value could have.
+///
+/// # Note
+///
+/// In order to preserve backwards compatibility, variant indices are explicitly specified instead
+/// of depending on the default implicit ordering.
+///
+/// When adding a new variant, it must be added at the end with an incremented index.
+///
+/// When removing an existing variant, the rest of variant indices remain the same, and the removed
+/// index should not be reused.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
     feature = "serde",
@@ -240,22 +248,28 @@ where
 #[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
+    #[codec(index = 0)]
     Composite(TypeDefComposite<T>),
     /// A variant type (e.g. an enum)
+    #[codec(index = 1)]
     Variant(TypeDefVariant<T>),
     /// A sequence type with runtime known length.
+    #[codec(index = 2)]
     Sequence(TypeDefSequence<T>),
     /// An array type with compile-time known length.
+    #[codec(index = 3)]
     Array(TypeDefArray<T>),
     /// A tuple type.
+    #[codec(index = 4)]
     Tuple(TypeDefTuple<T>),
-    /// A Range type.
-    Range(TypeDefRange<T>),
     /// A Rust primitive type.
+    #[codec(index = 5)]
     Primitive(TypeDefPrimitive),
     /// A type using the [`Compact`] encoding
+    #[codec(index = 6)]
     Compact(TypeDefCompact<T>),
     /// A type representing a sequence of bits.
+    #[codec(index = 7)]
     BitSequence(TypeDefBitSequence<T>),
 }
 
@@ -269,7 +283,6 @@ impl IntoPortable for TypeDef {
             TypeDef::Sequence(sequence) => sequence.into_portable(registry).into(),
             TypeDef::Array(array) => array.into_portable(registry).into(),
             TypeDef::Tuple(tuple) => tuple.into_portable(registry).into(),
-            TypeDef::Range(range) => range.into_portable(registry).into(),
             TypeDef::Primitive(primitive) => primitive.into(),
             TypeDef::Compact(compact) => compact.into_portable(registry).into(),
             TypeDef::BitSequence(bitseq) => bitseq.into_portable(registry).into(),
@@ -278,6 +291,10 @@ impl IntoPortable for TypeDef {
 }
 
 /// A primitive Rust type.
+///
+/// # Note
+///
+/// Explicit codec indices specified to ensure backwards compatibility. See [`TypeDef`].
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
@@ -285,34 +302,49 @@ impl IntoPortable for TypeDef {
 #[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDefPrimitive {
     /// `bool` type
+    #[codec(index = 0)]
     Bool,
     /// `char` type
+    #[codec(index = 1)]
     Char,
     /// `str` type
+    #[codec(index = 2)]
     Str,
     /// `u8`
+    #[codec(index = 3)]
     U8,
     /// `u16`
+    #[codec(index = 4)]
     U16,
     /// `u32`
+    #[codec(index = 5)]
     U32,
     /// `u64`
+    #[codec(index = 6)]
     U64,
     /// `u128`
+    #[codec(index = 7)]
     U128,
     /// 256 bits unsigned int (no rust equivalent)
+    #[codec(index = 8)]
     U256,
     /// `i8`
+    #[codec(index = 9)]
     I8,
     /// `i16`
+    #[codec(index = 10)]
     I16,
     /// `i32`
+    #[codec(index = 11)]
     I32,
     /// `i64`
+    #[codec(index = 12)]
     I64,
     /// `i128`
+    #[codec(index = 13)]
     I128,
     /// 256 bits signed int (no rust equivalent)
+    #[codec(index = 14)]
     I256,
 }
 
@@ -418,50 +450,6 @@ where
     /// Returns the types of the tuple fields.
     pub fn fields(&self) -> &[T::Type] {
         &self.fields
-    }
-}
-
-/// Type describing a [`Range`].
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(
-    feature = "serde",
-    serde(bound(
-        serialize = "T::Type: Serialize, T::String: Serialize",
-        deserialize = "T::Type: DeserializeOwned, T::String: DeserializeOwned",
-    ))
-)]
-#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
-pub struct TypeDefRange<T: Form = MetaForm> {
-    start: T::Type,
-    end: T::Type,
-    inclusive: bool,
-}
-
-impl TypeDefRange {
-    /// Creates a new [`TypeDefRange`] for the supplied index type. Use the `inclusive` parameter to
-    /// distinguish between [`core::ops::Range`] and [`core::ops::RangeInclusive`] range types.
-    pub fn new<Idx>(inclusive: bool) -> Self
-    where
-        Idx: PartialOrd + fmt::Debug + TypeInfo + 'static,
-    {
-        Self {
-            start: MetaType::new::<Idx>(),
-            end: MetaType::new::<Idx>(),
-            inclusive,
-        }
-    }
-}
-
-impl IntoPortable for TypeDefRange {
-    type Output = TypeDefRange<PortableForm>;
-
-    fn into_portable(self, registry: &mut Registry) -> Self::Output {
-        TypeDefRange {
-            start: registry.register_type(&self.start),
-            end: registry.register_type(&self.end),
-            inclusive: self.inclusive,
-        }
     }
 }
 
@@ -598,14 +586,14 @@ where
 #[cfg(feature = "bit-vec")]
 impl TypeDefBitSequence {
     /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
-    pub fn new<O, T>() -> Self
+    pub fn new<T, O>() -> Self
     where
-        O: bitvec::order::BitOrder + TypeInfo + 'static,
         T: bitvec::store::BitStore + TypeInfo + 'static,
+        O: bitvec::order::BitOrder + TypeInfo + 'static,
     {
         Self {
-            bit_order_type: MetaType::new::<O>(),
             bit_store_type: MetaType::new::<T>(),
+            bit_order_type: MetaType::new::<O>(),
         }
     }
 }
