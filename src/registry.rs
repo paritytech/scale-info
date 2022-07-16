@@ -162,6 +162,7 @@ impl Registry {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {
     types: Vec<PortableType>,
@@ -199,6 +200,7 @@ impl PortableRegistry {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableType {
     #[codec(compact)]

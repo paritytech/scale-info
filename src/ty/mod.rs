@@ -179,6 +179,7 @@ where
     ))
 )]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct TypeParameter<T: Form = MetaForm> {
     /// The name of the generic type parameter e.g. "T".
@@ -549,6 +550,7 @@ where
 /// enabled, but can be decoded or deserialized into the `PortableForm` without this feature.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefBitSequence<T: Form = MetaForm> {
     /// The type implementing [`bitvec::store::BitStore`].
