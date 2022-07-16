@@ -100,14 +100,14 @@ impl TypeInfoImpl {
             let ty_ident = &tp.ident;
             let ty = if self.attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
 
-            quote! { ::core::option::Option::Some(:: #scale_info ::meta_type::<#ty_ident>()) }
+            quote! { ::core::option::Option::Some(#scale_info ::meta_type::<#ty_ident>()) }
 
             } else {
                 quote! { ::core::option::Option::None }
             };
             quote! {
 
-                :: #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
+                #scale_info ::TypeParameter::new(::core::stringify!(#ty_ident), #ty)
 
             }
         });
@@ -122,7 +122,7 @@ impl TypeInfoImpl {
         let docs = self.generate_docs(&self.ast.attrs);
 
         Ok(quote! {
-            impl #impl_generics :: #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
+            impl #impl_generics #scale_info ::TypeInfo for #ident #ty_generics #where_clause {
 
                 type Identity = Self;
 
@@ -159,7 +159,7 @@ impl TypeInfoImpl {
         };
 
         quote! {
-            composite(:: #scale_info ::build::Fields::#fields)
+            composite( #scale_info ::build::Fields::#fields)
         }
     }
 
@@ -259,7 +259,7 @@ impl TypeInfoImpl {
             });
         quote! {
             variant(
-                :: #scale_info ::build::Variants::new()
+                 #scale_info ::build::Variants::new()
 
                     #( #variants )*
             )
@@ -302,38 +302,40 @@ impl TypeInfoImpl {
     }
 }
 
-// /// Find the name given to the `scale-info` crate in the context we run in. If scale-info is not
-// /// among the dependencies then we must be deriving types for the scale-info crate itself, in which
-// /// case we need to refer to it using the reserved word "crate", so the object paths keep working.
-// fn scale_info_crate_path() -> Result<syn::Path> {
-//     use proc_macro_crate::FoundCrate;
-//     const SCALE_INFO_CRATE_NAME: &str = "scale-info";
+/// Find the name given to the `scale-info` crate in the context we run in. If scale-info is not
+/// among the dependencies then we must be deriving types for the scale-info crate itself, in which
+/// case we need to refer to it using the reserved word "crate", so the object paths keep working.
+fn crate_name_path(_name: &str) -> Result<syn::Path> {
+    use proc_macro_crate::FoundCrate;
+    const SCALE_INFO_CRATE_NAME: &str = "scale-info";
 
-//     let crate_ident = match proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME) {
-//         Ok(FoundCrate::Itself) => parse_quote! { crate },
-//         Ok(FoundCrate::Name(name)) => {
-//             let crate_ident = Ident::new(&name, Span::call_site());
-//             parse_quote! { :: #crate_ident }
-//         }
-//         Err(e) => return Err(syn::Error::new(Span::call_site(), e)),
-//     };
-//     Ok(crate_ident)
-
-/// Get the name of a crate, to be robust against renamed dependencies.
-fn crate_name_path(name: &str) -> Result<syn::Path> {
-    proc_macro_crate::crate_name(name)
-        .map(|crate_name| {
-            use proc_macro_crate::FoundCrate::*;
-            match crate_name {
-                Itself => Ident::new("self", Span::call_site()).into(),
-                Name(name) => {
-                    let crate_ident = Ident::new(&name, Span::call_site());
-                    parse_quote!( ::#crate_ident )
-                }
-            }
-        })
-        .map_err(|e| syn::Error::new(Span::call_site(), &e))
+    let crate_ident = match proc_macro_crate::crate_name(SCALE_INFO_CRATE_NAME) {
+        Ok(FoundCrate::Itself) => parse_quote! { crate },
+        Ok(FoundCrate::Name(name)) => {
+            let crate_ident = Ident::new(&name, Span::call_site());
+            parse_quote! { #crate_ident }
+        }
+        Err(e) => return Err(syn::Error::new(Span::call_site(), e)),
+    };
+    Ok(crate_ident)
 }
+
+// /// Get the name of a crate, to be robust against renamed dependencies.
+// fn crate_name_path(name: &str) -> Result<syn::Path> {
+//     proc_macro_crate::crate_name(name)
+//         .map(|crate_name| {
+//             use proc_macro_crate::FoundCrate::*;
+//             match crate_name {
+//                 Itself =>  parse_quote! { crate              },
+//                 Ident::new("self", Span::call_site()).into(),
+//                 Name(name) => {
+//                     let crate_ident = Ident::new(&name, Span::call_site());
+//                     parse_quote!( ::#crate_ident )
+//                 }
+//             }
+//         })
+//         .map_err(|e| syn::Error::new(Span::call_site(), &e))
+// }
 
 fn crate_path(crate_path_attr: Option<&CratePathAttr>) -> Result<syn::Path> {
     crate_path_attr
