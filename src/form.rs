@@ -76,6 +76,7 @@ impl Form for MetaForm {
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
 #[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}
 
