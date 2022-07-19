@@ -400,7 +400,6 @@ impl TypeInfo for TypeId {
     fn type_info() -> Type {
         Type::builder()
             .path(Path::new("TypeId", "core::any"))
-            // .type_params(vec![MetaType::new::<T>()])
             .composite(build::Fields::named()
                  .field(|f| f.ty::<u64>().name("t").type_name("u64"))
             )
