@@ -96,7 +96,9 @@ impl MetaType {
         }
     }
 
-    /// todo: docs
+    /// Creates a new meta type from the user supplied type id and type info function.
+    ///
+    /// NOTE: It is the responsibility of the caller to ensure unique type ids per custom type.
     pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm>) -> Self {
         Self {
             fn_type_info,
