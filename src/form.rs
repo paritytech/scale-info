@@ -60,7 +60,7 @@ pub trait FormString:
 
 impl FormString for &'static str {}
 #[cfg(feature = "std")]
-impl FormString for String {}
+impl FormString for crate::prelude::string::String {}
 
 /// A meta meta-type.
 ///
