@@ -59,8 +59,6 @@ pub trait FormString:
 }
 
 impl FormString for &'static str {}
-#[cfg(feature = "std")]
-impl FormString for crate::prelude::string::String {}
 
 /// A meta meta-type.
 ///
@@ -91,6 +89,8 @@ pub enum PortableForm {}
 
 cfg_if::cfg_if! {
     if #[cfg(any(feature = "std", feature = "decode"))] {
+        impl FormString for crate::prelude::string::String {}
+
         impl Form for PortableForm {
             type Type = UntrackedSymbol<TypeId>;
             // Owned string required for decoding/deserialization
