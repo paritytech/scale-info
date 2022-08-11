@@ -16,12 +16,12 @@ use crate::{
     build::FieldBuilder,
     form::{
         Form,
+        FormString,
         MetaForm,
         PortableForm,
     },
     prelude::vec::Vec,
     IntoPortable,
-    MetaType,
     Registry,
 };
 use scale::Encode;
@@ -110,9 +110,15 @@ impl IntoPortable for Field {
     }
 }
 
-impl Field {
+impl<T> Field<T>
+where
+    T: Form,
+{
     /// Returns a new [`FieldBuilder`] for constructing a field.
-    pub fn builder() -> FieldBuilder {
+    pub fn builder<'a, Str>() -> FieldBuilder<'a, Str>
+    where
+        Str: FormString,
+    {
         FieldBuilder::new()
     }
 
@@ -120,10 +126,10 @@ impl Field {
     ///
     /// Use this constructor if you want to instantiate from a given meta type.
     pub fn new(
-        name: Option<&'static str>,
-        ty: MetaType,
-        type_name: Option<&'static str>,
-        docs: &[&'static str],
+        name: Option<T::String>,
+        ty: T::Type,
+        type_name: Option<T::String>,
+        docs: &[T::String],
     ) -> Self {
         Self {
             name,

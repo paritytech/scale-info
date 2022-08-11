@@ -101,11 +101,14 @@ impl IntoPortable for TypeDefVariant {
     }
 }
 
-impl TypeDefVariant {
+impl<T> TypeDefVariant<T>
+where
+    T: Form,
+{
     /// Create a new `TypeDefVariant` with the given variants
     pub fn new<I>(variants: I) -> Self
     where
-        I: IntoIterator<Item = Variant>,
+        I: IntoIterator<Item = Variant<T>>,
     {
         Self {
             variants: variants.into_iter().collect(),
@@ -184,13 +187,16 @@ impl IntoPortable for Variant {
     }
 }
 
-impl Variant {
+impl<T> Variant<T>
+where
+    T: Form,
+{
     /// Creates a new variant.
     pub(crate) fn new(
-        name: &'static str,
-        fields: Vec<Field<MetaForm>>,
+        name: T::String,
+        fields: Vec<Field<T>>,
         index: u8,
-        docs: Vec<&'static str>,
+        docs: Vec<T::String>,
     ) -> Self {
         Self {
             name,

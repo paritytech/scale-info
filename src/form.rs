@@ -29,14 +29,12 @@
 //! Other forms, such as a portable form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
-use crate::prelude::{
-    any::TypeId,
-    fmt::Debug,
-};
+use crate::prelude::fmt::Debug;
 
 use crate::{
     interner::UntrackedSymbol,
     meta_type::MetaType,
+    TypeId,
 };
 
 #[cfg(feature = "serde")]
@@ -51,8 +49,17 @@ pub trait Form {
     /// The type representing the type.
     type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
     /// The string type.
-    type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+    type String: FormString;
 }
+
+/// todo: docs
+pub trait FormString:
+    AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug
+{
+}
+
+impl FormString for &'static str {}
+impl FormString for String {}
 
 /// A meta meta-type.
 ///
@@ -60,11 +67,14 @@ pub trait Form {
 /// through the registry and `IntoPortable`.
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-pub enum MetaForm {}
+pub struct MetaForm<S: FormString = &'static str>(core::marker::PhantomData<S>);
 
-impl Form for MetaForm {
+impl<S> Form for MetaForm<S>
+where
+    S: FormString,
+{
     type Type = MetaType;
-    type String = &'static str;
+    type String = S;
 }
 
 /// Portable form that has its lifetime untracked in association to its interner.

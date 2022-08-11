@@ -120,19 +120,24 @@ impl_from_type_def_for_type!(
 
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
-    pub fn builder() -> TypeBuilder {
+    pub fn builder() -> TypeBuilder<&'static str> {
         TypeBuilder::default()
     }
+}
 
+impl<F> Type<F>
+where
+    F: Form,
+{
     pub(crate) fn new<I, D>(
-        path: Path,
+        path: Path<F>,
         type_params: I,
         type_def: D,
-        docs: Vec<&'static str>,
-    ) -> Self
+        docs: Vec<F::String>,
+    ) -> Type<F>
     where
-        I: IntoIterator<Item = TypeParameter>,
-        D: Into<TypeDef>,
+        I: IntoIterator<Item = TypeParameter<F>>,
+        D: Into<TypeDef<F>>,
     {
         Self {
             path,

@@ -14,6 +14,7 @@
 
 use crate::{
     build::*,
+    form::MetaForm,
     prelude::{
         borrow::Cow,
         boxed::Box,
@@ -362,4 +363,24 @@ fn basic_enum_with_index() {
         );
 
     assert_type!(IndexedRustEnum, ty);
+}
+
+#[test]
+fn runtime_meta_type() {
+    let mut fields = Fields::named();
+    let custom_u32_id = 1;
+    let custom_u32_type_info = <u32 as TypeInfo>::type_info;
+    for i in 0..3 {
+        fields.field_mut(|f| {
+            f.ty_meta(MetaType::new_custom(custom_u32_id, custom_u32_type_info))
+                .name(i.to_string())
+                .type_name("custom_u32".to_string())
+        })
+    }
+    let ty = TypeBuilder::<String>::default()
+        .path(
+            Path::<MetaForm<String>>::from_segments(vec!["MyCustomStruct".to_string()])
+                .unwrap(),
+        )
+        .composite(fields);
 }

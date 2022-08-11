@@ -355,6 +355,25 @@ pub use self::{
     ty::*,
 };
 
+/// todo: docs
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Ord, PartialOrd)]
+pub enum TypeId {
+    /// todo: docs
+    Rust(core::any::TypeId),
+    /// todo: docs
+    Custom(u64),
+}
+
+impl TypeId {
+    /// todo: docs
+    pub fn of<T>() -> Self
+    where
+        T: ?Sized + 'static,
+    {
+        Self::Rust(core::any::TypeId::of::<T>())
+    }
+}
+
 #[cfg(feature = "derive")]
 pub use scale_info_derive::TypeInfo;
 

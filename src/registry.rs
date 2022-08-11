@@ -24,7 +24,6 @@
 //! prelude types that live in the so-called root namespace which is empty.
 
 use crate::prelude::{
-    any::TypeId,
     collections::BTreeMap,
     fmt::Debug,
     vec::Vec,
@@ -41,6 +40,7 @@ use crate::{
     },
     meta_type::MetaType,
     Type,
+    TypeId,
 };
 use scale::Encode;
 
@@ -84,7 +84,7 @@ pub struct Registry {
     /// The database where registered types reside.
     ///
     /// The contents herein is used for serlialization.
-    types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<PortableForm>>,
+    types: BTreeMap<UntrackedSymbol<TypeId>, Type<PortableForm>>,
 }
 
 impl Default for Registry {

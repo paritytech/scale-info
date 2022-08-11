@@ -89,11 +89,14 @@ impl IntoPortable for TypeDefComposite {
     }
 }
 
-impl TypeDefComposite {
+impl<T> TypeDefComposite<T>
+where
+    T: Form,
+{
     /// Creates a new struct definition with named fields.
     pub(crate) fn new<I>(fields: I) -> Self
     where
-        I: IntoIterator<Item = Field>,
+        I: IntoIterator<Item = Field<T>>,
     {
         Self {
             fields: fields.into_iter().collect(),

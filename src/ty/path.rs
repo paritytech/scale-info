@@ -25,6 +25,7 @@ use crate::prelude::{
 use crate::{
     form::{
         Form,
+        FormString,
         MetaForm,
         PortableForm,
     },
@@ -102,10 +103,15 @@ impl Path {
         Self::from_segments(segments)
             .expect("All path segments should be valid Rust identifiers")
     }
+}
 
+impl<Str> Path<MetaForm<Str>>
+where
+    Str: FormString,
+{
     /// Create an empty path for types which shall not be named
     #[allow(unused)]
-    pub(crate) fn voldemort() -> Path {
+    pub(crate) fn voldemort() -> Path<MetaForm<Str>> {
         Path {
             segments: Vec::new(),
         }
@@ -116,9 +122,9 @@ impl Path {
     /// # Panics
     ///
     /// - If the supplied ident is not a valid Rust identifier
-    pub(crate) fn prelude(ident: &'static str) -> Path {
-        Self::from_segments(vec![ident])
-            .unwrap_or_else(|_| panic!("{} is not a valid Rust identifier", ident))
+    pub(crate) fn prelude(ident: Str) -> Path<MetaForm<Str>> {
+        Self::from_segments(vec![ident.clone()])
+            .unwrap_or_else(|_| panic!("{:?} is not a valid Rust identifier", ident))
     }
 
     /// Create a Path from the given segments
@@ -127,15 +133,18 @@ impl Path {
     ///
     /// - If no segments are supplied
     /// - If any of the segments are invalid Rust identifiers
-    pub fn from_segments<I>(segments: I) -> Result<Path, PathError>
+    pub fn from_segments<I>(segments: I) -> Result<Path<MetaForm<Str>>, PathError>
     where
-        I: IntoIterator<Item = &'static str>,
+        I: IntoIterator<Item = Str>,
     {
         let segments = segments.into_iter().collect::<Vec<_>>();
         if segments.is_empty() {
             return Err(PathError::MissingSegments)
         }
-        if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
+        if let Some(err_at) = segments
+            .iter()
+            .position(|seg| !is_rust_identifier(seg.as_ref()))
+        {
             return Err(PathError::InvalidIdentifier { segment: err_at })
         }
         Ok(Path { segments })
@@ -186,7 +195,7 @@ mod tests {
     #[test]
     fn path_ok() {
         assert_eq!(
-            Path::from_segments(vec!["hello"]),
+            Path::<MetaForm>::from_segments(vec!["hello"]),
             Ok(Path {
                 segments: vec!["hello"]
             })
@@ -217,7 +226,10 @@ mod tests {
 
     #[test]
     fn path_err() {
-        assert_eq!(Path::from_segments(vec![]), Err(PathError::MissingSegments));
+        assert_eq!(
+            Path::<MetaForm>::from_segments(vec![]),
+            Err(PathError::MissingSegments)
+        );
         assert_eq!(
             Path::from_segments(vec![""]),
             Err(PathError::InvalidIdentifier { segment: 0 })
