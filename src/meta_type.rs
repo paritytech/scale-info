@@ -26,7 +26,10 @@ use crate::prelude::{
 };
 
 use crate::{
-    form::MetaForm,
+    form::{
+        FormString,
+        MetaForm
+    },
     Type,
     TypeId,
     TypeInfo,
@@ -40,9 +43,9 @@ use crate::{
 /// This needs a conversion to another representation of types
 /// in order to be serializable.
 #[derive(Clone, Copy)]
-pub struct MetaType {
+pub struct MetaType<Str: FormString = &'static str> {
     /// Function pointer to get type information.
-    fn_type_info: fn() -> Type<MetaForm>,
+    fn_type_info: fn() -> Type<MetaForm<Str>>,
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
@@ -87,8 +90,8 @@ impl Debug for MetaType {
 impl MetaType {
     /// Creates a new meta type from the given compile-time known type.
     pub fn new<T>() -> Self
-    where
-        T: TypeInfo + ?Sized + 'static,
+        where
+            T: TypeInfo + ?Sized + 'static,
     {
         Self {
             fn_type_info: <T as TypeInfo>::type_info,
@@ -96,10 +99,23 @@ impl MetaType {
         }
     }
 
+    /// Returns true if this represents a type of [`core::marker::PhantomData`].
+    pub(crate) fn is_phantom(&self) -> bool {
+        self == &MetaType::new::<crate::impls::PhantomIdentity>()
+    }
+}
+
+impl<Str> MetaType<Str>
+where
+    Str: FormString
+{
     /// Creates a new meta type from the user supplied type id and type info function.
     ///
     /// NOTE: It is the responsibility of the caller to ensure unique type ids per custom type.
-    pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm>) -> Self {
+    pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm<Str>>) -> Self
+    where
+        Str: FormString
+    {
         Self {
             fn_type_info,
             type_id: TypeId::Custom(type_id),
@@ -107,17 +123,12 @@ impl MetaType {
     }
 
     /// Returns the meta type information.
-    pub fn type_info(&self) -> Type<MetaForm> {
+    pub fn type_info(&self) -> Type<MetaForm<Str>> {
         (self.fn_type_info)()
     }
 
     /// Returns the type identifier provided by `core::any`.
     pub fn type_id(&self) -> TypeId {
         self.type_id
-    }
-
-    /// Returns true if this represents a type of [`core::marker::PhantomData`].
-    pub(crate) fn is_phantom(&self) -> bool {
-        self == &MetaType::new::<crate::impls::PhantomIdentity>()
     }
 }
