@@ -28,7 +28,7 @@ use crate::prelude::{
 use crate::{
     form::{
         FormString,
-        MetaForm
+        MetaForm,
     },
     Type,
     TypeId,
@@ -90,8 +90,8 @@ impl Debug for MetaType {
 impl MetaType {
     /// Creates a new meta type from the given compile-time known type.
     pub fn new<T>() -> Self
-        where
-            T: TypeInfo + ?Sized + 'static,
+    where
+        T: TypeInfo + ?Sized + 'static,
     {
         Self {
             fn_type_info: <T as TypeInfo>::type_info,
@@ -107,14 +107,14 @@ impl MetaType {
 
 impl<Str> MetaType<Str>
 where
-    Str: FormString
+    Str: FormString,
 {
     /// Creates a new meta type from the user supplied type id and type info function.
     ///
     /// NOTE: It is the responsibility of the caller to ensure unique type ids per custom type.
     pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm<Str>>) -> Self
     where
-        Str: FormString
+        Str: FormString,
     {
         Self {
             fn_type_info,
