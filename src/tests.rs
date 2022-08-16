@@ -376,7 +376,7 @@ fn runtime_meta_type() {
                 .type_name("custom_u32".to_string())
         })
     }
-    let ty = TypeBuilder::default()
+    let _ty = TypeBuilder::default()
         .path(Path::from_segments(vec!["MyCustomStruct".to_string()]).unwrap())
         .composite(fields);
 }

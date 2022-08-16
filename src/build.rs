@@ -635,7 +635,7 @@ impl<S> VariantBuilder<S> {
         I: IntoIterator<Item = Str>,
         Str: Into<MetaFormStr>,
     {
-        self.docs = docs.into_iter().map(|s| s.clone().into()).to_vec();
+        self.docs = docs.into_iter().map(Into::into).collect();
         self
     }
 
