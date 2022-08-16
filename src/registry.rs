@@ -58,7 +58,7 @@ impl IntoPortable for <MetaForm as Form>::String {
     type Output = <PortableForm as Form>::String;
 
     fn into_portable(self, _registry: &mut Registry) -> Self::Output {
-        self.into()
+        self
     }
 }
 
