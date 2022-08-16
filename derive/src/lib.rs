@@ -288,9 +288,13 @@ impl TypeInfoImpl {
             })
             .collect::<Vec<_>>();
 
-        Some(quote! {
-            .#docs_builder_fn(&[ #( #docs ),* ])
-        })
+        if !docs.is_empty() {
+            Some(quote! {
+                .#docs_builder_fn([ #( #docs ),* ])
+            })
+        } else {
+            None
+        }
     }
 }
 

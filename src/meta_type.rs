@@ -26,10 +26,7 @@ use crate::prelude::{
 };
 
 use crate::{
-    form::{
-        FormString,
-        MetaForm,
-    },
+    form::MetaForm,
     Type,
     TypeId,
     TypeInfo,
@@ -43,9 +40,9 @@ use crate::{
 /// This needs a conversion to another representation of types
 /// in order to be serializable.
 #[derive(Clone, Copy)]
-pub struct MetaType<Str: FormString = &'static str> {
+pub struct MetaType {
     /// Function pointer to get type information.
-    fn_type_info: fn() -> Type<MetaForm<Str>>,
+    fn_type_info: fn() -> Type<MetaForm>,
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
@@ -99,23 +96,10 @@ impl MetaType {
         }
     }
 
-    /// Returns true if this represents a type of [`core::marker::PhantomData`].
-    pub(crate) fn is_phantom(&self) -> bool {
-        self == &MetaType::new::<crate::impls::PhantomIdentity>()
-    }
-}
-
-impl<Str> MetaType<Str>
-where
-    Str: FormString,
-{
     /// Creates a new meta type from the user supplied type id and type info function.
     ///
     /// NOTE: It is the responsibility of the caller to ensure unique type ids per custom type.
-    pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm<Str>>) -> Self
-    where
-        Str: FormString,
-    {
+    pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm>) -> Self {
         Self {
             fn_type_info,
             type_id: TypeId::Custom(type_id),
@@ -123,12 +107,17 @@ where
     }
 
     /// Returns the meta type information.
-    pub fn type_info(&self) -> Type<MetaForm<Str>> {
+    pub fn type_info(&self) -> Type<MetaForm> {
         (self.fn_type_info)()
     }
 
     /// Returns the type identifier provided by `core::any`.
     pub fn type_id(&self) -> TypeId {
         self.type_id
+    }
+
+    /// Returns true if this represents a type of [`core::marker::PhantomData`].
+    pub(crate) fn is_phantom(&self) -> bool {
+        self == &MetaType::new::<crate::impls::PhantomIdentity>()
     }
 }

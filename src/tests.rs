@@ -14,7 +14,6 @@
 
 use crate::{
     build::*,
-    form::MetaForm,
     prelude::{
         borrow::Cow,
         boxed::Box,
@@ -112,7 +111,7 @@ fn phantom_data() {
         PhantomData<i32>,
         Type::builder()
             .path(Path::prelude("PhantomData"))
-            .docs(&["PhantomData placeholder, this type should be filtered out"])
+            .docs(["PhantomData placeholder, this type should be filtered out"])
             .composite(Fields::unit())
     )
 }
@@ -377,10 +376,7 @@ fn runtime_meta_type() {
                 .type_name("custom_u32".to_string())
         })
     }
-    let ty = TypeBuilder::<String>::default()
-        .path(
-            Path::<MetaForm<String>>::from_segments(vec!["MyCustomStruct".to_string()])
-                .unwrap(),
-        )
+    let ty = TypeBuilder::default()
+        .path(Path::from_segments(vec!["MyCustomStruct".to_string()]).unwrap())
         .composite(fields);
 }

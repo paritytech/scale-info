@@ -120,7 +120,7 @@ impl_from_type_def_for_type!(
 
 impl Type {
     /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
-    pub fn builder() -> TypeBuilder<&'static str> {
+    pub fn builder() -> TypeBuilder {
         TypeBuilder::default()
     }
 }
@@ -210,8 +210,14 @@ where
     T: Form,
 {
     /// Create a new [`TypeParameter`].
-    pub fn new(name: T::String, ty: Option<T::Type>) -> Self {
-        Self { name, ty }
+    pub fn new<S>(name: S, ty: Option<T::Type>) -> Self
+    where
+        S: Into<T::String>,
+    {
+        Self {
+            name: name.into(),
+            ty,
+        }
     }
 
     /// Get the type of the parameter.

@@ -49,16 +49,8 @@ pub trait Form {
     /// The type representing the type.
     type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
     /// The string type.
-    type String: FormString;
+    type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
 }
-
-/// todo: docs
-pub trait FormString:
-    AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug
-{
-}
-
-impl FormString for &'static str {}
 
 /// A meta meta-type.
 ///
@@ -66,15 +58,7 @@ impl FormString for &'static str {}
 /// through the registry and `IntoPortable`.
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
-pub struct MetaForm<S: FormString = &'static str>(core::marker::PhantomData<S>);
-
-impl<S> Form for MetaForm<S>
-where
-    S: FormString,
-{
-    type Type = MetaType;
-    type String = S;
-}
+pub enum MetaForm {}
 
 /// Portable form that has its lifetime untracked in association to its interner.
 ///
@@ -89,7 +73,10 @@ pub enum PortableForm {}
 
 cfg_if::cfg_if! {
     if #[cfg(any(feature = "std", feature = "decode"))] {
-        impl FormString for crate::prelude::string::String {}
+        impl Form for MetaForm {
+            type Type = MetaType;
+            type String = crate::prelude::string::String;
+        }
 
         impl Form for PortableForm {
             type Type = UntrackedSymbol<TypeId>;
@@ -97,6 +84,11 @@ cfg_if::cfg_if! {
             type String = crate::prelude::string::String;
         }
     } else {
+        impl Form for MetaForm {
+            type Type = MetaType;
+            type String = &'static str;
+        }
+
         impl Form for PortableForm {
             type Type = UntrackedSymbol<TypeId>;
             type String = &'static str;

@@ -32,6 +32,7 @@ use crate::prelude::{
 use crate::{
     form::{
         Form,
+        MetaForm,
         PortableForm,
     },
     interner::{
@@ -53,7 +54,7 @@ pub trait IntoPortable {
     fn into_portable(self, registry: &mut Registry) -> Self::Output;
 }
 
-impl IntoPortable for &'static str {
+impl IntoPortable for <MetaForm as Form>::String {
     type Output = <PortableForm as Form>::String;
 
     fn into_portable(self, _registry: &mut Registry) -> Self::Output {

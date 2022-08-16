@@ -16,7 +16,6 @@ use crate::{
     build::FieldBuilder,
     form::{
         Form,
-        FormString,
         MetaForm,
         PortableForm,
     },
@@ -115,10 +114,7 @@ where
     T: Form,
 {
     /// Returns a new [`FieldBuilder`] for constructing a field.
-    pub fn builder<'a, Str>() -> FieldBuilder<'a, Str>
-    where
-        Str: FormString,
-    {
+    pub fn builder() -> FieldBuilder {
         FieldBuilder::new()
     }
 
@@ -129,13 +125,13 @@ where
         name: Option<T::String>,
         ty: T::Type,
         type_name: Option<T::String>,
-        docs: &[T::String],
+        docs: Vec<T::String>,
     ) -> Self {
         Self {
             name,
             ty,
             type_name,
-            docs: docs.to_vec(),
+            docs,
         }
     }
 }

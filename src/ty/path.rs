@@ -25,7 +25,6 @@ use crate::prelude::{
 use crate::{
     form::{
         Form,
-        FormString,
         MetaForm,
         PortableForm,
     },
@@ -91,6 +90,8 @@ impl Display for Path<PortableForm> {
     }
 }
 
+impl Path {}
+
 impl Path {
     /// Create a new Path
     ///
@@ -103,16 +104,11 @@ impl Path {
         Self::from_segments(segments)
             .expect("All path segments should be valid Rust identifiers")
     }
-}
 
-impl<Str> Path<MetaForm<Str>>
-where
-    Str: FormString,
-{
     /// Create an empty path for types which shall not be named
     #[allow(unused)]
-    pub(crate) fn voldemort() -> Path<MetaForm<Str>> {
-        Path {
+    pub(crate) fn voldemort() -> Self {
+        Self {
             segments: Vec::new(),
         }
     }
@@ -122,7 +118,11 @@ where
     /// # Panics
     ///
     /// - If the supplied ident is not a valid Rust identifier
-    pub(crate) fn prelude(ident: Str) -> Path<MetaForm<Str>> {
+    pub(crate) fn prelude<S>(ident: S) -> Self
+    where
+        S: Into<<MetaForm as Form>::String>,
+    {
+        let ident = ident.into();
         Self::from_segments(vec![ident.clone()])
             .unwrap_or_else(|_| panic!("{:?} is not a valid Rust identifier", ident))
     }
@@ -133,11 +133,12 @@ where
     ///
     /// - If no segments are supplied
     /// - If any of the segments are invalid Rust identifiers
-    pub fn from_segments<I>(segments: I) -> Result<Path<MetaForm<Str>>, PathError>
+    pub fn from_segments<I, S>(segments: I) -> Result<Self, PathError>
     where
-        I: IntoIterator<Item = Str>,
+        I: IntoIterator<Item = S>,
+        S: Into<<MetaForm as Form>::String>,
     {
-        let segments = segments.into_iter().collect::<Vec<_>>();
+        let segments = segments.into_iter().map(Into::into).collect::<Vec<_>>();
         if segments.is_empty() {
             return Err(PathError::MissingSegments)
         }
@@ -197,19 +198,19 @@ mod tests {
         assert_eq!(
             Path::<MetaForm>::from_segments(vec!["hello"]),
             Ok(Path {
-                segments: vec!["hello"]
+                segments: vec!["hello".into()]
             })
         );
         assert_eq!(
             Path::from_segments(vec!["Hello", "World"]),
             Ok(Path {
-                segments: vec!["Hello", "World"]
+                segments: vec!["Hello".into(), "World".into()]
             })
         );
         assert_eq!(
             Path::from_segments(vec!["_"]),
             Ok(Path {
-                segments: vec!["_"]
+                segments: vec!["_".into()]
             })
         );
     }
@@ -219,7 +220,7 @@ mod tests {
         assert_eq!(
             Path::from_segments(vec!["r#mod", "r#Struct"]),
             Ok(Path {
-                segments: vec!["r#mod", "r#Struct"]
+                segments: vec!["r#mod".into(), "r#Struct".into()]
             })
         );
     }
@@ -227,7 +228,7 @@ mod tests {
     #[test]
     fn path_err() {
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec![]),
+            Path::<MetaForm>::from_segments(Vec::<String>::new()),
             Err(PathError::MissingSegments)
         );
         assert_eq!(
@@ -249,7 +250,7 @@ mod tests {
         assert_eq!(
             Path::new("Planet", "hello::world"),
             Path {
-                segments: vec!["hello", "world", "Planet"]
+                segments: vec!["hello".into(), "world".into(), "Planet".into()]
             }
         );
         assert_eq!(
@@ -262,7 +263,7 @@ mod tests {
     fn path_get_namespace_and_ident() {
         let path = Path::new("Planet", "hello::world");
         assert_eq!(path.namespace(), &["hello", "world"]);
-        assert_eq!(path.ident(), Some("Planet"));
+        assert_eq!(path.ident(), Some("Planet".into()));
     }
 
     #[test]
