@@ -77,9 +77,9 @@ where
 impl IntoPortable for Path {
     type Output = Path<PortableForm>;
 
-    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, _registry: &mut Registry) -> Self::Output {
         Path {
-            segments: registry.map_into_portable(self.segments),
+            segments: self.segments,
         }
     }
 }

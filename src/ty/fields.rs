@@ -101,10 +101,10 @@ impl IntoPortable for Field {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Field {
-            name: self.name.map(|name| name.into_portable(registry)),
+            name: self.name,
             ty: registry.register_type(&self.ty),
-            type_name: self.type_name.map(|tn| tn.into_portable(registry)),
-            docs: registry.map_into_portable(self.docs),
+            type_name: self.type_name,
+            docs: self.docs,
         }
     }
 }

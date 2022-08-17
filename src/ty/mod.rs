@@ -94,7 +94,7 @@ impl IntoPortable for Type {
             path: self.path.into_portable(registry),
             type_params: registry.map_into_portable(self.type_params),
             type_def: self.type_def.into_portable(registry),
-            docs: registry.map_into_portable(self.docs),
+            docs: self.docs,
         }
     }
 }
@@ -199,7 +199,7 @@ impl IntoPortable for TypeParameter {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeParameter {
-            name: self.name.into_portable(registry),
+            name: self.name,
             ty: self.ty.map(|ty| registry.register_type(&ty)),
         }
     }
