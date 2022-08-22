@@ -298,11 +298,12 @@ impl<T> FieldsBuilder<T> {
         self.fields
     }
 
-    fn push_field(&mut self, field: Field) {
+    fn push_field(mut self, field: Field) -> Self {
         // filter out fields of PhantomData
         if !field.ty().is_phantom() {
             self.fields.push(field);
         }
+        self
     }
 }
 
@@ -316,21 +317,7 @@ impl FieldsBuilder<NamedFields> {
             -> FieldBuilder<field_state::NameAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
-        let mut this = self;
-        this.push_field(builder.finalize());
-        this
-    }
-
-    /// Add a named field constructed using the builder.
-    pub fn field_mut<F>(&mut self, builder: F)
-    where
-        F: Fn(
-            FieldBuilder,
-        )
-            -> FieldBuilder<field_state::NameAssigned, field_state::TypeAssigned>,
-    {
-        let builder = builder(FieldBuilder::new());
-        self.push_field(builder.finalize());
+        self.push_field(builder.finalize())
     }
 }
 
@@ -344,9 +331,7 @@ impl FieldsBuilder<UnnamedFields> {
             -> FieldBuilder<field_state::NameNotAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
-        let mut this = self;
-        this.push_field(builder.finalize());
-        this
+        self.push_field(builder.finalize())
     }
 }
 

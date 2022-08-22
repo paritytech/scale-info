@@ -366,17 +366,29 @@ fn basic_enum_with_index() {
 
 #[test]
 fn runtime_meta_type() {
-    let mut fields = Fields::named();
-    let custom_u32_id = 1;
-    let custom_u32_type_info = <u32 as TypeInfo>::type_info;
-    for i in 0..3 {
-        fields.field_mut(|f| {
-            f.ty_meta(MetaType::new_custom(custom_u32_id, custom_u32_type_info))
-                .name(i.to_string())
-                .type_name("custom_u32".to_string())
-        })
-    }
-    let _ty = TypeBuilder::default()
-        .path(Path::from_segments(vec!["MyCustomStruct".to_string()]).unwrap())
-        .composite(fields);
+    // let mut fields = Fields::named();
+    // let custom_u32_id = 1;
+    // let custom_u32_type_info = <u32 as TypeInfo>::type_info;
+    // let u32_meta_type = MetaType::new_custom(custom_u32_id, custom_u32_type_info);
+    // for i in 0..3 {
+    //     fields.field_mut(|f| {
+    //         f.ty_meta(u32_meta_type.clone())
+    //             .name(i.to_string())
+    //             .type_name("custom_u32".to_string())
+    //     })
+    // }
+    // // add array type
+    // let arr_type_id = 2;
+    // let arr_type_info = || Type::from(TypeDefArray::new(32, u32_meta_type.clone()));
+    // let arr_meta_type = MetaType::new_custom(arr_type_id, arr_type_info);
+    //
+    // fields.field_mut(|f| {
+    //     f.ty_meta(arr_meta_type)
+    //         .name("arr")
+    //         .type_name("custom_arr".to_string())
+    // });
+    //
+    // let _ty = TypeBuilder::default()
+    //     .path(Path::from_segments(vec!["MyCustomStruct".to_string()]).unwrap())
+    //     .composite(fields);
 }

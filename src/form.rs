@@ -29,12 +29,14 @@
 //! Other forms, such as a portable form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
-use crate::prelude::fmt::Debug;
+use crate::prelude::{
+    any::TypeId,
+    fmt::Debug,
+};
 
 use crate::{
     interner::UntrackedSymbol,
     meta_type::MetaType,
-    TypeId,
 };
 
 #[cfg(feature = "serde")]

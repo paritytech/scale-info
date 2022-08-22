@@ -13,6 +13,7 @@
 // limitations under the License.
 
 use crate::prelude::{
+    any::TypeId,
     cmp::Ordering,
     fmt::{
         Debug,
@@ -28,7 +29,6 @@ use crate::prelude::{
 use crate::{
     form::MetaForm,
     Type,
-    TypeId,
     TypeInfo,
 };
 
@@ -93,16 +93,6 @@ impl MetaType {
         Self {
             fn_type_info: <T as TypeInfo>::type_info,
             type_id: TypeId::of::<T::Identity>(),
-        }
-    }
-
-    /// Creates a new meta type from the user supplied type id and type info function.
-    ///
-    /// NOTE: It is the responsibility of the caller to ensure unique type ids per custom type.
-    pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm>) -> Self {
-        Self {
-            fn_type_info,
-            type_id: TypeId::Custom(type_id),
         }
     }
 
