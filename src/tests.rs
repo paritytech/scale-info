@@ -382,7 +382,7 @@ fn construct_portable_registry() {
 
     let vec_u32_type_id = types.len() as u32;
     types.push(PortableType {
-        id: 1,
+        id: vec_u32_type_id,
         ty: Type {
             path: Path::default(),
             type_params: vec![],
@@ -396,7 +396,7 @@ fn construct_portable_registry() {
 
     let composite_type_id = types.len() as u32;
     types.push(PortableType {
-        id: 2,
+        id: composite_type_id,
         ty: Type {
             path: Path::default(),
             type_params: vec![],
