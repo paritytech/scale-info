@@ -28,7 +28,13 @@ use crate::{
 };
 use core::marker::PhantomData;
 use scale::Compact;
-use std::num::NonZeroU32;
+use std::{
+    num::NonZeroU32,
+    sync::{
+        Arc,
+        Mutex,
+    },
+};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -371,9 +377,12 @@ fn runtime_meta_type() {
     let custom_u32_type_info = <u32 as TypeInfo>::type_info;
     for i in 0..3 {
         fields.field_mut(|f| {
-            f.ty_meta(MetaType::new_custom(custom_u32_id, custom_u32_type_info))
-                .name(i.to_string())
-                .type_name("custom_u32".to_string())
+            f.ty_meta(MetaType::new_custom(
+                custom_u32_id,
+                Arc::new(Mutex::new(custom_u32_type_info)),
+            ))
+            .name(i.to_string())
+            .type_name("custom_u32".to_string())
         })
     }
     let _ty = TypeBuilder::default()

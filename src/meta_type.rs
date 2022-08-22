@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::sync::{
+    Arc,
+    Mutex,
+};
+
 use crate::prelude::{
     cmp::Ordering,
     fmt::{
@@ -39,10 +44,10 @@ use crate::{
 ///
 /// This needs a conversion to another representation of types
 /// in order to be serializable.
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct MetaType {
     /// Function pointer to get type information.
-    fn_type_info: fn() -> Type<MetaForm>,
+    fn_type_info: Arc<Mutex<dyn FnMut() -> Type<MetaForm>>>,
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
@@ -91,7 +96,7 @@ impl MetaType {
         T: TypeInfo + ?Sized + 'static,
     {
         Self {
-            fn_type_info: <T as TypeInfo>::type_info,
+            fn_type_info: Arc::new(Mutex::new(<T as TypeInfo>::type_info)),
             type_id: TypeId::of::<T::Identity>(),
         }
     }
@@ -99,7 +104,10 @@ impl MetaType {
     /// Creates a new meta type from the user supplied type id and type info function.
     ///
     /// NOTE: It is the responsibility of the caller to ensure unique type ids per custom type.
-    pub fn new_custom(type_id: u64, fn_type_info: fn() -> Type<MetaForm>) -> Self {
+    pub fn new_custom(
+        type_id: u64,
+        fn_type_info: Arc<Mutex<dyn FnMut() -> Type<MetaForm>>>,
+    ) -> Self {
         Self {
             fn_type_info,
             type_id: TypeId::Custom(type_id),
@@ -108,7 +116,7 @@ impl MetaType {
 
     /// Returns the meta type information.
     pub fn type_info(&self) -> Type<MetaForm> {
-        (self.fn_type_info)()
+        (self.fn_type_info.lock().unwrap())()
     }
 
     /// Returns the type identifier provided by `core::any`.
