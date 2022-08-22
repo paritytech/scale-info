@@ -153,7 +153,8 @@ impl Registry {
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {
-    types: Vec<PortableType>,
+    /// todo: remove pub
+    pub types: Vec<PortableType>,
 }
 
 impl From<Registry> for PortableRegistry {
@@ -191,9 +192,9 @@ impl PortableRegistry {
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableType {
     #[codec(compact)]
-    id: u32,
+    pub id: u32,
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    ty: Type<PortableForm>,
+    pub ty: Type<PortableForm>,
 }
 
 impl PortableType {

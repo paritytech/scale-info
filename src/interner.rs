@@ -61,6 +61,15 @@ impl<T> UntrackedSymbol<T> {
     }
 }
 
+impl<T> From<u32> for UntrackedSymbol<T> {
+    fn from(id: u32) -> Self {
+        Self {
+            id,
+            marker: Default::default(),
+        }
+    }
+}
+
 /// A symbol from an interner.
 ///
 /// Can be used to resolve to the associated instance.

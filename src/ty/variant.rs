@@ -153,25 +153,25 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
-    name: T::String,
+    pub name: T::String,
     /// The fields of the variant.
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    fields: Vec<Field<T>>,
+    pub fields: Vec<Field<T>>,
     /// Index of the variant, used in `parity-scale-codec`.
     ///
     /// The value of this will be, in order of precedence:
     ///     1. The explicit index defined by a `#[codec(index = N)]` attribute.
     ///     2. The implicit index from the position of the variant in the `enum` definition.
-    index: u8,
+    pub index: u8,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    docs: Vec<T::String>,
+    pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for Variant {

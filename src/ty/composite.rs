@@ -76,7 +76,7 @@ pub struct TypeDefComposite<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    fields: Vec<Field<T>>,
+    pub fields: Vec<Field<T>>,
 }
 
 impl IntoPortable for TypeDefComposite {

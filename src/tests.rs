@@ -24,6 +24,7 @@ use crate::{
         string::String,
         vec,
     },
+    registry::PortableType,
     *,
 };
 use core::marker::PhantomData;
@@ -366,29 +367,64 @@ fn basic_enum_with_index() {
 
 #[test]
 fn runtime_meta_type() {
-    // let mut fields = Fields::named();
-    // let custom_u32_id = 1;
-    // let custom_u32_type_info = <u32 as TypeInfo>::type_info;
-    // let u32_meta_type = MetaType::new_custom(custom_u32_id, custom_u32_type_info);
-    // for i in 0..3 {
-    //     fields.field_mut(|f| {
-    //         f.ty_meta(u32_meta_type.clone())
-    //             .name(i.to_string())
-    //             .type_name("custom_u32".to_string())
-    //     })
-    // }
-    // // add array type
-    // let arr_type_id = 2;
-    // let arr_type_info = || Type::from(TypeDefArray::new(32, u32_meta_type.clone()));
-    // let arr_meta_type = MetaType::new_custom(arr_type_id, arr_type_info);
-    //
-    // fields.field_mut(|f| {
-    //     f.ty_meta(arr_meta_type)
-    //         .name("arr")
-    //         .type_name("custom_arr".to_string())
-    // });
-    //
-    // let _ty = TypeBuilder::default()
-    //     .path(Path::from_segments(vec!["MyCustomStruct".to_string()]).unwrap())
-    //     .composite(fields);
+    let mut types = Vec::new();
+
+    let u32_type_id = types.len() as u32;
+    types.push(PortableType {
+        id: u32_type_id,
+        ty: Type {
+            path: Path::default(),
+            type_params: vec![],
+            type_def: TypeDefPrimitive::U32.into(),
+            docs: vec![],
+        },
+    });
+
+    let vec_u32_type_id = types.len() as u32;
+    types.push(PortableType {
+        id: 1,
+        ty: Type {
+            path: Path::default(),
+            type_params: vec![],
+            type_def: TypeDefSequence {
+                type_param: u32_type_id.into(),
+            }
+            .into(),
+            docs: vec![],
+        },
+    });
+
+    let composite_type_id = types.len() as u32;
+    types.push(PortableType {
+        id: 2,
+        ty: Type {
+            path: Path::default(),
+            type_params: vec![],
+            type_def: TypeDefComposite {
+                fields: vec![
+                    Field {
+                        name: Some("primitive".to_string()),
+                        ty: u32_type_id.into(),
+                        type_name: None,
+                        docs: vec![]
+                    },
+                    Field {
+                        name: Some("vec_of_u32".to_string()),
+                        ty: vec_u32_type_id.into(),
+                        type_name: None,
+                        docs: vec![]
+                    },
+                    Field {
+                        name: Some("self_referential".to_string()),
+                        ty: composite_type_id.into(), // this type has a field of it's own type
+                        type_name: None,
+                        docs: vec![]
+                    }
+                ]
+            }.into(),
+            docs: vec![]
+        },
+    });
+
+    let _registry = PortableRegistry { types };
 }
