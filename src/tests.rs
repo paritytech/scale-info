@@ -366,7 +366,7 @@ fn basic_enum_with_index() {
 }
 
 #[test]
-fn runtime_meta_type() {
+fn construct_portable_registry() {
     let mut types = Vec::new();
 
     let u32_type_id = types.len() as u32;
