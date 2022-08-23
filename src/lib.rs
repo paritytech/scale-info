@@ -335,7 +335,7 @@ pub mod form;
 mod impls;
 pub mod interner;
 mod meta_type;
-mod registry;
+pub mod registry;
 mod ty;
 mod utils;
 
