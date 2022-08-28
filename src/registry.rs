@@ -153,8 +153,7 @@ impl Registry {
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {
-    /// todo: remove pub
-    pub types: Vec<PortableType>,
+    types: Vec<PortableType>,
 }
 
 impl From<Registry> for PortableRegistry {
@@ -175,6 +174,11 @@ impl From<Registry> for PortableRegistry {
 }
 
 impl PortableRegistry {
+    /// Construct a new `PortableRegistry` from custom types.
+    pub fn new_from_types(types: Vec<PortableType>) -> Self {
+        Self { types }
+    }
+
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
     pub fn resolve(&self, id: u32) -> Option<&Type<PortableForm>> {
         self.types.get(id as usize).map(|ty| ty.ty())

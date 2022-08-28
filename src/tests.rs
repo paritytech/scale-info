@@ -426,5 +426,5 @@ fn construct_portable_registry() {
         },
     });
 
-    let _registry = PortableRegistry { types };
+    let _registry = PortableRegistry::new_from_types(types);
 }
