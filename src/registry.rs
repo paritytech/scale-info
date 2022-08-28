@@ -196,12 +196,17 @@ impl PortableRegistry {
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableType {
     #[codec(compact)]
-    pub id: u32,
+    id: u32,
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub ty: Type<PortableForm>,
+    ty: Type<PortableForm>,
 }
 
 impl PortableType {
+    /// Construct a custom `PortableType`.
+    pub fn new_custom(id: u32, ty: Type<PortableForm>) -> Self {
+        Self { id, ty }
+    }
+
     /// Returns the index of the [`PortableType`].
     pub fn id(&self) -> u32 {
         self.id

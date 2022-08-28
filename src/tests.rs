@@ -370,20 +370,20 @@ fn construct_portable_registry() {
     let mut types = Vec::new();
 
     let u32_type_id = types.len() as u32;
-    types.push(PortableType {
-        id: u32_type_id,
-        ty: Type {
+    types.push(PortableType::new_custom(
+        u32_type_id,
+        Type {
             path: Path::default(),
             type_params: vec![],
             type_def: TypeDefPrimitive::U32.into(),
             docs: vec![],
         },
-    });
+    ));
 
     let vec_u32_type_id = types.len() as u32;
-    types.push(PortableType {
-        id: vec_u32_type_id,
-        ty: Type {
+    types.push(PortableType::new_custom(
+        vec_u32_type_id,
+        Type {
             path: Path::default(),
             type_params: vec![],
             type_def: TypeDefSequence {
@@ -392,12 +392,10 @@ fn construct_portable_registry() {
             .into(),
             docs: vec![],
         },
-    });
+    ));
 
     let composite_type_id = types.len() as u32;
-    types.push(PortableType {
-        id: composite_type_id,
-        ty: Type {
+    types.push(PortableType::new_custom(composite_type_id, Type {
             path: Path::default(),
             type_params: vec![],
             type_def: TypeDefComposite {
@@ -423,8 +421,8 @@ fn construct_portable_registry() {
                 ]
             }.into(),
             docs: vec![]
-        },
-    });
+        },)
+    );
 
     let _registry = PortableRegistry::new_from_types(types);
 }
