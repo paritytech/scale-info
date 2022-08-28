@@ -94,7 +94,7 @@ where
     T: Form,
 {
     /// Creates a new struct definition with named fields.
-    pub(crate) fn new<I>(fields: I) -> Self
+    pub fn new<I>(fields: I) -> Self
     where
         I: IntoIterator<Item = Field<T>>,
     {

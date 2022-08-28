@@ -192,7 +192,7 @@ where
     T: Form,
 {
     /// Creates a new variant.
-    pub(crate) fn new(
+    pub fn new(
         name: T::String,
         fields: Vec<Field<T>>,
         index: u8,
