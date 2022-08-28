@@ -68,22 +68,22 @@ pub struct Type<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Path::is_empty", default)
     )]
-    pub path: Path<T>,
+    path: Path<T>,
     /// The generic type parameters of the type in use. Empty for non generic types
     #[cfg_attr(
         feature = "serde",
         serde(rename = "params", skip_serializing_if = "Vec::is_empty", default)
     )]
-    pub type_params: Vec<TypeParameter<T>>,
+    type_params: Vec<TypeParameter<T>>,
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
-    pub type_def: TypeDef<T>,
+    type_def: TypeDef<T>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    pub docs: Vec<T::String>,
+    docs: Vec<T::String>,
 }
 
 impl IntoPortable for Type {
@@ -186,12 +186,12 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct TypeParameter<T: Form = MetaForm> {
     /// The name of the generic type parameter e.g. "T".
-    pub name: T::String,
+    name: T::String,
     /// The concrete type for the type parameter.
     ///
     /// `None` if the type parameter is skipped.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub ty: Option<T::Type>,
+    ty: Option<T::Type>,
 }
 
 impl IntoPortable for TypeParameter {
@@ -362,10 +362,10 @@ pub enum TypeDefPrimitive {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
-    pub len: u32,
+    len: u32,
     /// The element type of the array type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub type_param: T::Type,
+    type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefArray {
@@ -379,18 +379,16 @@ impl IntoPortable for TypeDefArray {
     }
 }
 
-impl TypeDefArray {
-    /// Creates a new array type.
-    pub fn new(len: u32, type_param: MetaType) -> Self {
-        Self { len, type_param }
-    }
-}
-
 #[allow(clippy::len_without_is_empty)]
 impl<T> TypeDefArray<T>
 where
     T: Form,
 {
+    /// Creates a new array type.
+    pub fn new(len: u32, type_param: <T as Form>::Type) -> Self {
+        Self { len, type_param }
+    }
+
     /// Returns the length of the array type.
     pub fn len(&self) -> u32 {
         self.len
@@ -416,7 +414,7 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
-    pub fields: Vec<T::Type>,
+    fields: Vec<T::Type>,
 }
 
 impl IntoPortable for TypeDefTuple {
@@ -453,6 +451,16 @@ impl<T> TypeDefTuple<T>
 where
     T: Form,
 {
+    /// Creates a new custom type definition from the given types.
+    pub fn new_custom<I>(type_params: I) -> Self
+    where
+        I: IntoIterator<Item = T::Type>,
+    {
+        Self {
+            fields: type_params.into_iter().collect(),
+        }
+    }
+
     /// Returns the types of the tuple fields.
     pub fn fields(&self) -> &[T::Type] {
         &self.fields
@@ -466,7 +474,7 @@ where
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub type_param: T::Type,
+    type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefSequence {
@@ -480,13 +488,6 @@ impl IntoPortable for TypeDefSequence {
 }
 
 impl TypeDefSequence {
-    /// Creates a new sequence type.
-    ///
-    /// Use this constructor if you want to instantiate from a given meta type.
-    pub fn new(type_param: MetaType) -> Self {
-        Self { type_param }
-    }
-
     /// Creates a new sequence type.
     ///
     /// Use this constructor if you want to instantiate from a given
@@ -503,6 +504,13 @@ impl<T> TypeDefSequence<T>
 where
     T: Form,
 {
+    /// Creates a new sequence type.
+    ///
+    /// Use this constructor if you want to instantiate from a given meta type.
+    pub fn new(type_param: <T as Form>::Type) -> Self {
+        Self { type_param }
+    }
+
     /// Returns the element type of the sequence type.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
@@ -516,7 +524,7 @@ where
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub type_param: T::Type,
+    type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefCompact {
@@ -529,16 +537,15 @@ impl IntoPortable for TypeDefCompact {
     }
 }
 
-impl TypeDefCompact {
-    /// Creates a new type wrapped in [`Compact`].
-    pub fn new(type_param: MetaType) -> Self {
-        Self { type_param }
-    }
-}
 impl<T> TypeDefCompact<T>
 where
     T: Form,
 {
+    /// Creates a new type wrapped in [`Compact`].
+    pub fn new(type_param: <T as Form>::Type) -> Self {
+        Self { type_param }
+    }
+
     /// Returns the [`Compact`] wrapped type, i.e. the `T` in `Compact<T>`.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
@@ -556,9 +563,9 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefBitSequence<T: Form = MetaForm> {
     /// The type implementing [`bitvec::store::BitStore`].
-    pub bit_store_type: T::Type,
+    bit_store_type: T::Type,
     /// The type implementing [`bitvec::order::BitOrder`].
-    pub bit_order_type: T::Type,
+    bit_order_type: T::Type,
 }
 
 impl IntoPortable for TypeDefBitSequence {
@@ -598,6 +605,20 @@ impl TypeDefBitSequence {
         Self {
             bit_store_type: MetaType::new::<T>(),
             bit_order_type: MetaType::new::<O>(),
+        }
+    }
+}
+
+#[cfg(feature = "bit-vec")]
+impl<T> TypeDefBitSequence<T>
+where
+    T: Form,
+{
+    /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
+    pub fn new_custom(bit_store_type: T::Type, bit_order_type: T::Type) -> Self {
+        Self {
+            bit_store_type,
+            bit_order_type,
         }
     }
 }

@@ -372,56 +372,47 @@ fn construct_portable_registry() {
     let u32_type_id = types.len() as u32;
     types.push(PortableType::new_custom(
         u32_type_id,
-        Type {
-            path: Path::default(),
-            type_params: vec![],
-            type_def: TypeDefPrimitive::U32.into(),
-            docs: vec![],
-        },
+        Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]),
     ));
 
     let vec_u32_type_id = types.len() as u32;
     types.push(PortableType::new_custom(
         vec_u32_type_id,
-        Type {
-            path: Path::default(),
-            type_params: vec![],
-            type_def: TypeDefSequence {
-                type_param: u32_type_id.into(),
-            }
-            .into(),
-            docs: vec![],
-        },
+        Type::new(
+            Path::default(),
+            vec![],
+            TypeDefSequence::new(u32_type_id.into()),
+            vec![],
+        ),
     ));
 
     let composite_type_id = types.len() as u32;
-    types.push(PortableType::new_custom(composite_type_id, Type {
-            path: Path::default(),
-            type_params: vec![],
-            type_def: TypeDefComposite {
+    types.push(PortableType::new_custom(composite_type_id, Type::new(
+            Path::default(),
+            vec![],
+            TypeDefComposite {
                 fields: vec![
-                    Field {
-                        name: Some("primitive".to_string()),
-                        ty: u32_type_id.into(),
-                        type_name: None,
-                        docs: vec![]
-                    },
-                    Field {
-                        name: Some("vec_of_u32".to_string()),
-                        ty: vec_u32_type_id.into(),
-                        type_name: None,
-                        docs: vec![]
-                    },
-                    Field {
-                        name: Some("self_referential".to_string()),
-                        ty: composite_type_id.into(), // this type has a field of it's own type
-                        type_name: None,
-                        docs: vec![]
-                    }
+                    Field::new(
+                        Some("primitive".to_string()),
+                        u32_type_id.into(),
+                        None,
+                        vec![]
+                    ),
+                    Field::new(
+                        Some("vec_of_u32".to_string()),
+                        vec_u32_type_id.into(),
+                        None,
+                        vec![]
+                    ),
+                    Field::new (                       Some("self_referential".to_string()),
+                        composite_type_id.into(), // this type has a field of it's own type
+                        None,
+                        vec![]
+                    )
                 ]
-            }.into(),
-            docs: vec![]
-        },)
+            },
+            vec![]
+        ),)
     );
 
     let _registry = PortableRegistry::new_from_types(types);
