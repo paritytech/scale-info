@@ -129,7 +129,8 @@ impl<F> Type<F>
 where
     F: Form,
 {
-    pub(crate) fn new<I, D>(
+    /// Create a [`Type`].
+    pub fn new<I, D>(
         path: Path<F>,
         type_params: I,
         type_def: D,
