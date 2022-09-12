@@ -23,9 +23,9 @@ derive_more = { version = "0.99.1", default-features = false, features = ["from"
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 
 [features]
-default = ["std"]
+default = ["std", "bit-vec"]
 std = [
-    "bitvec/std",
+    "bitvec?/std",
     "scale/std",
 ]
 derive = [
