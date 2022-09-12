@@ -23,7 +23,7 @@ error[E0277]: the trait bound `Commonwealth: TypeInfo` is not satisfied
              (A, B, C, D)
              (A, B, C, D, E)
              (A, B, C, D, E, F)
-           and 53 others
+           and 56 others
 note: required by a bound in `assert_type_info`
   --> tests/ui/fail_unions.rs:11:24
    |
