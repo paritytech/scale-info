@@ -342,6 +342,8 @@ mod utils;
 #[cfg(test)]
 mod tests;
 
+use core::any::TypeId;
+
 #[doc(hidden)]
 pub use scale;
 
@@ -390,4 +392,16 @@ where
     T: ?Sized + TypeInfo + 'static,
 {
     MetaType::new::<T>()
+}
+
+impl TypeInfo for TypeId {
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::new("TypeId", "core::any"))
+            .composite(build::Fields::named()
+                 .field(|f| f.ty::<u64>().name("t").type_name("u64"))
+            )
+    }
 }

@@ -58,6 +58,7 @@ use serde::{
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Path<T: Form = MetaForm> {
     /// The segments of the namespace.
     segments: Vec<T::String>,

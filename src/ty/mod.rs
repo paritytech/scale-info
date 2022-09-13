@@ -52,6 +52,7 @@ pub use self::{
 
 /// A [`Type`] definition with optional metadata.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[cfg_attr(
     feature = "serde",
     serde(bound(
@@ -119,7 +120,7 @@ impl_from_type_def_for_type!(
 );
 
 impl Type {
-    /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
+    /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`), the public API for constructing a [`Type`]
     pub fn builder() -> TypeBuilder {
         TypeBuilder::default()
     }
@@ -178,6 +179,7 @@ where
     ))
 )]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct TypeParameter<T: Form = MetaForm> {
     /// The name of the generic type parameter e.g. "T".
@@ -244,6 +246,7 @@ where
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
     #[codec(index = 0)]
@@ -297,6 +300,7 @@ impl IntoPortable for TypeDef {
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub enum TypeDefPrimitive {
     /// `bool` type
     #[codec(index = 0)]
@@ -349,6 +353,7 @@ pub enum TypeDefPrimitive {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
     len: u32,
@@ -403,6 +408,7 @@ where
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
     fields: Vec<T::Type>,
@@ -452,6 +458,7 @@ where
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
@@ -502,6 +509,7 @@ where
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
@@ -542,6 +550,7 @@ where
 /// enabled, but can be decoded or deserialized into the `PortableForm` without this feature.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefBitSequence<T: Form = MetaForm> {
     /// The type implementing [`bitvec::store::BitStore`].

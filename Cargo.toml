@@ -31,11 +31,15 @@ std = [
 derive = [
     "scale-info-derive"
 ]
+# Derive `TypeInfo` for our own types.
+dogfood = [
+    "derive"
+]
 # Include rustdoc strings in the type metadata.
 docs = [
     "scale-info-derive/docs"
 ]
-# enables decoding and deserialization of portable scale-info type metadata
+# Enables decoding and deserialization of portable scale-info type metadata.
 decode = [
     "scale/full"
 ]

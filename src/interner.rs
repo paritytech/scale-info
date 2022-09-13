@@ -46,6 +46,7 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
     #[codec(compact)]

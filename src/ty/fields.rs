@@ -73,6 +73,7 @@ use serde::{
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
+#[cfg_attr(feature = "dogfood", derive(scale_info_derive::TypeInfo))]
 pub struct Field<T: Form = MetaForm> {
     /// The name of the field. None for unnamed fields.
     #[cfg_attr(
