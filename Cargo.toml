@@ -3,7 +3,7 @@ name = "scale-info"
 version = "2.1.2"
 authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2021"
-rust-version = "1.56.1"
+rust-version = "1.60.0"
 
 license = "Apache-2.0"
 readme = "README.md"
@@ -25,7 +25,7 @@ scale = { package = "parity-scale-codec", version = "3", default-features = fals
 [features]
 default = ["std"]
 std = [
-    "bitvec/std",
+    "bitvec?/std",
     "scale/std",
 ]
 derive = [
