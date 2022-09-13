@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Minimum Rust version is 1.60.0 owing to using weak dependency crate features.
+- Loosen restriction on `TypeDefBitSequence::new()` so that `bitvec` isn't required, and try to avoid pulling in `bitvec` when the `std` feature is enabled [(#168)](https://github.com/paritytech/scale-info/pull/168)
+
 ## [2.1.2] - 2022-05-18
 
 ### Fixed
