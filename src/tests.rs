@@ -388,7 +388,7 @@ fn construct_portable_registry() {
 
     let composite_type_id = types.len() as u32;
     types.push(PortableType::new_custom(composite_type_id, Type::new(
-            Path::default(),
+            Path::new_custom(vec!["customtype".into()]),
             vec![],
             TypeDefComposite {
                 fields: vec![
