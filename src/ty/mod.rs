@@ -595,17 +595,21 @@ where
     }
 }
 
-#[cfg(feature = "bit-vec")]
 impl TypeDefBitSequence {
     /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
-    pub fn new<T, O>() -> Self
+    ///
+    /// With the `bit-vec` feature enabled, the expected usage is to provide either
+    /// `bitvec::order::Lsb0` or `bitvec::order::Msb0` as the order type, and then something
+    /// like u8, u8, or u32 as the store type. Without the `bit-vec` feature enabled, it's
+    /// recommended that your types have identical `TypeInfo` to those.
+    pub fn new<Store, Order>() -> Self
     where
-        T: bitvec::store::BitStore + TypeInfo + 'static,
-        O: bitvec::order::BitOrder + TypeInfo + 'static,
+        Store: TypeInfo + 'static,
+        Order: TypeInfo + 'static,
     {
         Self {
-            bit_store_type: MetaType::new::<T>(),
-            bit_order_type: MetaType::new::<O>(),
+            bit_store_type: MetaType::new::<Store>(),
+            bit_order_type: MetaType::new::<Order>(),
         }
     }
 }
