@@ -410,20 +410,6 @@ impl<N> FieldBuilder<N, field_state::TypeNotAssigned> {
         }
     }
 
-    /// Initialize the type of the field.
-    pub fn ty_meta(
-        self,
-        meta_type: MetaType,
-    ) -> FieldBuilder<N, field_state::TypeAssigned> {
-        FieldBuilder {
-            name: self.name,
-            ty: Some(meta_type),
-            type_name: self.type_name,
-            docs: self.docs,
-            marker: PhantomData,
-        }
-    }
-
     /// Initializes the type of the field as a compact type.
     pub fn compact<TY>(self) -> FieldBuilder<N, field_state::TypeAssigned>
     where
