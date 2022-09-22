@@ -90,8 +90,6 @@ impl Display for Path<PortableForm> {
     }
 }
 
-impl Path {}
-
 impl Path {
     /// Create a new Path
     ///
@@ -174,6 +172,11 @@ where
     /// Get the namespace segments of the Path
     pub fn namespace(&self) -> &[T::String] {
         self.segments.split_last().map(|(_, ns)| ns).unwrap_or(&[])
+    }
+
+    /// Create a new custom path.
+    pub fn new_custom(segments: Vec<<T as Form>::String>) -> Path<T> {
+        Self { segments }
     }
 }
 
