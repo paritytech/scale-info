@@ -133,8 +133,8 @@ where
     /// - If no segments are supplied
     /// - If any of the segments are invalid Rust identifiers
     pub fn from_segments<I>(segments: I) -> Result<Self, PathError>
-        where
-            I: IntoIterator<Item = T::String>,
+    where
+        I: IntoIterator<Item = T::String>,
     {
         let segments = segments.into_iter().collect::<Vec<_>>();
         if segments.is_empty() {
@@ -142,7 +142,7 @@ where
         }
         if let Some(err_at) = segments
             .iter()
-            .position(|seg| !is_rust_identifier( <T::String as AsRef<str>>::as_ref(seg)))
+            .position(|seg| !is_rust_identifier(<T::String as AsRef<str>>::as_ref(seg)))
         {
             return Err(PathError::InvalidIdentifier { segment: err_at })
         }

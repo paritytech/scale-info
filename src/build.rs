@@ -143,7 +143,6 @@ use crate::{
     TypeParameter,
     Variant,
 };
-use crate::form::PortableForm;
 
 /// State types for type builders which require a Path.
 pub mod state {
@@ -305,35 +304,34 @@ impl<T> FieldsBuilder<MetaForm, T> {
     }
 }
 
-impl<T> FieldsBuilder<PortableForm, T> {
-    fn push_field(mut self, field: Field<PortableForm>) -> Self {
-        self.fields.push(field);
-        self
-    }
-}
-
-impl<F: Form> FieldsBuilder<F, NamedFields> {
+impl FieldsBuilder<MetaForm, NamedFields> {
     /// Add a named field constructed using the builder.
     pub fn field<B>(self, builder: B) -> Self
     where
         B: Fn(
             FieldBuilder,
-        )
-            -> FieldBuilder<F, field_state::NameAssigned, field_state::TypeAssigned>,
+        ) -> FieldBuilder<
+            MetaForm,
+            field_state::NameAssigned,
+            field_state::TypeAssigned,
+        >,
     {
         let builder = builder(FieldBuilder::new());
         self.push_field(builder.finalize())
     }
 }
 
-impl<F: Form> FieldsBuilder<F, UnnamedFields> {
+impl FieldsBuilder<MetaForm, UnnamedFields> {
     /// Add an unnamed field constructed using the builder.
     pub fn field<B>(self, builder: B) -> Self
     where
         B: Fn(
             FieldBuilder,
-        )
-            -> FieldBuilder<F, field_state::NameNotAssigned, field_state::TypeAssigned>,
+        ) -> FieldBuilder<
+            MetaForm,
+            field_state::NameNotAssigned,
+            field_state::TypeAssigned,
+        >,
     {
         let builder = builder(FieldBuilder::new());
         self.push_field(builder.finalize())
