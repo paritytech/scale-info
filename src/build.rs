@@ -519,7 +519,7 @@ impl<F: Form> Variants<F> {
     }
 
     /// Add a unit variant (without fields).
-    pub fn variant_unit<S>(mut self, name: F::String, index: u8) -> Self {
+    pub fn variant_unit(mut self, name: F::String, index: u8) -> Self {
         let builder = VariantBuilder::new(name).index(index);
         self.variants.push(builder.finalize());
         self

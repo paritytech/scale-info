@@ -200,7 +200,7 @@ impl IntoPortable for TypeParameter {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeParameter {
-            name: self.name,
+            name: self.name.into(),
             ty: self.ty.map(|ty| registry.register_type(&ty)),
         }
     }
