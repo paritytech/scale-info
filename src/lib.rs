@@ -335,7 +335,7 @@ pub mod form;
 mod impls;
 pub mod interner;
 mod meta_type;
-pub mod registry;
+mod registry;
 mod ty;
 mod utils;
 
@@ -350,6 +350,7 @@ pub use self::{
     registry::{
         IntoPortable,
         PortableRegistry,
+        PortableType,
         Registry,
     },
     ty::*,
