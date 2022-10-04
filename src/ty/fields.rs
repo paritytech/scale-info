@@ -101,10 +101,10 @@ impl IntoPortable for Field {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Field {
-            name: self.name,
+            name: self.name.map(Into::into),
             ty: registry.register_type(&self.ty),
-            type_name: self.type_name,
-            docs: self.docs,
+            type_name: self.type_name.map(Into::into),
+            docs: self.docs.into_iter().map(Into::into).collect(),
         }
     }
 }
@@ -114,7 +114,7 @@ where
     T: Form,
 {
     /// Returns a new [`FieldBuilder`] for constructing a field.
-    pub fn builder() -> FieldBuilder {
+    pub fn builder() -> FieldBuilder<T> {
         FieldBuilder::new()
     }
 

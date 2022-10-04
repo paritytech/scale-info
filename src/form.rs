@@ -73,24 +73,19 @@ pub enum MetaForm {}
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}
 
+impl Form for MetaForm {
+    type Type = MetaType;
+    type String = &'static str;
+}
+
 cfg_if::cfg_if! {
     if #[cfg(any(feature = "std", feature = "decode"))] {
-        impl Form for MetaForm {
-            type Type = MetaType;
-            type String = crate::prelude::string::String;
-        }
-
         impl Form for PortableForm {
             type Type = UntrackedSymbol<TypeId>;
             // Owned string required for decoding/deserialization
             type String = crate::prelude::string::String;
         }
     } else {
-        impl Form for MetaForm {
-            type Type = MetaType;
-            type String = &'static str;
-        }
-
         impl Form for PortableForm {
             type Type = UntrackedSymbol<TypeId>;
             type String = &'static str;

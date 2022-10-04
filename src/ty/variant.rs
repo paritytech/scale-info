@@ -179,10 +179,10 @@ impl IntoPortable for Variant {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Variant {
-            name: self.name,
+            name: self.name.into(),
             fields: registry.map_into_portable(self.fields),
             index: self.index,
-            docs: self.docs,
+            docs: self.docs.into_iter().map(Into::into).collect(),
         }
     }
 }

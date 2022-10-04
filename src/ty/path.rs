@@ -79,7 +79,7 @@ impl IntoPortable for Path {
 
     fn into_portable(self, _registry: &mut Registry) -> Self::Output {
         Path {
-            segments: self.segments,
+            segments: self.segments.into_iter().map(Into::into).collect(),
         }
     }
 }
@@ -90,14 +90,17 @@ impl Display for Path<PortableForm> {
     }
 }
 
-impl Path {
+impl<T> Path<T>
+where
+    T: Form,
+{
     /// Create a new Path
     ///
     /// # Panics
     ///
     /// - If the type identifier or module path contain invalid Rust identifiers
-    pub fn new(ident: &'static str, module_path: &'static str) -> Path {
-        let mut segments = module_path.split("::").collect::<Vec<_>>();
+    pub fn new(ident: T::String, module_path: T::String) -> Path {
+        let mut segments = module_path.as_ref().split("::").collect::<Vec<_>>();
         segments.push(ident);
         Self::from_segments(segments)
             .expect("All path segments should be valid Rust identifiers")
@@ -116,11 +119,7 @@ impl Path {
     /// # Panics
     ///
     /// - If the supplied ident is not a valid Rust identifier
-    pub(crate) fn prelude<S>(ident: S) -> Self
-    where
-        S: Into<<MetaForm as Form>::String>,
-    {
-        let ident = ident.into();
+    pub(crate) fn prelude<S>(ident: T::String) -> Self {
         Self::from_segments(vec![ident.clone()])
             .unwrap_or_else(|_| panic!("{:?} is not a valid Rust identifier", ident))
     }
@@ -131,10 +130,9 @@ impl Path {
     ///
     /// - If no segments are supplied
     /// - If any of the segments are invalid Rust identifiers
-    pub fn from_segments<I, S>(segments: I) -> Result<Self, PathError>
-    where
-        I: IntoIterator<Item = S>,
-        S: Into<<MetaForm as Form>::String>,
+    pub fn from_segments<I>(segments: I) -> Result<Self, PathError>
+        where
+            I: IntoIterator<Item = T::String>,
     {
         let segments = segments.into_iter().map(Into::into).collect::<Vec<_>>();
         if segments.is_empty() {
@@ -148,12 +146,7 @@ impl Path {
         }
         Ok(Path { segments })
     }
-}
 
-impl<T> Path<T>
-where
-    T: Form,
-{
     /// Returns the segments of the Path
     pub fn segments(&self) -> &[T::String] {
         &self.segments

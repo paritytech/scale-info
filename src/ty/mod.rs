@@ -94,14 +94,14 @@ impl IntoPortable for Type {
             path: self.path.into_portable(registry),
             type_params: registry.map_into_portable(self.type_params),
             type_def: self.type_def.into_portable(registry),
-            docs: self.docs,
+            docs: self.docs.into_iter().map(Into::into).collect(),
         }
     }
 }
 
 macro_rules! impl_from_type_def_for_type {
     ( $( $t:ty  ), + $(,)?) => { $(
-        impl From<$t> for Type {
+        impl<F: Form> From<$t> for Type<F> {
             fn from(item: $t) -> Self {
                 Self::new(Path::voldemort(), Vec::new(), item, Vec::new())
             }
@@ -255,7 +255,7 @@ where
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
     #[codec(index = 0)]
@@ -282,6 +282,27 @@ pub enum TypeDef<T: Form = MetaForm> {
     #[codec(index = 7)]
     BitSequence(TypeDefBitSequence<T>),
 }
+
+macro_rules! impl_from_type_defs {
+    ( $($from:ty => $variant:ident, )* ) => { $(
+        impl<F: Form> From<$from> for TypeDef<F> {
+            fn from(x: $from) -> Self {
+                Self::$variant(x)
+            }
+        }
+    )* }
+}
+
+impl_from_type_defs!(
+    TypeDefComposite<F> => Composite,
+    TypeDefVariant<F> => Variant,
+    TypeDefSequence<F> => Sequence,
+    TypeDefArray<F> => Array,
+    TypeDefTuple<F> => Tuple,
+    TypeDefPrimitive => Primitive,
+    TypeDefCompact<F> => Compact,
+    TypeDefBitSequence<F> => BitSequence,
+);
 
 impl IntoPortable for TypeDef {
     type Output = TypeDef<PortableForm>;

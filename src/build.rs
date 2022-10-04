@@ -143,8 +143,7 @@ use crate::{
     TypeParameter,
     Variant,
 };
-
-type MetaFormStr = <MetaForm as Form>::String;
+use crate::form::PortableForm;
 
 /// State types for type builders which require a Path.
 pub mod state {
@@ -156,14 +155,14 @@ pub mod state {
 
 /// Builds a [`Type`](`crate::Type`)
 #[must_use]
-pub struct TypeBuilder<S = state::PathNotAssigned> {
-    path: Option<Path>,
-    type_params: Vec<TypeParameter>,
-    docs: Vec<MetaFormStr>,
-    marker: PhantomData<fn() -> S>,
+pub struct TypeBuilder<F: Form = MetaForm, S = state::PathNotAssigned> {
+    path: Option<Path<F>>,
+    type_params: Vec<TypeParameter<F>>,
+    docs: Vec<F::String>,
+    marker: PhantomData<fn() -> (F, S)>,
 }
 
-impl<S> Default for TypeBuilder<S> {
+impl<F: Form, S> Default for TypeBuilder<F, S> {
     fn default() -> Self {
         TypeBuilder {
             path: Default::default(),
@@ -174,9 +173,9 @@ impl<S> Default for TypeBuilder<S> {
     }
 }
 
-impl TypeBuilder<state::PathNotAssigned> {
+impl<F: Form> TypeBuilder<F, state::PathNotAssigned> {
     /// Set the Path for the type
-    pub fn path(self, path: Path) -> TypeBuilder<state::PathAssigned> {
+    pub fn path(self, path: Path<F>) -> TypeBuilder<F, state::PathAssigned> {
         TypeBuilder {
             path: Some(path),
             type_params: self.type_params,
@@ -186,31 +185,31 @@ impl TypeBuilder<state::PathNotAssigned> {
     }
 }
 
-impl TypeBuilder<state::PathAssigned> {
-    fn build<D>(self, type_def: D) -> Type
+impl<F: Form> TypeBuilder<F, state::PathAssigned> {
+    fn build<D>(self, type_def: D) -> Type<F>
     where
-        D: Into<TypeDef>,
+        D: Into<TypeDef<F>>,
     {
         let path = self.path.expect("Path not assigned");
         Type::new(path, self.type_params, type_def, self.docs)
     }
 
     /// Construct a "variant" type i.e an `enum`
-    pub fn variant(self, builder: Variants) -> Type {
+    pub fn variant(self, builder: Variants<F>) -> Type<F> {
         self.build(builder.finalize())
     }
 
     /// Construct a "composite" type i.e. a `struct`
-    pub fn composite<F>(self, fields: FieldsBuilder<F>) -> Type {
+    pub fn composite<T>(self, fields: FieldsBuilder<F, T>) -> Type<F> {
         self.build(TypeDefComposite::new(fields.finalize()))
     }
 }
 
-impl<S> TypeBuilder<S> {
+impl<F: Form, S> TypeBuilder<F, S> {
     /// Set the type parameters if it's a generic type
     pub fn type_params<I>(mut self, type_params: I) -> Self
     where
-        I: IntoIterator<Item = TypeParameter>,
+        I: IntoIterator<Item = TypeParameter<F>>,
     {
         self.type_params = type_params.into_iter().collect();
         self
@@ -218,22 +217,20 @@ impl<S> TypeBuilder<S> {
 
     #[cfg(feature = "docs")]
     /// Set the type documentation
-    pub fn docs<I, Str>(mut self, docs: I) -> Self
+    pub fn docs<I>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
-        self.docs = docs.into_iter().map(Into::into).collect();
+        self.docs = docs.into_iter().collect();
         self
     }
 
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I, Str>(self, _docs: I) -> Self
+    pub fn docs<I>(self, _docs: I) -> Self
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
         self
     }
@@ -241,10 +238,9 @@ impl<S> TypeBuilder<S> {
     /// Set the type documentation, always captured even if the "docs" feature is not enabled.
     pub fn docs_always<I, Str>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
-        self.docs = docs.into_iter().map(Into::into).collect();
+        self.docs = docs.into_iter().collect();
         self
     }
 }
@@ -257,33 +253,33 @@ pub enum NamedFields {}
 pub enum UnnamedFields {}
 
 /// Provides FieldsBuilder constructors
-pub enum Fields {}
+pub struct Fields<F: Form>(PhantomData<fn() -> F>);
 
-impl Fields {
+impl<F: Form> Fields<F> {
     /// The type construct has no fields
-    pub fn unit() -> FieldsBuilder<NoFields> {
-        FieldsBuilder::<NoFields>::default()
+    pub fn unit() -> FieldsBuilder<F, NoFields> {
+        FieldsBuilder::<F, NoFields>::default()
     }
 
     /// Fields for a type construct with named fields
-    pub fn named() -> FieldsBuilder<NamedFields> {
+    pub fn named() -> FieldsBuilder<F, NamedFields> {
         FieldsBuilder::default()
     }
 
     /// Fields for a type construct with unnamed fields
-    pub fn unnamed() -> FieldsBuilder<UnnamedFields> {
+    pub fn unnamed() -> FieldsBuilder<F, UnnamedFields> {
         FieldsBuilder::default()
     }
 }
 
 /// Build a set of either all named (e.g. for a struct) or all unnamed (e.g. for a tuple struct)
 #[must_use]
-pub struct FieldsBuilder<T> {
-    fields: Vec<Field>,
+pub struct FieldsBuilder<F: Form, T> {
+    fields: Vec<Field<F>>,
     marker: PhantomData<fn() -> T>,
 }
 
-impl<T> Default for FieldsBuilder<T> {
+impl<F: Form, T> Default for FieldsBuilder<F, T> {
     fn default() -> Self {
         Self {
             fields: Vec::new(),
@@ -292,12 +288,14 @@ impl<T> Default for FieldsBuilder<T> {
     }
 }
 
-impl<T> FieldsBuilder<T> {
+impl<F: Form, T> FieldsBuilder<F, T> {
     /// Complete building and return the set of fields
-    pub fn finalize(self) -> Vec<Field<MetaForm>> {
+    pub fn finalize(self) -> Vec<Field<F>> {
         self.fields
     }
+}
 
+impl<T> FieldsBuilder<MetaForm, T> {
     fn push_field(mut self, field: Field) -> Self {
         // filter out fields of PhantomData
         if !field.ty().is_phantom() {
@@ -307,28 +305,35 @@ impl<T> FieldsBuilder<T> {
     }
 }
 
-impl FieldsBuilder<NamedFields> {
+impl<T> FieldsBuilder<PortableForm, T> {
+    fn push_field(mut self, field: Field<PortableForm>) -> Self {
+        self.fields.push(field);
+        self
+    }
+}
+
+impl<F: Form> FieldsBuilder<F, NamedFields> {
     /// Add a named field constructed using the builder.
-    pub fn field<F>(self, builder: F) -> Self
+    pub fn field<B>(self, builder: B) -> Self
     where
-        F: Fn(
+        B: Fn(
             FieldBuilder,
         )
-            -> FieldBuilder<field_state::NameAssigned, field_state::TypeAssigned>,
+            -> FieldBuilder<F, field_state::NameAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
         self.push_field(builder.finalize())
     }
 }
 
-impl FieldsBuilder<UnnamedFields> {
+impl<F: Form> FieldsBuilder<F, UnnamedFields> {
     /// Add an unnamed field constructed using the builder.
-    pub fn field<F>(self, builder: F) -> Self
+    pub fn field<B>(self, builder: B) -> Self
     where
-        F: Fn(
+        B: Fn(
             FieldBuilder,
         )
-            -> FieldBuilder<field_state::NameNotAssigned, field_state::TypeAssigned>,
+            -> FieldBuilder<F, field_state::NameNotAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
         self.push_field(builder.finalize())
@@ -350,17 +355,18 @@ pub mod field_state {
 /// Construct a valid [`Field`].
 #[must_use]
 pub struct FieldBuilder<
+    F: Form = MetaForm,
     N = field_state::NameNotAssigned,
     T = field_state::TypeNotAssigned,
 > {
-    name: Option<MetaFormStr>,
+    name: Option<F::String>,
     ty: Option<MetaType>,
-    type_name: Option<MetaFormStr>,
-    docs: Vec<MetaFormStr>,
+    type_name: Option<F::String>,
+    docs: Vec<F::String>,
     marker: PhantomData<fn() -> (N, T)>,
 }
 
-impl<N, T> Default for FieldBuilder<N, T> {
+impl<F: Form, N, T> Default for FieldBuilder<F, N, T> {
     fn default() -> Self {
         FieldBuilder {
             name: Default::default(),
@@ -372,21 +378,18 @@ impl<N, T> Default for FieldBuilder<N, T> {
     }
 }
 
-impl FieldBuilder {
+impl<F: Form> FieldBuilder<F> {
     /// Create a new FieldBuilder.
     pub fn new() -> Self {
         Default::default()
     }
 }
 
-impl<T> FieldBuilder<field_state::NameNotAssigned, T> {
+impl<F: Form, T> FieldBuilder<F, field_state::NameNotAssigned, T> {
     /// Initialize the field name.
-    pub fn name<S>(self, name: S) -> FieldBuilder<field_state::NameAssigned, T>
-    where
-        S: Into<MetaFormStr>,
-    {
+    pub fn name(self, name: F::String) -> FieldBuilder<F, field_state::NameAssigned, T> {
         FieldBuilder {
-            name: Some(name.into()),
+            name: Some(name),
             ty: self.ty,
             type_name: self.type_name,
             docs: self.docs,
@@ -395,9 +398,9 @@ impl<T> FieldBuilder<field_state::NameNotAssigned, T> {
     }
 }
 
-impl<N> FieldBuilder<N, field_state::TypeNotAssigned> {
+impl<F: Form, N> FieldBuilder<F, N, field_state::TypeNotAssigned> {
     /// Initialize the type of the field.
-    pub fn ty<TY>(self) -> FieldBuilder<N, field_state::TypeAssigned>
+    pub fn ty<TY>(self) -> FieldBuilder<F, N, field_state::TypeAssigned>
     where
         TY: TypeInfo + 'static + ?Sized,
     {
@@ -411,7 +414,7 @@ impl<N> FieldBuilder<N, field_state::TypeNotAssigned> {
     }
 
     /// Initializes the type of the field as a compact type.
-    pub fn compact<TY>(self) -> FieldBuilder<N, field_state::TypeAssigned>
+    pub fn compact<TY>(self) -> FieldBuilder<F, N, field_state::TypeAssigned>
     where
         TY: scale::HasCompact + TypeInfo + 'static,
     {
@@ -425,16 +428,13 @@ impl<N> FieldBuilder<N, field_state::TypeNotAssigned> {
     }
 }
 
-impl<N, T> FieldBuilder<N, T> {
+impl<F: Form, N, T> FieldBuilder<F, N, T> {
     /// Initialize the type name of a field (optional).
-    pub fn type_name<S>(self, type_name: S) -> FieldBuilder<N, T>
-    where
-        S: Into<MetaFormStr>,
-    {
+    pub fn type_name(self, type_name: F::String) -> FieldBuilder<F, N, T> {
         FieldBuilder {
             name: self.name,
             ty: self.ty,
-            type_name: Some(type_name.into()),
+            type_name: Some(type_name),
             docs: self.docs,
             marker: PhantomData,
         }
@@ -442,16 +442,15 @@ impl<N, T> FieldBuilder<N, T> {
 
     #[cfg(feature = "docs")]
     /// Initialize the documentation of a field (optional).
-    pub fn docs<I, Str>(self, docs: I) -> FieldBuilder<N, T>
+    pub fn docs<I>(self, docs: I) -> FieldBuilder<F, N, T>
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
         FieldBuilder {
             name: self.name,
             ty: self.ty,
             type_name: self.type_name,
-            docs: docs.into_iter().map(Into::into).collect(),
+            docs: docs.into_iter().collect(),
             marker: PhantomData,
         }
     }
@@ -459,34 +458,32 @@ impl<N, T> FieldBuilder<N, T> {
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I, Str>(self, _docs: I) -> FieldBuilder<N, T>
+    pub fn docs<I>(self, _docs: I) -> FieldBuilder<F, N, T>
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
         self
     }
 
     /// Initialize the documentation of a field, always captured even if the "docs" feature is not
     /// enabled.
-    pub fn docs_always<I, Str>(self, docs: I) -> Self
+    pub fn docs_always<I>(self, docs: I) -> Self
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
         FieldBuilder {
             name: self.name,
             ty: self.ty,
             type_name: self.type_name,
-            docs: docs.into_iter().map(Into::into).collect(),
+            docs: docs.into_iter().collect(),
             marker: PhantomData,
         }
     }
 }
 
-impl<N> FieldBuilder<N, field_state::TypeAssigned> {
+impl<F: Form, N> FieldBuilder<F, N, field_state::TypeAssigned> {
     /// Complete building and return a new [`Field`].
-    pub fn finalize(self) -> Field<MetaForm> {
+    pub fn finalize(self) -> Field<F> {
         Field::new(
             self.name,
             self.ty.expect("Type should be set by builder"),
@@ -499,23 +496,22 @@ impl<N> FieldBuilder<N, field_state::TypeAssigned> {
 /// Builds a definition of a variant type i.e an `enum`
 #[derive(Default)]
 #[must_use]
-pub struct Variants {
-    variants: Vec<Variant>,
+pub struct Variants<F: Form = MetaForm> {
+    variants: Vec<Variant<F>>,
 }
 
-impl Variants {
+impl<F: Form> Variants<F> {
     /// Create a new [`VariantsBuilder`].
     pub fn new() -> Self {
-        Variants {
+        Self {
             variants: Vec::new(),
         }
     }
 
     /// Add a variant
-    pub fn variant<F, S>(mut self, name: S, builder: F) -> Self
+    pub fn variant<B>(mut self, name: F::String, builder: B) -> Self
     where
-        F: Fn(VariantBuilder) -> VariantBuilder<variant_state::IndexAssigned>,
-        S: Into<MetaFormStr>,
+        B: Fn(VariantBuilder<F>) -> VariantBuilder<F, variant_state::IndexAssigned>,
     {
         let builder = builder(VariantBuilder::new(name));
         self.variants.push(builder.finalize());
@@ -523,17 +519,14 @@ impl Variants {
     }
 
     /// Add a unit variant (without fields).
-    pub fn variant_unit<S>(mut self, name: S, index: u8) -> Self
-    where
-        S: Into<MetaFormStr>,
-    {
+    pub fn variant_unit<S>(mut self, name: F::String, index: u8) -> Self {
         let builder = VariantBuilder::new(name).index(index);
         self.variants.push(builder.finalize());
         self
     }
 
     /// Construct a new [`TypeDefVariant`] from the initialized builder variants.
-    pub fn finalize(self) -> TypeDefVariant {
+    pub fn finalize(self) -> TypeDefVariant<F> {
         TypeDefVariant::new(self.variants)
     }
 }
@@ -548,21 +541,18 @@ pub mod variant_state {
 
 /// Build a [`Variant`].
 #[must_use]
-pub struct VariantBuilder<S = variant_state::IndexNotAssigned> {
-    name: MetaFormStr,
+pub struct VariantBuilder<F: Form, S = variant_state::IndexNotAssigned> {
+    name: F::String,
     index: Option<u8>,
-    fields: Vec<Field<MetaForm>>,
+    fields: Vec<Field<F>>,
     discriminant: Option<u64>,
-    docs: Vec<MetaFormStr>,
+    docs: Vec<F::String>,
     marker: PhantomData<S>,
 }
 
-impl VariantBuilder<variant_state::IndexNotAssigned> {
+impl<F: Form> VariantBuilder<F, variant_state::IndexNotAssigned> {
     /// Create a new [`VariantBuilder`].
-    pub fn new<S>(name: S) -> Self
-    where
-        S: Into<MetaFormStr>,
-    {
+    pub fn new(name: F::String) -> Self {
         Self {
             name: name.into(),
             fields: Vec::new(),
@@ -574,7 +564,7 @@ impl VariantBuilder<variant_state::IndexNotAssigned> {
     }
 
     /// Set the variant's codec index.
-    pub fn index(self, index: u8) -> VariantBuilder<variant_state::IndexAssigned> {
+    pub fn index(self, index: u8) -> VariantBuilder<F, variant_state::IndexAssigned> {
         VariantBuilder {
             name: self.name,
             index: Some(index),
@@ -586,7 +576,7 @@ impl VariantBuilder<variant_state::IndexNotAssigned> {
     }
 }
 
-impl<S> VariantBuilder<S> {
+impl<F: Form, S> VariantBuilder<F, S> {
     /// Set the variant's discriminant.
     pub fn discriminant(mut self, discriminant: u64) -> Self {
         self.discriminant = Some(discriminant);
@@ -594,17 +584,16 @@ impl<S> VariantBuilder<S> {
     }
 
     /// Initialize the variant's fields.
-    pub fn fields<F>(mut self, fields_builder: FieldsBuilder<F>) -> Self {
+    pub fn fields<T>(mut self, fields_builder: FieldsBuilder<F, T>) -> Self {
         self.fields = fields_builder.finalize();
         self
     }
 
     #[cfg(feature = "docs")]
     /// Initialize the variant's documentation.
-    pub fn docs<I, Str>(mut self, docs: I) -> Self
+    pub fn docs<I>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
         self.docs = docs.into_iter().map(Into::into).collect();
         self
@@ -615,27 +604,25 @@ impl<S> VariantBuilder<S> {
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
     pub fn docs<I, Str>(self, _docs: I) -> Self
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
         self
     }
 
     /// Initialize the variant's documentation, always captured even if the "docs" feature is not
     /// enabled.
-    pub fn docs_always<I, Str>(mut self, docs: I) -> Self
+    pub fn docs_always<I>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = Str>,
-        Str: Into<MetaFormStr>,
+        I: IntoIterator<Item = F::String>,
     {
-        self.docs = docs.into_iter().map(Into::into).collect();
+        self.docs = docs.into_iter().collect();
         self
     }
 }
 
-impl VariantBuilder<variant_state::IndexAssigned> {
+impl<F: Form> VariantBuilder<F, variant_state::IndexAssigned> {
     /// Complete building and create final [`Variant`] instance.
-    pub fn finalize(self) -> Variant<MetaForm> {
+    pub fn finalize(self) -> Variant<F> {
         Variant::new(
             self.name,
             self.fields,
