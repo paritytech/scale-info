@@ -360,7 +360,7 @@ pub struct FieldBuilder<
     T = field_state::TypeNotAssigned,
 > {
     name: Option<F::String>,
-    ty: Option<MetaType>,
+    ty: Option<F::Type>,
     type_name: Option<F::String>,
     docs: Vec<F::String>,
     marker: PhantomData<fn() -> (N, T)>,
@@ -398,9 +398,9 @@ impl<F: Form, T> FieldBuilder<F, field_state::NameNotAssigned, T> {
     }
 }
 
-impl<F: Form, N> FieldBuilder<F, N, field_state::TypeNotAssigned> {
+impl<N> FieldBuilder<MetaForm, N, field_state::TypeNotAssigned> {
     /// Initialize the type of the field.
-    pub fn ty<TY>(self) -> FieldBuilder<F, N, field_state::TypeAssigned>
+    pub fn ty<TY>(self) -> FieldBuilder<MetaForm, N, field_state::TypeAssigned>
     where
         TY: TypeInfo + 'static + ?Sized,
     {
@@ -414,7 +414,7 @@ impl<F: Form, N> FieldBuilder<F, N, field_state::TypeNotAssigned> {
     }
 
     /// Initializes the type of the field as a compact type.
-    pub fn compact<TY>(self) -> FieldBuilder<F, N, field_state::TypeAssigned>
+    pub fn compact<TY>(self) -> FieldBuilder<MetaForm, N, field_state::TypeAssigned>
     where
         TY: scale::HasCompact + TypeInfo + 'static,
     {
