@@ -387,33 +387,14 @@ fn construct_portable_registry() {
     ));
 
     let composite_type_id = types.len() as u32;
-    types.push(PortableType::new(composite_type_id, Type::new(
-            Path::new_custom(vec!["customtype".into()]),
-            vec![],
-            TypeDefComposite {
-                fields: vec![
-                    Field::new(
-                        Some("primitive".to_string()),
-                        u32_type_id.into(),
-                        None,
-                        vec![]
-                    ),
-                    Field::new(
-                        Some("vec_of_u32".to_string()),
-                        vec_u32_type_id.into(),
-                        None,
-                        vec![]
-                    ),
-                    Field::new (                       Some("self_referential".to_string()),
-                        composite_type_id.into(), // this type has a field of it's own type
-                        None,
-                        vec![]
-                    )
-                ]
-            },
-            vec![]
-        ),)
-    );
+    let composite = Type::builder_portable()
+        .path(Path::new_custom(vec!["MyStruct".into()]))
+        .composite(Fields::named()
+            .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))
+            .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id))
+            .field_portable(|f| f.name("self_referential".into()).ty(composite_type_id))
+        );
+    types.push(PortableType::new(composite_type_id, composite));
 
     let _registry = PortableRegistry::new_from_types(types);
 }

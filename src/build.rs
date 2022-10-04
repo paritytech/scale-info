@@ -143,6 +143,7 @@ use crate::{
     TypeParameter,
     Variant,
 };
+use crate::form::PortableForm;
 
 /// State types for type builders which require a Path.
 pub mod state {
@@ -338,6 +339,48 @@ impl FieldsBuilder<MetaForm, UnnamedFields> {
     }
 }
 
+impl<T> FieldsBuilder<PortableForm, T> {
+    fn push_field(mut self, field: Field<PortableForm>) -> Self {
+        self.fields.push(field);
+        self
+    }
+}
+
+impl FieldsBuilder<PortableForm, NamedFields> {
+    /// Add a named field constructed using the builder.
+    pub fn field_portable<B>(self, builder: B) -> Self
+        where
+            B: Fn(
+                FieldBuilder<PortableForm, field_state::NameNotAssigned, field_state::TypeNotAssigned>,
+            ) -> FieldBuilder<
+                PortableForm,
+                field_state::NameAssigned,
+                field_state::TypeAssigned,
+            >,
+    {
+        let builder = builder(FieldBuilder::new());
+        self.push_field(builder.finalize())
+    }
+}
+
+impl FieldsBuilder<PortableForm, UnnamedFields> {
+    /// Add an unnamed field constructed using the builder.
+    pub fn field_portable<B>(self, builder: B) -> Self
+        where
+            B: Fn(
+                FieldBuilder<PortableForm, field_state::NameNotAssigned, field_state::TypeNotAssigned>,
+            ) -> FieldBuilder<
+                PortableForm,
+                field_state::NameNotAssigned,
+                field_state::TypeAssigned,
+            >,
+    {
+        let builder = builder(FieldBuilder::new());
+        self.push_field(builder.finalize())
+    }
+}
+
+
 /// Type states for building a field.
 pub mod field_state {
     /// A name has not been assigned to the field.
@@ -419,6 +462,22 @@ impl<N> FieldBuilder<MetaForm, N, field_state::TypeNotAssigned> {
         FieldBuilder {
             name: self.name,
             ty: Some(MetaType::new::<scale::Compact<TY>>()),
+            type_name: self.type_name,
+            docs: self.docs,
+            marker: PhantomData,
+        }
+    }
+}
+
+impl<N> FieldBuilder<PortableForm, N, field_state::TypeNotAssigned> {
+    /// Initialize the type of the field.
+    pub fn ty<T>(self, ty: T) -> FieldBuilder<PortableForm, N, field_state::TypeAssigned>
+    where
+        T: Into<<PortableForm as Form>::Type>
+    {
+        FieldBuilder {
+            name: self.name,
+            ty: Some(ty.into()),
             type_name: self.type_name,
             docs: self.docs,
             marker: PhantomData,
