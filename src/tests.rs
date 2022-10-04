@@ -389,10 +389,13 @@ fn construct_portable_registry() {
     let composite_type_id = types.len() as u32;
     let composite = Type::builder_portable()
         .path(Path::new_custom(vec!["MyStruct".into()]))
-        .composite(Fields::named()
-            .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))
-            .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id))
-            .field_portable(|f| f.name("self_referential".into()).ty(composite_type_id))
+        .composite(
+            Fields::named()
+                .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))
+                .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id))
+                .field_portable(|f| {
+                    f.name("self_referential".into()).ty(composite_type_id)
+                }),
         );
     types.push(PortableType::new(composite_type_id, composite));
 
