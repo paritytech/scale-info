@@ -111,11 +111,11 @@ macro_rules! impl_from_type_def_for_type {
 
 impl_from_type_def_for_type!(
     TypeDefPrimitive,
-    TypeDefArray,
-    TypeDefSequence,
-    TypeDefTuple,
-    TypeDefCompact,
-    TypeDefBitSequence,
+    TypeDefArray<F>,
+    TypeDefSequence<F>,
+    TypeDefTuple<F>,
+    TypeDefCompact<F>,
+    TypeDefBitSequence<F>,
 );
 
 impl Type {
