@@ -196,19 +196,19 @@ mod tests {
         assert_eq!(
             Path::<MetaForm>::from_segments(vec!["hello"]),
             Ok(Path {
-                segments: vec!["hello".into()]
+                segments: vec!["hello"]
             })
         );
         assert_eq!(
             Path::<MetaForm>::from_segments(vec!["Hello", "World"]),
             Ok(Path {
-                segments: vec!["Hello".into(), "World".into()]
+                segments: vec!["Hello", "World"]
             })
         );
         assert_eq!(
             Path::<MetaForm>::from_segments(vec!["_"]),
             Ok(Path {
-                segments: vec!["_".into()]
+                segments: vec!["_"]
             })
         );
     }
@@ -218,7 +218,7 @@ mod tests {
         assert_eq!(
             Path::<MetaForm>::from_segments(vec!["r#mod", "r#Struct"]),
             Ok(Path {
-                segments: vec!["r#mod".into(), "r#Struct".into()]
+                segments: vec!["r#mod", "r#Struct"]
             })
         );
     }
@@ -248,7 +248,7 @@ mod tests {
         assert_eq!(
             Path::new("Planet", "hello::world"),
             Path {
-                segments: vec!["hello".into(), "world".into(), "Planet".into()]
+                segments: vec!["hello", "world", "Planet"]
             }
         );
         assert_eq!(
@@ -261,7 +261,7 @@ mod tests {
     fn path_get_namespace_and_ident() {
         let path = Path::new("Planet", "hello::world");
         assert_eq!(path.namespace(), &["hello", "world"]);
-        assert_eq!(path.ident(), Some("Planet".into()));
+        assert_eq!(path.ident(), Some("Planet"));
     }
 
     #[test]

@@ -618,7 +618,7 @@ impl<F: Form> VariantBuilder<F, variant_state::IndexNotAssigned> {
     /// Create a new [`VariantBuilder`].
     pub fn new(name: F::String) -> Self {
         Self {
-            name: name.into(),
+            name,
             fields: Vec::new(),
             discriminant: None,
             index: None,
