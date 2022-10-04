@@ -204,7 +204,7 @@ pub struct PortableType {
 
 impl PortableType {
     /// Construct a custom `PortableType`.
-    pub fn new_custom(id: u32, ty: Type<PortableForm>) -> Self {
+    pub fn new(id: u32, ty: Type<PortableForm>) -> Self {
         Self { id, ty }
     }
 
