@@ -106,6 +106,7 @@ impl PortableType {
 /// Guarantees that the resulting [`PortableRegistry`] has the list of types in the correct order,
 /// since downstream libs assume that a `u32` type id corresponds to the index of the type
 /// definition type table.
+#[derive(Debug, Default)]
 pub struct PortableRegistryBuilder {
     types: Interner<Type<PortableForm>>,
 }
@@ -113,9 +114,7 @@ pub struct PortableRegistryBuilder {
 impl PortableRegistryBuilder {
     /// Create a new [`PortableRegistryBuilder`].
     pub fn new() -> Self {
-        Self {
-            types: Default::default(),
-        }
+        Default::default()
     }
 
     /// Register a type, returning the assigned ID.
