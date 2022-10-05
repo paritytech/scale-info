@@ -39,7 +39,6 @@ use crate::{
     meta_type::MetaType,
     Type,
 };
-use scale::Encode;
 
 /// Convert the type definition into the portable form using a registry.
 pub trait IntoPortable {
@@ -73,7 +72,7 @@ pub struct Registry {
     /// The database where registered types reside.
     ///
     /// The contents herein is used for serlialization.
-    types: BTreeMap<UntrackedSymbol<core::any::TypeId>, Type<PortableForm>>,
+    types: BTreeMap<UntrackedSymbol<TypeId>, Type<PortableForm>>,
 }
 
 impl Default for Registry {
@@ -145,77 +144,10 @@ impl Registry {
             .map(|i| i.into_portable(self))
             .collect::<Vec<_>>()
     }
-}
 
-/// A read-only registry containing types in their portable form for serialization.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
-#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(Clone, Debug, PartialEq, Eq, Encode)]
-pub struct PortableRegistry {
-    types: Vec<PortableType>,
-}
-
-impl From<Registry> for PortableRegistry {
-    fn from(registry: Registry) -> Self {
-        PortableRegistry {
-            types: registry
-                .types
-                .iter()
-                .map(|(k, v)| {
-                    PortableType {
-                        id: k.id(),
-                        ty: v.clone(),
-                    }
-                })
-                .collect::<Vec<_>>(),
-        }
-    }
-}
-
-impl PortableRegistry {
-    /// Construct a new `PortableRegistry` from custom types.
-    pub fn new_from_types(types: Vec<PortableType>) -> Self {
-        Self { types }
-    }
-
-    /// Returns the type definition for the given identifier, `None` if no type found for that ID.
-    pub fn resolve(&self, id: u32) -> Option<&Type<PortableForm>> {
-        self.types.get(id as usize).map(|ty| ty.ty())
-    }
-
-    /// Returns all types with their associated identifiers.
-    pub fn types(&self) -> &[PortableType] {
-        &self.types
-    }
-}
-
-/// Represent a type in it's portable form.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
-#[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(Clone, Debug, PartialEq, Eq, Encode)]
-pub struct PortableType {
-    #[codec(compact)]
-    id: u32,
-    #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    ty: Type<PortableForm>,
-}
-
-impl PortableType {
-    /// Construct a custom `PortableType`.
-    pub fn new(id: u32, ty: Type<PortableForm>) -> Self {
-        Self { id, ty }
-    }
-
-    /// Returns the index of the [`PortableType`].
-    pub fn id(&self) -> u32 {
-        self.id
-    }
-
-    /// Returns the type of the [`PortableType`].
-    pub fn ty(&self) -> &Type<PortableForm> {
-        &self.ty
+    /// Returns an iterator over the types with their keys
+    pub fn types(&self) -> impl Iterator<Item = (&UntrackedSymbol<TypeId>, &Type<PortableForm>)> {
+        self.types.iter()
     }
 }
 
@@ -229,22 +161,6 @@ mod tests {
         TypeDef,
         TypeInfo,
     };
-
-    #[test]
-    fn readonly_type_ids() {
-        let mut registry = Registry::new();
-        registry.register_type(&MetaType::new::<u32>());
-        registry.register_type(&MetaType::new::<bool>());
-        registry.register_type(&MetaType::new::<Option<(u32, bool)>>());
-
-        let readonly: PortableRegistry = registry.into();
-
-        assert_eq!(4, readonly.types().len());
-
-        for (expected, ty) in readonly.types().iter().enumerate() {
-            assert_eq!(expected as u32, ty.id());
-        }
-    }
 
     #[test]
     fn recursive_struct_with_references() {
