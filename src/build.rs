@@ -236,7 +236,7 @@ impl<F: Form, S> TypeBuilder<F, S> {
     }
 
     /// Set the type documentation, always captured even if the "docs" feature is not enabled.
-    pub fn docs_always<I, Str>(mut self, docs: I) -> Self
+    pub fn docs_always<I>(mut self, docs: I) -> Self
     where
         I: IntoIterator<Item = F::String>,
     {
@@ -666,7 +666,7 @@ impl<F: Form, S> VariantBuilder<F, S> {
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I, Str>(self, _docs: I) -> Self
+    pub fn docs<I>(self, _docs: I) -> Self
     where
         I: IntoIterator<Item = F::String>,
     {
