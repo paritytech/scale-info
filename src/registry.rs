@@ -146,7 +146,9 @@ impl Registry {
     }
 
     /// Returns an iterator over the types with their keys
-    pub fn types(&self) -> impl Iterator<Item = (&UntrackedSymbol<TypeId>, &Type<PortableForm>)> {
+    pub fn types(
+        &self,
+    ) -> impl Iterator<Item = (&UntrackedSymbol<TypeId>, &Type<PortableForm>)> {
         self.types.iter()
     }
 }
