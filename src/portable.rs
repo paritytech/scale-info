@@ -129,6 +129,11 @@ impl PortableRegistryBuilder {
         self.types.elements().len() as u32
     }
 
+    /// Returns a reference to the type registered at the given ID (if any).
+    pub fn get(&self, id: u32) -> Option<&Type<PortableForm>> {
+        self.types.elements().get(id as usize)
+    }
+
     /// Finalize and return a valid [`PortableRegistry`] instance.
     pub fn finish(&self) -> PortableRegistry {
         let types = self
@@ -202,6 +207,10 @@ mod tests {
         let composite_type_id = builder.register_type(composite_type.clone());
 
         assert_eq!(self_referential_type_id, composite_type_id);
+
+        assert_eq!(builder.get(u32_type_id).unwrap(), &u32_type);
+        assert_eq!(builder.get(vec_u32_type_id).unwrap(), &vec_u32_type);
+        assert_eq!(builder.get(composite_type_id).unwrap(), &composite_type);
 
         let registry = builder.finish();
 
