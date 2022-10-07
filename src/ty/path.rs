@@ -18,7 +18,6 @@ use crate::prelude::{
         Error as FmtError,
         Formatter,
     },
-    vec,
     vec::Vec,
 };
 
@@ -102,6 +101,39 @@ impl Path<MetaForm> {
         Self::from_segments(segments)
             .expect("All path segments should be valid Rust identifiers")
     }
+
+    /// Create a Path from the given segments
+    ///
+    /// # Errors
+    ///
+    /// - If no segments are supplied
+    /// - If any of the segments are invalid Rust identifiers
+    pub fn from_segments<I>(segments: I) -> Result<Self, PathError>
+        where
+            I: IntoIterator<Item = <MetaForm as Form>::String>,
+    {
+        let segments = segments.into_iter().collect::<Vec<_>>();
+        if segments.is_empty() {
+            return Err(PathError::MissingSegments)
+        }
+        if let Some(err_at) = segments
+            .iter()
+            .position(|seg| !is_rust_identifier(seg))
+        {
+            return Err(PathError::InvalidIdentifier { segment: err_at })
+        }
+        Ok(Path { segments })
+    }
+
+    /// Crate a Path for types in the Prelude namespace
+    ///
+    /// # Panics
+    ///
+    /// - If the supplied ident is not a valid Rust identifier
+    pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Self {
+        Self::from_segments([ident])
+            .unwrap_or_else(|_| panic!("{:?} is not a valid Rust identifier", ident))
+    }
 }
 
 impl<T> Path<T>
@@ -114,39 +146,6 @@ where
         Self {
             segments: Vec::new(),
         }
-    }
-
-    /// Crate a Path for types in the Prelude namespace
-    ///
-    /// # Panics
-    ///
-    /// - If the supplied ident is not a valid Rust identifier
-    pub(crate) fn prelude(ident: T::String) -> Self {
-        Self::from_segments(vec![ident.clone()])
-            .unwrap_or_else(|_| panic!("{:?} is not a valid Rust identifier", ident))
-    }
-
-    /// Create a Path from the given segments
-    ///
-    /// # Errors
-    ///
-    /// - If no segments are supplied
-    /// - If any of the segments are invalid Rust identifiers
-    pub fn from_segments<I>(segments: I) -> Result<Self, PathError>
-    where
-        I: IntoIterator<Item = T::String>,
-    {
-        let segments = segments.into_iter().collect::<Vec<_>>();
-        if segments.is_empty() {
-            return Err(PathError::MissingSegments)
-        }
-        if let Some(err_at) = segments
-            .iter()
-            .position(|seg| !is_rust_identifier(<T::String as AsRef<str>>::as_ref(seg)))
-        {
-            return Err(PathError::InvalidIdentifier { segment: err_at })
-        }
-        Ok(Path { segments })
     }
 
     /// Create a Path from the given segments.
