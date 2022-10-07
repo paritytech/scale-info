@@ -476,20 +476,22 @@ impl TypeDefTuple {
     }
 }
 
-impl<T> TypeDefTuple<T>
-where
-    T: Form,
-{
+impl TypeDefTuple<PortableForm> {
     /// Creates a new custom type definition from the given types.
-    pub fn new_custom<I>(type_params: I) -> Self
+    pub fn new_portable<I>(type_params: I) -> Self
     where
-        I: IntoIterator<Item = T::Type>,
+        I: IntoIterator<Item = <PortableForm as Form>::Type>,
     {
         Self {
             fields: type_params.into_iter().collect(),
         }
     }
+}
 
+impl<T> TypeDefTuple<T>
+where
+    T: Form,
+{
     /// Returns the types of the tuple fields.
     pub fn fields(&self) -> &[T::Type] {
         &self.fields
@@ -642,13 +644,12 @@ impl TypeDefBitSequence {
     }
 }
 
-#[cfg(feature = "bit-vec")]
-impl<T> TypeDefBitSequence<T>
-where
-    T: Form,
-{
+impl TypeDefBitSequence<PortableForm> {
     /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
-    pub fn new_custom(bit_store_type: T::Type, bit_order_type: T::Type) -> Self {
+    pub fn new_portable(
+        bit_store_type: <PortableForm as Form>::Type,
+        bit_order_type: <PortableForm as Form>::Type,
+    ) -> Self {
         Self {
             bit_store_type,
             bit_order_type,

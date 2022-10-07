@@ -161,11 +161,6 @@ where
         }
     }
 
-    /// Create a new custom path.
-    pub fn new_custom(segments: Vec<<T as Form>::String>) -> Path<T> {
-        Self { segments }
-    }
-
     /// Returns the segments of the Path
     pub fn segments(&self) -> &[T::String] {
         &self.segments
