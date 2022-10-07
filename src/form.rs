@@ -62,6 +62,11 @@ pub trait Form {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
 
+impl Form for MetaForm {
+    type Type = MetaType;
+    type String = &'static str;
+}
+
 /// Portable form that has its lifetime untracked in association to its interner.
 ///
 /// # Note
@@ -72,11 +77,6 @@ pub enum MetaForm {}
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}
-
-impl Form for MetaForm {
-    type Type = MetaType;
-    type String = &'static str;
-}
 
 cfg_if::cfg_if! {
     if #[cfg(any(feature = "std", feature = "decode"))] {
