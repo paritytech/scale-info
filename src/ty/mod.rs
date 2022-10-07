@@ -213,21 +213,30 @@ impl IntoPortable for TypeParameter {
     }
 }
 
+impl TypeParameter<MetaForm> {
+    /// Create a new [`TypeParameter`].
+    pub fn new(
+        name: <MetaForm as Form>::String,
+        ty: Option<<MetaForm as Form>::Type>,
+    ) -> Self {
+        Self { name, ty }
+    }
+}
+
+impl TypeParameter<PortableForm> {
+    /// Create a new [`TypeParameter`] in [`PortableForm`].
+    pub fn new_portable(
+        name: <PortableForm as Form>::String,
+        ty: Option<<PortableForm as Form>::Type>,
+    ) -> Self {
+        Self { name, ty }
+    }
+}
+
 impl<T> TypeParameter<T>
 where
     T: Form,
 {
-    /// Create a new [`TypeParameter`].
-    pub fn new<S>(name: S, ty: Option<T::Type>) -> Self
-    where
-        S: Into<T::String>,
-    {
-        Self {
-            name: name.into(),
-            ty,
-        }
-    }
-
     /// Get the type of the parameter.
     ///
     /// `None` if the parameter is skipped.
