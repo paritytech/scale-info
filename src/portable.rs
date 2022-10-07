@@ -194,7 +194,7 @@ mod tests {
         let self_referential_type_id = builder.next_type_id();
 
         let composite_type = Type::builder_portable()
-            .path(Path::new_custom(vec!["MyStruct".into()]))
+            .path(Path::from_segments_unchecked(["MyStruct".into()]))
             .composite(
                 Fields::named()
                     .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))

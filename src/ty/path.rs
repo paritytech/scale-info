@@ -149,6 +149,23 @@ where
         Ok(Path { segments })
     }
 
+    /// Create a Path from the given segments.
+    ///
+    /// Does *not* check that the segments are valid Rust identifiers.
+    pub fn from_segments_unchecked<I>(segments: I) -> Path<T>
+    where
+        I: IntoIterator<Item = T::String>,
+    {
+        Self {
+            segments: segments.into_iter().collect(),
+        }
+    }
+
+    /// Create a new custom path.
+    pub fn new_custom(segments: Vec<<T as Form>::String>) -> Path<T> {
+        Self { segments }
+    }
+
     /// Returns the segments of the Path
     pub fn segments(&self) -> &[T::String] {
         &self.segments
@@ -167,11 +184,6 @@ where
     /// Get the namespace segments of the Path
     pub fn namespace(&self) -> &[T::String] {
         self.segments.split_last().map(|(_, ns)| ns).unwrap_or(&[])
-    }
-
-    /// Create a new custom path.
-    pub fn new_custom(segments: Vec<<T as Form>::String>) -> Path<T> {
-        Self { segments }
     }
 }
 
