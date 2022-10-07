@@ -109,17 +109,14 @@ impl Path<MetaForm> {
     /// - If no segments are supplied
     /// - If any of the segments are invalid Rust identifiers
     pub fn from_segments<I>(segments: I) -> Result<Self, PathError>
-        where
-            I: IntoIterator<Item = <MetaForm as Form>::String>,
+    where
+        I: IntoIterator<Item = <MetaForm as Form>::String>,
     {
         let segments = segments.into_iter().collect::<Vec<_>>();
         if segments.is_empty() {
             return Err(PathError::MissingSegments)
         }
-        if let Some(err_at) = segments
-            .iter()
-            .position(|seg| !is_rust_identifier(seg))
-        {
+        if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
             return Err(PathError::InvalidIdentifier { segment: err_at })
         }
         Ok(Path { segments })
@@ -200,19 +197,19 @@ mod tests {
     #[test]
     fn path_ok() {
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec!["hello"]),
+            Path::from_segments(vec!["hello"]),
             Ok(Path {
                 segments: vec!["hello"]
             })
         );
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec!["Hello", "World"]),
+            Path::from_segments(vec!["Hello", "World"]),
             Ok(Path {
                 segments: vec!["Hello", "World"]
             })
         );
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec!["_"]),
+            Path::from_segments(vec!["_"]),
             Ok(Path {
                 segments: vec!["_"]
             })
@@ -222,7 +219,7 @@ mod tests {
     #[test]
     fn path_with_raw_identifers_ok() {
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec!["r#mod", "r#Struct"]),
+            Path::from_segments(vec!["r#mod", "r#Struct"]),
             Ok(Path {
                 segments: vec!["r#mod", "r#Struct"]
             })
@@ -232,19 +229,19 @@ mod tests {
     #[test]
     fn path_err() {
         assert_eq!(
-            Path::<MetaForm>::from_segments(Vec::new()),
+            Path::from_segments(Vec::new()),
             Err(PathError::MissingSegments)
         );
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec![""]),
+            Path::from_segments(vec![""]),
             Err(PathError::InvalidIdentifier { segment: 0 })
         );
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec!["1"]),
+            Path::from_segments(vec!["1"]),
             Err(PathError::InvalidIdentifier { segment: 0 })
         );
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec!["Hello", ", World!"]),
+            Path::from_segments(vec!["Hello", ", World!"]),
             Err(PathError::InvalidIdentifier { segment: 1 })
         );
     }
@@ -258,7 +255,7 @@ mod tests {
             }
         );
         assert_eq!(
-            Path::<MetaForm>::from_segments(vec!["Earth", "::world"]),
+            Path::from_segments(vec!["Earth", "::world"]),
             Err(PathError::InvalidIdentifier { segment: 1 })
         );
     }
