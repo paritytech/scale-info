@@ -94,14 +94,14 @@ impl IntoPortable for Type {
             path: self.path.into_portable(registry),
             type_params: registry.map_into_portable(self.type_params),
             type_def: self.type_def.into_portable(registry),
-            docs: registry.map_into_portable(self.docs),
+            docs: self.docs.into_iter().map(Into::into).collect(),
         }
     }
 }
 
 macro_rules! impl_from_type_def_for_type {
     ( $( $t:ty  ), + $(,)?) => { $(
-        impl From<$t> for Type {
+        impl<F: Form> From<$t> for Type<F> {
             fn from(item: $t) -> Self {
                 Self::new(Path::voldemort(), Vec::new(), item, Vec::new())
             }
@@ -111,28 +111,41 @@ macro_rules! impl_from_type_def_for_type {
 
 impl_from_type_def_for_type!(
     TypeDefPrimitive,
-    TypeDefArray,
-    TypeDefSequence,
-    TypeDefTuple,
-    TypeDefCompact,
-    TypeDefBitSequence,
+    TypeDefArray<F>,
+    TypeDefSequence<F>,
+    TypeDefTuple<F>,
+    TypeDefCompact<F>,
+    TypeDefBitSequence<F>,
 );
 
 impl Type {
-    /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a [`Type`]
+    /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a
+    /// [`Type`] of [`MetaForm`].
     pub fn builder() -> TypeBuilder {
         TypeBuilder::default()
     }
 
-    pub(crate) fn new<I, D>(
-        path: Path,
+    /// Create a [`TypeBuilder`](`crate::build::TypeBuilder`) the public API for constructing a
+    /// [`Type`] of [`PortableForm`] for use at runtime.
+    pub fn builder_portable() -> TypeBuilder<PortableForm> {
+        TypeBuilder::default()
+    }
+}
+
+impl<F> Type<F>
+where
+    F: Form,
+{
+    /// Create a [`Type`].
+    pub fn new<I, D>(
+        path: Path<F>,
         type_params: I,
         type_def: D,
-        docs: Vec<&'static str>,
-    ) -> Self
+        docs: Vec<F::String>,
+    ) -> Type<F>
     where
-        I: IntoIterator<Item = TypeParameter>,
-        D: Into<TypeDef>,
+        I: IntoIterator<Item = TypeParameter<F>>,
+        D: Into<TypeDef<F>>,
     {
         Self {
             path,
@@ -194,9 +207,29 @@ impl IntoPortable for TypeParameter {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         TypeParameter {
-            name: self.name.into_portable(registry),
+            name: self.name.into(),
             ty: self.ty.map(|ty| registry.register_type(&ty)),
         }
+    }
+}
+
+impl TypeParameter<MetaForm> {
+    /// Create a new [`TypeParameter`].
+    pub fn new(
+        name: <MetaForm as Form>::String,
+        ty: Option<<MetaForm as Form>::Type>,
+    ) -> Self {
+        Self { name, ty }
+    }
+}
+
+impl TypeParameter<PortableForm> {
+    /// Create a new [`TypeParameter`] in [`PortableForm`].
+    pub fn new_portable(
+        name: <PortableForm as Form>::String,
+        ty: Option<<PortableForm as Form>::Type>,
+    ) -> Self {
+        Self { name, ty }
     }
 }
 
@@ -204,11 +237,6 @@ impl<T> TypeParameter<T>
 where
     T: Form,
 {
-    /// Create a new [`TypeParameter`].
-    pub fn new(name: T::String, ty: Option<T::Type>) -> Self {
-        Self { name, ty }
-    }
-
     /// Get the type of the parameter.
     ///
     /// `None` if the parameter is skipped.
@@ -243,7 +271,7 @@ where
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
     #[codec(index = 0)]
@@ -270,6 +298,27 @@ pub enum TypeDef<T: Form = MetaForm> {
     #[codec(index = 7)]
     BitSequence(TypeDefBitSequence<T>),
 }
+
+macro_rules! impl_from_type_defs {
+    ( $($from:ty => $variant:ident, )* ) => { $(
+        impl<F: Form> From<$from> for TypeDef<F> {
+            fn from(x: $from) -> Self {
+                Self::$variant(x)
+            }
+        }
+    )* }
+}
+
+impl_from_type_defs!(
+    TypeDefComposite<F> => Composite,
+    TypeDefVariant<F> => Variant,
+    TypeDefSequence<F> => Sequence,
+    TypeDefArray<F> => Array,
+    TypeDefTuple<F> => Tuple,
+    TypeDefPrimitive => Primitive,
+    TypeDefCompact<F> => Compact,
+    TypeDefBitSequence<F> => BitSequence,
+);
 
 impl IntoPortable for TypeDef {
     type Output = TypeDef<PortableForm>;
@@ -368,18 +417,16 @@ impl IntoPortable for TypeDefArray {
     }
 }
 
-impl TypeDefArray {
-    /// Creates a new array type.
-    pub fn new(len: u32, type_param: MetaType) -> Self {
-        Self { len, type_param }
-    }
-}
-
 #[allow(clippy::len_without_is_empty)]
 impl<T> TypeDefArray<T>
 where
     T: Form,
 {
+    /// Creates a new array type.
+    pub fn new(len: u32, type_param: <T as Form>::Type) -> Self {
+        Self { len, type_param }
+    }
+
     /// Returns the length of the array type.
     pub fn len(&self) -> u32 {
         self.len
@@ -438,6 +485,18 @@ impl TypeDefTuple {
     }
 }
 
+impl TypeDefTuple<PortableForm> {
+    /// Creates a new custom type definition from the given types.
+    pub fn new_portable<I>(type_params: I) -> Self
+    where
+        I: IntoIterator<Item = <PortableForm as Form>::Type>,
+    {
+        Self {
+            fields: type_params.into_iter().collect(),
+        }
+    }
+}
+
 impl<T> TypeDefTuple<T>
 where
     T: Form,
@@ -471,13 +530,6 @@ impl IntoPortable for TypeDefSequence {
 impl TypeDefSequence {
     /// Creates a new sequence type.
     ///
-    /// Use this constructor if you want to instantiate from a given meta type.
-    pub fn new(type_param: MetaType) -> Self {
-        Self { type_param }
-    }
-
-    /// Creates a new sequence type.
-    ///
     /// Use this constructor if you want to instantiate from a given
     /// compile-time type.
     pub fn of<T>() -> Self
@@ -492,6 +544,13 @@ impl<T> TypeDefSequence<T>
 where
     T: Form,
 {
+    /// Creates a new sequence type.
+    ///
+    /// Use this constructor if you want to instantiate from a given meta type.
+    pub fn new(type_param: <T as Form>::Type) -> Self {
+        Self { type_param }
+    }
+
     /// Returns the element type of the sequence type.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
@@ -518,16 +577,15 @@ impl IntoPortable for TypeDefCompact {
     }
 }
 
-impl TypeDefCompact {
-    /// Creates a new type wrapped in [`Compact`].
-    pub fn new(type_param: MetaType) -> Self {
-        Self { type_param }
-    }
-}
 impl<T> TypeDefCompact<T>
 where
     T: Form,
 {
+    /// Creates a new type wrapped in [`Compact`].
+    pub fn new(type_param: <T as Form>::Type) -> Self {
+        Self { type_param }
+    }
+
     /// Returns the [`Compact`] wrapped type, i.e. the `T` in `Compact<T>`.
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
@@ -591,6 +649,19 @@ impl TypeDefBitSequence {
         Self {
             bit_store_type: MetaType::new::<Store>(),
             bit_order_type: MetaType::new::<Order>(),
+        }
+    }
+}
+
+impl TypeDefBitSequence<PortableForm> {
+    /// Creates a new [`TypeDefBitSequence`] for the supplied bit order and bit store types.
+    pub fn new_portable(
+        bit_store_type: <PortableForm as Form>::Type,
+        bit_order_type: <PortableForm as Form>::Type,
+    ) -> Self {
+        Self {
+            bit_store_type,
+            bit_order_type,
         }
     }
 }

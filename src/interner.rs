@@ -61,6 +61,15 @@ impl<T> UntrackedSymbol<T> {
     }
 }
 
+impl<T> From<u32> for UntrackedSymbol<T> {
+    fn from(id: u32) -> Self {
+        Self {
+            id,
+            marker: Default::default(),
+        }
+    }
+}
+
 /// A symbol from an interner.
 ///
 /// Can be used to resolve to the associated instance.
@@ -121,7 +130,7 @@ pub struct Interner<T> {
     ///
     /// This is used to efficiently provide access to the cached elements and
     /// to establish a strict ordering upon them since each is uniquely
-    /// idenfitied later by its position in the vector.
+    /// identified later by its position in the vector.
     vec: Vec<T>,
 }
 
@@ -188,6 +197,11 @@ where
             return None
         }
         self.vec.get(idx)
+    }
+
+    /// Returns the ordered sequence of interned elements.
+    pub fn elements(&self) -> &[T] {
+        &self.vec
     }
 }
 

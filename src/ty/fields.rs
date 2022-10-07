@@ -21,7 +21,6 @@ use crate::{
     },
     prelude::vec::Vec,
     IntoPortable,
-    MetaType,
     Registry,
 };
 use scale::Encode;
@@ -102,17 +101,20 @@ impl IntoPortable for Field {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Field {
-            name: self.name.map(|name| name.into_portable(registry)),
+            name: self.name.map(Into::into),
             ty: registry.register_type(&self.ty),
-            type_name: self.type_name.map(|tn| tn.into_portable(registry)),
-            docs: registry.map_into_portable(self.docs),
+            type_name: self.type_name.map(Into::into),
+            docs: self.docs.into_iter().map(Into::into).collect(),
         }
     }
 }
 
-impl Field {
+impl<T> Field<T>
+where
+    T: Form,
+{
     /// Returns a new [`FieldBuilder`] for constructing a field.
-    pub fn builder() -> FieldBuilder {
+    pub fn builder() -> FieldBuilder<T> {
         FieldBuilder::new()
     }
 
@@ -120,16 +122,16 @@ impl Field {
     ///
     /// Use this constructor if you want to instantiate from a given meta type.
     pub fn new(
-        name: Option<&'static str>,
-        ty: MetaType,
-        type_name: Option<&'static str>,
-        docs: &[&'static str],
+        name: Option<T::String>,
+        ty: T::Type,
+        type_name: Option<T::String>,
+        docs: Vec<T::String>,
     ) -> Self {
         Self {
             name,
             ty,
             type_name,
-            docs: docs.to_vec(),
+            docs,
         }
     }
 }

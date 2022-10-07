@@ -18,7 +18,6 @@ use crate::prelude::{
         Error as FmtError,
         Formatter,
     },
-    vec,
     vec::Vec,
 };
 
@@ -77,9 +76,9 @@ where
 impl IntoPortable for Path {
     type Output = Path<PortableForm>;
 
-    fn into_portable(self, registry: &mut Registry) -> Self::Output {
+    fn into_portable(self, _registry: &mut Registry) -> Self::Output {
         Path {
-            segments: registry.map_into_portable(self.segments),
+            segments: self.segments.into_iter().map(Into::into).collect(),
         }
     }
 }
@@ -90,7 +89,7 @@ impl Display for Path<PortableForm> {
     }
 }
 
-impl Path {
+impl Path<MetaForm> {
     /// Create a new Path
     ///
     /// # Panics
@@ -103,33 +102,15 @@ impl Path {
             .expect("All path segments should be valid Rust identifiers")
     }
 
-    /// Create an empty path for types which shall not be named
-    #[allow(unused)]
-    pub(crate) fn voldemort() -> Path {
-        Path {
-            segments: Vec::new(),
-        }
-    }
-
-    /// Crate a Path for types in the Prelude namespace
-    ///
-    /// # Panics
-    ///
-    /// - If the supplied ident is not a valid Rust identifier
-    pub(crate) fn prelude(ident: &'static str) -> Path {
-        Self::from_segments(vec![ident])
-            .unwrap_or_else(|_| panic!("{} is not a valid Rust identifier", ident))
-    }
-
     /// Create a Path from the given segments
     ///
     /// # Errors
     ///
     /// - If no segments are supplied
     /// - If any of the segments are invalid Rust identifiers
-    pub fn from_segments<I>(segments: I) -> Result<Path, PathError>
+    pub fn from_segments<I>(segments: I) -> Result<Self, PathError>
     where
-        I: IntoIterator<Item = &'static str>,
+        I: IntoIterator<Item = <MetaForm as Form>::String>,
     {
         let segments = segments.into_iter().collect::<Vec<_>>();
         if segments.is_empty() {
@@ -140,12 +121,42 @@ impl Path {
         }
         Ok(Path { segments })
     }
+
+    /// Crate a Path for types in the Prelude namespace
+    ///
+    /// # Panics
+    ///
+    /// - If the supplied ident is not a valid Rust identifier
+    pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Self {
+        Self::from_segments([ident])
+            .unwrap_or_else(|_| panic!("{:?} is not a valid Rust identifier", ident))
+    }
 }
 
 impl<T> Path<T>
 where
     T: Form,
 {
+    /// Create an empty path for types which shall not be named
+    #[allow(unused)]
+    pub(crate) fn voldemort() -> Self {
+        Self {
+            segments: Vec::new(),
+        }
+    }
+
+    /// Create a Path from the given segments.
+    ///
+    /// Does *not* check that the segments are valid Rust identifiers.
+    pub fn from_segments_unchecked<I>(segments: I) -> Path<T>
+    where
+        I: IntoIterator<Item = T::String>,
+    {
+        Self {
+            segments: segments.into_iter().collect(),
+        }
+    }
+
     /// Returns the segments of the Path
     pub fn segments(&self) -> &[T::String] {
         &self.segments
@@ -217,7 +228,10 @@ mod tests {
 
     #[test]
     fn path_err() {
-        assert_eq!(Path::from_segments(vec![]), Err(PathError::MissingSegments));
+        assert_eq!(
+            Path::from_segments(Vec::new()),
+            Err(PathError::MissingSegments)
+        );
         assert_eq!(
             Path::from_segments(vec![""]),
             Err(PathError::InvalidIdentifier { segment: 0 })

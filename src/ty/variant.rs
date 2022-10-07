@@ -101,11 +101,14 @@ impl IntoPortable for TypeDefVariant {
     }
 }
 
-impl TypeDefVariant {
+impl<T> TypeDefVariant<T>
+where
+    T: Form,
+{
     /// Create a new `TypeDefVariant` with the given variants
     pub fn new<I>(variants: I) -> Self
     where
-        I: IntoIterator<Item = Variant>,
+        I: IntoIterator<Item = Variant<T>>,
     {
         Self {
             variants: variants.into_iter().collect(),
@@ -150,25 +153,25 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
-    name: T::String,
+    pub name: T::String,
     /// The fields of the variant.
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    fields: Vec<Field<T>>,
+    pub fields: Vec<Field<T>>,
     /// Index of the variant, used in `parity-scale-codec`.
     ///
     /// The value of this will be, in order of precedence:
     ///     1. The explicit index defined by a `#[codec(index = N)]` attribute.
     ///     2. The implicit index from the position of the variant in the `enum` definition.
-    index: u8,
+    pub index: u8,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    docs: Vec<T::String>,
+    pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for Variant {
@@ -176,21 +179,24 @@ impl IntoPortable for Variant {
 
     fn into_portable(self, registry: &mut Registry) -> Self::Output {
         Variant {
-            name: self.name.into_portable(registry),
+            name: self.name.into(),
             fields: registry.map_into_portable(self.fields),
             index: self.index,
-            docs: registry.map_into_portable(self.docs),
+            docs: self.docs.into_iter().map(Into::into).collect(),
         }
     }
 }
 
-impl Variant {
+impl<T> Variant<T>
+where
+    T: Form,
+{
     /// Creates a new variant.
-    pub(crate) fn new(
-        name: &'static str,
-        fields: Vec<Field<MetaForm>>,
+    pub fn new(
+        name: T::String,
+        fields: Vec<Field<T>>,
         index: u8,
-        docs: Vec<&'static str>,
+        docs: Vec<T::String>,
     ) -> Self {
         Self {
             name,
