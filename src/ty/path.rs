@@ -129,7 +129,7 @@ impl Path<MetaForm> {
     /// - If the supplied ident is not a valid Rust identifier
     pub(crate) fn prelude(ident: <MetaForm as Form>::String) -> Self {
         Self::from_segments([ident])
-            .unwrap_or_else(|_| panic!("{:?} is not a valid Rust identifier", ident))
+            .unwrap_or_else(|_| panic!("{ident:?} is not a valid Rust identifier"))
     }
 }
 
