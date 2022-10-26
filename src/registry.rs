@@ -23,12 +23,22 @@
 //! namespaces. The normal Rust namespace of a type is used, except for the Rust
 //! prelude types that live in the so-called root namespace which is empty.
 
-use crate::form::Form;
-use crate::prelude::{any::TypeId, collections::BTreeMap, fmt::Debug, vec::Vec};
+use crate::{
+    form::Form,
+    prelude::{
+        any::TypeId,
+        collections::BTreeMap,
+        fmt::Debug,
+        vec::Vec,
+    },
+};
 
 use crate::{
     form::PortableForm,
-    interner::{Interner, UntrackedSymbol},
+    interner::{
+        Interner,
+        UntrackedSymbol,
+    },
     meta_type::MetaType,
     Type,
 };
@@ -157,7 +167,13 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
+    use crate::{
+        build::Fields,
+        meta_type,
+        Path,
+        TypeDef,
+        TypeInfo,
+    };
 
     #[test]
     fn recursive_struct_with_references() {
