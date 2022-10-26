@@ -228,10 +228,11 @@ impl<F: Form, S> TypeBuilder<F, S> {
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I>(self, _docs: I) -> Self
+    pub fn docs<I>(self, docs: I) -> Self
     where
         I: IntoIterator<Item = F::String>,
     {
+        let _ = docs.into_iter().collect::<Vec<F::String>>();
         self
     }
 
@@ -522,10 +523,11 @@ impl<F: Form, N, T> FieldBuilder<F, N, T> {
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I>(self, _docs: I) -> FieldBuilder<F, N, T>
+    pub fn docs<I>(self, docs: I) -> FieldBuilder<F, N, T>
     where
         I: IntoIterator<Item = F::String>,
     {
+        let _ = docs.into_iter().collect::<Vec<F::String>>();
         self
     }
 
@@ -659,17 +661,18 @@ impl<F: Form, S> VariantBuilder<F, S> {
     where
         I: IntoIterator<Item = F::String>,
     {
-        self.docs = docs.into_iter().map(Into::into).collect();
+        self.docs = docs.into_iter().collect();
         self
     }
 
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I>(self, _docs: I) -> Self
+    pub fn docs<I>(self, docs: I) -> Self
     where
         I: IntoIterator<Item = F::String>,
     {
+        let _ = docs.into_iter().collect::<Vec<F::String>>();
         self
     }
 
