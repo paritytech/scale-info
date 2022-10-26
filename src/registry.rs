@@ -23,19 +23,12 @@
 //! namespaces. The normal Rust namespace of a type is used, except for the Rust
 //! prelude types that live in the so-called root namespace which is empty.
 
-use crate::prelude::{
-    any::TypeId,
-    collections::BTreeMap,
-    fmt::Debug,
-    vec::Vec,
-};
+use crate::form::Form;
+use crate::prelude::{any::TypeId, collections::BTreeMap, fmt::Debug, vec::Vec};
 
 use crate::{
     form::PortableForm,
-    interner::{
-        Interner,
-        UntrackedSymbol,
-    },
+    interner::{Interner, UntrackedSymbol},
     meta_type::MetaType,
     Type,
 };
@@ -47,6 +40,14 @@ pub trait IntoPortable {
 
     /// Convert `self` to the portable form by using the registry for caching.
     fn into_portable(self, registry: &mut Registry) -> Self::Output;
+}
+
+impl IntoPortable for &'static str {
+    type Output = <PortableForm as Form>::String;
+
+    fn into_portable(self, _registry: &mut Registry) -> Self::Output {
+        self.into()
+    }
 }
 
 /// The registry for space-efficient storage of type identifiers and
@@ -156,13 +157,7 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        build::Fields,
-        meta_type,
-        Path,
-        TypeDef,
-        TypeInfo,
-    };
+    use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
 
     #[test]
     fn recursive_struct_with_references() {
