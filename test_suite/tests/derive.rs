@@ -67,14 +67,14 @@ fn struct_derive() {
     let struct_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(named_type_params![(T, bool), (U, u8)])
-        .docs(["Type docs.", "Multiline."])
+        .docs(&["Type docs.", "Multiline."])
         .composite(
             Fields::named()
                 .field(|f| {
                     f.ty::<bool>()
                         .name("t")
                         .type_name("T")
-                        .docs(["Field docs."])
+                        .docs(&["Field docs."])
                 })
                 .field(|f| f.ty::<u8>().name("u").type_name("U")),
         );
@@ -88,14 +88,14 @@ fn struct_derive() {
     let self_typed_type = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(named_type_params!((T, Box<S<bool, u8>>), (U, bool)))
-        .docs(["Type docs.", "Multiline."])
+        .docs(&["Type docs.", "Multiline."])
         .composite(
             Fields::named()
                 .field(|f| {
                     f.ty::<Box<S<bool, u8>>>()
                         .name("t")
                         .type_name("T")
-                        .docs(["Field docs."])
+                        .docs(&["Field docs."])
                 })
                 .field(|f| f.ty::<bool>().name("u").type_name("U")),
         );
@@ -146,10 +146,10 @@ fn tuple_struct_derive() {
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
         .type_params(named_type_params!((T, bool)))
-        .docs(["Type docs."])
+        .docs(&["Type docs."])
         .composite(
             Fields::unnamed()
-                .field(|f| f.ty::<bool>().type_name("T").docs(["Unnamed field docs."])),
+                .field(|f| f.ty::<bool>().type_name("T").docs(&["Unnamed field docs."])),
         );
 
     assert_type!(S<bool>, ty);
@@ -182,11 +182,11 @@ fn c_like_enum_derive() {
 
     let ty = Type::builder()
         .path(Path::new("E", "derive"))
-        .docs(["Enum docs."])
+        .docs(&["Enum docs."])
         .variant(
             Variants::new()
-                .variant("A", |v| v.index(0).docs(["Unit variant."]))
-                .variant("B", |v| v.index(10).docs(["Variant with discriminant."])),
+                .variant("A", |v| v.index(0).docs(&["Unit variant."]))
+                .variant("B", |v| v.index(10).docs(&["Variant with discriminant."])),
         );
 
     assert_type!(E, ty);
@@ -241,15 +241,15 @@ fn enum_derive() {
     let ty = Type::builder()
         .path(Path::new("E", "derive"))
         .type_params(named_type_params!((T, bool)))
-        .docs(["Enum docs."])
+        .docs(&["Enum docs."])
         .variant(
             Variants::new()
                 .variant("A", |v| {
                     v.index(0)
                         .fields(Fields::unnamed().field(|f| {
-                            f.ty::<bool>().type_name("T").docs(["Unnamed field."])
+                            f.ty::<bool>().type_name("T").docs(&["Unnamed field."])
                         }))
-                        .docs(["Unnamed fields variant."])
+                        .docs(&["Unnamed fields variant."])
                 })
                 .variant("B", |v| {
                     v.index(1)
@@ -257,11 +257,11 @@ fn enum_derive() {
                             f.ty::<bool>()
                                 .name("b")
                                 .type_name("T")
-                                .docs(["Named field."])
+                                .docs(&["Named field."])
                         }))
-                        .docs(["Named fields variant."])
+                        .docs(&["Named fields variant."])
                 })
-                .variant("C", |v| v.index(2).docs(["Unit variant."])),
+                .variant("C", |v| v.index(2).docs(&["Unit variant."])),
         );
 
     assert_type!(E<bool>, ty);
@@ -606,13 +606,18 @@ fn doc_capture_works() {
 
     let ty = Type::builder().path(Path::new("S", "derive")).composite(
         Fields::named()
-            .field(|f| f.ty::<bool>().name("a").type_name("bool").docs(["Field a"]))
-            .field(|f| f.ty::<u8>().name("b").type_name("u8"))
+            .field(|f| {
+                f.ty::<bool>()
+                    .name("a")
+                    .type_name("bool")
+                    .docs(&["Field a"])
+            })
+            .field(|f| f.ty::<u8>().name("b").type_name("u8").docs(&[]))
             .field(|f| {
                 f.ty::<u16>()
                     .name("c")
                     .type_name("u16")
-                    .docs(["    Indented"])
+                    .docs(&["    Indented"])
             }),
     );
 
@@ -684,26 +689,26 @@ fn always_capture_docs() {
 
     let enum_ty = Type::builder()
         .path(Path::new("E", "derive"))
-        .docs_always(["Type docs"])
+        .docs_always(&["Type docs"])
         .variant(Variants::new().variant("A", |v| {
             v.index(0)
                 .fields(Fields::named().field(|f| {
                     f.ty::<u32>()
                         .name("a")
                         .type_name("u32")
-                        .docs_always(["field docs"])
+                        .docs_always(&["field docs"])
                 }))
-                .docs_always(["Variant docs"])
+                .docs_always(&["Variant docs"])
         }));
 
     let struct_ty = Type::builder()
         .path(Path::new("S", "derive"))
-        .docs_always(["Type docs"])
+        .docs_always(&["Type docs"])
         .composite(Fields::named().field(|f| {
             f.ty::<bool>()
                 .name("a")
                 .type_name("bool")
-                .docs_always(["field docs"])
+                .docs_always(&["field docs"])
         }));
 
     assert_type!(E, enum_ty);
@@ -833,7 +838,7 @@ fn docs_attr() {
 
     let ty = Type::builder()
         .path(Path::new("S", "derive"))
-        .docs(["Docs attr"])
+        .docs(&["Docs attr"])
         .composite(Fields::unit());
 
     assert_type!(S, ty);
