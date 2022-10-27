@@ -214,6 +214,16 @@ impl<F: Form, S> TypeBuilder<F, S> {
         self.type_params = type_params.into_iter().collect();
         self
     }
+
+    #[cfg(feature = "docs")]
+    /// Set the type documentation (for types in portable form).
+    pub fn docs_portable<I>(mut self, docs: I) -> Self
+    where
+        I: IntoIterator<Item = F::String>,
+    {
+        self.docs = docs.into_iter().collect();
+        self
+    }
 }
 
 impl<S> TypeBuilder<MetaForm, S> {
@@ -496,12 +506,22 @@ impl<F: Form, N, T> FieldBuilder<F, N, T> {
             marker: PhantomData,
         }
     }
+
+    #[cfg(feature = "docs")]
+    /// Initialize the documentation of a field (for types in portable form, optional).
+    pub fn docs_portable<I>(mut self, docs: I) -> Self
+    where
+        I: IntoIterator<Item = F::String>,
+    {
+        self.docs = docs.into_iter().collect();
+        self
+    }
 }
 
 impl<N, T> FieldBuilder<MetaForm, N, T> {
     #[cfg(feature = "docs")]
     /// Initialize the documentation of a field (optional).
-    pub fn docs(self, docs: &'static [&'static str]) -> FieldBuilder<MetaForm, N, T> {
+    pub fn docs(self, docs: &'static [&'static str]) -> Self {
         FieldBuilder {
             name: self.name,
             ty: self.ty,
@@ -514,7 +534,7 @@ impl<N, T> FieldBuilder<MetaForm, N, T> {
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs(self, _docs: &'static [&'static str]) -> FieldBuilder<MetaForm, N, T> {
+    pub fn docs(self, _docs: &'static [&'static str]) -> Self {
         self
     }
 
@@ -636,6 +656,16 @@ impl<F: Form, S> VariantBuilder<F, S> {
     /// Initialize the variant's fields.
     pub fn fields<T>(mut self, fields_builder: FieldsBuilder<F, T>) -> Self {
         self.fields = fields_builder.finalize();
+        self
+    }
+
+    #[cfg(feature = "docs")]
+    /// Initialize the variant's documentation (for types in portable form).
+    pub fn docs_portable<I>(mut self, docs: I) -> Self
+    where
+        I: IntoIterator<Item = F::String>,
+    {
+        self.docs = docs.into_iter().collect();
         self
     }
 }
