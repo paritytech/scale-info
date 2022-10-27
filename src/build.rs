@@ -122,12 +122,27 @@
 //! }
 //! ```
 
-use crate::prelude::{marker::PhantomData, vec::Vec};
+use crate::prelude::{
+    marker::PhantomData,
+    vec::Vec,
+};
 
 use crate::{
-    form::{Form, MetaForm, PortableForm},
-    Field, MetaType, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, TypeInfo,
-    TypeParameter, Variant,
+    form::{
+        Form,
+        MetaForm,
+        PortableForm,
+    },
+    Field,
+    MetaType,
+    Path,
+    Type,
+    TypeDef,
+    TypeDefComposite,
+    TypeDefVariant,
+    TypeInfo,
+    TypeParameter,
+    Variant,
 };
 
 /// State types for type builders which require a Path.
