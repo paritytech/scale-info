@@ -122,27 +122,12 @@
 //! }
 //! ```
 
-use crate::prelude::{
-    marker::PhantomData,
-    vec::Vec,
-};
+use crate::prelude::{marker::PhantomData, vec::Vec};
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    Field,
-    MetaType,
-    Path,
-    Type,
-    TypeDef,
-    TypeDefComposite,
-    TypeDefVariant,
-    TypeInfo,
-    TypeParameter,
-    Variant,
+    form::{Form, MetaForm, PortableForm},
+    Field, MetaType, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, TypeInfo,
+    TypeParameter, Variant,
 };
 
 /// State types for type builders which require a Path.
@@ -214,12 +199,14 @@ impl<F: Form, S> TypeBuilder<F, S> {
         self.type_params = type_params.into_iter().collect();
         self
     }
+}
 
+impl<S> TypeBuilder<PortableForm, S> {
     #[cfg(feature = "docs")]
     /// Set the type documentation (for types in portable form).
     pub fn docs_portable<I>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = F::String>,
+        I: IntoIterator<Item = <PortableForm as Form>::String>,
     {
         self.docs = docs.into_iter().collect();
         self
@@ -506,12 +493,14 @@ impl<F: Form, N, T> FieldBuilder<F, N, T> {
             marker: PhantomData,
         }
     }
+}
 
+impl<N, T> FieldBuilder<PortableForm, N, T> {
     #[cfg(feature = "docs")]
     /// Initialize the documentation of a field (for types in portable form, optional).
     pub fn docs_portable<I>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = F::String>,
+        I: IntoIterator<Item = <PortableForm as Form>::String>,
     {
         self.docs = docs.into_iter().collect();
         self
@@ -658,12 +647,14 @@ impl<F: Form, S> VariantBuilder<F, S> {
         self.fields = fields_builder.finalize();
         self
     }
+}
 
+impl<S> VariantBuilder<PortableForm, S> {
     #[cfg(feature = "docs")]
     /// Initialize the variant's documentation (for types in portable form).
     pub fn docs_portable<I>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = F::String>,
+        I: IntoIterator<Item = <PortableForm as Form>::String>,
     {
         self.docs = docs.into_iter().collect();
         self
