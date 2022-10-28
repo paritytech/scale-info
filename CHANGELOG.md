@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.0] - 2022-10.27
 
-Implement the missing pecieses for constructing `PortableRegistry` dynamically at runtime. This allows languages where static rust types are not available to use it.
+Implement the missing pieces for constructing `PortableRegistry` dynamically at runtime. This allows languages where static rust types are not available to use it.
 
 ## [2.2.0] - 2022-09-14
 
