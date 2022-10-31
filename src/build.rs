@@ -214,33 +214,38 @@ impl<F: Form, S> TypeBuilder<F, S> {
         self.type_params = type_params.into_iter().collect();
         self
     }
+}
 
+impl<S> TypeBuilder<PortableForm, S> {
     #[cfg(feature = "docs")]
-    /// Set the type documentation
-    pub fn docs<I>(mut self, docs: I) -> Self
+    /// Set the type documentation (for types in portable form).
+    pub fn docs_portable<I>(mut self, docs: I) -> Self
     where
-        I: IntoIterator<Item = F::String>,
+        I: IntoIterator<Item = <PortableForm as Form>::String>,
     {
         self.docs = docs.into_iter().collect();
+        self
+    }
+}
+
+impl<S> TypeBuilder<MetaForm, S> {
+    #[cfg(feature = "docs")]
+    /// Set the type documentation
+    pub fn docs(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
         self
     }
 
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I>(self, _docs: I) -> Self
-    where
-        I: IntoIterator<Item = F::String>,
-    {
+    pub fn docs(self, _docs: &'static [&'static str]) -> Self {
         self
     }
 
     /// Set the type documentation, always captured even if the "docs" feature is not enabled.
-    pub fn docs_always<I>(mut self, docs: I) -> Self
-    where
-        I: IntoIterator<Item = F::String>,
-    {
-        self.docs = docs.into_iter().collect();
+    pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
         self
     }
 }
@@ -503,18 +508,29 @@ impl<F: Form, N, T> FieldBuilder<F, N, T> {
             marker: PhantomData,
         }
     }
+}
 
+impl<N, T> FieldBuilder<PortableForm, N, T> {
+    #[cfg(feature = "docs")]
+    /// Initialize the documentation of a field (for types in portable form, optional).
+    pub fn docs_portable<I>(mut self, docs: I) -> Self
+    where
+        I: IntoIterator<Item = <PortableForm as Form>::String>,
+    {
+        self.docs = docs.into_iter().collect();
+        self
+    }
+}
+
+impl<N, T> FieldBuilder<MetaForm, N, T> {
     #[cfg(feature = "docs")]
     /// Initialize the documentation of a field (optional).
-    pub fn docs<I>(self, docs: I) -> FieldBuilder<F, N, T>
-    where
-        I: IntoIterator<Item = F::String>,
-    {
+    pub fn docs(self, docs: &'static [&'static str]) -> Self {
         FieldBuilder {
             name: self.name,
             ty: self.ty,
             type_name: self.type_name,
-            docs: docs.into_iter().collect(),
+            docs: docs.to_vec(),
             marker: PhantomData,
         }
     }
@@ -522,24 +538,18 @@ impl<F: Form, N, T> FieldBuilder<F, N, T> {
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I>(self, _docs: I) -> FieldBuilder<F, N, T>
-    where
-        I: IntoIterator<Item = F::String>,
-    {
+    pub fn docs(self, _docs: &'static [&'static str]) -> Self {
         self
     }
 
     /// Initialize the documentation of a field, always captured even if the "docs" feature is not
     /// enabled.
-    pub fn docs_always<I>(self, docs: I) -> Self
-    where
-        I: IntoIterator<Item = F::String>,
-    {
+    pub fn docs_always(self, docs: &'static [&'static str]) -> Self {
         FieldBuilder {
             name: self.name,
             ty: self.ty,
             type_name: self.type_name,
-            docs: docs.into_iter().collect(),
+            docs: docs.to_vec(),
             marker: PhantomData,
         }
     }
@@ -652,34 +662,39 @@ impl<F: Form, S> VariantBuilder<F, S> {
         self.fields = fields_builder.finalize();
         self
     }
+}
 
+impl<S> VariantBuilder<PortableForm, S> {
+    #[cfg(feature = "docs")]
+    /// Initialize the variant's documentation (for types in portable form).
+    pub fn docs_portable<I>(mut self, docs: I) -> Self
+    where
+        I: IntoIterator<Item = <PortableForm as Form>::String>,
+    {
+        self.docs = docs.into_iter().collect();
+        self
+    }
+}
+
+impl<S> VariantBuilder<MetaForm, S> {
     #[cfg(feature = "docs")]
     /// Initialize the variant's documentation.
-    pub fn docs<I>(mut self, docs: I) -> Self
-    where
-        I: IntoIterator<Item = F::String>,
-    {
-        self.docs = docs.into_iter().map(Into::into).collect();
+    pub fn docs(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
         self
     }
 
     #[cfg(not(feature = "docs"))]
     #[inline]
     /// Doc capture is not enabled via the "docs" feature so this is a no-op.
-    pub fn docs<I>(self, _docs: I) -> Self
-    where
-        I: IntoIterator<Item = F::String>,
-    {
+    pub fn docs(self, _docs: &[&'static str]) -> Self {
         self
     }
 
     /// Initialize the variant's documentation, always captured even if the "docs" feature is not
     /// enabled.
-    pub fn docs_always<I>(mut self, docs: I) -> Self
-    where
-        I: IntoIterator<Item = F::String>,
-    {
-        self.docs = docs.into_iter().collect();
+    pub fn docs_always(mut self, docs: &[&'static str]) -> Self {
+        self.docs = docs.to_vec();
         self
     }
 }

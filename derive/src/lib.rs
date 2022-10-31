@@ -290,7 +290,7 @@ impl TypeInfoImpl {
 
         if !docs.is_empty() {
             Some(quote! {
-                .#docs_builder_fn([ #( #docs ),* ])
+                .#docs_builder_fn(&[ #( #docs ),* ])
             })
         } else {
             None
