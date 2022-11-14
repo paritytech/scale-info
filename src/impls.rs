@@ -133,14 +133,14 @@ impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S
 impl_metadata_for_tuple!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T);
 
 macro_rules! impl_for_non_zero {
-    ( $( $t: ty ),* $(,)? ) => {
+    ( $( $t: ty: $inner: ty ),* $(,)? ) => {
         $(
             impl TypeInfo for $t {
                 type Identity = Self;
                 fn type_info() -> Type {
                     Type::builder()
                         .path(Path::prelude(stringify!($t)))
-                        .composite(Fields::unnamed().field(|f| f.ty::<$t>()))
+                        .composite(Fields::unnamed().field(|f| f.ty::<$inner>()))
                 }
             }
         )*
@@ -148,16 +148,16 @@ macro_rules! impl_for_non_zero {
 }
 
 impl_for_non_zero!(
-    NonZeroI8,
-    NonZeroI16,
-    NonZeroI32,
-    NonZeroI64,
-    NonZeroI128,
-    NonZeroU8,
-    NonZeroU16,
-    NonZeroU32,
-    NonZeroU64,
-    NonZeroU128
+    NonZeroI8: i8,
+    NonZeroI16: i16,
+    NonZeroI32: i32,
+    NonZeroI64: i64,
+    NonZeroI128: i128,
+    NonZeroU8: u8,
+    NonZeroU16: u16,
+    NonZeroU32: u32,
+    NonZeroU64: u64,
+    NonZeroU128: u128
 );
 
 impl<T> TypeInfo for Vec<T>
