@@ -101,7 +101,7 @@ fn prelude_items() {
         NonZeroU32,
         Type::builder()
             .path(Path::prelude("NonZeroU32"))
-            .composite(Fields::unnamed().field(|f| f.ty::<NonZeroU32>()))
+            .composite(Fields::unnamed().field(|f| f.ty::<u32>()))
     )
 }
 
