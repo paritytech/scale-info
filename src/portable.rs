@@ -23,16 +23,36 @@
 //! namespaces. The normal Rust namespace of a type is used, except for the Rust
 //! prelude types that live in the so-called root namespace which is empty.
 
+use core::{
+    any::TypeId,
+    hash::Hash,
+    sync::atomic::AtomicU32,
+};
+use std::collections::{
+    hash_map::Entry,
+    HashMap,
+    HashSet,
+};
+
 use crate::{
     form::PortableForm,
-    interner::Interner,
+    interner::{
+        Interner,
+        UntrackedSymbol,
+    },
     prelude::{
         fmt::Debug,
         vec::Vec,
     },
+    registry,
+    Field,
     Registry,
     Type,
+    TypeDef,
+    TypeDefComposite,
+    TypeParameter,
 };
+// use alloc::collections::BTreeSet;
 use scale::Encode;
 
 /// A read-only registry containing types in their portable form for serialization.
@@ -60,6 +80,95 @@ impl From<Registry> for PortableRegistry {
     }
 }
 
+struct TypeIdResolver<'a> {
+    registry: &'a PortableRegistry,
+    result: HashMap<u32, u32>,
+    next_id: AtomicU32,
+}
+
+impl<'a> TypeIdResolver<'a> {
+    fn new(registry: &'a PortableRegistry) -> Self {
+        TypeIdResolver {
+            registry,
+            result: Default::default(),
+            next_id: Default::default(),
+        }
+    }
+
+    fn next_id(&mut self) -> u32 {
+        self.next_id
+            .fetch_add(1, core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Recursively add all type ids needed to express the given identifier.
+    fn visit_type_id(&mut self, id: u32) -> Result<(), ()> {
+        if self.result.get(&id).is_some() {
+            return Ok(())
+        }
+
+        let ty = self.registry.resolve(id).ok_or(())?;
+
+        let new_id = self.next_id();
+        self.result.insert(id, new_id);
+
+        // Add generic type params.
+        for param in ty.type_params() {
+            if let Some(ty) = param.ty() {
+                self.visit_type_id(ty.id())?;
+            }
+        }
+
+        // Recursively visit any other type ids needed to represent this type.
+        match ty.type_def() {
+            TypeDef::Composite(composite) => {
+                for field in composite.fields() {
+                    self.visit_type_id(field.ty().id())?;
+                }
+            }
+            TypeDef::Variant(variant) => {
+                for var in variant.variants() {
+                    for field in var.fields() {
+                        self.visit_type_id(field.ty().id())?;
+                    }
+                }
+            }
+            TypeDef::Sequence(sequence) => {
+                self.visit_type_id(sequence.type_param().id())?;
+            }
+            TypeDef::Array(array) => {
+                self.visit_type_id(array.type_param().id())?;
+            }
+            TypeDef::Tuple(tuple) => {
+                for ty in tuple.fields() {
+                    self.visit_type_id(ty.id())?;
+                }
+            }
+            TypeDef::Primitive(_) => {}
+            TypeDef::Compact(compact) => {
+                self.visit_type_id(compact.type_param().id())?;
+            }
+            TypeDef::BitSequence(bit_sequence) => {
+                self.visit_type_id(bit_sequence.bit_store_type().id())?;
+                self.visit_type_id(bit_sequence.bit_order_type().id())?;
+            }
+        }
+
+        Ok(())
+    }
+
+    fn resolve(
+        mut self,
+        ids: impl IntoIterator<Item = u32>,
+    ) -> Result<HashMap<u32, u32>, ()> {
+        let ids: HashSet<_> = ids.into_iter().collect();
+        for id in ids {
+            self.visit_type_id(id)?;
+        }
+
+        Ok(self.result)
+    }
+}
+
 impl PortableRegistry {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
     pub fn resolve(&self, id: u32) -> Option<&Type<PortableForm>> {
@@ -69,6 +178,119 @@ impl PortableRegistry {
     /// Returns all types with their associated identifiers.
     pub fn types(&self) -> &[PortableType] {
         &self.types
+    }
+
+    fn update_type(
+        &self,
+        ids_map: &HashMap<u32, u32>,
+        ty: &mut Type<PortableForm>,
+    ) -> Result<(), ()> {
+        for param in ty.type_params.iter_mut() {
+            let Some(ty) = param.ty() else {
+                continue
+            };
+
+            let Some(new_id) = ids_map.get(&ty.id()) else {
+                return Err(())
+            };
+            param.ty = Some(*new_id).map(Into::into);
+        }
+
+        match &mut ty.type_def {
+            TypeDef::Composite(composite) => {
+                for field in composite.fields.iter_mut() {
+                    let Some(new_id) = ids_map.get(&field.ty().id()) else {
+                        return Err(())
+                    };
+                    field.ty = (*new_id).into();
+                }
+            }
+            TypeDef::Variant(variant) => {
+                for var in variant.variants.iter_mut() {
+                    for field in var.fields.iter_mut() {
+                        let Some(new_id) = ids_map.get(&field.ty().id()) else {
+                            return Err(())
+                        };
+                        field.ty = (*new_id).into();
+                    }
+                }
+            }
+            TypeDef::Sequence(sequence) => {
+                let Some(new_id) = ids_map.get(&sequence.type_param().id()) else {
+                    return Err(())
+                };
+                sequence.type_param = (*new_id).into();
+            }
+            TypeDef::Array(array) => {
+                let Some(new_id) = ids_map.get(&array.type_param().id()) else {
+                    return Err(())
+                };
+                array.type_param = (*new_id).into();
+            }
+            TypeDef::Tuple(tuple) => {
+                for ty in tuple.fields.iter_mut() {
+                    let Some(new_id) = ids_map.get(&ty.id()) else {
+                        return Err(())
+                    };
+                    *ty = (*new_id).into();
+                }
+            }
+            TypeDef::Primitive(_) => (),
+            TypeDef::Compact(compact) => {
+                let Some(new_id) = ids_map.get(&compact.type_param().id()) else {
+                    return Err(())
+                };
+                compact.type_param = (*new_id).into();
+            }
+            TypeDef::BitSequence(bit_seq) => {
+                let Some(new_id) = ids_map.get(&bit_seq.bit_order_type().id()) else {
+                    return Err(())
+                };
+                bit_seq.bit_order_type = (*new_id).into();
+
+                let Some(new_id) = ids_map.get(&bit_seq.bit_store_type().id()) else {
+                    return Err(())
+                };
+                bit_seq.bit_store_type = (*new_id).into();
+            }
+        };
+
+        Ok(())
+    }
+
+    /// Retains only the portable types specified by the provided ids.
+    pub fn retain(
+        &mut self,
+        ids: impl IntoIterator<Item = u32>,
+    ) -> Result<HashMap<u32, u32>, ()> {
+        // Recursively visit all type ids needed to express the list of provided ids.
+        let resolver = TypeIdResolver::new(&self);
+        // Map of old id -> new id.
+        let ids_map = resolver.resolve(ids)?;
+        println!("New Mappings {:#?}", ids_map);
+
+        // Sort the ids by their order in the new registry.
+        let mut ids_order: Vec<_> = ids_map.clone().into_iter().collect();
+        ids_order.sort_by(|(_, lhs_new), (_, rhs_new)| lhs_new.cmp(rhs_new));
+
+        // We cannot construct directly a new `PortableRegistry` by registering
+        // the current types because they may contain recursive type ids
+        // that must be updated.
+        let mut types = Vec::with_capacity(ids_order.len());
+        for (old_id, new_id) in ids_order.iter() {
+            let Some(ty) = self.types.get_mut(*old_id as usize) else {
+                return Err(())
+            };
+
+            let mut ty = ty.clone();
+            ty.id = *new_id;
+            self.update_type(&ids_map, &mut ty.ty)?;
+            types.push(ty);
+        }
+
+        self.types = types;
+
+        Ok(ids_map)
     }
 }
 
@@ -217,5 +439,94 @@ mod tests {
         assert_eq!(Some(&u32_type), registry.resolve(u32_type_id));
         assert_eq!(Some(&vec_u32_type), registry.resolve(vec_u32_type_id));
         assert_eq!(Some(&composite_type), registry.resolve(composite_type_id));
+    }
+
+    #[test]
+    fn resolver_retain_ids() {
+        let mut builder = PortableRegistryBuilder::new();
+        let u32_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let u32_type_id = builder.register_type(u32_type.clone());
+
+        let u64_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
+        let u64_type_id = builder.register_type(u64_type.clone());
+
+        let registry = builder.finish();
+        assert_eq!(registry.types.len(), 2);
+
+        // Resolve just u64.
+        let resolver = TypeIdResolver::new(&registry);
+        let result = resolver.resolve(vec![u64_type_id]).unwrap();
+        assert_eq!(result.len(), 1);
+        // Make sure `u32_type_id` is not present.
+        assert!(!result.contains_key(&u32_type_id));
+
+        // `u64_type_id` should be mapped on id `0`.
+        assert_eq!(
+            result
+                .get(&u64_type_id)
+                .expect("u64 type id must be present"),
+            &0
+        );
+    }
+
+    #[test]
+    fn resolver_retain_recursive_ids() {
+        let mut builder = PortableRegistryBuilder::new();
+        let u32_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let u32_type_id = builder.register_type(u32_type.clone());
+
+        let u64_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
+        let u64_type_id = builder.register_type(u64_type.clone());
+
+        let vec_u32_type = Type::new(
+            Path::default(),
+            vec![],
+            TypeDefSequence::new(u32_type_id.into()),
+            vec![],
+        );
+        let vec_u32_type_id = builder.register_type(vec_u32_type.clone());
+
+        let composite_type = Type::builder_portable()
+            .path(Path::from_segments_unchecked(["MyStruct".into()]))
+            .composite(
+                Fields::named()
+                    .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))
+                    .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id)),
+            );
+        let composite_type_id = builder.register_type(composite_type.clone());
+
+        let composite_type_second = Type::builder_portable()
+            .path(Path::from_segments_unchecked(["MyStructSecond".into()]))
+            .composite(
+                Fields::named()
+                    .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id))
+                    .field_portable(|f| f.name("second".into()).ty(composite_type_id)),
+            );
+        let composite_type_second_id =
+            builder.register_type(composite_type_second.clone());
+
+        let mut registry = builder.finish();
+
+        println!("registry {:#?}", registry);
+        assert_eq!(registry.types.len(), 5);
+
+        // Resolve just `MyStruct`.
+        let resolver = TypeIdResolver::new(&registry);
+        let result = resolver.resolve(vec![composite_type_second_id]).unwrap();
+        println!("Result {:?}", result);
+        assert_eq!(result.len(), 4);
+        // Make sure `u64_type_id` is not present.
+        assert!(!result.contains_key(&u64_type_id));
+
+        // `MyStructSecond` is the first id visited.
+        assert_eq!(result.get(&composite_type_second_id).unwrap(), &0);
+        assert_eq!(result.get(&vec_u32_type_id).unwrap(), &1);
+        assert_eq!(result.get(&u32_type_id).unwrap(), &2);
+        assert_eq!(result.get(&composite_type_id).unwrap(), &3);
+
+        let expected_result = registry.retain(vec![composite_type_second_id]).unwrap();
+        assert_eq!(expected_result, result);
+
+        println!("registry: {:#?}", registry);
     }
 }
