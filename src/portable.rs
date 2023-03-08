@@ -46,7 +46,8 @@ use scale::Encode;
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {
-    types: Vec<PortableType>,
+    /// The types contained by the [`PortableRegistry`].
+    pub types: Vec<PortableType>,
 }
 
 impl From<Registry> for PortableRegistry {
@@ -69,11 +70,6 @@ impl PortableRegistry {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
     pub fn resolve(&self, id: u32) -> Option<&Type<PortableForm>> {
         self.types.get(id as usize).map(|ty| ty.ty())
-    }
-
-    /// Returns the mutable type definition for the given identifier, `None` if no type found for that ID.
-    pub fn resolve_mut(&mut self, id: u32) -> Option<&mut Type<PortableForm>> {
-        self.types.get_mut(id as usize).map(|ty| ty.ty_mut())
     }
 
     /// Returns all types with their associated identifiers.
@@ -260,11 +256,6 @@ impl PortableType {
     /// Returns the type of the [`PortableType`].
     pub fn ty(&self) -> &Type<PortableForm> {
         &self.ty
-    }
-
-    /// Returns the mutable type of the [`PortableType`].
-    pub fn ty_mut(&mut self) -> &mut Type<PortableForm> {
-        &mut self.ty
     }
 }
 
