@@ -84,11 +84,10 @@ impl PortableRegistry {
     ///
     /// # Note
     ///
-    /// A given type ID can be expressed by nesting type IDs, such is the case
+    /// A given type ID can be defined by nesting type IDs, such as the case
     /// of a [`TypeDef::Composite`] and others. To retain a valid [`PortableRegistry`]
-    /// all the types needed to express an ID are retained. Therefore, the number of
-    /// elements expressed by the result is equal or greater than the number of
-    /// provided IDs.
+    /// all the types needed to express an ID are included. Therefore, the number of
+    /// elements defined by the result equals or exceeds the number of provided IDs.
     pub fn retain(
         &mut self,
         ids: impl IntoIterator<Item = u32>,
