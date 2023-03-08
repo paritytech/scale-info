@@ -27,12 +27,18 @@ use crate::{
     form::PortableForm,
     interner::Interner,
     prelude::{
+        collections::{
+            HashMap,
+            HashSet,
+        },
         fmt::Debug,
         vec::Vec,
     },
     Registry,
     Type,
+    TypeDef,
 };
+use core::sync::atomic::AtomicU32;
 use scale::Encode;
 
 /// A read-only registry containing types in their portable form for serialization.
@@ -149,6 +155,103 @@ impl PortableRegistryBuilder {
             })
             .collect();
         PortableRegistry { types }
+    }
+}
+
+/// Recursive resolver for the type IDs needed to express a given type ID.
+struct TypeIdResolver<'a> {
+    registry: &'a PortableRegistry,
+    result: HashMap<u32, u32>,
+    next_id: AtomicU32,
+}
+
+impl<'a> TypeIdResolver<'a> {
+    /// Construct a new [`TypeIdResolver`].
+    fn new(registry: &'a PortableRegistry) -> Self {
+        TypeIdResolver {
+            registry,
+            result: Default::default(),
+            next_id: Default::default(),
+        }
+    }
+
+    /// Get the next unique ID.
+    fn next_id(&mut self) -> u32 {
+        self.next_id
+            .fetch_add(1, core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Recursively add all type ids needed to express the given identifier.
+    fn visit_type_id(&mut self, id: u32) -> Result<(), ()> {
+        if self.result.get(&id).is_some() {
+            return Ok(())
+        }
+
+        let ty = self.registry.resolve(id).ok_or(())?;
+
+        let new_id = self.next_id();
+        self.result.insert(id, new_id);
+
+        // Add generic type params.
+        for param in ty.type_params() {
+            if let Some(ty) = param.ty() {
+                self.visit_type_id(ty.id())?;
+            }
+        }
+
+        // Recursively visit any other type ids needed to represent this type.
+        match ty.type_def() {
+            TypeDef::Composite(composite) => {
+                for field in composite.fields() {
+                    self.visit_type_id(field.ty().id())?;
+                }
+            }
+            TypeDef::Variant(variant) => {
+                for var in variant.variants() {
+                    for field in var.fields() {
+                        self.visit_type_id(field.ty().id())?;
+                    }
+                }
+            }
+            TypeDef::Sequence(sequence) => {
+                self.visit_type_id(sequence.type_param().id())?;
+            }
+            TypeDef::Array(array) => {
+                self.visit_type_id(array.type_param().id())?;
+            }
+            TypeDef::Tuple(tuple) => {
+                for ty in tuple.fields() {
+                    self.visit_type_id(ty.id())?;
+                }
+            }
+            TypeDef::Primitive(_) => {}
+            TypeDef::Compact(compact) => {
+                self.visit_type_id(compact.type_param().id())?;
+            }
+            TypeDef::BitSequence(bit_sequence) => {
+                self.visit_type_id(bit_sequence.bit_store_type().id())?;
+                self.visit_type_id(bit_sequence.bit_order_type().id())?;
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Resolve all the type IDs needed to express the given type IDs.
+    ///
+    /// The type IDs are returned as key to the `HashMap`.
+    /// The value of the `HashMap` represents the new ID of that type
+    /// if only the resolved types are expressed in the [`PortableRegistry`].
+    fn resolve(
+        mut self,
+        ids: impl IntoIterator<Item = u32>,
+    ) -> Result<HashMap<u32, u32>, ()> {
+        let ids: HashSet<_> = ids.into_iter().collect();
+        for id in ids {
+            self.visit_type_id(id)?;
+        }
+
+        Ok(self.result)
     }
 }
 
