@@ -92,7 +92,7 @@ impl PortableRegistry {
     pub fn retain(
         &mut self,
         ids: impl IntoIterator<Item = u32>,
-    ) -> Result<HashMap<u32, u32>, ()> {
+    ) -> Result<HashMap<u32, u32>, PortableRegistryError> {
         // Recursively visit all type ids needed to express the list of provided ids.
         let resolver = TypeIdResolver::new(self);
         // Map of "old id" to "new id".
@@ -107,10 +107,10 @@ impl PortableRegistry {
         // that must be updated.
         let mut types = Vec::with_capacity(ids_order.len());
         for (old_id, new_id) in ids_order.iter() {
-            let Some(ty) = self.types.get_mut(*old_id as usize) else {
-                    return Err(())
-                };
-
+            let ty = self
+                .types
+                .get_mut(*old_id as usize)
+                .ok_or(PortableRegistryError::MissingTypeID { id: *old_id })?;
             let mut ty = ty.clone();
             ty.id = *new_id;
             self.update_type(&ids_map, &mut ty.ty)?;
@@ -127,79 +127,103 @@ impl PortableRegistry {
         &self,
         ids_map: &HashMap<u32, u32>,
         ty: &mut Type<PortableForm>,
-    ) -> Result<(), ()> {
+    ) -> Result<(), PortableRegistryError> {
         for param in ty.type_params.iter_mut() {
             let Some(ty) = param.ty() else {
                 continue
             };
 
-            let Some(new_id) = ids_map.get(&ty.id()) else {
-                return Err(())
-            };
+            let new_id = ids_map
+                .get(&ty.id())
+                .ok_or(PortableRegistryError::MissingTypeID { id: ty.id() })?;
             param.ty = Some(*new_id).map(Into::into);
         }
 
         match &mut ty.type_def {
             TypeDef::Composite(composite) => {
                 for field in composite.fields.iter_mut() {
-                    let Some(new_id) = ids_map.get(&field.ty().id()) else {
-                        return Err(())
-                    };
+                    let new_id = ids_map.get(&field.ty().id()).ok_or(
+                        PortableRegistryError::MissingTypeID {
+                            id: field.ty().id(),
+                        },
+                    )?;
                     field.ty = (*new_id).into();
                 }
             }
             TypeDef::Variant(variant) => {
                 for var in variant.variants.iter_mut() {
                     for field in var.fields.iter_mut() {
-                        let Some(new_id) = ids_map.get(&field.ty().id()) else {
-                            return Err(())
-                        };
+                        let new_id = ids_map.get(&field.ty().id()).ok_or(
+                            PortableRegistryError::MissingTypeID {
+                                id: field.ty().id(),
+                            },
+                        )?;
                         field.ty = (*new_id).into();
                     }
                 }
             }
             TypeDef::Sequence(sequence) => {
-                let Some(new_id) = ids_map.get(&sequence.type_param().id()) else {
-                    return Err(())
-                };
+                let new_id = ids_map.get(&sequence.type_param().id()).ok_or(
+                    PortableRegistryError::MissingTypeID {
+                        id: sequence.type_param().id(),
+                    },
+                )?;
                 sequence.type_param = (*new_id).into();
             }
             TypeDef::Array(array) => {
-                let Some(new_id) = ids_map.get(&array.type_param().id()) else {
-                    return Err(())
-                };
+                let new_id = ids_map.get(&array.type_param().id()).ok_or(
+                    PortableRegistryError::MissingTypeID {
+                        id: array.type_param().id(),
+                    },
+                )?;
                 array.type_param = (*new_id).into();
             }
             TypeDef::Tuple(tuple) => {
                 for ty in tuple.fields.iter_mut() {
-                    let Some(new_id) = ids_map.get(&ty.id()) else {
-                        return Err(())
-                    };
+                    let new_id = ids_map
+                        .get(&ty.id())
+                        .ok_or(PortableRegistryError::MissingTypeID { id: ty.id() })?;
                     *ty = (*new_id).into();
                 }
             }
             TypeDef::Primitive(_) => (),
             TypeDef::Compact(compact) => {
-                let Some(new_id) = ids_map.get(&compact.type_param().id()) else {
-                    return Err(())
-                };
+                let new_id = ids_map.get(&compact.type_param().id()).ok_or(
+                    PortableRegistryError::MissingTypeID {
+                        id: compact.type_param().id(),
+                    },
+                )?;
                 compact.type_param = (*new_id).into();
             }
             TypeDef::BitSequence(bit_seq) => {
-                let Some(new_id) = ids_map.get(&bit_seq.bit_order_type().id()) else {
-                    return Err(())
-                };
+                let new_id = ids_map.get(&bit_seq.bit_order_type().id()).ok_or(
+                    PortableRegistryError::MissingTypeID {
+                        id: bit_seq.bit_order_type().id(),
+                    },
+                )?;
                 bit_seq.bit_order_type = (*new_id).into();
 
-                let Some(new_id) = ids_map.get(&bit_seq.bit_store_type().id()) else {
-                    return Err(())
-                };
+                let new_id = ids_map.get(&bit_seq.bit_store_type().id()).ok_or(
+                    PortableRegistryError::MissingTypeID {
+                        id: bit_seq.bit_store_type().id(),
+                    },
+                )?;
                 bit_seq.bit_store_type = (*new_id).into();
             }
         };
 
         Ok(())
     }
+}
+
+/// An error that may be encountered upon using the portable registry.
+#[derive(PartialEq, Eq, Debug)]
+pub enum PortableRegistryError {
+    /// The type ID is not present in the registry.
+    MissingTypeID {
+        /// The type ID that is missing.
+        id: u32,
+    },
 }
 
 /// Represent a type in it's portable form.
@@ -306,12 +330,15 @@ impl<'a> TypeIdResolver<'a> {
     }
 
     /// Recursively add all type ids needed to express the given identifier.
-    fn visit_type_id(&mut self, id: u32) -> Result<(), ()> {
+    fn visit_type_id(&mut self, id: u32) -> Result<(), PortableRegistryError> {
         if self.result.get(&id).is_some() {
             return Ok(())
         }
 
-        let ty = self.registry.resolve(id).ok_or(())?;
+        let ty = self
+            .registry
+            .resolve(id)
+            .ok_or(PortableRegistryError::MissingTypeID { id })?;
 
         let new_id = self.next_id();
         self.result.insert(id, new_id);
@@ -369,7 +396,7 @@ impl<'a> TypeIdResolver<'a> {
     fn resolve(
         mut self,
         ids: impl IntoIterator<Item = u32>,
-    ) -> Result<HashMap<u32, u32>, ()> {
+    ) -> Result<HashMap<u32, u32>, PortableRegistryError> {
         let ids: HashSet<_> = ids.into_iter().collect();
         for id in ids {
             self.visit_type_id(id)?;
