@@ -68,22 +68,22 @@ pub struct Type<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Path::is_empty", default)
     )]
-    path: Path<T>,
+    pub path: Path<T>,
     /// The generic type parameters of the type in use. Empty for non generic types
     #[cfg_attr(
         feature = "serde",
         serde(rename = "params", skip_serializing_if = "Vec::is_empty", default)
     )]
-    type_params: Vec<TypeParameter<T>>,
+    pub type_params: Vec<TypeParameter<T>>,
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
-    type_def: TypeDef<T>,
+    pub type_def: TypeDef<T>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    docs: Vec<T::String>,
+    pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for Type {
@@ -194,12 +194,12 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct TypeParameter<T: Form = MetaForm> {
     /// The name of the generic type parameter e.g. "T".
-    name: T::String,
+    pub name: T::String,
     /// The concrete type for the type parameter.
     ///
     /// `None` if the type parameter is skipped.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    ty: Option<T::Type>,
+    pub ty: Option<T::Type>,
 }
 
 impl IntoPortable for TypeParameter {
@@ -400,10 +400,10 @@ pub enum TypeDefPrimitive {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
-    len: u32,
+    pub len: u32,
     /// The element type of the array type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    type_param: T::Type,
+    pub type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefArray {
@@ -452,7 +452,7 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
-    fields: Vec<T::Type>,
+    pub fields: Vec<T::Type>,
 }
 
 impl IntoPortable for TypeDefTuple {
@@ -514,7 +514,7 @@ where
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    type_param: T::Type,
+    pub type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefSequence {
@@ -564,7 +564,7 @@ where
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    type_param: T::Type,
+    pub type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefCompact {
@@ -603,9 +603,9 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefBitSequence<T: Form = MetaForm> {
     /// The type implementing [`bitvec::store::BitStore`].
-    bit_store_type: T::Type,
+    pub bit_store_type: T::Type,
     /// The type implementing [`bitvec::order::BitOrder`].
-    bit_order_type: T::Type,
+    pub bit_order_type: T::Type,
 }
 
 impl IntoPortable for TypeDefBitSequence {
