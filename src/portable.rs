@@ -321,4 +321,81 @@ mod tests {
         assert_eq!(Some(&vec_u32_type), registry.resolve(vec_u32_type_id));
         assert_eq!(Some(&composite_type), registry.resolve(composite_type_id));
     }
+
+    #[test]
+    fn retain_ids() {
+        let mut builder = PortableRegistryBuilder::new();
+        let u32_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let u32_type_id = builder.register_type(u32_type.clone());
+
+        let u64_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
+        let u64_type_id = builder.register_type(u64_type.clone());
+
+        let registry = builder.finish();
+        assert_eq!(registry.types.len(), 2);
+
+        // Resolve just u64.
+        let resolver = TypeIdResolver::new(&registry);
+        let result = resolver.resolve(vec![u64_type_id]).unwrap();
+        assert_eq!(result.len(), 1);
+        // Make sure `u32_type_id` is not present.
+        assert!(!result.contains_key(&u32_type_id));
+
+        // `u64_type_id` should be mapped on id `0`.
+        assert_eq!(result.get(&u64_type_id).unwrap(), &0);
+    }
+
+    #[test]
+    fn retain_recursive_ids() {
+        let mut builder = PortableRegistryBuilder::new();
+        let u32_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let u32_type_id = builder.register_type(u32_type.clone());
+
+        let u64_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
+        let u64_type_id = builder.register_type(u64_type.clone());
+
+        let vec_u32_type = Type::new(
+            Path::default(),
+            vec![],
+            TypeDefSequence::new(u32_type_id.into()),
+            vec![],
+        );
+        let vec_u32_type_id = builder.register_type(vec_u32_type.clone());
+
+        let composite_type = Type::builder_portable()
+            .path(Path::from_segments_unchecked(["MyStruct".into()]))
+            .composite(
+                Fields::named()
+                    .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))
+                    .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id)),
+            );
+        let composite_type_id = builder.register_type(composite_type.clone());
+
+        let composite_type_second = Type::builder_portable()
+            .path(Path::from_segments_unchecked(["MyStructSecond".into()]))
+            .composite(
+                Fields::named()
+                    .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id))
+                    .field_portable(|f| f.name("second".into()).ty(composite_type_id)),
+            );
+        let composite_type_second_id =
+            builder.register_type(composite_type_second.clone());
+
+        let registry = builder.finish();
+
+        assert_eq!(registry.types.len(), 5);
+
+        // Resolve just `MyStruct`.
+        let resolver = TypeIdResolver::new(&registry);
+        let result = resolver.resolve(vec![composite_type_second_id]).unwrap();
+        assert_eq!(result.len(), 4);
+        // Make sure `u64_type_id` is not present.
+        assert!(!result.contains_key(&u64_type_id));
+
+        // `MyStructSecond` is the first id visited.
+        assert_eq!(result.get(&composite_type_second_id).unwrap(), &0);
+        assert_eq!(result.get(&vec_u32_type_id).unwrap(), &1);
+        assert_eq!(result.get(&u32_type_id).unwrap(), &2);
+        assert_eq!(result.get(&composite_type_id).unwrap(), &3);
+    }
 }
