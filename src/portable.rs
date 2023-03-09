@@ -27,10 +27,7 @@ use crate::{
     form::PortableForm,
     interner::Interner,
     prelude::{
-        collections::{
-            HashMap,
-            HashSet,
-        },
+        collections::BTreeMap,
         fmt::Debug,
         vec::Vec,
     },
@@ -79,8 +76,13 @@ impl PortableRegistry {
 
     /// Retains only the portable types needed to express the provided ids.
     ///
-    /// The type IDs retained are returned as key to the `HashMap`.
-    /// The value of the `HashMap` represents the new ID of that type.
+    /// Returns the type IDs that have been retained.
+    /// The order of the type IDs in the returned vector corresponds to their
+    /// new positions in the type registry after filtering.
+    ///
+    /// For instance, if the function returns the vector [30, 10, 20], it means that
+    /// type ID 30 is now at position 0 and has the type ID 0 in the registry,
+    /// type ID 10 is now type ID 1, and type ID 20 is now type ID 2.
     ///
     /// # Note
     ///
@@ -91,10 +93,8 @@ impl PortableRegistry {
     pub fn retain(
         &mut self,
         ids: impl IntoIterator<Item = u32>,
-    ) -> Result<HashMap<u32, u32>, PortableRegistryError> {
-        // Recursively visit all type ids needed to express the list of provided ids.
+    ) -> Result<Vec<u32>, PortableRegistryError> {
         let resolver = TypeIdResolver::new(self);
-        // Map of "old id" to "new id".
         let ids_map = resolver.resolve(ids)?;
 
         // Sort the ids by their order in the new registry.
@@ -116,15 +116,16 @@ impl PortableRegistry {
             types.push(ty);
         }
 
+        let ids_order: Vec<_> = ids_order.into_iter().map(|(old, _)| old).collect();
         self.types = types;
 
-        Ok(ids_map)
+        Ok(ids_order)
     }
 
     /// Update all the type IDs composting the given type.
     fn update_type(
         &self,
-        ids_map: &HashMap<u32, u32>,
+        ids_map: &BTreeMap<u32, u32>,
         ty: &mut Type<PortableForm>,
     ) -> Result<(), PortableRegistryError> {
         for param in ty.type_params.iter_mut() {
@@ -308,7 +309,7 @@ impl PortableRegistryBuilder {
 /// Recursive resolver for the type IDs needed to express a given type ID.
 struct TypeIdResolver<'a> {
     registry: &'a PortableRegistry,
-    result: HashMap<u32, u32>,
+    result: BTreeMap<u32, u32>,
     next_id: AtomicU32,
 }
 
@@ -395,9 +396,8 @@ impl<'a> TypeIdResolver<'a> {
     fn resolve(
         mut self,
         ids: impl IntoIterator<Item = u32>,
-    ) -> Result<HashMap<u32, u32>, PortableRegistryError> {
-        let ids: HashSet<_> = ids.into_iter().collect();
-        for id in ids {
+    ) -> Result<BTreeMap<u32, u32>, PortableRegistryError> {
+        for id in ids.into_iter() {
             self.visit_type_id(id)?;
         }
 
@@ -495,6 +495,10 @@ mod tests {
         assert_eq!(result.get(&u64_type_id).unwrap(), &0);
 
         let expected_result = registry.retain(vec![u64_type_id]).unwrap();
+        let mut result: Vec<_> = result.into_iter().collect();
+        result.sort_by(|(_, lhs_new), (_, rhs_new)| lhs_new.cmp(rhs_new));
+        let result: Vec<_> = result.into_iter().map(|(old, _)| old).collect();
+
         assert_eq!(expected_result, result);
         assert_eq!(registry.types.len(), 1);
 
@@ -554,7 +558,11 @@ mod tests {
         assert_eq!(result.get(&composite_type_id).unwrap(), &3);
 
         let expected_result = registry.retain(vec![composite_type_second_id]).unwrap();
+        let mut result: Vec<_> = result.into_iter().collect();
+        result.sort_by(|(_, lhs_new), (_, rhs_new)| lhs_new.cmp(rhs_new));
+        let result: Vec<_> = result.into_iter().map(|(old, _)| old).collect();
         assert_eq!(expected_result, result);
+
         assert_eq!(registry.types.len(), 4);
 
         // New type IDs are generated in DFS manner.
