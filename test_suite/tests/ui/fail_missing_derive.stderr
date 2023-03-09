@@ -13,12 +13,12 @@ error[E0277]: the trait bound `PawType<u16>: TypeInfo` is not satisfied
              (A, B, C, D)
              (A, B, C, D, E)
              (A, B, C, D, E, F)
-           and 54 others
+           and $N others
 note: required for `Cat<bool, u8, u16>` to implement `TypeInfo`
   --> tests/ui/fail_missing_derive.rs:8:10
    |
 8  | #[derive(TypeInfo)]
-   |          ^^^^^^^^
+   |          ^^^^^^^^ unsatisfied trait bound introduced in this `derive` macro
 9  | #[scale_info(crate = info)]
 10 | struct Cat<Tail, Ear, Paw> {
    |        ^^^^^^^^^^^^^^^^^^^
