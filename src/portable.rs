@@ -340,9 +340,6 @@ impl<'a> TypeIdResolver<'a> {
             .resolve(id)
             .ok_or(PortableRegistryError::MissingTypeID { id })?;
 
-        let new_id = self.next_id();
-        self.result.insert(id, new_id);
-
         // Add generic type params.
         for param in ty.type_params() {
             if let Some(ty) = param.ty() {
@@ -384,6 +381,9 @@ impl<'a> TypeIdResolver<'a> {
                 self.visit_type_id(bit_sequence.bit_order_type().id())?;
             }
         }
+
+        let new_id = self.next_id();
+        self.result.insert(id, new_id);
 
         Ok(())
     }
@@ -551,11 +551,10 @@ mod tests {
         // Make sure `u64_type_id` is not present.
         assert!(!result.contains_key(&u64_type_id));
 
-        // `MyStructSecond` is the first id visited.
-        assert_eq!(result.get(&composite_type_second_id).unwrap(), &0);
+        assert_eq!(result.get(&u32_type_id).unwrap(), &0);
         assert_eq!(result.get(&vec_u32_type_id).unwrap(), &1);
-        assert_eq!(result.get(&u32_type_id).unwrap(), &2);
-        assert_eq!(result.get(&composite_type_id).unwrap(), &3);
+        assert_eq!(result.get(&composite_type_id).unwrap(), &2);
+        assert_eq!(result.get(&composite_type_second_id).unwrap(), &3);
 
         let expected_result = registry.retain(vec![composite_type_second_id]).unwrap();
         let mut result: Vec<_> = result.into_iter().collect();
@@ -566,30 +565,31 @@ mod tests {
         assert_eq!(registry.types.len(), 4);
 
         // New type IDs are generated in DFS manner.
-        let expected_type = Type::builder_portable()
-            .path(Path::from_segments_unchecked(["MyStructSecond".into()]))
-            .composite(
-                Fields::named()
-                    .field_portable(|f| f.name("vec_of_u32".into()).ty(1))
-                    .field_portable(|f| f.name("second".into()).ty(3)),
-            );
-        assert_eq!(registry.resolve(0).unwrap(), &expected_type);
+        assert_eq!(registry.resolve(0).unwrap(), &u32_type);
 
         let expected_type = Type::new(
             Path::default(),
             vec![],
-            TypeDefSequence::new(2.into()),
+            TypeDefSequence::new(0.into()),
             vec![],
         );
         assert_eq!(registry.resolve(1).unwrap(), &expected_type);
-        assert_eq!(registry.resolve(2).unwrap(), &u32_type);
 
         let expected_type = Type::builder_portable()
             .path(Path::from_segments_unchecked(["MyStruct".into()]))
             .composite(
                 Fields::named()
-                    .field_portable(|f| f.name("primitive".into()).ty(2))
+                    .field_portable(|f| f.name("primitive".into()).ty(0))
                     .field_portable(|f| f.name("vec_of_u32".into()).ty(1)),
+            );
+        assert_eq!(registry.resolve(2).unwrap(), &expected_type);
+
+        let expected_type = Type::builder_portable()
+            .path(Path::from_segments_unchecked(["MyStructSecond".into()]))
+            .composite(
+                Fields::named()
+                    .field_portable(|f| f.name("vec_of_u32".into()).ty(1))
+                    .field_portable(|f| f.name("second".into()).ty(2)),
             );
         assert_eq!(registry.resolve(3).unwrap(), &expected_type);
     }
