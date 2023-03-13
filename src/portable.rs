@@ -35,7 +35,6 @@ use crate::{
     Type,
     TypeDef,
 };
-use core::sync::atomic::AtomicU32;
 use scale::Encode;
 
 /// A read-only registry containing types in their portable form for serialization.
@@ -310,7 +309,7 @@ impl PortableRegistryBuilder {
 struct TypeIdResolver<'a> {
     registry: &'a PortableRegistry,
     result: BTreeMap<u32, u32>,
-    next_id: AtomicU32,
+    next_id: u32,
 }
 
 impl<'a> TypeIdResolver<'a> {
@@ -325,8 +324,9 @@ impl<'a> TypeIdResolver<'a> {
 
     /// Get the next unique ID.
     fn next_id(&mut self) -> u32 {
-        self.next_id
-            .fetch_add(1, core::sync::atomic::Ordering::Relaxed)
+        let id = self.next_id;
+        self.next_id += 1;
+        id
     }
 
     /// Recursively add all type ids needed to express the given identifier.
