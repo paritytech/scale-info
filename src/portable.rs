@@ -27,9 +27,9 @@ use crate::{
     form::PortableForm,
     interner::Interner,
     prelude::{
-        mem,
         collections::BTreeMap,
         fmt::Debug,
+        mem,
         vec::Vec,
     },
     Registry,
@@ -76,13 +76,8 @@ impl PortableRegistry {
 
     /// Retains only the portable types needed to express the provided ids.
     ///
-    /// Returns the type IDs that have been retained.
-    /// The order of the type IDs in the returned vector corresponds to their
-    /// new positions in the type registry after filtering.
-    ///
-    /// For instance, if the function returns the vector [30, 10, 20], it means that
-    /// type ID 30 is now at position 0 and has the type ID 0 in the registry,
-    /// type ID 10 is now type ID 1, and type ID 20 is now type ID 2.
+    /// The type IDs retained are returned as key to the `HashMap`.
+    /// The value of the map represents the new ID of that type.
     ///
     /// # Note
     ///
@@ -101,11 +96,11 @@ impl PortableRegistry {
             id: u32,
             types: &mut [PortableType],
             new_types: &mut Vec<PortableType>,
-            retained_mappings: &mut BTreeMap<u32,u32>
+            retained_mappings: &mut BTreeMap<u32, u32>,
         ) -> u32 {
             // Type already retained; just return the new ID for it:
             if let Some(id) = retained_mappings.get(&id) {
-                return *id;
+                return *id
             }
 
             // Take the type out of the registry that we'll be retaining:
@@ -124,40 +119,76 @@ impl PortableRegistry {
             match &mut ty.ty.type_def {
                 TypeDef::Composite(composite) => {
                     for field in composite.fields.iter_mut() {
-                        let new_id = retain_type(field.ty.id(), types, new_types, retained_mappings);
+                        let new_id = retain_type(
+                            field.ty.id(),
+                            types,
+                            new_types,
+                            retained_mappings,
+                        );
                         field.ty = new_id.into();
                     }
-                },
+                }
                 TypeDef::Variant(variant) => {
                     for var in variant.variants.iter_mut() {
                         for field in var.fields.iter_mut() {
-                            let new_id = retain_type(field.ty.id(), types, new_types, retained_mappings);
+                            let new_id = retain_type(
+                                field.ty.id(),
+                                types,
+                                new_types,
+                                retained_mappings,
+                            );
                             field.ty = new_id.into();
                         }
                     }
-                },
+                }
                 TypeDef::Sequence(sequence) => {
-                    let new_id = retain_type(sequence.type_param.id(), types, new_types, retained_mappings);
+                    let new_id = retain_type(
+                        sequence.type_param.id(),
+                        types,
+                        new_types,
+                        retained_mappings,
+                    );
                     sequence.type_param = new_id.into();
                 }
                 TypeDef::Array(array) => {
-                    let new_id = retain_type(array.type_param.id(), types, new_types, retained_mappings);
+                    let new_id = retain_type(
+                        array.type_param.id(),
+                        types,
+                        new_types,
+                        retained_mappings,
+                    );
                     array.type_param = new_id.into();
                 }
                 TypeDef::Tuple(tuple) => {
                     for ty in tuple.fields.iter_mut() {
-                        let new_id = retain_type(ty.id(), types, new_types, retained_mappings);
+                        let new_id =
+                            retain_type(ty.id(), types, new_types, retained_mappings);
                         *ty = new_id.into();
                     }
                 }
                 TypeDef::Primitive(_) => (),
                 TypeDef::Compact(compact) => {
-                    let new_id = retain_type(compact.type_param().id(), types, new_types, retained_mappings);
+                    let new_id = retain_type(
+                        compact.type_param().id(),
+                        types,
+                        new_types,
+                        retained_mappings,
+                    );
                     compact.type_param = new_id.into();
                 }
                 TypeDef::BitSequence(bit_seq) => {
-                    let bit_order_id = retain_type(bit_seq.bit_order_type().id(), types, new_types, retained_mappings);
-                    let bit_store_id = retain_type(bit_seq.bit_store_type().id(), types, new_types, retained_mappings);
+                    let bit_order_id = retain_type(
+                        bit_seq.bit_order_type().id(),
+                        types,
+                        new_types,
+                        retained_mappings,
+                    );
+                    let bit_store_id = retain_type(
+                        bit_seq.bit_store_type().id(),
+                        types,
+                        new_types,
+                        retained_mappings,
+                    );
 
                     bit_seq.bit_order_type = bit_order_id.into();
                     bit_seq.bit_store_type = bit_store_id.into();
@@ -174,7 +205,7 @@ impl PortableRegistry {
         for id in 0..self.types.len() as u32 {
             // We don't care about the type; move on:
             if !filter(id) {
-                continue;
+                continue
             }
 
             retain_type(id, &mut self.types, &mut new_types, &mut retained_mappings);
@@ -344,9 +375,7 @@ mod tests {
         let mut registry = builder.finish();
         assert_eq!(registry.types.len(), 2);
 
-        let _ids_result = registry.retain(
-            |id| id == u64_type_id,
-        );
+        let _ids_result = registry.retain(|id| id == u64_type_id);
 
         assert_eq!(registry.types.len(), 1);
         assert_eq!(registry.resolve(0).unwrap(), &u64_type);
@@ -390,9 +419,7 @@ mod tests {
         let mut registry = builder.finish();
         assert_eq!(registry.types.len(), 5);
 
-        let _ids_result = registry.retain(
-            |id| id == composite_type_second_id,
-        );
+        let _ids_result = registry.retain(|id| id == composite_type_second_id);
 
         assert_eq!(registry.types.len(), 4);
 
