@@ -29,6 +29,7 @@ use crate::{
     prelude::{
         collections::BTreeMap,
         fmt::Debug,
+        mem,
         vec::Vec,
     },
     Registry,
@@ -115,7 +116,7 @@ impl PortableRegistry {
             };
             on_retained(old_id, new_id);
 
-            let mut ty = std::mem::take(ty);
+            let mut ty = mem::take(ty);
             ty.id = *new_id;
             self.update_type(&ids_map, &mut ty.ty);
             types.push(ty);
