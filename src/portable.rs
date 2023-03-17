@@ -90,7 +90,7 @@ impl PortableRegistry {
         F: FnMut(u32) -> bool,
     {
         let mut retained_mappings = BTreeMap::new();
-        let mut new_types = vec![];
+        let mut new_types = crate::prelude::vec![];
 
         fn retain_type(
             id: u32,
