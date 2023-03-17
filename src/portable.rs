@@ -441,7 +441,7 @@ mod tests {
     fn retain_ids() {
         let mut builder = PortableRegistryBuilder::new();
         let u32_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
-        let u32_type_id = builder.register_type(u32_type.clone());
+        let u32_type_id = builder.register_type(u32_type);
 
         let u64_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
         let u64_type_id = builder.register_type(u64_type.clone());
@@ -479,7 +479,7 @@ mod tests {
         let u32_type_id = builder.register_type(u32_type.clone());
 
         let u64_type = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
-        let u64_type_id = builder.register_type(u64_type.clone());
+        let u64_type_id = builder.register_type(u64_type);
 
         let vec_u32_type = Type::new(
             Path::default(),
@@ -487,7 +487,7 @@ mod tests {
             TypeDefSequence::new(u32_type_id.into()),
             vec![],
         );
-        let vec_u32_type_id = builder.register_type(vec_u32_type.clone());
+        let vec_u32_type_id = builder.register_type(vec_u32_type);
 
         let composite_type = Type::builder_portable()
             .path(Path::from_segments_unchecked(["MyStruct".into()]))
@@ -496,7 +496,7 @@ mod tests {
                     .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))
                     .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id)),
             );
-        let composite_type_id = builder.register_type(composite_type.clone());
+        let composite_type_id = builder.register_type(composite_type);
 
         let composite_type_second = Type::builder_portable()
             .path(Path::from_segments_unchecked(["MyStructSecond".into()]))
@@ -505,8 +505,7 @@ mod tests {
                     .field_portable(|f| f.name("vec_of_u32".into()).ty(vec_u32_type_id))
                     .field_portable(|f| f.name("second".into()).ty(composite_type_id)),
             );
-        let composite_type_second_id =
-            builder.register_type(composite_type_second.clone());
+        let composite_type_second_id = builder.register_type(composite_type_second);
 
         let mut registry = builder.finish();
         assert_eq!(registry.types.len(), 5);
