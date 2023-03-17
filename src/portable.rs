@@ -89,12 +89,17 @@ impl PortableRegistry {
     /// of a [`TypeDef::Composite`] and others. To retain a valid [`PortableRegistry`]
     /// all the types needed to express an ID are included. Therefore, the number of
     /// elements defined by the result equals or exceeds the number of provided IDs.
-    pub fn retain(
-        &mut self,
-        ids: impl IntoIterator<Item = u32>,
-    ) -> Result<Vec<u32>, PortableRegistryError> {
-        let resolver = TypeIdResolver::new(self);
-        let ids_map = resolver.resolve(ids)?;
+    pub fn retain<F, R>(&mut self, mut filter: F, mut on_retained: R)
+    where
+        F: FnMut(&u32) -> bool,
+        R: FnMut(&u32, &u32),
+    {
+        let ids = self
+            .types
+            .iter()
+            .filter_map(|ty| filter(&ty.id).then_some(ty.id));
+
+        let ids_map = TypeIdResolver::new(self).resolve(ids);
 
         // Sort the ids by their order in the new registry.
         let mut ids_order: Vec<_> = ids_map.clone().into_iter().collect();
@@ -105,131 +110,97 @@ impl PortableRegistry {
         // that must be updated.
         let mut types = Vec::with_capacity(ids_order.len());
         for (old_id, new_id) in ids_order.iter() {
-            let ty = self
-                .types
-                .get_mut(*old_id as usize)
-                .ok_or(PortableRegistryError::MissingTypeID { id: *old_id })?;
-            let mut ty = ty.clone();
+            let Some(ty) = self.types.get_mut(*old_id as usize) else {
+                continue;
+            };
+            on_retained(old_id, new_id);
+
+            let mut ty = std::mem::take(ty);
             ty.id = *new_id;
-            self.update_type(&ids_map, &mut ty.ty)?;
+            self.update_type(&ids_map, &mut ty.ty);
             types.push(ty);
         }
 
-        let ids_order: Vec<_> = ids_order.into_iter().map(|(old, _)| old).collect();
         self.types = types;
-
-        Ok(ids_order)
     }
 
     /// Update all the type IDs composting the given type.
-    fn update_type(
-        &self,
-        ids_map: &BTreeMap<u32, u32>,
-        ty: &mut Type<PortableForm>,
-    ) -> Result<(), PortableRegistryError> {
+    fn update_type(&self, ids_map: &BTreeMap<u32, u32>, ty: &mut Type<PortableForm>) {
         for param in ty.type_params.iter_mut() {
             let Some(ty) = param.ty() else {
                 continue
             };
-
-            let new_id = ids_map
-                .get(&ty.id())
-                .ok_or(PortableRegistryError::MissingTypeID { id: ty.id() })?;
+            let Some(new_id) = ids_map.get(&ty.id()) else {
+                continue
+            };
             param.ty = Some(*new_id).map(Into::into);
         }
 
         match &mut ty.type_def {
             TypeDef::Composite(composite) => {
                 for field in composite.fields.iter_mut() {
-                    let new_id = ids_map.get(&field.ty().id()).ok_or(
-                        PortableRegistryError::MissingTypeID {
-                            id: field.ty().id(),
-                        },
-                    )?;
+                    let Some(new_id) = ids_map.get(&field.ty().id()) else {
+                        return;
+                    };
                     field.ty = (*new_id).into();
                 }
             }
             TypeDef::Variant(variant) => {
                 for var in variant.variants.iter_mut() {
                     for field in var.fields.iter_mut() {
-                        let new_id = ids_map.get(&field.ty().id()).ok_or(
-                            PortableRegistryError::MissingTypeID {
-                                id: field.ty().id(),
-                            },
-                        )?;
+                        let Some(new_id) = ids_map.get(&field.ty().id()) else {
+                            return;
+                        };
                         field.ty = (*new_id).into();
                     }
                 }
             }
             TypeDef::Sequence(sequence) => {
-                let new_id = ids_map.get(&sequence.type_param().id()).ok_or(
-                    PortableRegistryError::MissingTypeID {
-                        id: sequence.type_param().id(),
-                    },
-                )?;
+                let Some(new_id) = ids_map.get(&sequence.type_param().id()) else {
+                    return;
+                };
                 sequence.type_param = (*new_id).into();
             }
             TypeDef::Array(array) => {
-                let new_id = ids_map.get(&array.type_param().id()).ok_or(
-                    PortableRegistryError::MissingTypeID {
-                        id: array.type_param().id(),
-                    },
-                )?;
+                let Some(new_id) = ids_map.get(&array.type_param().id()) else {
+                    return;
+                };
                 array.type_param = (*new_id).into();
             }
             TypeDef::Tuple(tuple) => {
                 for ty in tuple.fields.iter_mut() {
-                    let new_id = ids_map
-                        .get(&ty.id())
-                        .ok_or(PortableRegistryError::MissingTypeID { id: ty.id() })?;
+                    let Some(new_id) = ids_map.get(&ty.id()) else {
+                        return;
+                    };
                     *ty = (*new_id).into();
                 }
             }
             TypeDef::Primitive(_) => (),
             TypeDef::Compact(compact) => {
-                let new_id = ids_map.get(&compact.type_param().id()).ok_or(
-                    PortableRegistryError::MissingTypeID {
-                        id: compact.type_param().id(),
-                    },
-                )?;
+                let Some(new_id) = ids_map.get(&compact.type_param().id()) else {
+                    return;
+                };
                 compact.type_param = (*new_id).into();
             }
             TypeDef::BitSequence(bit_seq) => {
-                let new_id = ids_map.get(&bit_seq.bit_order_type().id()).ok_or(
-                    PortableRegistryError::MissingTypeID {
-                        id: bit_seq.bit_order_type().id(),
-                    },
-                )?;
-                bit_seq.bit_order_type = (*new_id).into();
-
-                let new_id = ids_map.get(&bit_seq.bit_store_type().id()).ok_or(
-                    PortableRegistryError::MissingTypeID {
-                        id: bit_seq.bit_store_type().id(),
-                    },
-                )?;
-                bit_seq.bit_store_type = (*new_id).into();
+                let Some(bit_order_id) = ids_map.get(&bit_seq.bit_order_type().id()) else {
+                    return;
+                };
+                let Some(bit_store_id) = ids_map.get(&bit_seq.bit_store_type().id()) else {
+                    return;
+                };
+                bit_seq.bit_order_type = (*bit_order_id).into();
+                bit_seq.bit_store_type = (*bit_store_id).into();
             }
         };
-
-        Ok(())
     }
-}
-
-/// An error that may be encountered upon using the portable registry.
-#[derive(PartialEq, Eq, Debug)]
-pub enum PortableRegistryError {
-    /// The type ID is not present in the registry.
-    MissingTypeID {
-        /// The type ID that is missing.
-        id: u32,
-    },
 }
 
 /// Represent a type in it's portable form.
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(Clone, Debug, PartialEq, Eq, Encode)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode, Default)]
 pub struct PortableType {
     #[codec(compact)]
     id: u32,
@@ -330,20 +301,19 @@ impl<'a> TypeIdResolver<'a> {
     }
 
     /// Recursively add all type ids needed to express the given identifier.
-    fn visit_type_id(&mut self, id: u32) -> Result<(), PortableRegistryError> {
+    fn visit_type_id(&mut self, id: u32) {
         if self.result.get(&id).is_some() {
-            return Ok(())
+            return
         }
 
-        let ty = self
-            .registry
-            .resolve(id)
-            .ok_or(PortableRegistryError::MissingTypeID { id })?;
+        let Some(ty) = self.registry.resolve(id) else {
+            return
+        };
 
         // Add generic type params.
         for param in ty.type_params() {
             if let Some(ty) = param.ty() {
-                self.visit_type_id(ty.id())?;
+                self.visit_type_id(ty.id());
             }
         }
 
@@ -351,41 +321,39 @@ impl<'a> TypeIdResolver<'a> {
         match ty.type_def() {
             TypeDef::Composite(composite) => {
                 for field in composite.fields() {
-                    self.visit_type_id(field.ty().id())?;
+                    self.visit_type_id(field.ty().id());
                 }
             }
             TypeDef::Variant(variant) => {
                 for var in variant.variants() {
                     for field in var.fields() {
-                        self.visit_type_id(field.ty().id())?;
+                        self.visit_type_id(field.ty().id());
                     }
                 }
             }
             TypeDef::Sequence(sequence) => {
-                self.visit_type_id(sequence.type_param().id())?;
+                self.visit_type_id(sequence.type_param().id());
             }
             TypeDef::Array(array) => {
-                self.visit_type_id(array.type_param().id())?;
+                self.visit_type_id(array.type_param().id());
             }
             TypeDef::Tuple(tuple) => {
                 for ty in tuple.fields() {
-                    self.visit_type_id(ty.id())?;
+                    self.visit_type_id(ty.id());
                 }
             }
             TypeDef::Primitive(_) => {}
             TypeDef::Compact(compact) => {
-                self.visit_type_id(compact.type_param().id())?;
+                self.visit_type_id(compact.type_param().id());
             }
             TypeDef::BitSequence(bit_sequence) => {
-                self.visit_type_id(bit_sequence.bit_store_type().id())?;
-                self.visit_type_id(bit_sequence.bit_order_type().id())?;
+                self.visit_type_id(bit_sequence.bit_store_type().id());
+                self.visit_type_id(bit_sequence.bit_order_type().id());
             }
         }
 
         let new_id = self.next_id();
         self.result.insert(id, new_id);
-
-        Ok(())
     }
 
     /// Resolve all the type IDs needed to express the given type IDs.
@@ -393,15 +361,12 @@ impl<'a> TypeIdResolver<'a> {
     /// The type IDs are returned as key to the `HashMap`.
     /// The value of the `HashMap` represents the new ID of that type
     /// if only the resolved types are expressed in the [`PortableRegistry`].
-    fn resolve(
-        mut self,
-        ids: impl IntoIterator<Item = u32>,
-    ) -> Result<BTreeMap<u32, u32>, PortableRegistryError> {
+    fn resolve(mut self, ids: impl IntoIterator<Item = u32>) -> BTreeMap<u32, u32> {
         for id in ids.into_iter() {
-            self.visit_type_id(id)?;
+            self.visit_type_id(id);
         }
 
-        Ok(self.result)
+        self.result
     }
 }
 
@@ -485,8 +450,7 @@ mod tests {
         assert_eq!(registry.types.len(), 2);
 
         // Resolve just u64.
-        let resolver = TypeIdResolver::new(&registry);
-        let result = resolver.resolve(vec![u64_type_id]).unwrap();
+        let result = TypeIdResolver::new(&registry).resolve(vec![u64_type_id]);
         assert_eq!(result.len(), 1);
         // Make sure `u32_type_id` is not present.
         assert!(!result.contains_key(&u32_type_id));
@@ -494,12 +458,15 @@ mod tests {
         // `u64_type_id` should be mapped on id `0`.
         assert_eq!(result.get(&u64_type_id).unwrap(), &0);
 
-        let expected_result = registry.retain(vec![u64_type_id]).unwrap();
-        let mut result: Vec<_> = result.into_iter().collect();
-        result.sort_by(|(_, lhs_new), (_, rhs_new)| lhs_new.cmp(rhs_new));
-        let result: Vec<_> = result.into_iter().map(|(old, _)| old).collect();
+        let mut ids_result = BTreeMap::new();
+        registry.retain(
+            |id| *id == u64_type_id,
+            |old, new| {
+                ids_result.insert(*old, *new);
+            },
+        );
 
-        assert_eq!(expected_result, result);
+        assert_eq!(ids_result, result);
         assert_eq!(registry.types.len(), 1);
 
         assert_eq!(registry.resolve(0).unwrap(), &u64_type);
@@ -545,8 +512,8 @@ mod tests {
         assert_eq!(registry.types.len(), 5);
 
         // Resolve just `MyStruct`.
-        let resolver = TypeIdResolver::new(&registry);
-        let result = resolver.resolve(vec![composite_type_second_id]).unwrap();
+        let result =
+            TypeIdResolver::new(&registry).resolve(vec![composite_type_second_id]);
         assert_eq!(result.len(), 4);
         // Make sure `u64_type_id` is not present.
         assert!(!result.contains_key(&u64_type_id));
@@ -556,11 +523,14 @@ mod tests {
         assert_eq!(result.get(&composite_type_id).unwrap(), &2);
         assert_eq!(result.get(&composite_type_second_id).unwrap(), &3);
 
-        let expected_result = registry.retain(vec![composite_type_second_id]).unwrap();
-        let mut result: Vec<_> = result.into_iter().collect();
-        result.sort_by(|(_, lhs_new), (_, rhs_new)| lhs_new.cmp(rhs_new));
-        let result: Vec<_> = result.into_iter().map(|(old, _)| old).collect();
-        assert_eq!(expected_result, result);
+        let mut ids_result = BTreeMap::new();
+        registry.retain(
+            |id| *id == composite_type_second_id,
+            |old, new| {
+                ids_result.insert(*old, *new);
+            },
+        );
+        assert_eq!(ids_result, result);
 
         assert_eq!(registry.types.len(), 4);
 
