@@ -375,7 +375,9 @@ mod tests {
         let mut registry = builder.finish();
         assert_eq!(registry.types.len(), 2);
 
-        let _ids_result = registry.retain(|id| id == u64_type_id);
+        let ids_result = registry.retain(|id| id == u64_type_id);
+        assert_eq!(ids_result.len(), 1);
+        assert_eq!(ids_result.get(&u64_type_id), Some(&0));
 
         assert_eq!(registry.types.len(), 1);
         assert_eq!(registry.resolve(0).unwrap(), &u64_type);
@@ -419,7 +421,12 @@ mod tests {
         let mut registry = builder.finish();
         assert_eq!(registry.types.len(), 5);
 
-        let _ids_result = registry.retain(|id| id == composite_type_second_id);
+        let ids_result = registry.retain(|id| id == composite_type_second_id);
+        assert_eq!(ids_result.len(), 4);
+        assert_eq!(ids_result.get(&u32_type_id), Some(&0));
+        assert_eq!(ids_result.get(&vec_u32_type_id), Some(&1));
+        assert_eq!(ids_result.get(&composite_type_id), Some(&2));
+        assert_eq!(ids_result.get(&composite_type_second_id), Some(&3));
 
         assert_eq!(registry.types.len(), 4);
 
