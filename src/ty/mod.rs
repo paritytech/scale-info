@@ -86,6 +86,22 @@ pub struct Type<T: Form = MetaForm> {
     pub docs: Vec<T::String>,
 }
 
+impl<T> Default for Type<T>
+where
+    T: Form,
+{
+    // Zero-allocation default implementation that assumes
+    // the type def to be `TypeDefPrimitive::Bool`.
+    fn default() -> Type<T> {
+        Type {
+            type_def: TypeDef::Primitive(TypeDefPrimitive::Bool),
+            path: Path::default(),
+            type_params: vec![],
+            docs: vec![],
+        }
+    }
+}
+
 impl IntoPortable for Type {
     type Output = Type<PortableForm>;
 
