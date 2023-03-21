@@ -105,8 +105,8 @@ impl PortableRegistry {
                 return *id
             }
 
-            // Zero-allocation default implementation that assumes
-            // the type def to be `TypeDefPrimitive::Bool`.
+            // Zero-allocation default implementation that is used as
+            // a placeholder and never accessed. 
             let placeholder = PortableType {
                 id: 0,
                 ty: Type {
