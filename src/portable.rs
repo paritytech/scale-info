@@ -112,8 +112,8 @@ impl PortableRegistry {
                 ty: Type {
                     type_def: TypeDef::Primitive(TypeDefPrimitive::Bool),
                     path: Path::default(),
-                    type_params: vec![],
-                    docs: vec![],
+                    type_params: crate::prelude::vec![],
+                    docs: crate::prelude::vec![],
                 },
             };
             // Take the type out of the registry that we'll be retaining:
