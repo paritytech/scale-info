@@ -106,7 +106,7 @@ impl PortableRegistry {
             }
 
             // Zero-allocation default implementation that is used as
-            // a placeholder and never accessed. 
+            // a placeholder and never accessed.
             let placeholder = PortableType {
                 id: 0,
                 ty: Type {
