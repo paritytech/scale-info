@@ -32,9 +32,11 @@ use crate::{
         mem,
         vec::Vec,
     },
+    Path,
     Registry,
     Type,
     TypeDef,
+    TypeDefPrimitive,
 };
 use scale::Encode;
 
@@ -103,8 +105,19 @@ impl PortableRegistry {
                 return *id
             }
 
+            // Zero-allocation default implementation that assumes
+            // the type def to be `TypeDefPrimitive::Bool`.
+            let placeholder = PortableType {
+                id: 0,
+                ty: Type {
+                    type_def: TypeDef::Primitive(TypeDefPrimitive::Bool),
+                    path: Path::default(),
+                    type_params: vec![],
+                    docs: vec![],
+                },
+            };
             // Take the type out of the registry that we'll be retaining:
-            let mut ty = mem::take(&mut types[id as usize]);
+            let mut ty = mem::replace(&mut types[id as usize], placeholder);
 
             // Make sure any type params are also retained:
             for param in ty.ty.type_params.iter_mut() {
@@ -220,7 +233,7 @@ impl PortableRegistry {
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-#[derive(Clone, Debug, PartialEq, Eq, Encode, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableType {
     #[codec(compact)]
     id: u32,
