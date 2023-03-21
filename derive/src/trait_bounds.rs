@@ -104,7 +104,7 @@ pub fn make_where_clause<'a>(
         }
     });
 
-    generics.type_params().into_iter().for_each(|type_param| {
+    generics.type_params().for_each(|type_param| {
         let ident = type_param.ident.clone();
         let mut bounds = type_param.bounds.clone();
         if attrs

@@ -78,22 +78,22 @@ pub struct Field<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    name: Option<T::String>,
+    pub(crate) name: Option<T::String>,
     /// The type of the field.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    ty: T::Type,
+    pub(crate) ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    type_name: Option<T::String>,
+    pub(crate) type_name: Option<T::String>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    docs: Vec<T::String>,
+    pub(crate) docs: Vec<T::String>,
 }
 
 impl IntoPortable for Field {
