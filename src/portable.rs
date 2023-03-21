@@ -78,7 +78,7 @@ impl PortableRegistry {
 
     /// Retains only the portable types needed to express the provided ids.
     ///
-    /// The type IDs retained are returned as key to the `HashMap`.
+    /// The type IDs retained are returned as key to the [`BTreeMap`].
     /// The value of the map represents the new ID of that type.
     ///
     /// # Note
