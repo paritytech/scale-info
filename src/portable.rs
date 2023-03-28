@@ -71,6 +71,11 @@ impl PortableRegistry {
         self.types.get(id as usize).map(|ty| ty.ty())
     }
 
+    /// Returns the mutable type definition for the given identifier, `None` if no type found for that ID.
+    pub fn resolve_mut(&mut self, id: u32) -> Option<&mut Type<PortableForm>> {
+        self.types.get_mut(id as usize).map(|ty| ty.ty_mut())
+    }
+
     /// Returns all types with their associated identifiers.
     pub fn types(&self) -> &[PortableType] {
         &self.types
@@ -255,6 +260,11 @@ impl PortableType {
     /// Returns the type of the [`PortableType`].
     pub fn ty(&self) -> &Type<PortableForm> {
         &self.ty
+    }
+
+    /// Returns the mutable type of the [`PortableType`].
+    pub fn ty_mut(&mut self) -> &mut Type<PortableForm> {
+        &mut self.ty
     }
 }
 
