@@ -237,9 +237,9 @@ impl PortableRegistry {
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableType {
     #[codec(compact)]
-    id: u32,
+    pub id: u32,
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    ty: Type<PortableForm>,
+    pub ty: Type<PortableForm>,
 }
 
 impl PortableType {
