@@ -59,7 +59,7 @@ use serde::{
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode)]
 pub struct Path<T: Form = MetaForm> {
     /// The segments of the namespace.
-    segments: Vec<T::String>,
+    pub segments: Vec<T::String>,
 }
 
 impl<T> Default for Path<T>
@@ -158,6 +158,10 @@ where
     }
 
     /// Returns the segments of the Path
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn segments(&self) -> &[T::String] {
         &self.segments
     }

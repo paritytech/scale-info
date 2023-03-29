@@ -78,22 +78,22 @@ pub struct Field<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    pub(crate) name: Option<T::String>,
+    pub name: Option<T::String>,
     /// The type of the field.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub(crate) ty: T::Type,
+    pub ty: T::Type,
     /// The name of the type of the field as it appears in the source code.
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Option::is_none", default)
     )]
-    pub(crate) type_name: Option<T::String>,
+    pub type_name: Option<T::String>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    pub(crate) docs: Vec<T::String>,
+    pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for Field {
@@ -141,11 +141,19 @@ where
     T: Form,
 {
     /// Returns the name of the field. None for unnamed fields.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn name(&self) -> Option<&T::String> {
         self.name.as_ref()
     }
 
     /// Returns the type of the field.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn ty(&self) -> &T::Type {
         &self.ty
     }
@@ -155,11 +163,19 @@ where
     /// name are not specified, but in practice will be the name of any valid
     /// type for a field. This is intended for informational and diagnostic
     /// purposes only.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_name(&self) -> Option<&T::String> {
         self.type_name.as_ref()
     }
 
     /// Returns the documentation of the field.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn docs(&self) -> &[T::String] {
         &self.docs
     }

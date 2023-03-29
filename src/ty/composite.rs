@@ -76,7 +76,7 @@ pub struct TypeDefComposite<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    pub(crate) fields: Vec<Field<T>>,
+    pub fields: Vec<Field<T>>,
 }
 
 impl IntoPortable for TypeDefComposite {
@@ -109,6 +109,10 @@ where
     T: Form,
 {
     /// Returns the fields of the composite type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn fields(&self) -> &[Field<T>] {
         &self.fields
     }

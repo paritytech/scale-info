@@ -68,22 +68,22 @@ pub struct Type<T: Form = MetaForm> {
         feature = "serde",
         serde(skip_serializing_if = "Path::is_empty", default)
     )]
-    pub(crate) path: Path<T>,
+    pub path: Path<T>,
     /// The generic type parameters of the type in use. Empty for non generic types
     #[cfg_attr(
         feature = "serde",
         serde(rename = "params", skip_serializing_if = "Vec::is_empty", default)
     )]
-    pub(crate) type_params: Vec<TypeParameter<T>>,
+    pub type_params: Vec<TypeParameter<T>>,
     /// The actual type definition
     #[cfg_attr(feature = "serde", serde(rename = "def"))]
-    pub(crate) type_def: TypeDef<T>,
+    pub type_def: TypeDef<T>,
     /// Documentation
     #[cfg_attr(
         feature = "serde",
         serde(skip_serializing_if = "Vec::is_empty", default)
     )]
-    pub(crate) docs: Vec<T::String>,
+    pub docs: Vec<T::String>,
 }
 
 impl IntoPortable for Type {
@@ -161,21 +161,37 @@ where
     T: Form,
 {
     /// Returns the path of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn path(&self) -> &Path<T> {
         &self.path
     }
 
     /// Returns the generic type parameters of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_params(&self) -> &[TypeParameter<T>] {
         &self.type_params
     }
 
     /// Returns the definition of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_def(&self) -> &TypeDef<T> {
         &self.type_def
     }
 
     /// Returns the documentation of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn docs(&self) -> &[T::String] {
         &self.docs
     }
@@ -194,12 +210,12 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct TypeParameter<T: Form = MetaForm> {
     /// The name of the generic type parameter e.g. "T".
-    pub(crate) name: T::String,
+    pub name: T::String,
     /// The concrete type for the type parameter.
     ///
     /// `None` if the type parameter is skipped.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub(crate) ty: Option<T::Type>,
+    pub ty: Option<T::Type>,
 }
 
 impl IntoPortable for TypeParameter {
@@ -240,11 +256,19 @@ where
     /// Get the type of the parameter.
     ///
     /// `None` if the parameter is skipped.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn ty(&self) -> Option<&T::Type> {
         self.ty.as_ref()
     }
 
     /// Get the name of the parameter.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn name(&self) -> &T::String {
         &self.name
     }
@@ -400,10 +424,10 @@ pub enum TypeDefPrimitive {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
-    pub(crate) len: u32,
+    pub len: u32,
     /// The element type of the array type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub(crate) type_param: T::Type,
+    pub type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefArray {
@@ -428,11 +452,19 @@ where
     }
 
     /// Returns the length of the array type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn len(&self) -> u32 {
         self.len
     }
 
     /// Returns the element type of the array type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }
@@ -452,7 +484,7 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
-    pub(crate) fields: Vec<T::Type>,
+    pub fields: Vec<T::Type>,
 }
 
 impl IntoPortable for TypeDefTuple {
@@ -502,6 +534,10 @@ where
     T: Form,
 {
     /// Returns the types of the tuple fields.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn fields(&self) -> &[T::Type] {
         &self.fields
     }
@@ -514,7 +550,7 @@ where
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub(crate) type_param: T::Type,
+    pub type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefSequence {
@@ -552,6 +588,10 @@ where
     }
 
     /// Returns the element type of the sequence type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }
@@ -564,7 +604,7 @@ where
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
-    pub(crate) type_param: T::Type,
+    pub type_param: T::Type,
 }
 
 impl IntoPortable for TypeDefCompact {
@@ -587,6 +627,10 @@ where
     }
 
     /// Returns the [`Compact`] wrapped type, i.e. the `T` in `Compact<T>`.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }
@@ -603,9 +647,9 @@ where
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefBitSequence<T: Form = MetaForm> {
     /// The type implementing [`bitvec::store::BitStore`].
-    pub(crate) bit_store_type: T::Type,
+    pub bit_store_type: T::Type,
     /// The type implementing [`bitvec::order::BitOrder`].
-    pub(crate) bit_order_type: T::Type,
+    pub bit_order_type: T::Type,
 }
 
 impl IntoPortable for TypeDefBitSequence {
@@ -624,11 +668,19 @@ where
     T: Form,
 {
     /// Returns the type of the bit ordering of the [`::bitvec::vec::BitVec`].
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn bit_order_type(&self) -> &T::Type {
         &self.bit_order_type
     }
 
     /// Returns underlying type used to store the [`::bitvec::vec::BitVec`].
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn bit_store_type(&self) -> &T::Type {
         &self.bit_store_type
     }
