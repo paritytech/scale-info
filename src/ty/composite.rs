@@ -109,6 +109,10 @@ where
     T: Form,
 {
     /// Returns the fields of the composite type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn fields(&self) -> &[Field<T>] {
         &self.fields
     }

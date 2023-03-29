@@ -161,21 +161,37 @@ where
     T: Form,
 {
     /// Returns the path of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn path(&self) -> &Path<T> {
         &self.path
     }
 
     /// Returns the generic type parameters of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_params(&self) -> &[TypeParameter<T>] {
         &self.type_params
     }
 
     /// Returns the definition of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_def(&self) -> &TypeDef<T> {
         &self.type_def
     }
 
     /// Returns the documentation of the type
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn docs(&self) -> &[T::String] {
         &self.docs
     }
@@ -240,11 +256,19 @@ where
     /// Get the type of the parameter.
     ///
     /// `None` if the parameter is skipped.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn ty(&self) -> Option<&T::Type> {
         self.ty.as_ref()
     }
 
     /// Get the name of the parameter.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn name(&self) -> &T::String {
         &self.name
     }
@@ -428,11 +452,19 @@ where
     }
 
     /// Returns the length of the array type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn len(&self) -> u32 {
         self.len
     }
 
     /// Returns the element type of the array type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }
@@ -502,6 +534,10 @@ where
     T: Form,
 {
     /// Returns the types of the tuple fields.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn fields(&self) -> &[T::Type] {
         &self.fields
     }
@@ -552,6 +588,10 @@ where
     }
 
     /// Returns the element type of the sequence type.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }
@@ -587,6 +627,10 @@ where
     }
 
     /// Returns the [`Compact`] wrapped type, i.e. the `T` in `Compact<T>`.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_param(&self) -> &T::Type {
         &self.type_param
     }
@@ -624,11 +668,19 @@ where
     T: Form,
 {
     /// Returns the type of the bit ordering of the [`::bitvec::vec::BitVec`].
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn bit_order_type(&self) -> &T::Type {
         &self.bit_order_type
     }
 
     /// Returns underlying type used to store the [`::bitvec::vec::BitVec`].
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn bit_store_type(&self) -> &T::Type {
         &self.bit_store_type
     }

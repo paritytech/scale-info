@@ -73,6 +73,10 @@ impl PortableRegistry {
     }
 
     /// Returns all types with their associated identifiers.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn types(&self) -> &[PortableType] {
         &self.types
     }

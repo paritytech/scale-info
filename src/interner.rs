@@ -49,13 +49,17 @@ use serde::{
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
     #[codec(compact)]
-    id: u32,
+    pub id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> T>,
 }
 
 impl<T> UntrackedSymbol<T> {
     /// Returns the index to the symbol in the interner table.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn id(&self) -> u32 {
         self.id
     }

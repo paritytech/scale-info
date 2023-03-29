@@ -141,11 +141,19 @@ where
     T: Form,
 {
     /// Returns the name of the field. None for unnamed fields.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn name(&self) -> Option<&T::String> {
         self.name.as_ref()
     }
 
     /// Returns the type of the field.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn ty(&self) -> &T::Type {
         &self.ty
     }
@@ -155,11 +163,19 @@ where
     /// name are not specified, but in practice will be the name of any valid
     /// type for a field. This is intended for informational and diagnostic
     /// purposes only.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn type_name(&self) -> Option<&T::String> {
         self.type_name.as_ref()
     }
 
     /// Returns the documentation of the field.
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn docs(&self) -> &[T::String] {
         &self.docs
     }
