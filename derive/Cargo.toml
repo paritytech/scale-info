@@ -1,6 +1,6 @@
 [package]
 name = "scale-info-derive"
-version = "2.4.0"
+version = "2.5.0"
 authors = [
     "Parity Technologies <admin@parity.io>",
     "Centrality Developers <support@centrality.ai>",
