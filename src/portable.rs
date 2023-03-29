@@ -69,7 +69,7 @@ impl From<Registry> for PortableRegistry {
 impl PortableRegistry {
     /// Returns the type definition for the given identifier, `None` if no type found for that ID.
     pub fn resolve(&self, id: u32) -> Option<&Type<PortableForm>> {
-        self.types.get(id as usize).map(|ty| ty.ty())
+        self.types.get(id as usize).map(|ty| &ty.ty)
     }
 
     /// Returns all types with their associated identifiers.
@@ -644,7 +644,7 @@ mod tests {
         assert_eq!(4, readonly.types.len());
 
         for (expected, ty) in readonly.types.iter().enumerate() {
-            assert_eq!(expected as u32, ty.id());
+            assert_eq!(expected as u32, ty.id);
         }
     }
 
