@@ -249,11 +249,19 @@ impl PortableType {
     }
 
     /// Returns the index of the [`PortableType`].
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn id(&self) -> u32 {
         self.id
     }
 
     /// Returns the type of the [`PortableType`].
+    #[deprecated(
+        since = "2.5.0",
+        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
+    )]
     pub fn ty(&self) -> &Type<PortableForm> {
         &self.ty
     }
