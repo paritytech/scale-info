@@ -303,7 +303,7 @@ impl<F: Form, T> FieldsBuilder<F, T> {
 impl<T> FieldsBuilder<MetaForm, T> {
     fn push_field(mut self, field: Field) -> Self {
         // filter out fields of PhantomData
-        if !field.ty().is_phantom() {
+        if !field.ty.is_phantom() {
             self.fields.push(field);
         }
         self

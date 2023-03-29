@@ -215,9 +215,9 @@ mod tests {
         let type_id = registry.register_type(&meta_type::<RecursiveRefs>());
 
         let recursive = registry.types.get(&type_id).unwrap();
-        if let TypeDef::Composite(composite) = recursive.type_def() {
-            for field in composite.fields() {
-                assert_eq!(*field.ty(), type_id)
+        if let TypeDef::Composite(composite) = &recursive.type_def {
+            for field in &composite.fields {
+                assert_eq!(field.ty, type_id)
             }
         } else {
             panic!("Should be a composite type definition")

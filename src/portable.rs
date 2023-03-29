@@ -57,7 +57,7 @@ impl From<Registry> for PortableRegistry {
                 .types()
                 .map(|(k, v)| {
                     PortableType {
-                        id: k.id(),
+                        id: k.id,
                         ty: v.clone(),
                     }
                 })
@@ -126,10 +126,10 @@ impl PortableRegistry {
 
             // Make sure any type params are also retained:
             for param in ty.ty.type_params.iter_mut() {
-                let Some(ty) = param.ty() else {
+                let Some(ty) = &param.ty else {
                     continue
                 };
-                let new_id = retain_type(ty.id(), types, new_types, retained_mappings);
+                let new_id = retain_type(ty.id, types, new_types, retained_mappings);
                 param.ty = Some(new_id).map(Into::into);
             }
 
@@ -137,12 +137,8 @@ impl PortableRegistry {
             match &mut ty.ty.type_def {
                 TypeDef::Composite(composite) => {
                     for field in composite.fields.iter_mut() {
-                        let new_id = retain_type(
-                            field.ty.id(),
-                            types,
-                            new_types,
-                            retained_mappings,
-                        );
+                        let new_id =
+                            retain_type(field.ty.id, types, new_types, retained_mappings);
                         field.ty = new_id.into();
                     }
                 }
@@ -150,7 +146,7 @@ impl PortableRegistry {
                     for var in variant.variants.iter_mut() {
                         for field in var.fields.iter_mut() {
                             let new_id = retain_type(
-                                field.ty.id(),
+                                field.ty.id,
                                 types,
                                 new_types,
                                 retained_mappings,
@@ -161,7 +157,7 @@ impl PortableRegistry {
                 }
                 TypeDef::Sequence(sequence) => {
                     let new_id = retain_type(
-                        sequence.type_param.id(),
+                        sequence.type_param.id,
                         types,
                         new_types,
                         retained_mappings,
@@ -170,7 +166,7 @@ impl PortableRegistry {
                 }
                 TypeDef::Array(array) => {
                     let new_id = retain_type(
-                        array.type_param.id(),
+                        array.type_param.id,
                         types,
                         new_types,
                         retained_mappings,
@@ -180,14 +176,14 @@ impl PortableRegistry {
                 TypeDef::Tuple(tuple) => {
                     for ty in tuple.fields.iter_mut() {
                         let new_id =
-                            retain_type(ty.id(), types, new_types, retained_mappings);
+                            retain_type(ty.id, types, new_types, retained_mappings);
                         *ty = new_id.into();
                     }
                 }
                 TypeDef::Primitive(_) => (),
                 TypeDef::Compact(compact) => {
                     let new_id = retain_type(
-                        compact.type_param().id(),
+                        compact.type_param.id,
                         types,
                         new_types,
                         retained_mappings,
@@ -196,13 +192,13 @@ impl PortableRegistry {
                 }
                 TypeDef::BitSequence(bit_seq) => {
                     let bit_store_id = retain_type(
-                        bit_seq.bit_store_type().id(),
+                        bit_seq.bit_store_type.id,
                         types,
                         new_types,
                         retained_mappings,
                     );
                     let bit_order_id = retain_type(
-                        bit_seq.bit_order_type().id(),
+                        bit_seq.bit_order_type.id,
                         types,
                         new_types,
                         retained_mappings,
@@ -283,7 +279,7 @@ impl PortableRegistryBuilder {
     ///
     /// If the type is already registered it will return the existing ID.
     pub fn register_type(&mut self, ty: Type<PortableForm>) -> u32 {
-        self.types.intern_or_get(ty).1.into_untracked().id()
+        self.types.intern_or_get(ty).1.into_untracked().id
     }
 
     /// Returns the type id that would be assigned to a newly registered type.
@@ -637,9 +633,9 @@ mod tests {
 
         let readonly: PortableRegistry = registry.into();
 
-        assert_eq!(4, readonly.types().len());
+        assert_eq!(4, readonly.types.len());
 
-        for (expected, ty) in readonly.types().iter().enumerate() {
+        for (expected, ty) in readonly.types.iter().enumerate() {
             assert_eq!(expected as u32, ty.id());
         }
     }
