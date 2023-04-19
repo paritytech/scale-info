@@ -39,6 +39,9 @@ use crate::{
     meta_type::MetaType,
 };
 
+use schemars::JsonSchema;
+
+use cfg_if::cfg_if;
 #[cfg(feature = "serde")]
 use serde::Serialize;
 
@@ -48,16 +51,26 @@ use serde::Serialize;
 /// instantiated out of the flux and portable forms that require some sort of
 /// interning data structures.
 pub trait Form {
-    /// The type representing the type.
-    type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
-    /// The string type.
-    type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+    cfg_if! {
+        if #[cfg(feature = "schemars")] {
+            /// The type representing the type.
+            type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchema;
+            /// The string type.
+            type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchema;
+        } else {
+            /// The type representing the type.
+            type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+            /// The string type.
+            type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
+        }
+    }
 }
 
 /// A meta meta-type.
 ///
 /// Allows to be converted into other forms such as portable form
 /// through the registry and `IntoPortable`.
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
@@ -74,6 +87,7 @@ impl Form for MetaForm {
 /// This resolves some lifetime issues with self-referential structs (such as
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}

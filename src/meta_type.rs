@@ -111,3 +111,17 @@ impl MetaType {
         self == &MetaType::new::<crate::impls::PhantomIdentity>()
     }
 }
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for MetaType {
+    fn schema_name() -> String {
+        "MetaType".into()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        todo!()
+    }
+
+    fn is_referenceable() -> bool {
+        todo!()
+    }
+}
