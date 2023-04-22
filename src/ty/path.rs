@@ -56,6 +56,7 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Encode)]
 pub struct Path<T: Form = MetaForm> {
     /// The segments of the namespace.

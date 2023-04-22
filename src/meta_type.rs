@@ -12,25 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::prelude::{
-    any::TypeId,
-    cmp::Ordering,
-    fmt::{
-        Debug,
-        Error as FmtError,
-        Formatter,
-    },
-    hash::{
-        Hash,
-        Hasher,
+use crate::{
+    form::TypeIdDef,
+    prelude::{
+        any::TypeId,
+        cmp::Ordering,
+        fmt::{Debug, Error as FmtError, Formatter},
+        hash::{Hash, Hasher},
     },
 };
 
-use crate::{
-    form::MetaForm,
-    Type,
-    TypeInfo,
-};
+use crate::{form::MetaForm, Type, TypeInfo};
 
 /// A metatype abstraction.
 ///
@@ -46,7 +38,7 @@ pub struct MetaType {
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
-    type_id: TypeId,
+    type_id: TypeIdDef,
 }
 
 impl PartialEq for MetaType {
@@ -92,7 +84,7 @@ impl MetaType {
     {
         Self {
             fn_type_info: <T as TypeInfo>::type_info,
-            type_id: TypeId::of::<T::Identity>(),
+            type_id: TypeIdDef::from(TypeId::of::<T::Identity>()),
         }
     }
 
@@ -102,7 +94,7 @@ impl MetaType {
     }
 
     /// Returns the type identifier provided by `core::any`.
-    pub fn type_id(&self) -> TypeId {
+    pub fn type_id(&self) -> TypeIdDef {
         self.type_id
     }
 
@@ -118,10 +110,10 @@ impl schemars::JsonSchema for MetaType {
     }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        todo!()
+        gen.subschema_for::<MetaType>()
     }
 
     fn is_referenceable() -> bool {
-        todo!()
+        true
     }
 }

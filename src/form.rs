@@ -39,11 +39,12 @@ use crate::{
     meta_type::MetaType,
 };
 
-use schemars::JsonSchema;
-
 use cfg_if::cfg_if;
 #[cfg(feature = "serde")]
 use serde::Serialize;
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
+
 
 /// Trait to control the internal structures of type definitions.
 ///
@@ -95,14 +96,46 @@ pub enum PortableForm {}
 cfg_if::cfg_if! {
     if #[cfg(any(feature = "std", feature = "decode"))] {
         impl Form for PortableForm {
-            type Type = UntrackedSymbol<TypeId>;
+            type Type = UntrackedSymbol<TypeIdDef>;
             // Owned string required for decoding/deserialization
             type String = crate::prelude::string::String;
         }
     } else {
         impl Form for PortableForm {
-            type Type = UntrackedSymbol<TypeId>;
+            type Type = UntrackedSymbol<TypeIdDef>;
             type String = &'static str;
         }
+    }
+}
+
+/// Wrapper for `TypeId`.
+/// Required for internal
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
+pub struct TypeIdDef {
+    type_id: TypeId
+}
+
+impl core::ops::Deref for TypeIdDef {
+    type Target = TypeId;
+
+    fn deref(&self) -> &TypeId {
+        &self.type_id
+    }
+}
+
+impl From<TypeId> for TypeIdDef {
+    fn from(type_id: TypeId) -> Self {
+        Self {type_id}
+    }
+}
+
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for TypeIdDef {
+    fn schema_name() -> String {
+        "TypeId".into()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        gen.subschema_for::<u64>()
     }
 }

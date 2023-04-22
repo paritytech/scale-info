@@ -61,6 +61,7 @@ pub use self::{
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct Type<T: Form = MetaForm> {
     /// The unique path to the type. Can be empty for built-in types
@@ -207,6 +208,7 @@ where
     ))
 )]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, From, Debug, Encode)]
 pub struct TypeParameter<T: Form = MetaForm> {
     /// The name of the generic type parameter e.g. "T".
@@ -295,6 +297,7 @@ where
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub enum TypeDef<T: Form = MetaForm> {
     /// A composite type (e.g. a struct or a tuple)
@@ -369,6 +372,7 @@ impl IntoPortable for TypeDef {
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub enum TypeDefPrimitive {
     /// `bool` type
@@ -421,6 +425,7 @@ pub enum TypeDefPrimitive {
 /// An array type.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefArray<T: Form = MetaForm> {
     /// The length of the array type.
@@ -481,6 +486,7 @@ where
 )]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefTuple<T: Form = MetaForm> {
     /// The types of the tuple fields.
@@ -546,6 +552,7 @@ where
 /// A type to refer to a sequence of elements of the same type.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefSequence<T: Form = MetaForm> {
     /// The element type of the sequence type.
@@ -600,6 +607,7 @@ where
 /// A type wrapped in [`Compact`].
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefCompact<T: Form = MetaForm> {
     /// The type wrapped in [`Compact`], i.e. the `T` in `Compact<T>`.
@@ -644,6 +652,7 @@ where
 /// enabled, but can be decoded or deserialized into the `PortableForm` without this feature.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Encode, Debug)]
 pub struct TypeDefBitSequence<T: Form = MetaForm> {
     /// The type implementing [`bitvec::store::BitStore`].

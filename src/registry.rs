@@ -24,21 +24,13 @@
 //! prelude types that live in the so-called root namespace which is empty.
 
 use crate::{
-    form::Form,
-    prelude::{
-        any::TypeId,
-        collections::BTreeMap,
-        fmt::Debug,
-        vec::Vec,
-    },
+    form::{Form, TypeIdDef},
+    prelude::{collections::BTreeMap, fmt::Debug, vec::Vec},
 };
 
 use crate::{
     form::PortableForm,
-    interner::{
-        Interner,
-        UntrackedSymbol,
-    },
+    interner::{Interner, UntrackedSymbol},
     meta_type::MetaType,
     Type,
 };
@@ -74,16 +66,17 @@ impl IntoPortable for &'static str {
 /// A type can be a sub-type of itself. In this case the registry has a builtin
 /// mechanism to stop recursion and avoid going into an infinite loop.
 #[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct Registry {
     /// The cache for already registered types.
     ///
     /// This is just an accessor to the actual database
     /// for all types found in the `types` field.
-    type_table: Interner<TypeId>,
+    type_table: Interner<TypeIdDef>,
     /// The database where registered types reside.
     ///
     /// The contents herein is used for serlialization.
-    types: BTreeMap<UntrackedSymbol<TypeId>, Type<PortableForm>>,
+    types: BTreeMap<UntrackedSymbol<TypeIdDef>, Type<PortableForm>>,
 }
 
 impl Default for Registry {
@@ -111,7 +104,7 @@ impl Registry {
     ///
     /// This is an internal API and should not be called directly from the
     /// outside.
-    fn intern_type_id(&mut self, type_id: TypeId) -> (bool, UntrackedSymbol<TypeId>) {
+    fn intern_type_id(&mut self, type_id: TypeIdDef) -> (bool, UntrackedSymbol<TypeIdDef>) {
         let (inserted, symbol) = self.type_table.intern_or_get(type_id);
         (inserted, symbol.into_untracked())
     }
@@ -125,7 +118,7 @@ impl Registry {
     /// be used later to resolve back to the associated type definition.
     /// However, since this facility is going to be used for serialization
     /// purposes this functionality isn't needed anyway.
-    pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
+    pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeIdDef> {
         let (inserted, symbol) = self.intern_type_id(ty.type_id());
         if inserted {
             let portable_id = ty.type_info().into_portable(self);
@@ -135,7 +128,7 @@ impl Registry {
     }
 
     /// Calls `register_type` for each `MetaType` in the given `iter`.
-    pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeId>>
+    pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeIdDef>>
     where
         I: IntoIterator<Item = MetaType>,
     {
@@ -159,7 +152,7 @@ impl Registry {
     /// Returns an iterator over the types with their keys
     pub fn types(
         &self,
-    ) -> impl Iterator<Item = (&UntrackedSymbol<TypeId>, &Type<PortableForm>)> {
+    ) -> impl Iterator<Item = (&UntrackedSymbol<TypeIdDef>, &Type<PortableForm>)> {
         self.types.iter()
     }
 }
@@ -167,13 +160,7 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        build::Fields,
-        meta_type,
-        Path,
-        TypeDef,
-        TypeInfo,
-    };
+    use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
 
     #[test]
     fn recursive_struct_with_references() {

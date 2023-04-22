@@ -37,6 +37,9 @@ use serde::{
     Serialize,
 };
 
+#[cfg(feature = "schemars")]
+use schemars::JsonSchema;
+
 /// A symbol that is not lifetime tracked.
 ///
 /// This can be used by self-referential types but
@@ -46,6 +49,7 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "schemars", derive(JsonSchema))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
     #[codec(compact)]
@@ -120,6 +124,7 @@ impl<T> Symbol<'_, T> {
 /// This is used in order to quite efficiently cache strings and type
 /// definitions uniquely identified by their associated type identifiers.
 #[derive(Debug, PartialEq, Eq)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct Interner<T> {
