@@ -40,11 +40,10 @@ use crate::{
 };
 
 use cfg_if::cfg_if;
-#[cfg(feature = "serde")]
-use serde::Serialize;
 #[cfg(feature = "schemars")]
 use schemars::JsonSchema;
-
+#[cfg(feature = "serde")]
+use serde::Serialize;
 
 /// Trait to control the internal structures of type definitions.
 ///
@@ -112,7 +111,7 @@ cfg_if::cfg_if! {
 /// Required for internal
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
 pub struct TypeIdDef {
-    type_id: TypeId
+    type_id: TypeId,
 }
 
 impl core::ops::Deref for TypeIdDef {
@@ -125,7 +124,7 @@ impl core::ops::Deref for TypeIdDef {
 
 impl From<TypeId> for TypeIdDef {
     fn from(type_id: TypeId) -> Self {
-        Self {type_id}
+        Self { type_id }
     }
 }
 

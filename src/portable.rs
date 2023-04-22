@@ -45,7 +45,6 @@ use scale::Encode;
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
-
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableRegistry {
     /// The types contained by the [`PortableRegistry`].

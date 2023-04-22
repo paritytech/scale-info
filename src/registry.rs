@@ -24,13 +24,23 @@
 //! prelude types that live in the so-called root namespace which is empty.
 
 use crate::{
-    form::{Form, TypeIdDef},
-    prelude::{collections::BTreeMap, fmt::Debug, vec::Vec},
+    form::{
+        Form,
+        TypeIdDef,
+    },
+    prelude::{
+        collections::BTreeMap,
+        fmt::Debug,
+        vec::Vec,
+    },
 };
 
 use crate::{
     form::PortableForm,
-    interner::{Interner, UntrackedSymbol},
+    interner::{
+        Interner,
+        UntrackedSymbol,
+    },
     meta_type::MetaType,
     Type,
 };
@@ -104,7 +114,10 @@ impl Registry {
     ///
     /// This is an internal API and should not be called directly from the
     /// outside.
-    fn intern_type_id(&mut self, type_id: TypeIdDef) -> (bool, UntrackedSymbol<TypeIdDef>) {
+    fn intern_type_id(
+        &mut self,
+        type_id: TypeIdDef,
+    ) -> (bool, UntrackedSymbol<TypeIdDef>) {
         let (inserted, symbol) = self.type_table.intern_or_get(type_id);
         (inserted, symbol.into_untracked())
     }
@@ -160,7 +173,13 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
+    use crate::{
+        build::Fields,
+        meta_type,
+        Path,
+        TypeDef,
+        TypeInfo,
+    };
 
     #[test]
     fn recursive_struct_with_references() {
