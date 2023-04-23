@@ -37,7 +37,7 @@ use serde::{
     Serialize,
 };
 
-#[cfg(feature = "schema")]
+#[cfg(all(feature = "std", feature = "schema"))]
 use schemars::JsonSchema;
 
 /// A symbol that is not lifetime tracked.

@@ -40,7 +40,7 @@ use crate::{
 };
 
 use cfg_if::cfg_if;
-#[cfg(feature = "schema")]
+#[cfg(all(feature = "std", feature = "schema"))]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::Serialize;
@@ -52,7 +52,7 @@ use serde::Serialize;
 /// interning data structures.
 pub trait Form {
     cfg_if! {
-        if #[cfg(feature = "schema")] {
+        if #[cfg(all(feature = "std", feature = "schema"))] {
             /// The type representing the type.
             type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchema;
             /// The string type.
@@ -128,7 +128,7 @@ impl From<TypeId> for TypeIdDef {
     }
 }
 
-#[cfg(feature = "schema")]
+#[cfg(all(feature = "std", feature = "schema"))]
 impl schemars::JsonSchema for TypeIdDef {
     fn schema_name() -> String {
         "TypeId".into()

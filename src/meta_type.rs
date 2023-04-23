@@ -115,7 +115,7 @@ impl MetaType {
     }
 }
 
-#[cfg(feature = "schema")]
+#[cfg(all(feature = "std", feature = "schema"))]
 impl schemars::JsonSchema for MetaType {
     fn schema_name() -> String {
         "MetaType".into()
