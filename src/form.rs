@@ -70,7 +70,7 @@ pub trait Form {
 ///
 /// Allows to be converted into other forms such as portable form
 /// through the registry and `IntoPortable`.
-#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(all(feature = "std", feature = "schema"), derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
@@ -87,7 +87,7 @@ impl Form for MetaForm {
 /// This resolves some lifetime issues with self-referential structs (such as
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
-#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(all(feature = "std", feature = "schema"), derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}
