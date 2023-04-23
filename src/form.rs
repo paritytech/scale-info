@@ -40,7 +40,7 @@ use crate::{
 };
 
 use cfg_if::cfg_if;
-#[cfg(feature = "schemars")]
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::Serialize;
@@ -52,7 +52,7 @@ use serde::Serialize;
 /// interning data structures.
 pub trait Form {
     cfg_if! {
-        if #[cfg(feature = "schemars")] {
+        if #[cfg(feature = "schema")] {
             /// The type representing the type.
             type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchema;
             /// The string type.
@@ -70,7 +70,7 @@ pub trait Form {
 ///
 /// Allows to be converted into other forms such as portable form
 /// through the registry and `IntoPortable`.
-#[cfg_attr(feature = "schemars", derive(JsonSchema))]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
@@ -87,7 +87,7 @@ impl Form for MetaForm {
 /// This resolves some lifetime issues with self-referential structs (such as
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
-#[cfg_attr(feature = "schemars", derive(JsonSchema))]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}
@@ -128,7 +128,7 @@ impl From<TypeId> for TypeIdDef {
     }
 }
 
-#[cfg(feature = "schemars")]
+#[cfg(feature = "schema")]
 impl schemars::JsonSchema for TypeIdDef {
     fn schema_name() -> String {
         "TypeId".into()

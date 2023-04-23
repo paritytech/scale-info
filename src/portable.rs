@@ -41,7 +41,7 @@ use crate::{
 use scale::Encode;
 
 /// A read-only registry containing types in their portable form for serialization.
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
@@ -232,7 +232,7 @@ impl PortableRegistry {
 }
 
 /// Represent a type in it's portable form.
-#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[cfg_attr(all(feature = "serde", feature = "decode"), derive(serde::Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
