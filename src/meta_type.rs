@@ -17,12 +17,23 @@ use crate::{
     prelude::{
         any::TypeId,
         cmp::Ordering,
-        fmt::{Debug, Error as FmtError, Formatter},
-        hash::{Hash, Hasher},
+        fmt::{
+            Debug,
+            Error as FmtError,
+            Formatter,
+        },
+        hash::{
+            Hash,
+            Hasher,
+        },
     },
 };
 
-use crate::{form::MetaForm, Type, TypeInfo};
+use crate::{
+    form::MetaForm,
+    Type,
+    TypeInfo,
+};
 
 /// A metatype abstraction.
 ///
@@ -111,7 +122,7 @@ impl schemars::JsonSchema for MetaType {
     }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        //dummy type to generate schema
+        // dummy type to generate schema
         #[derive(schemars::JsonSchema)]
         #[allow(dead_code)]
         struct MetaType {
