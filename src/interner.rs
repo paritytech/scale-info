@@ -240,11 +240,16 @@ impl<TypeId> JsonSchema for Interner<TypeId> {
     }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        // Dummy trait for schema generation
+        // dummy types to generate schema
+        #[derive(schemars::JsonSchema)]
+        #[allow(dead_code)]
+        struct TypeId {
+            t: u64,
+        }
         #[derive(JsonSchema)]
         #[allow(dead_code)]
         struct Interner {
-            vec: Vec<u64>,
+            vec: Vec<TypeId>,
         }
         gen.subschema_for::<Interner>()
     }
