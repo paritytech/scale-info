@@ -87,12 +87,6 @@ impl<T> JsonSchema for UntrackedSymbol<T> {
     }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        // Dummy trait for schema generation
-        // #[derive(JsonSchema)]
-        // #[allow(dead_code)]
-        // struct UntrackedSymbol {
-        //     pub id: u32,
-        // }
         gen.subschema_for::<u32>()
     }
 }
@@ -104,6 +98,7 @@ impl<T> JsonSchemaMaybe for UntrackedSymbol<T> {}
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
 pub struct Symbol<'a, T> {
     id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
@@ -146,6 +141,7 @@ impl<T> Symbol<'_, T> {
 #[derive(Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
 pub struct Interner<T> {
     /// A mapping from the interned elements to their respective space-efficient
     /// identifiers.
@@ -230,28 +226,6 @@ where
     /// Returns the ordered sequence of interned elements.
     pub fn elements(&self) -> &[T] {
         &self.vec
-    }
-}
-
-#[cfg(feature = "schema")]
-impl<TypeId> JsonSchema for Interner<TypeId> {
-    fn schema_name() -> String {
-        String::from("Interner")
-    }
-
-    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        // dummy types to generate schema
-        #[derive(schemars::JsonSchema)]
-        #[allow(dead_code)]
-        struct TypeId {
-            t: u64,
-        }
-        #[derive(JsonSchema)]
-        #[allow(dead_code)]
-        struct Interner {
-            vec: Vec<TypeId>,
-        }
-        gen.subschema_for::<Interner>()
     }
 }
 

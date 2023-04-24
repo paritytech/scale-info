@@ -122,19 +122,8 @@ impl schemars::JsonSchema for MetaType {
     }
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        // dummy types to generate schema
-        #[derive(schemars::JsonSchema)]
-        #[allow(dead_code)]
-        struct TypeId {
-            t: u64,
-        }
-        #[derive(schemars::JsonSchema)]
-        #[allow(dead_code)]
-        struct MetaType {
-            fn_type_info: Type<MetaForm>,
-            type_id: TypeId,
-        }
-        gen.subschema_for::<MetaType>()
+        // since MetaType does not really get serialized, we don't care about its actual schema
+        gen.subschema_for::<u64>()
     }
 }
 

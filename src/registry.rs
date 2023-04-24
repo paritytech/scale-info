@@ -75,7 +75,6 @@ impl IntoPortable for &'static str {
 /// A type can be a sub-type of itself. In this case the registry has a builtin
 /// mechanism to stop recursion and avoid going into an infinite loop.
 #[derive(Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 pub struct Registry {
     /// The cache for already registered types.
     ///
