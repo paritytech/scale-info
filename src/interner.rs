@@ -88,12 +88,12 @@ impl<T> JsonSchema for UntrackedSymbol<T> {
 
     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
         // Dummy trait for schema generation
-        #[derive(JsonSchema)]
-        #[allow(dead_code)]
-        struct UntrackedSymbol {
-            pub id: u32,
-        }
-        gen.subschema_for::<UntrackedSymbol>()
+        // #[derive(JsonSchema)]
+        // #[allow(dead_code)]
+        // struct UntrackedSymbol {
+        //     pub id: u32,
+        // }
+        gen.subschema_for::<u32>()
     }
 }
 impl<T> JsonSchemaMaybe for UntrackedSymbol<T> {}
