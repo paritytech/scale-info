@@ -39,11 +39,17 @@ use crate::{
     meta_type::MetaType,
 };
 
-use cfg_if::cfg_if;
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::Serialize;
+
+/// Trait to support derivation of `JsonSchema` for schema generation.
+#[cfg(feature = "schema")]
+pub trait JsonSchemaMaybe: JsonSchema {}
+/// Trait to support derivation of `JsonSchema` for schema generation.
+#[cfg(not(feature = "schema"))]
+pub trait JsonSchemaMaybe {}
 
 /// Trait to control the internal structures of type definitions.
 ///
@@ -51,19 +57,17 @@ use serde::Serialize;
 /// instantiated out of the flux and portable forms that require some sort of
 /// interning data structures.
 pub trait Form {
-    cfg_if! {
-        if #[cfg(feature = "schema")] {
-            /// The type representing the type.
-            type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchema;
-            /// The string type.
-            type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchema;
-        } else {
-            /// The type representing the type.
-            type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
-            /// The string type.
-            type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug;
-        }
-    }
+    /// The type representing the type.
+    type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchemaMaybe;
+    /// The string type.
+    type String: AsRef<str>
+        + PartialEq
+        + Eq
+        + PartialOrd
+        + Ord
+        + Clone
+        + Debug
+        + JsonSchemaMaybe;
 }
 
 /// A meta meta-type.
@@ -95,46 +99,19 @@ pub enum PortableForm {}
 cfg_if::cfg_if! {
     if #[cfg(any(feature = "std", feature = "decode"))] {
         impl Form for PortableForm {
-            type Type = UntrackedSymbol<TypeIdDef>;
+            type Type = UntrackedSymbol<TypeId>;
             // Owned string required for decoding/deserialization
             type String = crate::prelude::string::String;
         }
     } else {
         impl Form for PortableForm {
-            type Type = UntrackedSymbol<TypeIdDef>;
+            type Type = UntrackedSymbol<TypeId>;
             type String = &'static str;
         }
     }
 }
 
-/// Wrapper for `TypeId`.
-/// Required for internal
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
-pub struct TypeIdDef {
-    type_id: TypeId,
-}
-
-impl core::ops::Deref for TypeIdDef {
-    type Target = TypeId;
-
-    fn deref(&self) -> &TypeId {
-        &self.type_id
-    }
-}
-
-impl From<TypeId> for TypeIdDef {
-    fn from(type_id: TypeId) -> Self {
-        Self { type_id }
-    }
-}
-
-#[cfg(feature = "schema")]
-impl schemars::JsonSchema for TypeIdDef {
-    fn schema_name() -> String {
-        "TypeId".into()
-    }
-
-    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-        gen.subschema_for::<u64>()
-    }
-}
+// Blanket implementation
+impl JsonSchemaMaybe for &'static str {}
+#[cfg(any(feature = "std", feature = "decode"))]
+impl JsonSchemaMaybe for crate::prelude::string::String {}

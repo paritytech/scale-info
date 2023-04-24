@@ -23,11 +23,10 @@
 //! namespaces. The normal Rust namespace of a type is used, except for the Rust
 //! prelude types that live in the so-called root namespace which is empty.
 
+use core::any::TypeId;
+
 use crate::{
-    form::{
-        Form,
-        TypeIdDef,
-    },
+    form::Form,
     prelude::{
         collections::BTreeMap,
         fmt::Debug,
@@ -82,11 +81,11 @@ pub struct Registry {
     ///
     /// This is just an accessor to the actual database
     /// for all types found in the `types` field.
-    type_table: Interner<TypeIdDef>,
+    type_table: Interner<TypeId>,
     /// The database where registered types reside.
     ///
     /// The contents herein is used for serlialization.
-    types: BTreeMap<UntrackedSymbol<TypeIdDef>, Type<PortableForm>>,
+    types: BTreeMap<UntrackedSymbol<TypeId>, Type<PortableForm>>,
 }
 
 impl Default for Registry {
@@ -114,10 +113,7 @@ impl Registry {
     ///
     /// This is an internal API and should not be called directly from the
     /// outside.
-    fn intern_type_id(
-        &mut self,
-        type_id: TypeIdDef,
-    ) -> (bool, UntrackedSymbol<TypeIdDef>) {
+    fn intern_type_id(&mut self, type_id: TypeId) -> (bool, UntrackedSymbol<TypeId>) {
         let (inserted, symbol) = self.type_table.intern_or_get(type_id);
         (inserted, symbol.into_untracked())
     }
@@ -131,7 +127,7 @@ impl Registry {
     /// be used later to resolve back to the associated type definition.
     /// However, since this facility is going to be used for serialization
     /// purposes this functionality isn't needed anyway.
-    pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeIdDef> {
+    pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
         let (inserted, symbol) = self.intern_type_id(ty.type_id());
         if inserted {
             let portable_id = ty.type_info().into_portable(self);
@@ -141,7 +137,7 @@ impl Registry {
     }
 
     /// Calls `register_type` for each `MetaType` in the given `iter`.
-    pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeIdDef>>
+    pub fn register_types<I>(&mut self, iter: I) -> Vec<UntrackedSymbol<TypeId>>
     where
         I: IntoIterator<Item = MetaType>,
     {
@@ -165,7 +161,7 @@ impl Registry {
     /// Returns an iterator over the types with their keys
     pub fn types(
         &self,
-    ) -> impl Iterator<Item = (&UntrackedSymbol<TypeIdDef>, &Type<PortableForm>)> {
+    ) -> impl Iterator<Item = (&UntrackedSymbol<TypeId>, &Type<PortableForm>)> {
         self.types.iter()
     }
 }

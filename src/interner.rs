@@ -22,13 +22,16 @@
 //! elements and is later used for space-efficient serialization within the
 //! registry.
 
-use crate::prelude::{
-    collections::btree_map::{
-        BTreeMap,
-        Entry,
+use crate::{
+    form::JsonSchemaMaybe,
+    prelude::{
+        collections::btree_map::{
+            BTreeMap,
+            Entry,
+        },
+        marker::PhantomData,
+        vec::Vec,
     },
-    marker::PhantomData,
-    vec::Vec,
 };
 
 #[cfg(feature = "serde")]
@@ -37,7 +40,7 @@ use serde::{
     Serialize,
 };
 
-#[cfg(all(feature = "std", feature = "schema"))]
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
 
 /// A symbol that is not lifetime tracked.
@@ -49,7 +52,6 @@ use schemars::JsonSchema;
 )]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[cfg_attr(all(feature = "std", feature = "schema"), derive(JsonSchema))]
 pub struct UntrackedSymbol<T> {
     /// The index to the symbol in the interner table.
     #[codec(compact)]
@@ -77,6 +79,24 @@ impl<T> From<u32> for UntrackedSymbol<T> {
         }
     }
 }
+
+#[cfg(feature = "schema")]
+impl<T> JsonSchema for UntrackedSymbol<T> {
+    fn schema_name() -> String {
+        String::from("UntrackedSymbol")
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        // Dummy trait for schema generation
+        #[derive(JsonSchema)]
+        #[allow(dead_code)]
+        struct UntrackedSymbol {
+            pub id: u32,
+        }
+        gen.subschema_for::<UntrackedSymbol>()
+    }
+}
+impl<T> JsonSchemaMaybe for UntrackedSymbol<T> {}
 
 /// A symbol from an interner.
 ///
@@ -124,7 +144,6 @@ impl<T> Symbol<'_, T> {
 /// This is used in order to quite efficiently cache strings and type
 /// definitions uniquely identified by their associated type identifiers.
 #[derive(Debug, PartialEq, Eq)]
-#[cfg_attr(all(feature = "std", feature = "schema"), derive(schemars::JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct Interner<T> {
@@ -211,6 +230,23 @@ where
     /// Returns the ordered sequence of interned elements.
     pub fn elements(&self) -> &[T] {
         &self.vec
+    }
+}
+
+#[cfg(feature = "schema")]
+impl<TypeId> JsonSchema for Interner<TypeId> {
+    fn schema_name() -> String {
+        String::from("Interner")
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        // Dummy trait for schema generation
+        #[derive(JsonSchema)]
+        #[allow(dead_code)]
+        struct Interner {
+            vec: Vec<u64>,
+        }
+        gen.subschema_for::<Interner>()
     }
 }
 

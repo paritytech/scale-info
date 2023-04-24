@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use crate::{
-    form::TypeIdDef,
+    form::JsonSchemaMaybe,
     prelude::{
         any::TypeId,
         cmp::Ordering,
@@ -49,7 +49,7 @@ pub struct MetaType {
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
-    type_id: TypeIdDef,
+    type_id: TypeId,
 }
 
 impl PartialEq for MetaType {
@@ -95,7 +95,7 @@ impl MetaType {
     {
         Self {
             fn_type_info: <T as TypeInfo>::type_info,
-            type_id: TypeIdDef::from(TypeId::of::<T::Identity>()),
+            type_id: TypeId::of::<T::Identity>(),
         }
     }
 
@@ -105,7 +105,7 @@ impl MetaType {
     }
 
     /// Returns the type identifier provided by `core::any`.
-    pub fn type_id(&self) -> TypeIdDef {
+    pub fn type_id(&self) -> TypeId {
         self.type_id
     }
 
@@ -127,7 +127,7 @@ impl schemars::JsonSchema for MetaType {
         #[allow(dead_code)]
         struct MetaType {
             fn_type_info: Type<MetaForm>,
-            type_id: TypeIdDef,
+            type_id: u64,
         }
         gen.subschema_for::<MetaType>()
     }
@@ -136,3 +136,5 @@ impl schemars::JsonSchema for MetaType {
         true
     }
 }
+
+impl JsonSchemaMaybe for MetaType {}
