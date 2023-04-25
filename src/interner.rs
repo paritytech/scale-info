@@ -37,6 +37,9 @@ use serde::{
     Serialize,
 };
 
+#[cfg(feature = "schema")]
+use schemars::JsonSchema;
+
 /// A symbol that is not lifetime tracked.
 ///
 /// This can be used by self-referential types but
@@ -74,13 +77,25 @@ impl<T> From<u32> for UntrackedSymbol<T> {
     }
 }
 
+#[cfg(feature = "schema")]
+impl<T> JsonSchema for UntrackedSymbol<T> {
+    fn schema_name() -> String {
+        String::from("UntrackedSymbol")
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        gen.subschema_for::<u32>()
+    }
+}
+
 /// A symbol from an interner.
 ///
 /// Can be used to resolve to the associated instance.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-pub struct Symbol<'a, T> {
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
+pub struct Symbol<'a, T: 'a> {
     id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> &'a T>,
@@ -122,6 +137,7 @@ impl<T> Symbol<'_, T> {
 #[derive(Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
 pub struct Interner<T> {
     /// A mapping from the interned elements to their respective space-efficient
     /// identifiers.

@@ -21,6 +21,7 @@ scale-info-derive = { version = "2.5.0", path = "derive", default-features = fal
 serde = { version = "1", default-features = false, optional = true, features = ["derive", "alloc"] }
 derive_more = { version = "0.99.1", default-features = false, features = ["from"] }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
+schemars = { version = "0.8", optional = true }
 
 [features]
 default = ["std"]
@@ -35,13 +36,18 @@ derive = [
 docs = [
     "scale-info-derive/docs"
 ]
-# enables decoding and deserialization of portable scale-info type metadata
+# Enables decoding and deserialization of portable scale-info type metadata.
 decode = [
     "scale/full"
 ]
-# enables type information for bitvec types, matching the name of the parity-scale-codec feature
+# Enables type information for bitvec types, matching the name of the parity-scale-codec feature.
 bit-vec = [
     "bitvec"
+]
+# Enables JSON Schema generation.
+schema = [
+    "std",
+    "schemars"
 ]
 
 [workspace]

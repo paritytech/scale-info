@@ -111,3 +111,15 @@ impl MetaType {
         self == &MetaType::new::<crate::impls::PhantomIdentity>()
     }
 }
+
+#[cfg(feature = "schema")]
+impl schemars::JsonSchema for MetaType {
+    fn schema_name() -> String {
+        "MetaType".into()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        // since MetaType does not really get serialized, we don't care about its actual schema
+        gen.subschema_for::<u64>()
+    }
+}

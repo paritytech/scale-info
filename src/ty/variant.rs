@@ -81,6 +81,7 @@ use serde::{
 )]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, From, Encode)]
 pub struct TypeDefVariant<T: Form = MetaForm> {
     /// The variants of a variant type
@@ -154,6 +155,7 @@ where
     ))
 )]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug, Encode)]
 pub struct Variant<T: Form = MetaForm> {
     /// The name of the variant.
