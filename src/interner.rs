@@ -22,16 +22,13 @@
 //! elements and is later used for space-efficient serialization within the
 //! registry.
 
-use crate::{
-    form::JsonSchemaMaybe,
-    prelude::{
-        collections::btree_map::{
-            BTreeMap,
-            Entry,
-        },
-        marker::PhantomData,
-        vec::Vec,
+use crate::prelude::{
+    collections::btree_map::{
+        BTreeMap,
+        Entry,
     },
+    marker::PhantomData,
+    vec::Vec,
 };
 
 #[cfg(feature = "serde")]
@@ -40,7 +37,7 @@ use serde::{
     Serialize,
 };
 
-#[cfg(feature = "schema")]
+#[cfg(all(feature = "std", feature = "schema"))]
 use schemars::JsonSchema;
 
 /// A symbol that is not lifetime tracked.
@@ -80,7 +77,7 @@ impl<T> From<u32> for UntrackedSymbol<T> {
     }
 }
 
-#[cfg(feature = "schema")]
+#[cfg(all(feature = "std", feature = "schema"))]
 impl<T> JsonSchema for UntrackedSymbol<T> {
     fn schema_name() -> String {
         String::from("UntrackedSymbol")
@@ -90,7 +87,6 @@ impl<T> JsonSchema for UntrackedSymbol<T> {
         gen.subschema_for::<u32>()
     }
 }
-impl<T> JsonSchemaMaybe for UntrackedSymbol<T> {}
 
 /// A symbol from an interner.
 ///
@@ -98,8 +94,8 @@ impl<T> JsonSchemaMaybe for UntrackedSymbol<T> {}
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[cfg_attr(feature = "schema", derive(JsonSchema))]
-pub struct Symbol<'a, T> {
+#[cfg_attr(all(feature = "std", feature = "schema"), derive(JsonSchema))]
+pub struct Symbol<'a, T: 'a> {
     id: u32,
     #[cfg_attr(feature = "serde", serde(skip))]
     marker: PhantomData<fn() -> &'a T>,
@@ -141,7 +137,7 @@ impl<T> Symbol<'_, T> {
 #[derive(Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
-#[cfg_attr(feature = "schema", derive(JsonSchema))]
+#[cfg_attr(all(feature = "std", feature = "schema"), derive(JsonSchema))]
 pub struct Interner<T> {
     /// A mapping from the interned elements to their respective space-efficient
     /// identifiers.

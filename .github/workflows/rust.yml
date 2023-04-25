@@ -43,6 +43,7 @@ jobs:
         cargo check --no-default-features --features docs
         cargo check --no-default-features --features serde
         cargo check --no-default-features --features serde,decode
+        cargo check --no-default-features --features std,schema
 
     - name: build
       run: |

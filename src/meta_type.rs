@@ -12,20 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::{
-    form::JsonSchemaMaybe,
-    prelude::{
-        any::TypeId,
-        cmp::Ordering,
-        fmt::{
-            Debug,
-            Error as FmtError,
-            Formatter,
-        },
-        hash::{
-            Hash,
-            Hasher,
-        },
+use crate::prelude::{
+    any::TypeId,
+    cmp::Ordering,
+    fmt::{
+        Debug,
+        Error as FmtError,
+        Formatter,
+    },
+    hash::{
+        Hash,
+        Hasher,
     },
 };
 
@@ -115,7 +112,7 @@ impl MetaType {
     }
 }
 
-#[cfg(feature = "schema")]
+#[cfg(all(feature = "std", feature = "schema"))]
 impl schemars::JsonSchema for MetaType {
     fn schema_name() -> String {
         "MetaType".into()
@@ -126,5 +123,3 @@ impl schemars::JsonSchema for MetaType {
         gen.subschema_for::<u64>()
     }
 }
-
-impl JsonSchemaMaybe for MetaType {}
