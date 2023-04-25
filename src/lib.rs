@@ -340,9 +340,6 @@ mod registry;
 mod ty;
 mod utils;
 
-#[cfg(test)]
-mod tests;
-
 #[doc(hidden)]
 pub use scale;
 
@@ -395,3 +392,6 @@ where
 {
     MetaType::new::<T>()
 }
+
+#[cfg(test)]
+mod tests;
