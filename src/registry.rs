@@ -23,11 +23,10 @@
 //! namespaces. The normal Rust namespace of a type is used, except for the Rust
 //! prelude types that live in the so-called root namespace which is empty.
 
-use core::any::TypeId;
-
 use crate::{
     form::Form,
     prelude::{
+        any::TypeId,
         collections::BTreeMap,
         fmt::Debug,
         vec::Vec,
