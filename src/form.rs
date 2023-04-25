@@ -39,16 +39,16 @@ use crate::{
     meta_type::MetaType,
 };
 
-#[cfg(all(feature = "std", feature = "schema"))]
+#[cfg(feature = "schema")]
 use schemars::JsonSchema;
 #[cfg(feature = "serde")]
 use serde::Serialize;
 
 /// Trait to support derivation of `JsonSchema` for schema generation.
-#[cfg(all(feature = "std", feature = "schema"))]
+#[cfg(feature = "schema")]
 pub trait JsonSchemaMaybe: JsonSchema {}
 /// Trait to support derivation of `JsonSchema` for schema generation.
-#[cfg(not(all(feature = "std", feature = "schema")))]
+#[cfg(not(feature = "schema"))]
 pub trait JsonSchemaMaybe {}
 
 /// Trait to control the internal structures of type definitions.
@@ -74,7 +74,7 @@ pub trait Form {
 ///
 /// Allows to be converted into other forms such as portable form
 /// through the registry and `IntoPortable`.
-#[cfg_attr(all(feature = "std", feature = "schema"), derive(JsonSchema))]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum MetaForm {}
@@ -91,7 +91,7 @@ impl Form for MetaForm {
 /// This resolves some lifetime issues with self-referential structs (such as
 /// the registry itself) but can no longer be used to resolve to the original
 /// underlying data.
-#[cfg_attr(all(feature = "std", feature = "schema"), derive(JsonSchema))]
+#[cfg_attr(feature = "schema", derive(JsonSchema))]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 pub enum PortableForm {}
@@ -112,7 +112,7 @@ cfg_if::cfg_if! {
 }
 
 // Blanket implementations
-#[cfg(not(all(feature = "std", feature = "schema")))]
+#[cfg(not(feature = "schema"))]
 impl<T> JsonSchemaMaybe for T {}
-#[cfg(all(feature = "std", feature = "schema"))]
+#[cfg(feature = "schema")]
 impl<T> JsonSchemaMaybe for T where T: JsonSchema {}

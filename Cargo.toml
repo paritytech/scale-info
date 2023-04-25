@@ -46,6 +46,7 @@ bit-vec = [
 ]
 # Enables JSON Schema generation.
 schema = [
+    "std",
     "schemars"
 ]
 
