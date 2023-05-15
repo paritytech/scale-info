@@ -37,6 +37,7 @@ cfg_if! {
             num,
             ops,
             string,
+            sync,
             vec,
         };
     } else {
@@ -46,6 +47,7 @@ cfg_if! {
             collections,
             format,
             string,
+            sync,
             vec,
         };
 
