@@ -73,15 +73,6 @@ impl PortableRegistry {
         self.types.get(id as usize).map(|ty| &ty.ty)
     }
 
-    /// Returns all types with their associated identifiers.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn types(&self) -> &[PortableType] {
-        &self.types
-    }
-
     /// Retains only the portable types needed to express the provided ids.
     ///
     /// The type IDs retained are returned as key to the [`BTreeMap`].
@@ -248,24 +239,6 @@ impl PortableType {
     /// Construct a custom `PortableType`.
     pub fn new(id: u32, ty: Type<PortableForm>) -> Self {
         Self { id, ty }
-    }
-
-    /// Returns the index of the [`PortableType`].
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn id(&self) -> u32 {
-        self.id
-    }
-
-    /// Returns the type of the [`PortableType`].
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn ty(&self) -> &Type<PortableForm> {
-        &self.ty
     }
 }
 
