@@ -38,6 +38,7 @@ cfg_if! {
             ops,
             string,
             sync,
+            time,
             vec,
         };
     } else {
@@ -60,6 +61,7 @@ cfg_if! {
             mem,
             num,
             ops,
+            time,
         };
     }
 }

@@ -31,6 +31,7 @@ use crate::prelude::{
     },
     string::String,
     sync::Arc,
+    time::Duration,
     vec::Vec,
 };
 
@@ -160,6 +161,24 @@ impl_for_non_zero!(
     NonZeroU64: u64,
     NonZeroU128: u128
 );
+
+impl TypeInfo for Duration {
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder().path(Path::prelude("Duration")).composite(
+            Fields::unnamed()
+                .field(|f| {
+                    // Seconds
+                    f.ty::<u64>().type_name("u64")
+                })
+                .field(|f| {
+                    // Nanoseconds
+                    f.ty::<u32>().type_name("u32")
+                }),
+        )
+    }
+}
 
 impl<T> TypeInfo for Vec<T>
 where
