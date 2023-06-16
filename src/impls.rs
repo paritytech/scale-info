@@ -29,6 +29,7 @@ use crate::prelude::{
         Range,
         RangeInclusive,
     },
+    rc::Rc,
     string::String,
     sync::Arc,
     vec::Vec,
@@ -270,6 +271,17 @@ where
 }
 
 impl<T> TypeInfo for Box<T>
+where
+    T: TypeInfo + ?Sized + 'static,
+{
+    type Identity = T;
+
+    fn type_info() -> Type {
+        Self::Identity::type_info()
+    }
+}
+
+impl<T> TypeInfo for Rc<T>
 where
     T: TypeInfo + ?Sized + 'static,
 {
