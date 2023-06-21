@@ -20,23 +20,17 @@ We also assume that ongoing work done is being merged directly to the `master` b
 4.  Bump the crate versions in `./Cargo.toml` and `./derive/Cargo.toml` to whatever was decided in step 2 (basically a find and
     replace from old version to new version in this file should do the trick).
 
-5.  Ensure the `Cargo.lock` file is up to date.
-
-    ```
-    cargo generate-lockfile
-    ```
-
-6.  Update `CHANGELOG.md` to reflect the difference between this release and the last. See the `CHANGELOG.md` file for
+5.  Update `CHANGELOG.md` to reflect the difference between this release and the last. See the `CHANGELOG.md` file for
     details of the format it follows.
 
     First, if there have been any significant changes, add a description of those changes to the top of the
     changelog entry for this release.
 
-7.  Commit any of the above changes to the release branch and open a PR in GitHub with a base of `master`.
+6.  Commit any of the above changes to the release branch and open a PR in GitHub with a base of `master`.
 
-8.  Once the branch has been reviewed and passes CI, merge it.
+7.  Once the branch has been reviewed and passes CI, merge it.
 
-9.  Now, we're ready to publish the release to crates.io.
+8.  Now, we're ready to publish the release to crates.io.
 
     1.  Checkout `master`, ensuring we're looking at that latest merge (`git pull`).
 
@@ -56,7 +50,7 @@ We also assume that ongoing work done is being merged directly to the `master` b
         (cd derive && cargo publish) && cargo publish
         ```
 
-10. If the release was successful, tag the commit that we released in the `master` branch with the
+9.  If the release was successful, tag the commit that we released in the `master` branch with the
     version that we just released, for example:
 
     ```
