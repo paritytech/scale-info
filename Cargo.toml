@@ -1,6 +1,6 @@
 [package]
 name = "scale-info"
-version = "2.7.0"
+version = "2.8.0"
 authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2021"
 rust-version = "1.60.0"
@@ -17,7 +17,7 @@ include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
 [dependencies]
 bitvec = { version = "1", default-features = false, features = ["alloc"], optional = true }
 cfg-if = "1.0"
-scale-info-derive = { version = "2.6.0", path = "derive", default-features = false, optional = true }
+scale-info-derive = { version = "2.8.0", path = "derive", default-features = false, optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["derive", "alloc"] }
 derive_more = { version = "0.99.1", default-features = false, features = ["from"] }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
