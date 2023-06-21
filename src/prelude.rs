@@ -40,6 +40,7 @@ cfg_if! {
             sync,
             time,
             vec,
+            rc
         };
     } else {
         pub use alloc::{
@@ -50,6 +51,7 @@ cfg_if! {
             string,
             sync,
             vec,
+            rc
         };
 
         pub use core::{
