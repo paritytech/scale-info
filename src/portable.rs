@@ -238,8 +238,10 @@ impl PortableRegistry {
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
 #[derive(Clone, Debug, PartialEq, Eq, Encode)]
 pub struct PortableType {
+    /// The ID of the portable type.
     #[codec(compact)]
     pub id: u32,
+    /// The portable form of the type.
     #[cfg_attr(feature = "serde", serde(rename = "type"))]
     pub ty: Type<PortableForm>,
 }
