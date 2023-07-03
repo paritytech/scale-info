@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.9.0] - 2023-07-03
 
 ### Changed
-- Expose `PortableType` as public [(#188)(https://github.com/paritytech/scale-info/pull/188)]
+- Expose `PortableType` as public [(#188)](https://github.com/paritytech/scale-info/pull/188)
 
 ## [2.8.0] - 2023-06-21
 
