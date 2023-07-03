@@ -348,6 +348,7 @@ pub use self::{
     portable::{
         PortableRegistry,
         PortableRegistryBuilder,
+        PortableType,
     },
     registry::{
         IntoPortable,
