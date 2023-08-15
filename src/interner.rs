@@ -240,7 +240,7 @@ mod tests {
         assert_eq!(actual_id, expected_id,);
     }
 
-    fn assert_resolve<E>(interner: &mut StringInterner, symbol_id: u32, expected_str: E)
+    fn assert_resolve<E>(interner: &StringInterner, symbol_id: u32, expected_str: E)
     where
         E: Into<Option<&'static str>>,
     {
@@ -259,9 +259,9 @@ mod tests {
         assert_id(&mut interner, "1 2 3", 2);
         assert_id(&mut interner, "Hello", 0);
 
-        assert_resolve(&mut interner, 0, "Hello");
-        assert_resolve(&mut interner, 1, ", World!");
-        assert_resolve(&mut interner, 2, "1 2 3");
-        assert_resolve(&mut interner, 3, None);
+        assert_resolve(&interner, 0, "Hello");
+        assert_resolve(&interner, 1, ", World!");
+        assert_resolve(&interner, 2, "1 2 3");
+        assert_resolve(&interner, 3, None);
     }
 }
