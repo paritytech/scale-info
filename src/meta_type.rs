@@ -42,7 +42,7 @@ use crate::{
 #[derive(Clone, Copy)]
 pub struct MetaType {
     /// Function pointer to get type information.
-    fn_type_info: fn() -> Type<MetaForm>,
+    fn_type_info: fn() -> Type,
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
