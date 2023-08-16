@@ -19,7 +19,7 @@ use crate::prelude::{
     hash::{Hash, Hasher},
 };
 
-use crate::{form::MetaForm, Type, TypeInfo};
+use crate::{Type, TypeInfo};
 
 /// A metatype abstraction.
 ///
@@ -31,7 +31,7 @@ use crate::{form::MetaForm, Type, TypeInfo};
 #[derive(Clone, Copy)]
 pub struct MetaType {
     /// Function pointer to get type information.
-    fn_type_info: fn() -> Type<MetaForm>,
+    fn_type_info: fn() -> Type,
     // The standard type ID (ab)used in order to provide
     // cheap implementations of the standard traits
     // such as `PartialEq`, `PartialOrd`, `Debug` and `Hash`.
@@ -86,7 +86,7 @@ impl MetaType {
     }
 
     /// Returns the meta type information.
-    pub fn type_info(&self) -> Type<MetaForm> {
+    pub fn type_info(&self) -> Type {
         (self.fn_type_info)()
     }
 
