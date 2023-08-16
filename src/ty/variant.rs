@@ -15,23 +15,13 @@
 use crate::prelude::vec::Vec;
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    Field,
-    IntoPortable,
-    Registry,
+    form::{Form, MetaForm, PortableForm},
+    Field, IntoPortable, Registry,
 };
 use derive_more::From;
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A Enum type (consisting of variants).
 ///
@@ -198,12 +188,7 @@ where
     T: Form,
 {
     /// Creates a new variant.
-    pub fn new(
-        name: T::String,
-        fields: Vec<Field<T>>,
-        index: u8,
-        docs: Vec<T::String>,
-    ) -> Self {
+    pub fn new(name: T::String, fields: Vec<Field<T>>, index: u8, docs: Vec<T::String>) -> Self {
         Self {
             name,
             fields,

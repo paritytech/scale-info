@@ -13,31 +13,18 @@
 // limitations under the License.
 
 use crate::prelude::{
-    fmt::{
-        Display,
-        Error as FmtError,
-        Formatter,
-    },
+    fmt::{Display, Error as FmtError, Formatter},
     vec::Vec,
 };
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
+    form::{Form, MetaForm, PortableForm},
     utils::is_rust_identifier,
-    IntoPortable,
-    Registry,
+    IntoPortable, Registry,
 };
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// Represents the path of a type definition.
 ///
@@ -99,8 +86,7 @@ impl Path<MetaForm> {
     pub fn new(ident: &'static str, module_path: &'static str) -> Path {
         let mut segments = module_path.split("::").collect::<Vec<_>>();
         segments.push(ident);
-        Self::from_segments(segments)
-            .expect("All path segments should be valid Rust identifiers")
+        Self::from_segments(segments).expect("All path segments should be valid Rust identifiers")
     }
 
     /// Create a Path from the given segments
@@ -115,10 +101,10 @@ impl Path<MetaForm> {
     {
         let segments = segments.into_iter().collect::<Vec<_>>();
         if segments.is_empty() {
-            return Err(PathError::MissingSegments)
+            return Err(PathError::MissingSegments);
         }
         if let Some(err_at) = segments.iter().position(|seg| !is_rust_identifier(seg)) {
-            return Err(PathError::InvalidIdentifier { segment: err_at })
+            return Err(PathError::InvalidIdentifier { segment: err_at });
         }
         Ok(Path { segments })
     }
@@ -280,8 +266,7 @@ mod tests {
 
     #[test]
     fn path_display() {
-        let path =
-            Path::new("Planet", "hello::world").into_portable(&mut Default::default());
+        let path = Path::new("Planet", "hello::world").into_portable(&mut Default::default());
         assert_eq!("hello::world::Planet", format!("{}", path))
     }
 }

@@ -14,22 +14,13 @@
 
 use crate::{
     build::FieldBuilder,
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
+    form::{Form, MetaForm, PortableForm},
     prelude::vec::Vec,
-    IntoPortable,
-    Registry,
+    IntoPortable, Registry,
 };
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A field of a struct-like data type.
 ///

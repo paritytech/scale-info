@@ -122,27 +122,12 @@
 //! }
 //! ```
 
-use crate::prelude::{
-    marker::PhantomData,
-    vec::Vec,
-};
+use crate::prelude::{marker::PhantomData, vec::Vec};
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    Field,
-    MetaType,
-    Path,
-    Type,
-    TypeDef,
-    TypeDefComposite,
-    TypeDefVariant,
-    TypeInfo,
-    TypeParameter,
-    Variant,
+    form::{Form, MetaForm, PortableForm},
+    Field, MetaType, Path, Type, TypeDef, TypeDefComposite, TypeDefVariant, TypeInfo,
+    TypeParameter, Variant,
 };
 
 /// State types for type builders which require a Path.
@@ -316,11 +301,8 @@ impl FieldsBuilder<MetaForm, NamedFields> {
     where
         B: Fn(
             FieldBuilder,
-        ) -> FieldBuilder<
-            MetaForm,
-            field_state::NameAssigned,
-            field_state::TypeAssigned,
-        >,
+        )
+            -> FieldBuilder<MetaForm, field_state::NameAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
         self.push_field(builder.finalize())
@@ -333,11 +315,8 @@ impl FieldsBuilder<MetaForm, UnnamedFields> {
     where
         B: Fn(
             FieldBuilder,
-        ) -> FieldBuilder<
-            MetaForm,
-            field_state::NameNotAssigned,
-            field_state::TypeAssigned,
-        >,
+        )
+            -> FieldBuilder<MetaForm, field_state::NameNotAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
         self.push_field(builder.finalize())
@@ -356,16 +335,9 @@ impl FieldsBuilder<PortableForm, NamedFields> {
     pub fn field_portable<B>(self, builder: B) -> Self
     where
         B: Fn(
-            FieldBuilder<
-                PortableForm,
-                field_state::NameNotAssigned,
-                field_state::TypeNotAssigned,
-            >,
-        ) -> FieldBuilder<
-            PortableForm,
-            field_state::NameAssigned,
-            field_state::TypeAssigned,
-        >,
+            FieldBuilder<PortableForm, field_state::NameNotAssigned, field_state::TypeNotAssigned>,
+        )
+            -> FieldBuilder<PortableForm, field_state::NameAssigned, field_state::TypeAssigned>,
     {
         let builder = builder(FieldBuilder::new());
         self.push_field(builder.finalize())
@@ -377,11 +349,7 @@ impl FieldsBuilder<PortableForm, UnnamedFields> {
     pub fn field_portable<B>(self, builder: B) -> Self
     where
         B: Fn(
-            FieldBuilder<
-                PortableForm,
-                field_state::NameNotAssigned,
-                field_state::TypeNotAssigned,
-            >,
+            FieldBuilder<PortableForm, field_state::NameNotAssigned, field_state::TypeNotAssigned>,
         ) -> FieldBuilder<
             PortableForm,
             field_state::NameNotAssigned,

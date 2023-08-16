@@ -18,16 +18,7 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{
-    parse::Parse,
-    spanned::Spanned,
-    AttrStyle,
-    Attribute,
-    Lit,
-    Meta,
-    NestedMeta,
-    Variant,
-};
+use syn::{parse::Parse, spanned::Spanned, AttrStyle, Attribute, Lit, Meta, NestedMeta, Variant};
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
 /// is found, fall back to the discriminant or just the variant index.
@@ -58,7 +49,7 @@ pub fn maybe_index(variant: &Variant) -> Option<u8> {
                     let byte = v
                         .base10_parse::<u8>()
                         .expect("Internal error. `#[codec(index = …)]` attribute syntax must be checked in `parity-scale-codec`. This is a bug.");
-                    return Some(byte)
+                    return Some(byte);
                 }
             }
         }
@@ -76,7 +67,7 @@ pub fn is_compact(field: &syn::Field) -> bool {
     codec_meta_item(outer_attrs, |meta| {
         if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
             if path.is_ident("compact") {
-                return Some(())
+                return Some(());
             }
         }
 
@@ -90,7 +81,7 @@ pub fn should_skip(attrs: &[Attribute]) -> bool {
     codec_meta_item(attrs.iter(), |meta| {
         if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
             if path.is_ident("skip") {
-                return Some(path.span())
+                return Some(path.span());
             }
         }
 

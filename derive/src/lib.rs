@@ -19,34 +19,17 @@ mod attr;
 mod trait_bounds;
 mod utils;
 
-use self::attr::{
-    Attributes,
-    CaptureDocsAttr,
-    CratePathAttr,
-};
+use self::attr::{Attributes, CaptureDocsAttr, CratePathAttr};
 use proc_macro::TokenStream;
-use proc_macro2::{
-    Span,
-    TokenStream as TokenStream2,
-};
+use proc_macro2::{Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{
-    parse::{
-        Error,
-        Result,
-    },
+    parse::{Error, Result},
     parse_quote,
     punctuated::Punctuated,
     token::Comma,
     visit_mut::VisitMut,
-    Data,
-    DataEnum,
-    DataStruct,
-    DeriveInput,
-    Field,
-    Fields,
-    Ident,
-    Lifetime,
+    Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Ident, Lifetime,
 };
 
 #[proc_macro_derive(TypeInfo, attributes(scale_info, codec))]
@@ -97,7 +80,11 @@ impl TypeInfoImpl {
 
         let type_params = self.ast.generics.type_params().map(|tp| {
             let ty_ident = &tp.ident;
-            let ty = if self.attrs.skip_type_params().map_or(true, |skip| !skip.skip(tp)) {
+            let ty = if self
+                .attrs
+                .skip_type_params()
+                .map_or(true, |skip| !skip.skip(tp))
+            {
                 quote! { ::core::option::Option::Some(#scale_info::meta_type::<#ty_ident>()) }
             } else {
                 quote! { ::core::option::Option::None }
@@ -110,9 +97,7 @@ impl TypeInfoImpl {
         let build_type = match &self.ast.data {
             Data::Struct(ref s) => self.generate_composite_type(s, &scale_info),
             Data::Enum(ref e) => self.generate_variant_type(e, &scale_info),
-            Data::Union(_) => {
-                return Err(Error::new_spanned(&self.ast, "Unions not supported"))
-            }
+            Data::Union(_) => return Err(Error::new_spanned(&self.ast, "Unions not supported")),
         };
         let docs = self.generate_docs(&self.ast.attrs);
 
@@ -204,11 +189,7 @@ impl TypeInfoImpl {
             .collect()
     }
 
-    fn generate_variant_type(
-        &self,
-        data_enum: &DataEnum,
-        scale_info: &syn::Path,
-    ) -> TokenStream2 {
+    fn generate_variant_type(&self, data_enum: &DataEnum, scale_info: &syn::Path) -> TokenStream2 {
         let variants = &data_enum.variants;
 
         let variants = variants
@@ -272,8 +253,7 @@ impl TypeInfoImpl {
                     if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
                         if let syn::Lit::Str(lit) = &meta.lit {
                             let lit_value = lit.value();
-                            let stripped =
-                                lit_value.strip_prefix(' ').unwrap_or(&lit_value);
+                            let stripped = lit_value.strip_prefix(' ').unwrap_or(&lit_value);
                             let lit: syn::Lit = parse_quote!(#stripped);
                             Some(lit)
                         } else {

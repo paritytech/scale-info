@@ -15,22 +15,11 @@
 use crate::prelude::{
     any::TypeId,
     cmp::Ordering,
-    fmt::{
-        Debug,
-        Error as FmtError,
-        Formatter,
-    },
-    hash::{
-        Hash,
-        Hasher,
-    },
+    fmt::{Debug, Error as FmtError, Formatter},
+    hash::{Hash, Hasher},
 };
 
-use crate::{
-    form::MetaForm,
-    Type,
-    TypeInfo,
-};
+use crate::{form::MetaForm, Type, TypeInfo};
 
 /// A metatype abstraction.
 ///

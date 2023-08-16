@@ -29,15 +29,9 @@
 //! Other forms, such as a portable form that is still bound to the registry
 //! (also via lifetime tracking) are possible but current not needed.
 
-use crate::prelude::{
-    any::TypeId,
-    fmt::Debug,
-};
+use crate::prelude::{any::TypeId, fmt::Debug};
 
-use crate::{
-    interner::UntrackedSymbol,
-    meta_type::MetaType,
-};
+use crate::{interner::UntrackedSymbol, meta_type::MetaType};
 
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
@@ -60,14 +54,7 @@ pub trait Form {
     /// The type representing the type.
     type Type: PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchemaMaybe;
     /// The string type.
-    type String: AsRef<str>
-        + PartialEq
-        + Eq
-        + PartialOrd
-        + Ord
-        + Clone
-        + Debug
-        + JsonSchemaMaybe;
+    type String: AsRef<str> + PartialEq + Eq + PartialOrd + Ord + Clone + Debug + JsonSchemaMaybe;
 }
 
 /// A meta meta-type.

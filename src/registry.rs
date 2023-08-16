@@ -25,20 +25,12 @@
 
 use crate::{
     form::Form,
-    prelude::{
-        any::TypeId,
-        collections::BTreeMap,
-        fmt::Debug,
-        vec::Vec,
-    },
+    prelude::{any::TypeId, collections::BTreeMap, fmt::Debug, vec::Vec},
 };
 
 use crate::{
     form::PortableForm,
-    interner::{
-        Interner,
-        UntrackedSymbol,
-    },
+    interner::{Interner, UntrackedSymbol},
     meta_type::MetaType,
     Type,
 };
@@ -157,9 +149,7 @@ impl Registry {
     }
 
     /// Returns an iterator over the types with their keys
-    pub fn types(
-        &self,
-    ) -> impl Iterator<Item = (&UntrackedSymbol<TypeId>, &Type<PortableForm>)> {
+    pub fn types(&self) -> impl Iterator<Item = (&UntrackedSymbol<TypeId>, &Type<PortableForm>)> {
         self.types.iter()
     }
 }
@@ -167,13 +157,7 @@ impl Registry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        build::Fields,
-        meta_type,
-        Path,
-        TypeDef,
-        TypeInfo,
-    };
+    use crate::{build::Fields, meta_type, Path, TypeDef, TypeInfo};
 
     #[test]
     fn recursive_struct_with_references() {
