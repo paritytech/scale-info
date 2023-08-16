@@ -27,7 +27,6 @@ use crate::prelude::{
 };
 
 use crate::{
-    form::MetaForm,
     Type,
     TypeInfo,
 };
@@ -97,7 +96,7 @@ impl MetaType {
     }
 
     /// Returns the meta type information.
-    pub fn type_info(&self) -> Type<MetaForm> {
+    pub fn type_info(&self) -> Type {
         (self.fn_type_info)()
     }
 
