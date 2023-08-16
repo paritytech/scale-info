@@ -16,28 +16,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-use info::{self as scale_info,};
-use pretty_assertions::{
-    assert_eq,
-    assert_ne,
-};
-use scale::{
-    Decode,
-    Encode,
-};
+use info::{self as scale_info};
+use pretty_assertions::{assert_eq, assert_ne};
+use scale::{Decode, Encode};
 use scale_info::{
     form::PortableForm,
-    prelude::{
-        num::NonZeroU32,
-        string::String,
-        vec,
-        vec::Vec,
-    },
-    IntoPortable as _,
-    MetaType,
-    PortableRegistry,
-    Registry,
-    TypeInfo,
+    prelude::{num::NonZeroU32, string::String, vec, vec::Vec},
+    IntoPortable as _, MetaType, PortableRegistry, Registry, TypeInfo,
 };
 
 #[derive(TypeInfo)]

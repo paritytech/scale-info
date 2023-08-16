@@ -15,23 +15,13 @@
 use crate::prelude::vec::Vec;
 
 use crate::{
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    Field,
-    IntoPortable,
-    Registry,
+    form::{Form, MetaForm, PortableForm},
+    Field, IntoPortable, Registry,
 };
 use derive_more::From;
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A composite type, consisting of either named (struct) or unnamed (tuple
 /// struct) fields

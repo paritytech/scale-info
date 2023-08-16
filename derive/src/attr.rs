@@ -13,10 +13,7 @@
 // limitations under the License.
 
 use syn::{
-    parse::{
-        Parse,
-        ParseBuffer,
-    },
+    parse::{Parse, ParseBuffer},
     punctuated::Punctuated,
     spanned::Spanned,
     Token,
@@ -55,7 +52,7 @@ impl Attributes {
 
         for attr in &item.attrs {
             if !attr.path.is_ident(SCALE_INFO) {
-                continue
+                continue;
             }
             let scale_info_attrs = attr.parse_args_with(attributes_parser)?;
 
@@ -67,7 +64,7 @@ impl Attributes {
                             return Err(syn::Error::new(
                                 attr.span(),
                                 "Duplicate `bounds` attributes",
-                            ))
+                            ));
                         }
                         bounds = Some(parsed_bounds);
                     }
@@ -76,7 +73,7 @@ impl Attributes {
                             return Err(syn::Error::new(
                                 attr.span(),
                                 "Duplicate `skip_type_params` attributes",
-                            ))
+                            ));
                         }
                         skip_type_params = Some(parsed_skip_type_params);
                     }
@@ -85,7 +82,7 @@ impl Attributes {
                             return Err(syn::Error::new(
                                 attr.span(),
                                 "Duplicate `capture_docs` attributes",
-                            ))
+                            ));
                         }
                         capture_docs = Some(parsed_capture_docs);
                     }
@@ -95,7 +92,7 @@ impl Attributes {
                             return Err(syn::Error::new(
                                 attr.span(),
                                 "Duplicate `crate` attributes",
-                            ))
+                            ));
                         }
 
                         crate_path = Some(parsed_crate_path);
@@ -119,7 +116,7 @@ impl Attributes {
                                 - skip it with `#[scale_info(skip_type_params({}))]`",
                             type_param.ident, type_param.ident
                         );
-                        return Err(syn::Error::new(type_param.span(), msg))
+                        return Err(syn::Error::new(type_param.span(), msg));
                     }
                 }
             }
@@ -239,12 +236,10 @@ impl Parse for CaptureDocsAttr {
             "default" => Ok(Self::Default),
             "always" => Ok(Self::Always),
             "never" => Ok(Self::Never),
-            _ => {
-                Err(syn::Error::new_spanned(
-                    capture_docs_lit,
-                    r#"Invalid capture_docs value. Expected one of: "default", "always", "never" "#,
-                ))
-            }
+            _ => Err(syn::Error::new_spanned(
+                capture_docs_lit,
+                r#"Invalid capture_docs value. Expected one of: "default", "always", "never" "#,
+            )),
         }
     }
 }

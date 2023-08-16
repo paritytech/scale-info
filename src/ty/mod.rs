@@ -12,43 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use crate::prelude::{
-    vec,
-    vec::Vec,
-};
+use crate::prelude::{vec, vec::Vec};
 
 use crate::{
     build::TypeBuilder,
-    form::{
-        Form,
-        MetaForm,
-        PortableForm,
-    },
-    IntoPortable,
-    MetaType,
-    Registry,
-    TypeInfo,
+    form::{Form, MetaForm, PortableForm},
+    IntoPortable, MetaType, Registry, TypeInfo,
 };
 use derive_more::From;
 use scale::Encode;
 #[cfg(feature = "serde")]
-use serde::{
-    de::DeserializeOwned,
-    Deserialize,
-    Serialize,
-};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 mod composite;
 mod fields;
 mod path;
 mod variant;
 
-pub use self::{
-    composite::*,
-    fields::*,
-    path::*,
-    variant::*,
-};
+pub use self::{composite::*, fields::*, path::*, variant::*};
 
 /// A [`Type`] definition with optional metadata.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
@@ -138,12 +119,7 @@ where
     F: Form,
 {
     /// Create a [`Type`].
-    pub fn new<I, D>(
-        path: Path<F>,
-        type_params: I,
-        type_def: D,
-        docs: Vec<F::String>,
-    ) -> Type<F>
+    pub fn new<I, D>(path: Path<F>, type_params: I, type_def: D, docs: Vec<F::String>) -> Type<F>
     where
         I: IntoIterator<Item = TypeParameter<F>>,
         D: Into<TypeDef<F>>,
@@ -233,10 +209,7 @@ impl IntoPortable for TypeParameter {
 
 impl TypeParameter<MetaForm> {
     /// Create a new [`TypeParameter`].
-    pub fn new(
-        name: <MetaForm as Form>::String,
-        ty: Option<<MetaForm as Form>::Type>,
-    ) -> Self {
+    pub fn new(name: <MetaForm as Form>::String, ty: Option<<MetaForm as Form>::Type>) -> Self {
         Self { name, ty }
     }
 }

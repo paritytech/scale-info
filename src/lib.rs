@@ -345,15 +345,8 @@ pub use scale;
 
 pub use self::{
     meta_type::MetaType,
-    portable::{
-        PortableRegistry,
-        PortableRegistryBuilder,
-        PortableType,
-    },
-    registry::{
-        IntoPortable,
-        Registry,
-    },
+    portable::{PortableRegistry, PortableRegistryBuilder, PortableType},
+    registry::{IntoPortable, Registry},
     ty::*,
 };
 
