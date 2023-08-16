@@ -15,21 +15,11 @@
 use crate::prelude::{
     any::TypeId,
     cmp::Ordering,
-    fmt::{
-        Debug,
-        Error as FmtError,
-        Formatter,
-    },
-    hash::{
-        Hash,
-        Hasher,
-    },
+    fmt::{Debug, Error as FmtError, Formatter},
+    hash::{Hash, Hasher},
 };
 
-use crate::{
-    Type,
-    TypeInfo,
-};
+use crate::{Type, TypeInfo};
 
 /// A metatype abstraction.
 ///
@@ -58,7 +48,7 @@ impl Eq for MetaType {}
 
 impl PartialOrd for MetaType {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.type_id.partial_cmp(&other.type_id)
+        Some(self.cmp(other))
     }
 }
 

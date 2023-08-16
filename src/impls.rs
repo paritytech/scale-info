@@ -13,22 +13,12 @@
 // limitations under the License.
 
 use crate::prelude::{
-    borrow::{
-        Cow,
-        ToOwned,
-    },
+    borrow::{Cow, ToOwned},
     boxed::Box,
-    collections::{
-        BTreeMap,
-        BTreeSet,
-        VecDeque,
-    },
+    collections::{BTreeMap, BTreeSet, VecDeque},
     fmt,
     marker::PhantomData,
-    ops::{
-        Range,
-        RangeInclusive,
-    },
+    ops::{Range, RangeInclusive},
     rc::Rc,
     string::String,
     sync::Arc,
@@ -37,28 +27,12 @@ use crate::prelude::{
 };
 
 use crate::{
-    build::*,
-    MetaType,
-    Path,
-    Type,
-    TypeDefArray,
-    TypeDefCompact,
-    TypeDefPrimitive,
-    TypeDefSequence,
-    TypeDefTuple,
-    TypeInfo,
+    build::*, MetaType, Path, Type, TypeDefArray, TypeDefCompact, TypeDefPrimitive,
+    TypeDefSequence, TypeDefTuple, TypeInfo,
 };
 use core::num::{
-    NonZeroI128,
-    NonZeroI16,
-    NonZeroI32,
-    NonZeroI64,
-    NonZeroI8,
-    NonZeroU128,
-    NonZeroU16,
-    NonZeroU32,
-    NonZeroU64,
-    NonZeroU8,
+    NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroU128, NonZeroU16,
+    NonZeroU32, NonZeroU64, NonZeroU8,
 };
 
 macro_rules! impl_metadata_for_primitives {

@@ -23,19 +23,13 @@
 //! registry.
 
 use crate::prelude::{
-    collections::btree_map::{
-        BTreeMap,
-        Entry,
-    },
+    collections::btree_map::{BTreeMap, Entry},
     marker::PhantomData,
     vec::Vec,
 };
 
 #[cfg(feature = "serde")]
-use serde::{
-    Deserialize,
-    Serialize,
-};
+use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "schema")]
 use schemars::JsonSchema;
@@ -44,9 +38,7 @@ use schemars::JsonSchema;
 ///
 /// This can be used by self-referential types but
 /// can no longer be used to resolve instances.
-#[derive(
-    Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, scale::Encode, scale::Decode,
-)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, scale::Encode, scale::Decode)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 pub struct UntrackedSymbol<T> {
@@ -201,11 +193,9 @@ where
     /// Returns the symbol of the given element or `None` if it hasn't been
     /// interned already.
     pub fn get(&self, sym: &T) -> Option<Symbol<T>> {
-        self.map.get(sym).map(|&id| {
-            Symbol {
-                id: id as u32,
-                marker: PhantomData,
-            }
+        self.map.get(sym).map(|&id| Symbol {
+            id: id as u32,
+            marker: PhantomData,
         })
     }
 
@@ -214,7 +204,7 @@ where
     pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
         let idx = sym.id as usize;
         if idx >= self.vec.len() {
-            return None
+            return None;
         }
         self.vec.get(idx)
     }
@@ -231,16 +221,12 @@ mod tests {
 
     type StringInterner = Interner<&'static str>;
 
-    fn assert_id(
-        interner: &mut StringInterner,
-        new_symbol: &'static str,
-        expected_id: u32,
-    ) {
+    fn assert_id(interner: &mut StringInterner, new_symbol: &'static str, expected_id: u32) {
         let actual_id = interner.intern_or_get(new_symbol).1.id;
         assert_eq!(actual_id, expected_id,);
     }
 
-    fn assert_resolve<E>(interner: &mut StringInterner, symbol_id: u32, expected_str: E)
+    fn assert_resolve<E>(interner: &StringInterner, symbol_id: u32, expected_str: E)
     where
         E: Into<Option<&'static str>>,
     {
@@ -259,9 +245,9 @@ mod tests {
         assert_id(&mut interner, "1 2 3", 2);
         assert_id(&mut interner, "Hello", 0);
 
-        assert_resolve(&mut interner, 0, "Hello");
-        assert_resolve(&mut interner, 1, ", World!");
-        assert_resolve(&mut interner, 2, "1 2 3");
-        assert_resolve(&mut interner, 3, None);
+        assert_resolve(&interner, 0, "Hello");
+        assert_resolve(&interner, 1, ", World!");
+        assert_resolve(&interner, 2, "1 2 3");
+        assert_resolve(&interner, 3, None);
     }
 }

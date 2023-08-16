@@ -17,10 +17,7 @@ use crate::{
     prelude::{
         borrow::Cow,
         boxed::Box,
-        collections::{
-            BTreeMap,
-            BTreeSet,
-        },
+        collections::{BTreeMap, BTreeSet},
         string::String,
         vec,
     },
@@ -62,13 +59,14 @@ fn prelude_items() {
         Type::builder()
             .path(Path::prelude("Option"))
             .type_params(named_type_params![(T, u128)])
-            .variant(Variants::new().variant("None", |v| v.index(0)).variant(
-                "Some",
-                |v| {
-                    v.index(1)
-                        .fields(Fields::unnamed().field(|f| f.ty::<u128>()))
-                }
-            ))
+            .variant(
+                Variants::new()
+                    .variant("None", |v| v.index(0))
+                    .variant("Some", |v| {
+                        v.index(1)
+                            .fields(Fields::unnamed().field(|f| f.ty::<u128>()))
+                    })
+            )
     );
     assert_type!(
         Result<bool, String>,
@@ -144,10 +142,7 @@ fn collections() {
 #[test]
 fn bitvec() {
     use bitvec::{
-        order::{
-            Lsb0,
-            Msb0,
-        },
+        order::{Lsb0, Msb0},
         vec::BitVec,
     };
 
@@ -231,9 +226,7 @@ fn struct_with_generics() {
             Type::builder()
                 .path(Path::new("MyStruct", module_path!()))
                 .type_params(type_params!(T))
-                .composite(
-                    Fields::named().field(|f| f.ty::<T>().name("data").type_name("T")),
-                )
+                .composite(Fields::named().field(|f| f.ty::<T>().name("data").type_name("T")))
         }
     }
 
@@ -251,8 +244,7 @@ fn struct_with_generics() {
         .path(Path::new("MyStruct", "scale_info::tests"))
         .type_params(named_type_params![(T, Box<MyStruct<bool>>)])
         .composite(
-            Fields::named()
-                .field(|f| f.ty::<Box<MyStruct<bool>>>().name("data").type_name("T")),
+            Fields::named().field(|f| f.ty::<Box<MyStruct<bool>>>().name("data").type_name("T")),
         );
     assert_type!(SelfTyped, expected_type);
 }
@@ -275,9 +267,7 @@ fn basic_struct_with_phantoms() {
             Type::builder()
                 .path(Path::new("SomeStruct", module_path!()))
                 .type_params(type_params!(T))
-                .composite(
-                    Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")),
-                )
+                .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")))
         }
     }
 
@@ -315,14 +305,12 @@ fn basic_enum_with_index() {
                     Variants::new()
                         .variant("A", |v| {
                             v.index(3).fields(
-                                Fields::unnamed()
-                                    .field(|f| f.ty::<bool>().type_name("bool")),
+                                Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")),
                             )
                         })
                         .variant("B", |v| {
                             v.index(0).fields(
-                                Fields::named()
-                                    .field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                                Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")),
                             )
                         })
                         .variant("C", |v| {
@@ -342,14 +330,12 @@ fn basic_enum_with_index() {
         .variant(
             Variants::new()
                 .variant("A", |v| {
-                    v.index(3).fields(
-                        Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")),
-                    )
+                    v.index(3)
+                        .fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
                 })
                 .variant("B", |v| {
-                    v.index(0).fields(
-                        Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")),
-                    )
+                    v.index(0)
+                        .fields(Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")))
                 })
                 .variant("C", |v| {
                     v.index(2).fields(

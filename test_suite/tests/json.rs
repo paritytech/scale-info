@@ -16,32 +16,21 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
-use info::{self as scale_info,};
+use info::{self as scale_info};
 use scale_info::prelude::{
     boxed::Box,
     collections::VecDeque,
     marker::PhantomData,
-    ops::{
-        Range,
-        RangeInclusive,
-    },
+    ops::{Range, RangeInclusive},
     string::String,
     vec,
     vec::Vec,
 };
 
-use pretty_assertions::{
-    assert_eq,
-    assert_ne,
-};
+use pretty_assertions::{assert_eq, assert_ne};
 use scale::Encode;
 use scale_info::{
-    form::PortableForm,
-    meta_type,
-    IntoPortable as _,
-    PortableRegistry,
-    Registry,
-    TypeInfo,
+    form::PortableForm, meta_type, IntoPortable as _, PortableRegistry, Registry, TypeInfo,
 };
 use serde_json::json;
 
@@ -97,20 +86,12 @@ fn test_sequences_have_same_type() {
 #[test]
 fn test_builtins() {
     // arrays
-    assert_json_for_type::<[u8; 2]>(
-        json!({ "def": { "array": { "len": 2, "type": 0 } } }),
-    );
-    assert_json_for_type::<[bool; 4]>(
-        json!({ "def": { "array": { "len": 4, "type": 0 } } }),
-    );
-    assert_json_for_type::<[char; 8]>(
-        json!({ "def": { "array": { "len": 8, "type": 0 } } }),
-    );
+    assert_json_for_type::<[u8; 2]>(json!({ "def": { "array": { "len": 2, "type": 0 } } }));
+    assert_json_for_type::<[bool; 4]>(json!({ "def": { "array": { "len": 4, "type": 0 } } }));
+    assert_json_for_type::<[char; 8]>(json!({ "def": { "array": { "len": 8, "type": 0 } } }));
     // tuples
     assert_json_for_type::<(u8, bool)>(json!({ "def": { "tuple": [ 0, 1 ] } }));
-    assert_json_for_type::<(u8, bool, char, u128)>(
-        json!({ "def": { "tuple": [ 0, 1, 2, 3 ] } }),
-    );
+    assert_json_for_type::<(u8, bool, char, u128)>(json!({ "def": { "tuple": [ 0, 1, 2, 3 ] } }));
     assert_json_for_type::<(u8, bool, char, u128, i32, u32)>(json!({
         "def": {
             "tuple": [ 0, 1, 2, 3, 4, 5 ]
@@ -243,11 +224,7 @@ fn test_struct_with_some_fields_marked_as_compact() {
         #[codec(compact)]
         c: u64,
     }
-    use scale_info::{
-        build::Fields,
-        Path,
-        Type,
-    };
+    use scale_info::{build::Fields, Path, Type};
     impl TypeInfo for Dense {
         type Identity = Self;
         fn type_info() -> Type {

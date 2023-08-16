@@ -26,17 +26,8 @@
 use crate::{
     form::PortableForm,
     interner::Interner,
-    prelude::{
-        collections::BTreeMap,
-        fmt::Debug,
-        mem,
-        vec::Vec,
-    },
-    Path,
-    Registry,
-    Type,
-    TypeDef,
-    TypeDefPrimitive,
+    prelude::{collections::BTreeMap, fmt::Debug, mem, vec::Vec},
+    Path, Registry, Type, TypeDef, TypeDefPrimitive,
 };
 use scale::Encode;
 
@@ -56,11 +47,9 @@ impl From<Registry> for PortableRegistry {
         PortableRegistry {
             types: registry
                 .types()
-                .map(|(k, v)| {
-                    PortableType {
-                        id: k.id,
-                        ty: v.clone(),
-                    }
+                .map(|(k, v)| PortableType {
+                    id: k.id,
+                    ty: v.clone(),
                 })
                 .collect::<Vec<_>>(),
         }
@@ -108,7 +97,7 @@ impl PortableRegistry {
         ) -> u32 {
             // Type already retained; just return the new ID for it:
             if let Some(id) = retained_mappings.get(&id) {
-                return *id
+                return *id;
             }
 
             // Zero-allocation default implementation that is used as
@@ -136,57 +125,39 @@ impl PortableRegistry {
             match &mut ty.ty.type_def {
                 TypeDef::Composite(composite) => {
                     for field in composite.fields.iter_mut() {
-                        let new_id =
-                            retain_type(field.ty.id, types, new_types, retained_mappings);
+                        let new_id = retain_type(field.ty.id, types, new_types, retained_mappings);
                         field.ty = new_id.into();
                     }
                 }
                 TypeDef::Variant(variant) => {
                     for var in variant.variants.iter_mut() {
                         for field in var.fields.iter_mut() {
-                            let new_id = retain_type(
-                                field.ty.id,
-                                types,
-                                new_types,
-                                retained_mappings,
-                            );
+                            let new_id =
+                                retain_type(field.ty.id, types, new_types, retained_mappings);
                             field.ty = new_id.into();
                         }
                     }
                 }
                 TypeDef::Sequence(sequence) => {
-                    let new_id = retain_type(
-                        sequence.type_param.id,
-                        types,
-                        new_types,
-                        retained_mappings,
-                    );
+                    let new_id =
+                        retain_type(sequence.type_param.id, types, new_types, retained_mappings);
                     sequence.type_param = new_id.into();
                 }
                 TypeDef::Array(array) => {
-                    let new_id = retain_type(
-                        array.type_param.id,
-                        types,
-                        new_types,
-                        retained_mappings,
-                    );
+                    let new_id =
+                        retain_type(array.type_param.id, types, new_types, retained_mappings);
                     array.type_param = new_id.into();
                 }
                 TypeDef::Tuple(tuple) => {
                     for ty in tuple.fields.iter_mut() {
-                        let new_id =
-                            retain_type(ty.id, types, new_types, retained_mappings);
+                        let new_id = retain_type(ty.id, types, new_types, retained_mappings);
                         *ty = new_id.into();
                     }
                 }
                 TypeDef::Primitive(_) => (),
                 TypeDef::Compact(compact) => {
-                    let new_id = retain_type(
-                        compact.type_param.id,
-                        types,
-                        new_types,
-                        retained_mappings,
-                    );
+                    let new_id =
+                        retain_type(compact.type_param.id, types, new_types, retained_mappings);
                     compact.type_param = new_id.into();
                 }
                 TypeDef::BitSequence(bit_seq) => {
@@ -218,7 +189,7 @@ impl PortableRegistry {
         for id in 0..self.types.len() as u32 {
             // We don't care about the type; move on:
             if !filter(id) {
-                continue
+                continue;
             }
 
             retain_type(id, &mut self.types, &mut new_types, &mut retained_mappings);
@@ -309,11 +280,9 @@ impl PortableRegistryBuilder {
             .elements()
             .iter()
             .enumerate()
-            .map(|(i, ty)| {
-                PortableType {
-                    id: i as u32,
-                    ty: ty.clone(),
-                }
+            .map(|(i, ty)| PortableType {
+                id: i as u32,
+                ty: ty.clone(),
             })
             .collect();
         PortableRegistry { types }
@@ -323,11 +292,7 @@ impl PortableRegistryBuilder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        build::*,
-        prelude::vec,
-        *,
-    };
+    use crate::{build::*, prelude::vec, *};
 
     // Type IDs generated by `build_registry`.
     const U32_TY_ID: u32 = 0;
@@ -420,9 +385,7 @@ mod tests {
                     .variant("A".into(), |v| {
                         v.index(0).fields(
                             Fields::<PortableForm>::named()
-                                .field_portable(|f| {
-                                    f.name("primitive".into()).ty(u32_type_id)
-                                })
+                                .field_portable(|f| f.name("primitive".into()).ty(u32_type_id))
                                 .field_portable(|f| {
                                     f.name("vec_of_u32".into()).ty(vec_u32_type_id)
                                 }),
@@ -446,8 +409,7 @@ mod tests {
         assert_eq!(ids_result.get(&VEC_U32_TY_ID), Some(&1));
 
         assert_eq!(registry.types.len(), 2);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
         assert_eq!(registry.resolve(0).unwrap(), &expected_ty);
         let expected_ty = Type::new(
             Path::default(),
@@ -468,8 +430,7 @@ mod tests {
         assert_eq!(ids_result.get(&ARRAY_U32_TY_ID), Some(&1));
 
         assert_eq!(registry.types.len(), 2);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
         assert_eq!(registry.resolve(0).unwrap(), &expected_ty);
         let expected_ty = Type::new(
             Path::default(),
@@ -491,11 +452,9 @@ mod tests {
         assert_eq!(ids_result.get(&TUPLE_TY_ID), Some(&2));
 
         assert_eq!(registry.types.len(), 3);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
         assert_eq!(registry.resolve(0).unwrap(), &expected_ty);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
         assert_eq!(registry.resolve(1).unwrap(), &expected_ty);
         let expected_ty = Type::new(
             Path::default(),
@@ -518,11 +477,9 @@ mod tests {
         assert_eq!(ids_result.get(&COMPACT_TY_ID), Some(&3));
 
         assert_eq!(registry.types.len(), 4);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
         assert_eq!(registry.resolve(0).unwrap(), &expected_ty);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
         assert_eq!(registry.resolve(1).unwrap(), &expected_ty);
         let expected_ty = Type::new(
             Path::default(),
@@ -551,11 +508,9 @@ mod tests {
         assert_eq!(ids_result.get(&BIT_SEQ_TY_ID), Some(&2));
 
         assert_eq!(registry.types.len(), 3);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
         assert_eq!(registry.resolve(0).unwrap(), &expected_ty);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U64, vec![]);
         assert_eq!(registry.resolve(1).unwrap(), &expected_ty);
         let expected_ty = Type::new(
             Path::default(),
@@ -577,8 +532,7 @@ mod tests {
         assert_eq!(ids_result.get(&COMPOSITE_TY_ID), Some(&2));
 
         assert_eq!(registry.types.len(), 3);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
         assert_eq!(registry.resolve(0).unwrap(), &expected_ty);
         let expected_ty = Type::new(
             Path::default(),
@@ -608,8 +562,7 @@ mod tests {
         assert_eq!(ids_result.get(&VARIANT_TY_ID), Some(&2));
 
         assert_eq!(registry.types.len(), 3);
-        let expected_ty =
-            Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
+        let expected_ty = Type::new(Path::default(), vec![], TypeDefPrimitive::U32, vec![]);
         assert_eq!(registry.resolve(0).unwrap(), &expected_ty);
         let expected_ty = Type::new(
             Path::default(),

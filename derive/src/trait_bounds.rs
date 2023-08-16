@@ -18,21 +18,11 @@ use syn::{
     parse_quote,
     punctuated::Punctuated,
     spanned::Spanned,
-    visit::{
-        self,
-        Visit,
-    },
-    Generics,
-    Result,
-    Type,
-    TypePath,
-    WhereClause,
+    visit::{self, Visit},
+    Generics, Result, Type, TypePath, WhereClause,
 };
 
-use crate::{
-    attr::Attributes,
-    utils,
-};
+use crate::{attr::Attributes, utils};
 
 /// Generates a where clause for a `TypeInfo` impl, adding `TypeInfo + 'static` bounds to all
 /// relevant generic types including associated types (e.g. `T::A: TypeInfo`), correctly dealing
@@ -54,12 +44,13 @@ pub fn make_where_clause<'a>(
     data: &'a syn::Data,
     scale_info: &syn::Path,
 ) -> Result<WhereClause> {
-    let mut where_clause = generics.where_clause.clone().unwrap_or_else(|| {
-        WhereClause {
+    let mut where_clause = generics
+        .where_clause
+        .clone()
+        .unwrap_or_else(|| WhereClause {
             where_token: <syn::Token![where]>::default(),
             predicates: Punctuated::new(),
-        }
-    });
+        });
 
     // Use custom bounds as where clause.
     if let Some(custom_bounds) = attrs.bounds() {
@@ -72,7 +63,7 @@ pub fn make_where_clause<'a>(
             where_clause.predicates.push(parse_quote!(#ident: 'static))
         }
 
-        return Ok(where_clause)
+        return Ok(where_clause);
     }
 
     for lifetime in generics.lifetimes() {
@@ -87,7 +78,7 @@ pub fn make_where_clause<'a>(
         .collect::<Vec<Ident>>();
 
     if ty_params_ids.is_empty() {
-        return Ok(where_clause)
+        return Ok(where_clause);
     }
 
     let types = collect_types_to_bind(input_ident, data, &ty_params_ids)?;
@@ -160,7 +151,7 @@ fn type_or_sub_type_path_starts_with_ident(ty: &Type, ident: &Ident) -> bool {
                 if let Some(segment) = i.path.segments.first() {
                     if &segment.ident == self.ident {
                         self.result = true;
-                        return
+                        return;
                     }
                 }
             }
@@ -199,33 +190,25 @@ fn collect_types_to_bind(
     };
 
     let types = match *data {
-        syn::Data::Struct(ref data) => {
-            match &data.fields {
+        syn::Data::Struct(ref data) => match &data.fields {
+            syn::Fields::Named(syn::FieldsNamed { named: fields, .. })
+            | syn::Fields::Unnamed(syn::FieldsUnnamed {
+                unnamed: fields, ..
+            }) => types_from_fields(fields),
+            syn::Fields::Unit => Vec::new(),
+        },
+
+        syn::Data::Enum(ref data) => data
+            .variants
+            .iter()
+            .flat_map(|variant| match &variant.fields {
                 syn::Fields::Named(syn::FieldsNamed { named: fields, .. })
                 | syn::Fields::Unnamed(syn::FieldsUnnamed {
                     unnamed: fields, ..
                 }) => types_from_fields(fields),
                 syn::Fields::Unit => Vec::new(),
-            }
-        }
-
-        syn::Data::Enum(ref data) => {
-            data.variants
-                .iter()
-                .flat_map(|variant| {
-                    match &variant.fields {
-                        syn::Fields::Named(syn::FieldsNamed {
-                            named: fields, ..
-                        })
-                        | syn::Fields::Unnamed(syn::FieldsUnnamed {
-                            unnamed: fields,
-                            ..
-                        }) => types_from_fields(fields),
-                        syn::Fields::Unit => Vec::new(),
-                    }
-                })
-                .collect()
-        }
+            })
+            .collect(),
 
         syn::Data::Union(ref data) => {
             return Err(syn::Error::new(
