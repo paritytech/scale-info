@@ -46,6 +46,15 @@ fn primitives() {
     assert_type!(bool, TypeDefPrimitive::Bool);
     assert_type!(&str, TypeDefPrimitive::Str);
     assert_type!(i8, TypeDefPrimitive::I8);
+    assert_type!(i16, TypeDefPrimitive::I16);
+    assert_type!(i32, TypeDefPrimitive::I32);
+    assert_type!(i64, TypeDefPrimitive::I64);
+    assert_type!(i128, TypeDefPrimitive::I128);
+    assert_type!(u8, TypeDefPrimitive::U8);
+    assert_type!(u16, TypeDefPrimitive::U16);
+    assert_type!(u32, TypeDefPrimitive::U32);
+    assert_type!(u64, TypeDefPrimitive::U64);
+    assert_type!(u128, TypeDefPrimitive::U128);
 
     assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
 }
