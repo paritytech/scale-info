@@ -171,12 +171,12 @@ where
 {
     /// Interns the given element or returns its associated symbol if it has
     /// already been interned.
-    pub fn intern_or_get(&mut self, s: T) -> (bool, Symbol<T>) {
+    pub fn intern_or_get(&mut self, sym: T) -> (bool, Symbol<T>) {
         let next_id = self.vec.len();
-        let (inserted, sym_id) = match self.map.entry(s.clone()) {
+        let (inserted, sym_id) = match self.map.entry(sym.clone()) {
             Entry::Vacant(vacant) => {
                 vacant.insert(next_id);
-                self.vec.push(s);
+                self.vec.push(sym);
                 (true, next_id)
             }
             Entry::Occupied(occupied) => (false, *occupied.get()),
@@ -202,11 +202,7 @@ where
     /// Resolves the original element given its associated symbol or
     /// returns `None` if it has not been interned yet.
     pub fn resolve(&self, sym: Symbol<T>) -> Option<&T> {
-        let idx = sym.id as usize;
-        if idx >= self.vec.len() {
-            return None;
-        }
-        self.vec.get(idx)
+        self.vec.get(sym.id as usize)
     }
 
     /// Returns the ordered sequence of interned elements.

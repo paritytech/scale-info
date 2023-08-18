@@ -26,7 +26,7 @@
 use crate::{
     form::PortableForm,
     interner::Interner,
-    prelude::{collections::BTreeMap, fmt::Debug, mem, vec::Vec},
+    prelude::{collections::BTreeMap, fmt::Debug, mem, vec, vec::Vec},
     Path, Registry, Type, TypeDef, TypeDefPrimitive,
 };
 use scale::Encode;
@@ -87,7 +87,7 @@ impl PortableRegistry {
         F: FnMut(u32) -> bool,
     {
         let mut retained_mappings = BTreeMap::new();
-        let mut new_types = crate::prelude::vec![];
+        let mut new_types = vec![];
 
         fn retain_type(
             id: u32,
@@ -107,8 +107,8 @@ impl PortableRegistry {
                 ty: Type {
                     type_def: TypeDef::Primitive(TypeDefPrimitive::Bool),
                     path: Path::default(),
-                    type_params: crate::prelude::vec![],
-                    docs: crate::prelude::vec![],
+                    type_params: vec![],
+                    docs: vec![],
                 },
             };
             // Take the type out of the registry that we'll be retaining:
