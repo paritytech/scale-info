@@ -63,7 +63,10 @@ fn primitive_types() {
     assert_type!(u32, TypeDefPrimitive::U32);
     assert_type!(u64, TypeDefPrimitive::U64);
     assert_type!(u128, TypeDefPrimitive::U128);
+}
 
+#[test]
+fn non_zero_types() {
     assert_type!(
         NonZeroI8,
         Type::builder()
