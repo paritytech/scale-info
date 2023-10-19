@@ -66,6 +66,7 @@ impl TypeInfoImpl {
 
     fn expand(&self) -> Result<TokenStream2> {
         let ident = &self.ast.ident;
+        let ident_str = ident.to_string();
         let scale_info = crate_path(self.attrs.crate_path())?;
 
         let where_clause = trait_bounds::make_where_clause(
@@ -114,7 +115,7 @@ impl TypeInfoImpl {
                 fn type_info() -> #scale_info::Type {
                     #scale_info::Type::builder()
                         .path(#scale_info::Path::new_with_replace(
-                            ::core::stringify!(#ident),
+                            #ident_str,
                             ::core::module_path!(),
                             &[ #( #replaces ),* ]
                         ))
