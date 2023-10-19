@@ -101,12 +101,23 @@ impl TypeInfoImpl {
         };
         let docs = self.generate_docs(&self.ast.attrs);
 
+        let replaces = self.attrs.replace_segments().map(|r| {
+            let search = r.search();
+            let replace = r.replace();
+
+            quote!(( #search, #replace ))
+        });
+
         Ok(quote! {
             impl #impl_generics #scale_info::TypeInfo for #ident #ty_generics #where_clause {
                 type Identity = Self;
                 fn type_info() -> #scale_info::Type {
                     #scale_info::Type::builder()
-                        .path(#scale_info::Path::new(::core::stringify!(#ident), ::core::module_path!()))
+                        .path(#scale_info::Path::new_with_replace(
+                            ::core::stringify!(#ident),
+                            ::core::module_path!(),
+                            &[ #( #replaces ),* ]
+                        ))
                         .type_params(#scale_info::prelude::vec![ #( #type_params ),* ])
                         #docs
                         .#build_type

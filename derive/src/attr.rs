@@ -16,7 +16,7 @@ use syn::{
     parse::{Parse, ParseBuffer},
     punctuated::Punctuated,
     spanned::Spanned,
-    Token,
+    LitStr, Token,
 };
 
 const SCALE_INFO: &str = "scale_info";
@@ -26,6 +26,7 @@ mod keywords {
     syn::custom_keyword!(bounds);
     syn::custom_keyword!(skip_type_params);
     syn::custom_keyword!(capture_docs);
+    syn::custom_keyword!(replace_segment);
 }
 
 /// Parsed and validated set of `#[scale_info(...)]` attributes for an item.
@@ -34,6 +35,7 @@ pub struct Attributes {
     skip_type_params: Option<SkipTypeParamsAttr>,
     capture_docs: Option<CaptureDocsAttr>,
     crate_path: Option<CratePathAttr>,
+    replace_segments: Vec<ReplaceSegment>,
 }
 
 impl Attributes {
@@ -43,6 +45,7 @@ impl Attributes {
         let mut skip_type_params = None;
         let mut capture_docs = None;
         let mut crate_path = None;
+        let mut replace_segments = Vec::new();
 
         let attributes_parser = |input: &ParseBuffer| {
             let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
@@ -86,7 +89,6 @@ impl Attributes {
                         }
                         capture_docs = Some(parsed_capture_docs);
                     }
-
                     ScaleInfoAttr::CratePath(parsed_crate_path) => {
                         if crate_path.is_some() {
                             return Err(syn::Error::new(
@@ -96,6 +98,9 @@ impl Attributes {
                         }
 
                         crate_path = Some(parsed_crate_path);
+                    }
+                    ScaleInfoAttr::ReplaceSegment(replace_segment) => {
+                        replace_segments.push(replace_segment);
                     }
                 }
             }
@@ -127,6 +132,7 @@ impl Attributes {
             skip_type_params,
             capture_docs,
             crate_path,
+            replace_segments,
         })
     }
 
@@ -152,6 +158,11 @@ impl Attributes {
     /// Get the `#[scale_info(crate = path::to::crate)]` attribute, if present.
     pub fn crate_path(&self) -> Option<&CratePathAttr> {
         self.crate_path.as_ref()
+    }
+
+    /// Returns an iterator over the `#[scale_info(replace_segment("Hello", "world"))]` attributes.
+    pub fn replace_segments(&self) -> impl Iterator<Item = &ReplaceSegment> {
+        self.replace_segments.iter()
     }
 }
 
@@ -266,29 +277,59 @@ impl Parse for CratePathAttr {
     }
 }
 
+/// Parsed representation of the `#[scale_info(replace_segment("Hello", "world"))]` attribute.
+#[derive(Clone)]
+pub struct ReplaceSegment {
+    search: LitStr,
+    replace: LitStr,
+}
+
+impl ReplaceSegment {
+    pub fn search(&self) -> &LitStr {
+        &self.search
+    }
+
+    pub fn replace(&self) -> &LitStr {
+        &self.replace
+    }
+}
+
+impl Parse for ReplaceSegment {
+    fn parse(input: &ParseBuffer) -> syn::Result<Self> {
+        input.parse::<keywords::replace_segment>()?;
+        let content;
+        syn::parenthesized!(content in input);
+
+        let search = content.parse::<LitStr>()?;
+        content.parse::<Token![,]>()?;
+        let replace = content.parse::<LitStr>()?;
+
+        Ok(Self { search, replace })
+    }
+}
+
 /// Parsed representation of one of the `#[scale_info(..)]` attributes.
 pub enum ScaleInfoAttr {
     Bounds(BoundsAttr),
     SkipTypeParams(SkipTypeParamsAttr),
     CaptureDocs(CaptureDocsAttr),
     CratePath(CratePathAttr),
+    ReplaceSegment(ReplaceSegment),
 }
 
 impl Parse for ScaleInfoAttr {
     fn parse(input: &ParseBuffer) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(keywords::bounds) {
-            let bounds = input.parse()?;
-            Ok(Self::Bounds(bounds))
+            Ok(Self::Bounds(input.parse()?))
         } else if lookahead.peek(keywords::skip_type_params) {
-            let skip_type_params = input.parse()?;
-            Ok(Self::SkipTypeParams(skip_type_params))
+            Ok(Self::SkipTypeParams(input.parse()?))
         } else if lookahead.peek(keywords::capture_docs) {
-            let capture_docs = input.parse()?;
-            Ok(Self::CaptureDocs(capture_docs))
+            Ok(Self::CaptureDocs(input.parse()?))
         } else if lookahead.peek(Token![crate]) {
-            let crate_path = input.parse()?;
-            Ok(Self::CratePath(crate_path))
+            Ok(Self::CratePath(input.parse()?))
+        } else if lookahead.peek(keywords::replace_segment) {
+            Ok(Self::ReplaceSegment(input.parse()?))
         } else {
             Err(lookahead.error())
         }

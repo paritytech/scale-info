@@ -40,7 +40,8 @@ cfg_if! {
             sync,
             time,
             vec,
-            rc
+            rc,
+            iter,
         };
     } else {
         pub use alloc::{
@@ -64,6 +65,7 @@ cfg_if! {
             num,
             ops,
             time,
+            iter,
         };
     }
 }
