@@ -14,6 +14,7 @@
 
 use crate::prelude::{
     fmt::{Display, Error as FmtError, Formatter},
+    iter,
     vec::Vec,
 };
 
@@ -84,9 +85,33 @@ impl Path<MetaForm> {
     ///
     /// - If the type identifier or module path contain invalid Rust identifiers
     pub fn new(ident: &'static str, module_path: &'static str) -> Path {
-        let mut segments = module_path.split("::").collect::<Vec<_>>();
-        segments.push(ident);
-        Self::from_segments(segments).expect("All path segments should be valid Rust identifiers")
+        let segments = module_path.split("::");
+        Self::from_segments(segments.chain(iter::once(ident)))
+            .expect("All path segments should be valid Rust identifiers")
+    }
+
+    /// Create a new Path
+    ///
+    /// The `segment_replace` is a list of `(search, replace)` items. Every
+    /// `search` item that appears in the `module_path` is replaced by the
+    /// `replace` item. This can be used for example to replace the crate name
+    /// or even the name of the type in the final [`Path`].
+    ///
+    /// # Panics
+    ///
+    /// - If the type identifier, module path or replace contain invalid Rust identifiers
+    pub fn new_with_replace(
+        ident: &'static str,
+        module_path: &'static str,
+        segment_replace: &[(&'static str, &'static str)],
+    ) -> Path {
+        let segments = module_path.split("::");
+        Self::from_segments(
+            segments
+                .chain(iter::once(ident))
+                .map(|s| segment_replace.iter().find(|r| s == r.0).map_or(s, |r| r.1)),
+        )
+        .expect("All path segments should be valid Rust identifiers")
     }
 
     /// Create a Path from the given segments

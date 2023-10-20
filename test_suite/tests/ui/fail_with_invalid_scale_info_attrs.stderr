@@ -1,4 +1,4 @@
-error: expected one of: `bounds`, `skip_type_params`, `capture_docs`, `crate`
+error: expected one of: `bounds`, `skip_type_params`, `capture_docs`, `crate`, `replace_segment`
  --> tests/ui/fail_with_invalid_scale_info_attrs.rs:6:14
   |
 6 | #[scale_info(foo)]

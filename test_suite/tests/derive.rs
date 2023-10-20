@@ -857,3 +857,53 @@ fn strips_invisible_delimiters_from_type_name() {
 
     assert_type!(S, expected);
 }
+
+#[test]
+fn replace_segments_works() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    #[scale_info(replace_segment("derive", "hey"))]
+    pub struct S;
+
+    let ty = Type::builder()
+        .path(Path::new("S", "hey"))
+        .composite(Fields::unit());
+
+    assert_type!(S, ty);
+
+    mod nested {
+        #[allow(unused)]
+        #[derive(info::TypeInfo)]
+        #[scale_info(replace_segment("derive", "hey"))]
+        #[scale_info(replace_segment("nested", "what"))]
+        pub struct S;
+
+        #[allow(unused)]
+        #[derive(info::TypeInfo)]
+        #[scale_info(replace_segment("nested", "what"))]
+        pub struct R;
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("S", "hey::what"))
+        .composite(Fields::unit());
+
+    assert_type!(nested::S, ty);
+
+    let ty = Type::builder()
+        .path(Path::new("R", "derive::what"))
+        .composite(Fields::unit());
+
+    assert_type!(nested::R, ty);
+
+    #[allow(unused)]
+    #[derive(info::TypeInfo)]
+    #[scale_info(replace_segment("R", "AWESOME"))]
+    pub struct R;
+
+    let ty = Type::builder()
+        .path(Path::new("AWESOME", "derive"))
+        .composite(Fields::unit());
+
+    assert_type!(R, ty);
+}
