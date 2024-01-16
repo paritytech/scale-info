@@ -11,8 +11,13 @@ license = "Apache-2.0"
 
 [dependencies]
 scale-info = { path = "../..", default-features = false, features = ["derive"] }
-scale = { package = "parity-scale-codec", version = "2", features = ["full"] }
-
 libc = { version = "0.2", default-features = false }
+libc_alloc = { version = "1.0.6" }
+
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+panic = "abort"
 
 [workspace]
