@@ -51,24 +51,27 @@ fn test() {
     assert_eq!(E::<CLike>::type_info().type_params.len(), 1);
 }
 
+use bitvec::{order::Lsb0, vec::BitVec};
+use scale::{Decode, Encode};
 use scale_info::TypeInfo;
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 struct UnitStruct;
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 struct TupleStruct(u128, bool);
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 struct Struct<T> {
     t: T,
+    bitvec: BitVec<u16, Lsb0>,
 }
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 enum CLike {
     A,
     B,
@@ -76,7 +79,7 @@ enum CLike {
 }
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 enum E<T> {
     A(T),
     B { b: T },
