@@ -12,27 +12,66 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+#![allow(internal_features)]
+#![feature(lang_items, start)]
+#![feature(alloc_error_handler)]
 #![no_std]
 
+#[start]
+fn start(_argc: isize, _argv: *const *const u8) -> isize {
+    test();
+    0
+}
+
+#[lang = "eh_personality"]
+#[no_mangle]
+pub extern "C" fn rust_eh_personality() {}
+
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    unsafe {
+        libc::abort();
+    }
+}
+
+use libc_alloc::LibcAlloc;
+
+#[global_allocator]
+static ALLOCATOR: LibcAlloc = LibcAlloc;
+
+//////////////////////////////////////////////////////////////////////////////
+
+// Note: Use the types in some way to make sure they are not pruned as dead code.
+// If an assert fails we will get `Aborted (core dumped)`.
+fn test() {
+    assert_eq!(UnitStruct::type_info().type_params.len(), 0);
+    assert_eq!(TupleStruct::type_info().type_params.len(), 0);
+    assert_eq!(Struct::<TupleStruct>::type_info().type_params.len(), 1);
+    assert_eq!(CLike::type_info().type_params.len(), 0);
+    assert_eq!(E::<CLike>::type_info().type_params.len(), 1);
+}
+
+use bitvec::{order::Lsb0, vec::BitVec};
+use scale::{Decode, Encode};
 use scale_info::TypeInfo;
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 struct UnitStruct;
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 struct TupleStruct(u128, bool);
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 struct Struct<T> {
     t: T,
+    bitvec: BitVec<u16, Lsb0>,
 }
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 enum CLike {
     A,
     B,
@@ -40,12 +79,9 @@ enum CLike {
 }
 
 #[allow(unused)]
-#[derive(TypeInfo)]
+#[derive(TypeInfo, Decode, Encode)]
 enum E<T> {
     A(T),
     B { b: T },
     C,
-}
-
-fn main() {
 }

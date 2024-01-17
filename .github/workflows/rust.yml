@@ -55,7 +55,10 @@ jobs:
       run: |
         cargo test --all --all-features
 
+    # We cannot do usual rust tests in `no_std`. Instead we perform tests in the main function.
+    # If any assert fails, we get an `Aborted (core dumped)` non-zero exit code.
+    # This should make the CI fail.
     - name: test no-std
       run: |
         cd ./test_suite/derive_tests_no_std
-        cargo build --no-default-features
+        cargo run --no-default-features
