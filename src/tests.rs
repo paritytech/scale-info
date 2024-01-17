@@ -17,15 +17,23 @@ use crate::{
     prelude::{
         borrow::Cow,
         boxed::Box,
-        collections::{BTreeMap, BTreeSet},
+        collections::{BTreeMap, BTreeSet, VecDeque},
+        ops::{Range, RangeInclusive},
+        rc::Rc,
         string::String,
+        sync::Arc,
         vec,
     },
     *,
 };
-use core::marker::PhantomData;
-use scale::Compact;
-use std::num::NonZeroU32;
+use core::{
+    marker::PhantomData,
+    num::{
+        NonZeroI128, NonZeroI16, NonZeroI32, NonZeroI64, NonZeroI8, NonZeroU128, NonZeroU16,
+        NonZeroU32, NonZeroU64, NonZeroU8,
+    },
+};
+use scale::{Compact, Encode};
 
 fn assert_type<T, E>(expected: E)
 where
@@ -42,18 +50,106 @@ macro_rules! assert_type {
 }
 
 #[test]
-fn primitives() {
+fn primitive_types() {
     assert_type!(bool, TypeDefPrimitive::Bool);
     assert_type!(&str, TypeDefPrimitive::Str);
     assert_type!(i8, TypeDefPrimitive::I8);
-
-    assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
+    assert_type!(i16, TypeDefPrimitive::I16);
+    assert_type!(i32, TypeDefPrimitive::I32);
+    assert_type!(i64, TypeDefPrimitive::I64);
+    assert_type!(i128, TypeDefPrimitive::I128);
+    assert_type!(u8, TypeDefPrimitive::U8);
+    assert_type!(u16, TypeDefPrimitive::U16);
+    assert_type!(u32, TypeDefPrimitive::U32);
+    assert_type!(u64, TypeDefPrimitive::U64);
+    assert_type!(u128, TypeDefPrimitive::U128);
 }
 
 #[test]
-fn prelude_items() {
-    assert_type!(String, TypeDefPrimitive::Str);
+fn non_zero_types() {
+    assert_type!(
+        NonZeroI8,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroI8)))
+            .composite(Fields::unnamed().field(|f| f.ty::<i8>()))
+    );
+    assert_type!(
+        NonZeroI16,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroI16)))
+            .composite(Fields::unnamed().field(|f| f.ty::<i16>()))
+    );
+    assert_type!(
+        NonZeroI32,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroI32)))
+            .composite(Fields::unnamed().field(|f| f.ty::<i32>()))
+    );
+    assert_type!(
+        NonZeroI64,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroI64)))
+            .composite(Fields::unnamed().field(|f| f.ty::<i64>()))
+    );
+    assert_type!(
+        NonZeroI128,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroI128)))
+            .composite(Fields::unnamed().field(|f| f.ty::<i128>()))
+    );
+    assert_type!(
+        NonZeroU8,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroU8)))
+            .composite(Fields::unnamed().field(|f| f.ty::<u8>()))
+    );
+    assert_type!(
+        NonZeroU16,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroU16)))
+            .composite(Fields::unnamed().field(|f| f.ty::<u16>()))
+    );
+    assert_type!(
+        NonZeroU32,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroU32)))
+            .composite(Fields::unnamed().field(|f| f.ty::<u32>()))
+    );
+    assert_type!(
+        NonZeroU64,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroU64)))
+            .composite(Fields::unnamed().field(|f| f.ty::<u64>()))
+    );
+    assert_type!(
+        NonZeroU128,
+        Type::builder()
+            .path(Path::prelude(stringify!(NonZeroU128)))
+            .composite(Fields::unnamed().field(|f| f.ty::<u128>()))
+    );
+}
 
+#[test]
+fn reference_type() {
+    assert_type!(String, TypeDefPrimitive::Str);
+    assert_type!(str, TypeDefPrimitive::Str);
+
+    assert_type!(
+        Cow<u128>,
+        Type::builder()
+            .path(Path::prelude("Cow"))
+            .type_params(named_type_params![(T, u128)])
+            .composite(Fields::unnamed().field(|f| f.ty::<u128>()))
+    );
+    assert_type!(Box<u8>, TypeDefPrimitive::U8);
+    assert_type!(Rc<u8>, TypeDefPrimitive::U8);
+    assert_type!(Arc<u8>, TypeDefPrimitive::U8);
+    assert_type!(&u8, TypeDefPrimitive::U8);
+    assert_type!(&mut u8, TypeDefPrimitive::U8);
+}
+
+#[test]
+fn option_result_types() {
     assert_type!(
         Option<u128>,
         Type::builder()
@@ -87,35 +183,67 @@ fn prelude_items() {
                     )
             )
     );
-    assert_type!(
-        Cow<u128>,
-        Type::builder()
-            .path(Path::prelude("Cow"))
-            .type_params(named_type_params![(T, u128)])
-            .composite(Fields::unnamed().field(|f| f.ty::<u128>()))
-    );
-
-    assert_type!(
-        NonZeroU32,
-        Type::builder()
-            .path(Path::prelude("NonZeroU32"))
-            .composite(Fields::unnamed().field(|f| f.ty::<u32>()))
-    )
 }
 
 #[test]
-fn phantom_data() {
+fn phantom_data_type() {
     assert_type!(
         PhantomData<i32>,
         Type::builder()
             .path(Path::prelude("PhantomData"))
             .docs(&["PhantomData placeholder, this type should be filtered out"])
             .composite(Fields::unit())
-    )
+    );
+
+    // nested tuple
+    assert_type!(
+        (u64, PhantomData<u8>),
+        TypeDefTuple::new(vec![meta_type::<u64>(),])
+    );
+
+    // struct
+    #[allow(unused)]
+    struct SomeStruct<T> {
+        a: u8,
+        marker: PhantomData<T>,
+    }
+
+    impl<T> TypeInfo for SomeStruct<T>
+    where
+        T: TypeInfo + 'static,
+    {
+        type Identity = Self;
+
+        fn type_info() -> Type {
+            Type::builder()
+                .path(Path::new("SomeStruct", module_path!()))
+                .type_params(type_params!(T))
+                .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")))
+        }
+    }
+
+    assert_type!(
+        SomeStruct<bool>,
+        Type::builder()
+            .path(Path::from_segments(vec!["scale_info", "tests", "SomeStruct"]).unwrap())
+            .type_params(named_type_params![(T, bool)])
+            .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")))
+    );
 }
 
 #[test]
-fn collections() {
+fn array_collection_types() {
+    // array
+    assert_type!([bool; 3], TypeDefArray::new(3, meta_type::<bool>()));
+    // nested
+    assert_type!([[i32; 5]; 5], TypeDefArray::new(5, meta_type::<[i32; 5]>()));
+    // sequence
+    assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
+    // vec
+    assert_type!(Vec<bool>, TypeDefSequence::new(meta_type::<bool>()));
+    // vecdeque
+    assert_type!(VecDeque<bool>, TypeDefSequence::new(meta_type::<bool>()));
+
     assert_type!(
         BTreeMap<String, u32>,
         Type::builder()
@@ -131,34 +259,31 @@ fn collections() {
             .type_params(named_type_params![(T, String)])
             .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
     );
-
-    assert_type!(
-        std::collections::VecDeque<String>,
-        TypeDefSequence::new(meta_type::<String>())
-    );
 }
 
-#[cfg(feature = "bit-vec")]
 #[test]
-fn bitvec() {
-    use bitvec::{
-        order::{Lsb0, Msb0},
-        vec::BitVec,
-    };
-
+fn ops_types() {
     assert_type!(
-        BitVec<u8,Lsb0>,
-        TypeDefBitSequence::new::<u8,Lsb0>()
+        Range<u8>,
+        Type::builder()
+            .path(Path::prelude("Range"))
+            .type_params(named_type_params![(Idx, u8)])
+            .composite(
+                Fields::named()
+                    .field(|f| f.name("start").ty::<u8>().type_name("Idx"))
+                    .field(|f| f.name("end").ty::<u8>().type_name("Idx")),
+            )
     );
-
     assert_type!(
-        BitVec<u16,Msb0>,
-        TypeDefBitSequence::new::<u16,Msb0>()
-    );
-
-    assert_type!(
-        BitVec<u32,Msb0>,
-        TypeDefBitSequence::new::<u32,Msb0>()
+        RangeInclusive<u8>,
+        Type::builder()
+            .path(Path::prelude("RangeInclusive"))
+            .type_params(named_type_params![(Idx, u8)])
+            .composite(
+                Fields::named()
+                    .field(|f| f.name("start").ty::<u8>().type_name("Idx"))
+                    .field(|f| f.name("end").ty::<u8>().type_name("Idx")),
+            )
     );
 }
 
@@ -189,27 +314,6 @@ fn tuple_primitives() {
 }
 
 #[test]
-fn tuple_phantom_data_erased() {
-    // nested tuple
-    assert_type!(
-        (u64, PhantomData<u8>),
-        TypeDefTuple::new(vec![meta_type::<u64>(),])
-    );
-}
-
-#[test]
-fn array_primitives() {
-    // array
-    assert_type!([bool; 3], TypeDefArray::new(3, meta_type::<bool>()));
-    // nested
-    assert_type!([[i32; 5]; 5], TypeDefArray::new(5, meta_type::<[i32; 5]>()));
-    // sequence
-    assert_type!([bool], TypeDefSequence::new(meta_type::<bool>()));
-    // vec
-    assert_type!(Vec<bool>, TypeDefSequence::new(meta_type::<bool>()));
-}
-
-#[test]
 fn struct_with_generics() {
     #[allow(unused)]
     struct MyStruct<T> {
@@ -231,61 +335,32 @@ fn struct_with_generics() {
     }
 
     // Normal struct
-    let struct_bool_type_info = Type::builder()
-        .path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
-        .type_params(named_type_params![(T, bool)])
-        .composite(Fields::named().field(|f| f.ty::<bool>().name("data").type_name("T")));
-
-    assert_type!(MyStruct<bool>, struct_bool_type_info);
+    assert_type!(
+        MyStruct<bool>,
+        Type::builder()
+            .path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
+            .type_params(named_type_params![(T, bool)])
+            .composite(Fields::named().field(|f| f.ty::<bool>().name("data").type_name("T")))
+    );
 
     // With "`Self` typed" fields
-    type SelfTyped = MyStruct<Box<MyStruct<bool>>>;
-    let expected_type = Type::builder()
-        .path(Path::new("MyStruct", "scale_info::tests"))
-        .type_params(named_type_params![(T, Box<MyStruct<bool>>)])
-        .composite(
-            Fields::named().field(|f| f.ty::<Box<MyStruct<bool>>>().name("data").type_name("T")),
-        );
-    assert_type!(SelfTyped, expected_type);
-}
-
-#[test]
-fn basic_struct_with_phantoms() {
-    #[allow(unused)]
-    struct SomeStruct<T> {
-        a: u8,
-        marker: PhantomData<T>,
-    }
-
-    impl<T> TypeInfo for SomeStruct<T>
-    where
-        T: TypeInfo + 'static,
-    {
-        type Identity = Self;
-
-        fn type_info() -> Type {
-            Type::builder()
-                .path(Path::new("SomeStruct", module_path!()))
-                .type_params(type_params!(T))
-                .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")))
-        }
-    }
-
-    let struct_bool_type_info = Type::builder()
-        .path(Path::from_segments(vec!["scale_info", "tests", "SomeStruct"]).unwrap())
-        .type_params(named_type_params![(T, bool)])
-        .composite(Fields::named().field(|f| f.ty::<u8>().name("a").type_name("u8")));
-
-    assert_type!(SomeStruct<bool>, struct_bool_type_info);
+    assert_type!(
+        MyStruct<Box<MyStruct<bool>>>,
+        Type::builder()
+            .path(Path::from_segments(vec!["scale_info", "tests", "MyStruct"]).unwrap())
+            .type_params(named_type_params![(T, Box<MyStruct<bool>>)])
+            .composite(
+                Fields::named()
+                    .field(|f| f.ty::<Box<MyStruct<bool>>>().name("data").type_name("T")),
+            )
+    );
 }
 
 #[test]
 fn basic_enum_with_index() {
-    use scale::Encode;
-
     #[allow(unused)]
     #[derive(Encode)]
-    enum IndexedRustEnum {
+    enum IndexedEnum {
         #[codec(index = 3)]
         A(bool),
         #[codec(index = 0)]
@@ -295,12 +370,13 @@ fn basic_enum_with_index() {
         C(u16, u32),
         D,
     }
-    impl TypeInfo for IndexedRustEnum {
+
+    impl TypeInfo for IndexedEnum {
         type Identity = Self;
 
         fn type_info() -> Type {
             Type::builder()
-                .path(Path::new("IndexedRustEnum", module_path!()))
+                .path(Path::new("IndexedEnum", module_path!()))
                 .variant(
                     Variants::new()
                         .variant("A", |v| {
@@ -325,27 +401,53 @@ fn basic_enum_with_index() {
         }
     }
 
-    let ty = Type::builder()
-        .path(Path::new("IndexedRustEnum", module_path!()))
-        .variant(
-            Variants::new()
-                .variant("A", |v| {
-                    v.index(3)
-                        .fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
-                })
-                .variant("B", |v| {
-                    v.index(0)
-                        .fields(Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")))
-                })
-                .variant("C", |v| {
-                    v.index(2).fields(
-                        Fields::unnamed()
-                            .field(|f| f.ty::<u16>().type_name("u16"))
-                            .field(|f| f.ty::<u32>().type_name("u32")),
-                    )
-                })
-                .variant_unit("D", 3),
-        );
+    assert_type!(
+        IndexedEnum,
+        Type::builder()
+            .path(Path::new("IndexedEnum", module_path!()))
+            .variant(
+                Variants::new()
+                    .variant("A", |v| {
+                        v.index(3)
+                            .fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
+                    })
+                    .variant("B", |v| {
+                        v.index(0).fields(
+                            Fields::named().field(|f| f.ty::<u8>().name("b").type_name("u8")),
+                        )
+                    })
+                    .variant("C", |v| {
+                        v.index(2).fields(
+                            Fields::unnamed()
+                                .field(|f| f.ty::<u16>().type_name("u16"))
+                                .field(|f| f.ty::<u32>().type_name("u32")),
+                        )
+                    })
+                    .variant_unit("D", 3)
+            )
+    );
+}
 
-    assert_type!(IndexedRustEnum, ty);
+#[cfg(feature = "bit-vec")]
+#[test]
+fn bitvec_types() {
+    use bitvec::{
+        order::{Lsb0, Msb0},
+        vec::BitVec,
+    };
+
+    assert_type!(
+        BitVec<u8,Lsb0>,
+        TypeDefBitSequence::new::<u8,Lsb0>()
+    );
+
+    assert_type!(
+        BitVec<u16,Msb0>,
+        TypeDefBitSequence::new::<u16,Msb0>()
+    );
+
+    assert_type!(
+        BitVec<u32,Msb0>,
+        TypeDefBitSequence::new::<u32,Msb0>()
+    );
 }
