@@ -118,7 +118,7 @@ impl PortableRegistry {
             for param in ty.ty.type_params.iter_mut() {
                 let Some(ty) = &param.ty else { continue };
                 let new_id = retain_type(ty.id, types, new_types, retained_mappings);
-                param.ty = Some(new_id).map(Into::into);
+                param.ty = Some(Into::into(new_id));
             }
 
             // make sure any types inside this type are also retained and update the IDs:
