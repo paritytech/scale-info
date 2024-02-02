@@ -15,7 +15,7 @@
 use crate::prelude::{
     borrow::{Cow, ToOwned},
     boxed::Box,
-    collections::{BTreeMap, BTreeSet, VecDeque, BinaryHeap},
+    collections::{BTreeMap, BTreeSet, BinaryHeap, VecDeque},
     fmt,
     marker::PhantomData,
     ops::{Range, RangeInclusive},
