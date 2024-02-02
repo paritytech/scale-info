@@ -15,7 +15,7 @@
 use crate::prelude::{
     borrow::{Cow, ToOwned},
     boxed::Box,
-    collections::{BTreeMap, BTreeSet, VecDeque},
+    collections::{BTreeMap, BTreeSet, VecDeque, BinaryHeap},
     fmt,
     marker::PhantomData,
     ops::{Range, RangeInclusive},
@@ -258,6 +258,20 @@ where
     fn type_info() -> Type {
         Type::builder()
             .path(Path::prelude("BTreeSet"))
+            .type_params(type_params![T])
+            .composite(Fields::unnamed().field(|f| f.ty::<[T]>()))
+    }
+}
+
+impl<T> TypeInfo for BinaryHeap<T>
+where
+    T: TypeInfo + 'static,
+{
+    type Identity = Self;
+
+    fn type_info() -> Type {
+        Type::builder()
+            .path(Path::prelude("BinaryHeap"))
             .type_params(type_params![T])
             .composite(Fields::unnamed().field(|f| f.ty::<[T]>()))
     }

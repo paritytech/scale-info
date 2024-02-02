@@ -17,7 +17,7 @@ use crate::{
     prelude::{
         borrow::Cow,
         boxed::Box,
-        collections::{BTreeMap, BTreeSet},
+        collections::{BTreeMap, BTreeSet, BinaryHeap},
         string::String,
         vec,
     },
@@ -128,6 +128,14 @@ fn collections() {
         BTreeSet<String>,
         Type::builder()
             .path(Path::prelude("BTreeSet"))
+            .type_params(named_type_params![(T, String)])
+            .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
+    );
+
+    assert_type!(
+        BinaryHeap<String>,
+        Type::builder()
+            .path(Path::prelude("BinaryHeap"))
             .type_params(named_type_params![(T, String)])
             .composite(Fields::unnamed().field(|f| f.ty::<[String]>()))
     );
