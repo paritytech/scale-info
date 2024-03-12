@@ -1,6 +1,6 @@
 [package]
 name = "scale-info"
-version = "2.10.0"
+version = "2.11.0"
 authors = ["Parity Technologies <admin@parity.io>"]
 edition = "2021"
 rust-version = "1.60.0"
