@@ -107,20 +107,6 @@ where
     }
 }
 
-impl<T> TypeDefVariant<T>
-where
-    T: Form,
-{
-    /// Returns the variants of a variant type
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn variants(&self) -> &[Variant<T>] {
-        &self.variants
-    }
-}
-
 /// A struct enum variant with either named (struct) or unnamed (tuple struct)
 /// fields.
 ///
@@ -195,46 +181,5 @@ where
             index,
             docs,
         }
-    }
-}
-
-impl<T> Variant<T>
-where
-    T: Form,
-{
-    /// Returns the name of the variant.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn name(&self) -> &T::String {
-        &self.name
-    }
-
-    /// Returns the fields of the struct variant.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn fields(&self) -> &[Field<T>] {
-        &self.fields
-    }
-
-    /// Returns the index of the variant.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn index(&self) -> u8 {
-        self.index
-    }
-
-    /// Returns the documentation of the variant.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn docs(&self) -> &[T::String] {
-        &self.docs
     }
 }
