@@ -181,6 +181,7 @@ impl PortableRegistry {
 
             // Retain this type, having updated any inner IDs:
             let new_id = new_types.len() as u32;
+            ty.id = new_id;
             new_types.push(ty);
             retained_mappings.insert(id, new_id);
             new_id
