@@ -181,6 +181,7 @@ impl PortableRegistry {
 
             // Retain this type, having updated any inner IDs:
             let new_id = new_types.len() as u32;
+            ty.id = new_id;
             new_types.push(ty);
             retained_mappings.insert(id, new_id);
             new_id
@@ -549,6 +550,10 @@ mod tests {
                     .field_portable(|f| f.name("vec_of_u32".into()).ty(1)),
             );
         assert_eq!(registry.resolve(2).unwrap(), &expected_ty);
+
+        for (idx, ty) in registry.types.iter().enumerate() {
+            assert_eq!(idx, ty.id as usize);
+        }
     }
 
     #[test]
