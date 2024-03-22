@@ -1,18 +1,18 @@
 [package]
 name = "scale-info"
-version = "2.11.1"
-authors = ["Parity Technologies <admin@parity.io>"]
-edition = "2021"
-rust-version = "1.60.0"
-
-license = "Apache-2.0"
-readme = "README.md"
-repository = "https://github.com/paritytech/scale-info"
-documentation = "https://docs.rs/scale-info"
-homepage = "https://www.parity.io/"
 description = "Info about SCALE encodable Rust types"
-categories = ["no-std", "encoding"]
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE"]
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+categories.workspace = true
 
 [dependencies]
 bitvec = { version = "1", default-features = false, features = ["alloc"], optional = true }
@@ -55,3 +55,18 @@ members = [
     "derive",
     "test_suite",
 ]
+
+[workspace.package]
+version = "2.11.1"
+authors = [
+    "Parity Technologies <admin@parity.io>",
+    "Centrality Developers <support@centrality.ai>",
+]
+edition = "2021"
+rust-version = "1.60.0"
+license = "Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/paritytech/scale-info"
+documentation = "https://docs.rs/scale-info"
+homepage = "https://www.parity.io/"
+categories = ["no-std", "encoding"]
