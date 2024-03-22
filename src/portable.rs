@@ -550,6 +550,10 @@ mod tests {
                     .field_portable(|f| f.name("vec_of_u32".into()).ty(1)),
             );
         assert_eq!(registry.resolve(2).unwrap(), &expected_ty);
+
+        for (idx, ty) in registry.types.iter().enumerate() {
+            assert_eq!(idx, ty.id as usize);
+        }
     }
 
     #[test]
