@@ -74,7 +74,7 @@ pub struct Registry {
     type_table: Interner<TypeId>,
     /// The database where registered types reside.
     ///
-    /// The contents herein is used for serlialization.
+    /// The contents herein is used for serialization.
     types: BTreeMap<UntrackedSymbol<TypeId>, Type<PortableForm>>,
 }
 
@@ -93,21 +93,6 @@ impl Registry {
         }
     }
 
-    /// Registers the given type ID into the registry.
-    ///
-    /// Returns `false` as the first return value if the type ID has already
-    /// been registered into this registry.
-    /// Returns the associated type ID symbol as second return value.
-    ///
-    /// # Note
-    ///
-    /// This is an internal API and should not be called directly from the
-    /// outside.
-    fn intern_type_id(&mut self, type_id: TypeId) -> (bool, UntrackedSymbol<TypeId>) {
-        let (inserted, symbol) = self.type_table.intern_or_get(type_id);
-        (inserted, symbol.into_untracked())
-    }
-
     /// Registers the given type into the registry and returns
     /// its associated type ID symbol.
     ///
@@ -118,12 +103,13 @@ impl Registry {
     /// However, since this facility is going to be used for serialization
     /// purposes this functionality isn't needed anyway.
     pub fn register_type(&mut self, ty: &MetaType) -> UntrackedSymbol<TypeId> {
-        let (inserted, symbol) = self.intern_type_id(ty.type_id());
+        let (inserted, symbol) = self.type_table.intern_or_get(ty.type_id());
+        let untracked_symbol = symbol.into_untracked();
         if inserted {
-            let portable_id = ty.type_info().into_portable(self);
-            self.types.insert(symbol, portable_id);
+            let portable_type = ty.type_info().into_portable(self);
+            self.types.insert(untracked_symbol, portable_type);
         }
-        symbol
+        untracked_symbol
     }
 
     /// Calls `register_type` for each `MetaType` in the given `iter`.
