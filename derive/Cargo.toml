@@ -1,19 +1,17 @@
 [package]
 name = "scale-info-derive"
-version = "2.11.0"
-authors = [
-    "Parity Technologies <admin@parity.io>",
-    "Centrality Developers <support@centrality.ai>",
-]
-edition = "2021"
-rust-version = "1.56.1"
-
-license = "Apache-2.0"
-repository = "https://github.com/paritytech/scale-info"
-documentation = "https://docs.rs/scale-info"
-homepage = "https://www.parity.io/"
 description = "Derive type info for SCALE encodable types"
-categories = ["no-std", "encoding"]
+
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme.workspace = true
+repository.workspace = true
+documentation.workspace = true
+homepage.workspace = true
+categories.workspace = true
 
 [lib]
 proc-macro = true
