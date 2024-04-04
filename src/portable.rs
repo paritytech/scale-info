@@ -89,6 +89,18 @@ impl PortableRegistry {
         let mut retained_mappings = BTreeMap::new();
         let mut new_types = crate::prelude::vec![];
 
+        fn placeholder_type() -> PortableType {
+            PortableType {
+                id: u32::MAX,
+                ty: Type {
+                    type_def: TypeDef::Primitive(TypeDefPrimitive::Bool),
+                    path: Path::default(),
+                    type_params: crate::prelude::vec![],
+                    docs: crate::prelude::vec![],
+                },
+            }
+        }
+
         fn retain_type(
             id: u32,
             types: &mut [PortableType],
@@ -100,28 +112,29 @@ impl PortableRegistry {
                 return *id;
             }
 
-            // Zero-allocation default implementation that is used as
-            // a placeholder and never accessed.
-            let placeholder = PortableType {
-                id: 0,
-                ty: Type {
-                    type_def: TypeDef::Primitive(TypeDefPrimitive::Bool),
-                    path: Path::default(),
-                    type_params: crate::prelude::vec![],
-                    docs: crate::prelude::vec![],
-                },
-            };
-            // Take the type out of the registry that we'll be retaining:
-            let mut ty = mem::replace(&mut types[id as usize], placeholder);
+            // First, save a spot for this type in our new registry. We do
+            // this straight away so that we can immediately note the type ID
+            // in our retained mappings. This means that any types that contain
+            // themselves will bail out above when we start recursively retaining below.
+            let new_id = new_types.len() as u32;
+            new_types.push(placeholder_type());
+            retained_mappings.insert(id, new_id);
 
-            // Make sure any type params are also retained:
+            // Now, take the actual type we'll be retaining out of the old registry,
+            // swapping it with a placeholder type to avoid any allocations. Because of
+            // the above, nothing should ever try to access this placeholder type anyway.
+            let mut ty = mem::replace(&mut types[id as usize], placeholder_type());
+
+            // Now we recursively retain any type parameters in the type we're retaining.
+            // Update their IDs to point to the new locations of the retained types.
             for param in ty.ty.type_params.iter_mut() {
-                let Some(ty) = &param.ty else { continue };
-                let new_id = retain_type(ty.id, types, new_types, retained_mappings);
+                let Some(param_ty) = &param.ty else { continue };
+                let new_id = retain_type(param_ty.id, types, new_types, retained_mappings);
                 param.ty = Some(Into::into(new_id));
             }
 
-            // make sure any types inside this type are also retained and update the IDs:
+            // Also make sure that any types inside this type are also retained. Update their IDs
+            // to point to the new locations of the retained types.
             match &mut ty.ty.type_def {
                 TypeDef::Composite(composite) => {
                     for field in composite.fields.iter_mut() {
@@ -179,11 +192,9 @@ impl PortableRegistry {
                 }
             }
 
-            // Retain this type, having updated any inner IDs:
-            let new_id = new_types.len() as u32;
-            ty.id = new_id;
-            new_types.push(ty);
-            retained_mappings.insert(id, new_id);
+            // Now we've updated the IDs etc of this type, we put it into the new registry
+            // and override our placeholder type that was saving its space for us.
+            new_types[new_id as usize] = ty;
             new_id
         }
 
