@@ -23,6 +23,9 @@ derive_more = { version = "0.99.1", default-features = false, features = ["from"
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 schemars = { version = "0.8", optional = true }
 
+[dev-dependencies]
+scale-info-derive = { version = "2.11.1", path = "derive" }
+
 [features]
 default = ["std"]
 std = [
