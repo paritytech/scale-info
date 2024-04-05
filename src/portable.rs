@@ -314,7 +314,7 @@ mod tests {
         MetaType::new::<T>()
     }
 
-    fn make_registry(tys: impl IntoIterator<Item=MetaType>) -> (Vec<u32>, PortableRegistry) {
+    fn make_registry(tys: impl IntoIterator<Item = MetaType>) -> (Vec<u32>, PortableRegistry) {
         // Register our types, recording the corresponding IDs.
         let mut types = Registry::new();
         let mut ids = vec![];
@@ -329,11 +329,7 @@ mod tests {
 
     #[test]
     fn retain_seq_type() {
-        let (ids, mut registry) = make_registry([
-            ty::<bool>(),
-            ty::<Vec<u32>>(),
-            ty::<String>()
-        ]);
+        let (ids, mut registry) = make_registry([ty::<bool>(), ty::<Vec<u32>>(), ty::<String>()]);
 
         assert_eq!(registry.types.len(), 4);
 
@@ -345,28 +341,34 @@ mod tests {
         assert_eq!(registry.types.len(), 2);
 
         // Check that vec was retained and has correct ID.
-        let new_vec_id = *retained_ids.get(&vec_id).expect("vec should have been retained");
-        let registry_ty = registry.types.get(new_vec_id as usize).expect("vec should exist");
+        let new_vec_id = *retained_ids
+            .get(&vec_id)
+            .expect("vec should have been retained");
+        let registry_ty = registry
+            .types
+            .get(new_vec_id as usize)
+            .expect("vec should exist");
 
         assert_eq!(registry_ty.id, new_vec_id);
 
         // Check that vec type info is as expected.
         let seq = match &registry_ty.ty.type_def {
             TypeDef::Sequence(s) => s,
-            def => panic!("Expected a sequence type, got {def:?}")
+            def => panic!("Expected a sequence type, got {def:?}"),
         };
 
-        let vec_param = registry.resolve(seq.type_param.id).expect("vec param should be exist");
-        assert!(matches!(vec_param.type_def, TypeDef::Primitive(TypeDefPrimitive::U32)));
+        let vec_param = registry
+            .resolve(seq.type_param.id)
+            .expect("vec param should be exist");
+        assert!(matches!(
+            vec_param.type_def,
+            TypeDef::Primitive(TypeDefPrimitive::U32)
+        ));
     }
 
     #[test]
     fn retain_array_type() {
-        let (ids, mut registry) = make_registry([
-            ty::<bool>(),
-            ty::<[u32; 16]>(),
-            ty::<String>()
-        ]);
+        let (ids, mut registry) = make_registry([ty::<bool>(), ty::<[u32; 16]>(), ty::<String>()]);
 
         assert_eq!(registry.types.len(), 4);
 
@@ -378,28 +380,35 @@ mod tests {
         assert_eq!(registry.types.len(), 2);
 
         // Check that array was retained and has correct ID.
-        let new_arr_id = *retained_ids.get(&arr_id).expect("array should have been retained");
-        let registry_ty = registry.types.get(new_arr_id as usize).expect("array should exist");
+        let new_arr_id = *retained_ids
+            .get(&arr_id)
+            .expect("array should have been retained");
+        let registry_ty = registry
+            .types
+            .get(new_arr_id as usize)
+            .expect("array should exist");
 
         assert_eq!(registry_ty.id, new_arr_id);
 
         // Check that array type info is as expected.
         let arr = match &registry_ty.ty.type_def {
             TypeDef::Array(a) => a,
-            def => panic!("Expected an array type, got {def:?}")
+            def => panic!("Expected an array type, got {def:?}"),
         };
 
-        let array_param = registry.resolve(arr.type_param.id).expect("array param should be exist");
-        assert!(matches!(array_param.type_def, TypeDef::Primitive(TypeDefPrimitive::U32)));
+        let array_param = registry
+            .resolve(arr.type_param.id)
+            .expect("array param should be exist");
+        assert!(matches!(
+            array_param.type_def,
+            TypeDef::Primitive(TypeDefPrimitive::U32)
+        ));
     }
 
     #[test]
     fn retain_tuple_type() {
-        let (ids, mut registry) = make_registry([
-            ty::<bool>(),
-            ty::<(u32, [u8; 32], bool)>(),
-            ty::<String>()
-        ]);
+        let (ids, mut registry) =
+            make_registry([ty::<bool>(), ty::<(u32, [u8; 32], bool)>(), ty::<String>()]);
 
         assert_eq!(registry.types.len(), 6);
 
@@ -412,15 +421,20 @@ mod tests {
         assert_eq!(registry.types.len(), 5);
 
         // Check that tuple was retained and has correct ID.
-        let new_tuple_id = *retained_ids.get(&tuple_id).expect("tuple should have been retained");
-        let registry_ty = registry.types.get(new_tuple_id as usize).expect("tuple should exist");
+        let new_tuple_id = *retained_ids
+            .get(&tuple_id)
+            .expect("tuple should have been retained");
+        let registry_ty = registry
+            .types
+            .get(new_tuple_id as usize)
+            .expect("tuple should exist");
 
         assert_eq!(registry_ty.id, new_tuple_id);
 
         // Check that tuple type info is as expected.
         let tup = match &registry_ty.ty.type_def {
             TypeDef::Tuple(t) => t,
-            def => panic!("Expected an tuple type, got {def:?}")
+            def => panic!("Expected an tuple type, got {def:?}"),
         };
 
         // Check that tuple fields are as expected.
@@ -445,14 +459,10 @@ mod tests {
         struct Foo {
             a: u32,
             b: [u8; 32],
-            c: bool
+            c: bool,
         }
 
-        let (ids, mut registry) = make_registry([
-            ty::<bool>(),
-            ty::<Foo>(),
-            ty::<String>()
-        ]);
+        let (ids, mut registry) = make_registry([ty::<bool>(), ty::<Foo>(), ty::<String>()]);
 
         assert_eq!(registry.types.len(), 6);
 
@@ -465,15 +475,20 @@ mod tests {
         assert_eq!(registry.types.len(), 5);
 
         // Check that struct was retained and has correct ID.
-        let struct_id = *retained_ids.get(&struct_id).expect("struct should have been retained");
-        let registry_ty = registry.types.get(struct_id as usize).expect("struct should exist");
+        let struct_id = *retained_ids
+            .get(&struct_id)
+            .expect("struct should have been retained");
+        let registry_ty = registry
+            .types
+            .get(struct_id as usize)
+            .expect("struct should exist");
 
         assert_eq!(registry_ty.id, struct_id);
 
         // Check that struct type info is as expected.
         let struc = match &registry_ty.ty.type_def {
             TypeDef::Composite(s) => s,
-            def => panic!("Expected an struct type, got {def:?}")
+            def => panic!("Expected an struct type, got {def:?}"),
         };
 
         // Check that struct fields are as expected.
@@ -504,11 +519,7 @@ mod tests {
             B(bool),
         }
 
-        let (ids, mut registry) = make_registry([
-            ty::<bool>(),
-            ty::<Foo>(),
-            ty::<String>()
-        ]);
+        let (ids, mut registry) = make_registry([ty::<bool>(), ty::<Foo>(), ty::<String>()]);
 
         assert_eq!(registry.types.len(), 4);
 
@@ -521,40 +532,48 @@ mod tests {
         assert_eq!(registry.types.len(), 3);
 
         // Check that variant was retained and has correct ID.
-        let variant_id = *retained_ids.get(&variant_id).expect("variant should have been retained");
-        let registry_ty = registry.types.get(variant_id as usize).expect("variant should exist");
+        let variant_id = *retained_ids
+            .get(&variant_id)
+            .expect("variant should have been retained");
+        let registry_ty = registry
+            .types
+            .get(variant_id as usize)
+            .expect("variant should exist");
 
         assert_eq!(registry_ty.id, variant_id);
 
         // Check that variant type info is as expected.
         let var = match &registry_ty.ty.type_def {
             TypeDef::Variant(v) => v,
-            def => panic!("Expected a variant type, got {def:?}")
+            def => panic!("Expected a variant type, got {def:?}"),
         };
 
         assert_eq!(var.variants.len(), 2);
         assert_eq!(var.variants[0].name, "A".to_owned());
         assert_eq!(var.variants[0].fields.len(), 1);
         assert!(matches!(
-            registry.resolve(var.variants[0].fields[0].ty.id).unwrap().type_def,
+            registry
+                .resolve(var.variants[0].fields[0].ty.id)
+                .unwrap()
+                .type_def,
             TypeDef::Primitive(TypeDefPrimitive::U32)
         ));
 
         assert_eq!(var.variants[1].name, "B".to_owned());
         assert_eq!(var.variants[1].fields.len(), 1);
         assert!(matches!(
-            registry.resolve(var.variants[1].fields[0].ty.id).unwrap().type_def,
+            registry
+                .resolve(var.variants[1].fields[0].ty.id)
+                .unwrap()
+                .type_def,
             TypeDef::Primitive(TypeDefPrimitive::Bool)
         ));
     }
 
     #[test]
     fn retain_compact_type() {
-        let (ids, mut registry) = make_registry([
-            ty::<bool>(),
-            ty::<String>(),
-            ty::<Compact<u32>>(),
-        ]);
+        let (ids, mut registry) =
+            make_registry([ty::<bool>(), ty::<String>(), ty::<Compact<u32>>()]);
 
         assert_eq!(registry.types.len(), 4);
 
@@ -566,15 +585,20 @@ mod tests {
         assert_eq!(registry.types.len(), 2);
 
         // Check that compact was retained and has correct ID.
-        let compact_id = *retained_ids.get(&compact_id).expect("compact should have been retained");
-        let registry_ty = registry.types.get(compact_id as usize).expect("compact should exist");
+        let compact_id = *retained_ids
+            .get(&compact_id)
+            .expect("compact should have been retained");
+        let registry_ty = registry
+            .types
+            .get(compact_id as usize)
+            .expect("compact should exist");
 
         assert_eq!(registry_ty.id, compact_id);
 
         // Check that compact type info is as expected.
         let compact = match &registry_ty.ty.type_def {
             TypeDef::Compact(c) => c,
-            def => panic!("Expected a compact type, got {def:?}")
+            def => panic!("Expected a compact type, got {def:?}"),
         };
 
         // And the compact param should be a u32.
@@ -622,15 +646,20 @@ mod tests {
         assert_eq!(registry.types.len(), 3);
 
         // Check that bitseq was retained and has correct ID.
-        let bitseq_id = *retained_ids.get(&bit_seq_type_id).expect("bitseq should have been retained");
-        let registry_ty = registry.types.get(bitseq_id as usize).expect("bitseq should exist");
+        let bitseq_id = *retained_ids
+            .get(&bit_seq_type_id)
+            .expect("bitseq should have been retained");
+        let registry_ty = registry
+            .types
+            .get(bitseq_id as usize)
+            .expect("bitseq should exist");
 
         assert_eq!(registry_ty.id, bitseq_id);
 
         // Check that bitseq type info is as expected.
         let bitseq = match &registry_ty.ty.type_def {
             TypeDef::BitSequence(b) => b,
-            def => panic!("Expected a bit sequence type, got {def:?}")
+            def => panic!("Expected a bit sequence type, got {def:?}"),
         };
         assert!(matches!(
             registry.resolve(bitseq.bit_store_type.id).unwrap().type_def,
@@ -651,11 +680,7 @@ mod tests {
             Empty,
         }
 
-        let (ids, mut registry) = make_registry([
-            ty::<bool>(),
-            ty::<Recursive>(),
-            ty::<String>()
-        ]);
+        let (ids, mut registry) = make_registry([ty::<bool>(), ty::<Recursive>(), ty::<String>()]);
 
         assert_eq!(registry.types.len(), 3);
 
@@ -667,22 +692,30 @@ mod tests {
         assert_eq!(registry.types.len(), 1);
 
         // Check that variant was retained and has correct ID.
-        let variant_id = *retained_ids.get(&variant_id).expect("variant should have been retained");
-        let registry_ty = registry.types.get(variant_id as usize).expect("variant should exist");
+        let variant_id = *retained_ids
+            .get(&variant_id)
+            .expect("variant should have been retained");
+        let registry_ty = registry
+            .types
+            .get(variant_id as usize)
+            .expect("variant should exist");
 
         assert_eq!(registry_ty.id, variant_id);
 
         // Check that variant type info is as expected.
         let var = match &registry_ty.ty.type_def {
             TypeDef::Variant(v) => v,
-            def => panic!("Expected a variant type, got {def:?}")
+            def => panic!("Expected a variant type, got {def:?}"),
         };
 
         assert_eq!(var.variants.len(), 2);
         assert_eq!(var.variants[0].name, "Value".to_owned());
         assert_eq!(var.variants[0].fields.len(), 1);
         assert!(matches!(
-            registry.resolve(var.variants[0].fields[0].ty.id).unwrap().type_def,
+            registry
+                .resolve(var.variants[0].fields[0].ty.id)
+                .unwrap()
+                .type_def,
             TypeDef::Variant(_)
         ));
 
