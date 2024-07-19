@@ -907,3 +907,19 @@ fn replace_segments_works() {
 
     assert_type!(R, ty);
 }
+
+#[test]
+fn rename_field() {
+    #[allow(unused)]
+    #[derive(TypeInfo)]
+    pub struct S {
+        #[scale_info(rename = "type")]
+        r#type: bool,
+    }
+
+    let ty = Type::builder()
+        .path(Path::new("S", "derive"))
+        .composite(Fields::named().field(|f| f.ty::<bool>().name("type").type_name("bool")));
+
+    assert_type!(S, ty);
+}

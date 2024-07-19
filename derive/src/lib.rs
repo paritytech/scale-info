@@ -29,7 +29,7 @@ use syn::{
     punctuated::Punctuated,
     token::Comma,
     visit_mut::VisitMut,
-    Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Ident, Lifetime,
+    Data, DataEnum, DataStruct, DeriveInput, Field, Fields, Ident, Lifetime, Lit, Meta,
 };
 
 #[proc_macro_derive(TypeInfo, attributes(scale_info, codec))]
@@ -184,11 +184,22 @@ impl TypeInfoImpl {
                 } else {
                     quote!(ty)
                 };
-                let name = if let Some(ident) = ident {
+                let name = utils::find_meta_item("scale_info", f.attrs.iter(), |meta| {
+                    if let Meta::NameValue(value) = meta {
+                        if value.path.is_ident("rename") {
+                            if let Lit::Str(lit) = &value.lit {
+                                let ident = &lit.value();
+                                return Some(quote!(.name(#ident)));
+                            }
+                        }
+                    }
+                    None
+                })
+                .unwrap_or(if let Some(ident) = ident {
                     quote!(.name(::core::stringify!(#ident)))
                 } else {
                     quote!()
-                };
+                });
                 quote!(
                     .field(|f| f
                         .#type_of_method::<#ty>()
