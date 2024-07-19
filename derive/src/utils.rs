@@ -105,7 +105,7 @@ where
     find_meta_item("codec", itr, pred)
 }
 
-fn find_meta_item<'a, F, R, I, M>(kind: &str, mut itr: I, mut pred: F) -> Option<R>
+pub(crate) fn find_meta_item<'a, F, R, I, M>(kind: &str, mut itr: I, mut pred: F) -> Option<R>
 where
     F: FnMut(M) -> Option<R> + Clone,
     I: Iterator<Item = &'a Attribute>,
