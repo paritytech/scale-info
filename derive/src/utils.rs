@@ -96,6 +96,25 @@ pub fn should_skip(attrs: &[Attribute]) -> bool {
     .is_some()
 }
 
+/// Look for a `#[scale_info(rename = $str)]` outer attribute on the given `Field`.
+pub fn maybe_renamed(field: &syn::Field) -> Option<String> {
+    let outer_attrs = field
+        .attrs
+        .iter()
+        .filter(|attr| attr.style == AttrStyle::Outer);
+    scale_info_meta_item(outer_attrs, |meta| {
+        if let NestedMeta::Meta(Meta::NameValue(ref nv)) = meta {
+            if nv.path.is_ident("rename") {
+                if let Lit::Str(ref v) = nv.lit {
+                    return Some(v.value());
+                }
+            }
+        }
+
+        None
+    })
+}
+
 fn codec_meta_item<'a, F, R, I, M>(itr: I, pred: F) -> Option<R>
 where
     F: FnMut(M) -> Option<R> + Clone,
@@ -105,7 +124,16 @@ where
     find_meta_item("codec", itr, pred)
 }
 
-pub(crate) fn find_meta_item<'a, F, R, I, M>(kind: &str, mut itr: I, mut pred: F) -> Option<R>
+fn scale_info_meta_item<'a, F, R, I, M>(itr: I, pred: F) -> Option<R>
+where
+    F: FnMut(M) -> Option<R> + Clone,
+    I: Iterator<Item = &'a Attribute>,
+    M: Parse,
+{
+    find_meta_item("scale_info", itr, pred)
+}
+
+fn find_meta_item<'a, F, R, I, M>(kind: &str, mut itr: I, mut pred: F) -> Option<R>
 where
     F: FnMut(M) -> Option<R> + Clone,
     I: Iterator<Item = &'a Attribute>,
