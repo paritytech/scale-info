@@ -5,14 +5,14 @@ error[E0277]: the trait bound `PawType<u16>: TypeInfo` is not satisfied
    |                        ^^^^^^^^^^^^^^^^^^ the trait `TypeInfo` is not implemented for `PawType<u16>`, which is required by `Cat<bool, u8, u16>: TypeInfo`
    |
    = help: the following other types implement trait `TypeInfo`:
-             bool
-             char
-             i8
-             i16
-             i32
-             i64
-             i128
-             u8
+             &T
+             &mut T
+             ()
+             (A, B)
+             (A, B, C)
+             (A, B, C, D)
+             (A, B, C, D, E)
+             (A, B, C, D, E, F)
            and $N others
 note: required for `Cat<bool, u8, u16>` to implement `TypeInfo`
   --> tests/ui/fail_missing_derive.rs:8:10
