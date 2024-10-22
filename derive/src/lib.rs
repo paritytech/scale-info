@@ -184,7 +184,9 @@ impl TypeInfoImpl {
                 } else {
                     quote!(ty)
                 };
-                let name = if let Some(ident) = ident {
+                let name = if let Some(ident) = utils::maybe_renamed(f) {
+                    quote!(.name(#ident))
+                } else if let Some(ident) = ident {
                     quote!(.name(::core::stringify!(#ident)))
                 } else {
                     quote!()
