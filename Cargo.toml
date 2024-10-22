@@ -19,7 +19,7 @@ bitvec = { version = "1", default-features = false, features = ["alloc"], option
 cfg-if = "1.0"
 scale-info-derive = { version = "2.11.3", path = "derive", default-features = false, optional = true }
 serde = { version = "1", default-features = false, optional = true, features = ["derive", "alloc"] }
-derive_more = { version = "0.99.1", default-features = false, features = ["from"] }
+derive_more = { version = "1.0.0", default-features = false, features = ["from"] }
 scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
 schemars = { version = "0.8", optional = true }
 
