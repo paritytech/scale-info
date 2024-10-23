@@ -18,7 +18,9 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse::Parse, spanned::Spanned, AttrStyle, Attribute, Lit, Meta, NestedMeta, Variant};
+use syn::{
+    parse::Parse, spanned::Spanned, AttrStyle, Attribute, Expr, ExprLit, Lit, Meta, Variant,
+};
 
 /// Look for a `#[codec(index = $int)]` attribute on a variant. If no attribute
 /// is found, fall back to the discriminant or just the variant index.
@@ -43,9 +45,13 @@ pub fn maybe_index(variant: &Variant) -> Option<u8> {
         .filter(|attr| attr.style == AttrStyle::Outer);
 
     codec_meta_item(outer_attrs, |meta| {
-        if let NestedMeta::Meta(Meta::NameValue(ref nv)) = meta {
+        if let Meta::NameValue(ref nv) = meta {
             if nv.path.is_ident("index") {
-                if let Lit::Int(ref v) = nv.lit {
+                if let Expr::Lit(ExprLit {
+                    lit: Lit::Int(ref v),
+                    ..
+                }) = nv.value
+                {
                     let byte = v
                         .base10_parse::<u8>()
                         .expect("Internal error. `#[codec(index = …)]` attribute syntax must be checked in `parity-scale-codec`. This is a bug.");
@@ -65,7 +71,7 @@ pub fn is_compact(field: &syn::Field) -> bool {
         .iter()
         .filter(|attr| attr.style == AttrStyle::Outer);
     codec_meta_item(outer_attrs, |meta| {
-        if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
+        if let Meta::Path(ref path) = meta {
             if path.is_ident("compact") {
                 return Some(());
             }
@@ -79,7 +85,7 @@ pub fn is_compact(field: &syn::Field) -> bool {
 /// Look for a `#[codec(skip)]` in the given attributes.
 pub fn should_skip(attrs: &[Attribute]) -> bool {
     codec_meta_item(attrs.iter(), |meta| {
-        if let NestedMeta::Meta(Meta::Path(ref path)) = meta {
+        if let Meta::Path(ref path) = meta {
             if path.is_ident("skip") {
                 return Some(path.span());
             }
@@ -106,7 +112,7 @@ where
     M: Parse,
 {
     itr.find_map(|attr| {
-        attr.path
+        attr.path()
             .is_ident(kind)
             .then(|| pred(attr.parse_args().ok()?))
             .flatten()

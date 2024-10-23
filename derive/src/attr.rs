@@ -48,13 +48,12 @@ impl Attributes {
         let mut replace_segments = Vec::new();
 
         let attributes_parser = |input: &ParseBuffer| {
-            let attrs: Punctuated<ScaleInfoAttr, Token![,]> =
-                input.parse_terminated(ScaleInfoAttr::parse)?;
+            let attrs = input.parse_terminated(ScaleInfoAttr::parse, Token![,])?;
             Ok(attrs)
         };
 
         for attr in &item.attrs {
-            if !attr.path.is_ident(SCALE_INFO) {
+            if !attr.path().is_ident(SCALE_INFO) {
                 continue;
             }
             let scale_info_attrs = attr.parse_args_with(attributes_parser)?;
@@ -177,7 +176,7 @@ impl Parse for BoundsAttr {
         input.parse::<keywords::bounds>()?;
         let content;
         syn::parenthesized!(content in input);
-        let predicates = content.parse_terminated(syn::WherePredicate::parse)?;
+        let predicates = content.parse_terminated(syn::WherePredicate::parse, Token![,])?;
         Ok(Self { predicates })
     }
 }
@@ -215,7 +214,7 @@ impl Parse for SkipTypeParamsAttr {
         input.parse::<keywords::skip_type_params>()?;
         let content;
         syn::parenthesized!(content in input);
-        let type_params = content.parse_terminated(syn::TypeParam::parse)?;
+        let type_params = content.parse_terminated(syn::TypeParam::parse, Token![,])?;
         Ok(Self { type_params })
     }
 }

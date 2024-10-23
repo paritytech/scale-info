@@ -261,22 +261,24 @@ impl TypeInfoImpl {
         let docs = attrs
             .iter()
             .filter_map(|attr| {
-                if let Ok(syn::Meta::NameValue(meta)) = attr.parse_meta() {
-                    if meta.path.get_ident().map_or(false, |ident| ident == "doc") {
-                        if let syn::Lit::Str(lit) = &meta.lit {
-                            let lit_value = lit.value();
-                            let stripped = lit_value.strip_prefix(' ').unwrap_or(&lit_value);
-                            let lit: syn::Lit = parse_quote!(#stripped);
-                            Some(lit)
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                } else {
-                    None
+                if !attr.path().is_ident("doc") {
+                    return None;
                 }
+                let syn::Meta::NameValue(nv) = &attr.meta else {
+                    return None;
+                };
+                let syn::Expr::Lit(syn::ExprLit {
+                    lit: syn::Lit::Str(s),
+                    ..
+                }) = &nv.value
+                else {
+                    return None;
+                };
+
+                let lit_value = s.value();
+                let stripped = lit_value.strip_prefix(' ').unwrap_or(&lit_value);
+                let lit: syn::Lit = parse_quote!(#stripped);
+                Some(lit)
             })
             .collect::<Vec<_>>();
 
