@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#![no_std]
 #![allow(unused)]
-#![cfg_attr(not(feature = "std"), no_std)]
 #![allow(dead_code)]
 
 use info::{self as scale_info};
