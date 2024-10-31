@@ -184,12 +184,12 @@ impl TypeInfoImpl {
                 } else {
                     quote!(ty)
                 };
-                let name = if let Some(ident) = utils::maybe_renamed(f) {
-                    quote!(.name(#ident))
-                } else if let Some(ident) = ident {
-                    quote!(.name(::core::stringify!(#ident)))
-                } else {
-                    quote!()
+                let name = match utils::maybe_renamed(f) {
+                    Some(ident) => quote!(.name(#ident)),
+                    None => ident
+                        .as_ref()
+                        .map(|ident| quote!(.name(::core::stringify!(#ident))))
+                        .unwrap_or(quote!()),
                 };
                 quote!(
                     .field(|f| f
