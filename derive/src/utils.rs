@@ -103,9 +103,13 @@ pub fn maybe_renamed(field: &syn::Field) -> Option<String> {
         .iter()
         .filter(|attr| attr.style == AttrStyle::Outer);
     scale_info_meta_item(outer_attrs, |meta| {
-        if let NestedMeta::Meta(Meta::NameValue(ref nv)) = meta {
+        if let Meta::NameValue(ref nv) = meta {
             if nv.path.is_ident("rename") {
-                if let Lit::Str(ref v) = nv.lit {
+                if let Expr::Lit(ExprLit {
+                    lit: Lit::Str(ref v),
+                    ..
+                }) = nv.value
+                {
                     return Some(v.value());
                 }
             }
