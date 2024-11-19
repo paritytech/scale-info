@@ -44,7 +44,7 @@ fn generate(input: TokenStream2) -> Result<TokenStream2> {
     let type_info_impl = TypeInfoImpl::parse(input)?;
     let type_info_impl_toks = type_info_impl.expand()?;
     Ok(quote! {
-        #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+        #[allow(non_upper_case_globals, deprecated, unused_attributes, unused_qualifications)]
         const _: () = {
             #type_info_impl_toks;
         };
