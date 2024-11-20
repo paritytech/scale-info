@@ -2,13 +2,13 @@ error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` an
  --> tests/ui/fail_with_invalid_codec_attrs.rs:8:7
   |
 8 |     #[codec(skip, compact)]
-  |       ^^^^^
+  |       ^^^^^^^^^^^^^^^^^^^^
 
 error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` and `#[codec(encoded_as = "$EncodeAs")]` are accepted.
   --> tests/ui/fail_with_invalid_codec_attrs.rs:14:19
    |
 14 |     Thing(#[codec(index = 3)] u32),
-   |                   ^^^^^
+   |                   ^^^^^^^^^
 
 error: expected literal
   --> tests/ui/fail_with_invalid_codec_attrs.rs:19:21
