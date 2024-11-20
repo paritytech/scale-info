@@ -10,14 +10,14 @@ error: Invalid attribute on field, only `#[codec(skip)]`, `#[codec(compact)]` an
 14 |     Thing(#[codec(index = 3)] u32),
    |                   ^^^^^
 
-error: expected literal
-  --> tests/ui/fail_with_invalid_codec_attrs.rs:19:21
+error: Invalid attribute on variant, only `#[codec(skip)]` and `#[codec(index = $u8)]` are accepted.
+  --> tests/ui/fail_with_invalid_codec_attrs.rs:19:13
    |
 19 |     #[codec(index = a)]
-   |                     ^
+   |             ^^^^^
 
-error: expected literal
-  --> tests/ui/fail_with_invalid_codec_attrs.rs:25:25
+error: Invalid attribute on variant, only `#[codec(skip)]` and `#[codec(index = $u8)]` are accepted.
+  --> tests/ui/fail_with_invalid_codec_attrs.rs:25:7
    |
 25 |     #[codec(encode_as = u8, compact)]
-   |                         ^^
+   |       ^^^^^
