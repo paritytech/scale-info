@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Add `rename` attribute for renaming struct fields [(#209)](https://github.com/paritytech/scale-info/pull/209)
+
 ## [2.11.6] - 2024-11-20
 
 - add `#[allow(deprecated)]` attribute to the generated code.
