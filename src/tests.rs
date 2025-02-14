@@ -294,7 +294,7 @@ fn basic_enum_with_index() {
     #[allow(unused)]
     #[derive(Encode)]
     enum IndexedRustEnum {
-        #[codec(index = 3)]
+        #[codec(index = 4)]
         A(bool),
         #[codec(index = 0)]
         B {
@@ -312,7 +312,7 @@ fn basic_enum_with_index() {
                 .variant(
                     Variants::new()
                         .variant("A", |v| {
-                            v.index(3).fields(
+                            v.index(4).fields(
                                 Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")),
                             )
                         })
@@ -338,7 +338,7 @@ fn basic_enum_with_index() {
         .variant(
             Variants::new()
                 .variant("A", |v| {
-                    v.index(3)
+                    v.index(4)
                         .fields(Fields::unnamed().field(|f| f.ty::<bool>().type_name("bool")))
                 })
                 .variant("B", |v| {
