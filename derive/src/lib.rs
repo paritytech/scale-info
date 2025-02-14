@@ -110,6 +110,7 @@ impl TypeInfoImpl {
         });
 
         Ok(quote! {
+            #[automatically_derived]
             impl #impl_generics #scale_info::TypeInfo for #ident #ty_generics #where_clause {
                 type Identity = Self;
                 fn type_info() -> #scale_info::Type {
