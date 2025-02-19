@@ -133,47 +133,6 @@ where
     }
 }
 
-impl<T> Type<T>
-where
-    T: Form,
-{
-    /// Returns the path of the type
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn path(&self) -> &Path<T> {
-        &self.path
-    }
-
-    /// Returns the generic type parameters of the type
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn type_params(&self) -> &[TypeParameter<T>] {
-        &self.type_params
-    }
-
-    /// Returns the definition of the type
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn type_def(&self) -> &TypeDef<T> {
-        &self.type_def
-    }
-
-    /// Returns the documentation of the type
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn docs(&self) -> &[T::String] {
-        &self.docs
-    }
-}
-
 /// A generic type parameter.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(
@@ -221,31 +180,6 @@ impl TypeParameter<PortableForm> {
         ty: Option<<PortableForm as Form>::Type>,
     ) -> Self {
         Self { name, ty }
-    }
-}
-
-impl<T> TypeParameter<T>
-where
-    T: Form,
-{
-    /// Get the type of the parameter.
-    ///
-    /// `None` if the parameter is skipped.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn ty(&self) -> Option<&T::Type> {
-        self.ty.as_ref()
-    }
-
-    /// Get the name of the parameter.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn name(&self) -> &T::String {
-        &self.name
     }
 }
 
@@ -372,9 +306,6 @@ pub enum TypeDefPrimitive {
     /// `u128`
     #[codec(index = 7)]
     U128,
-    /// 256 bits unsigned int (no rust equivalent)
-    #[codec(index = 8)]
-    U256,
     /// `i8`
     #[codec(index = 9)]
     I8,
@@ -390,9 +321,6 @@ pub enum TypeDefPrimitive {
     /// `i128`
     #[codec(index = 13)]
     I128,
-    /// 256 bits signed int (no rust equivalent)
-    #[codec(index = 14)]
-    I256,
 }
 
 /// An array type.
@@ -427,24 +355,6 @@ where
     /// Creates a new array type.
     pub fn new(len: u32, type_param: <T as Form>::Type) -> Self {
         Self { len, type_param }
-    }
-
-    /// Returns the length of the array type.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn len(&self) -> u32 {
-        self.len
-    }
-
-    /// Returns the element type of the array type.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn type_param(&self) -> &T::Type {
-        &self.type_param
     }
 }
 
@@ -508,20 +418,6 @@ impl TypeDefTuple<PortableForm> {
     }
 }
 
-impl<T> TypeDefTuple<T>
-where
-    T: Form,
-{
-    /// Returns the types of the tuple fields.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn fields(&self) -> &[T::Type] {
-        &self.fields
-    }
-}
-
 /// A type to refer to a sequence of elements of the same type.
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(any(feature = "std", feature = "decode"), derive(scale::Decode))]
@@ -566,15 +462,6 @@ where
     pub fn new(type_param: <T as Form>::Type) -> Self {
         Self { type_param }
     }
-
-    /// Returns the element type of the sequence type.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn type_param(&self) -> &T::Type {
-        &self.type_param
-    }
 }
 
 /// A type wrapped in [`Compact`].
@@ -606,15 +493,6 @@ where
     pub fn new(type_param: <T as Form>::Type) -> Self {
         Self { type_param }
     }
-
-    /// Returns the [`Compact`] wrapped type, i.e. the `T` in `Compact<T>`.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn type_param(&self) -> &T::Type {
-        &self.type_param
-    }
 }
 
 /// Type describing a [`bitvec::vec::BitVec`].
@@ -642,29 +520,6 @@ impl IntoPortable for TypeDefBitSequence {
             bit_store_type: registry.register_type(&self.bit_store_type),
             bit_order_type: registry.register_type(&self.bit_order_type),
         }
-    }
-}
-
-impl<T> TypeDefBitSequence<T>
-where
-    T: Form,
-{
-    /// Returns the type of the bit ordering of the [`::bitvec::vec::BitVec`].
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn bit_order_type(&self) -> &T::Type {
-        &self.bit_order_type
-    }
-
-    /// Returns underlying type used to store the [`::bitvec::vec::BitVec`].
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn bit_store_type(&self) -> &T::Type {
-        &self.bit_store_type
     }
 }
 

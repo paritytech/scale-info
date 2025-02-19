@@ -49,17 +49,6 @@ pub struct UntrackedSymbol<T> {
     marker: PhantomData<fn() -> T>,
 }
 
-impl<T> UntrackedSymbol<T> {
-    /// Returns the index to the symbol in the interner table.
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn id(&self) -> u32 {
-        self.id
-    }
-}
-
 impl<T> From<u32> for UntrackedSymbol<T> {
     fn from(id: u32) -> Self {
         Self {

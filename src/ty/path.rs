@@ -169,15 +169,6 @@ where
         }
     }
 
-    /// Returns the segments of the Path
-    #[deprecated(
-        since = "2.5.0",
-        note = "Prefer to access the fields directly; this getter will be removed in the next major version"
-    )]
-    pub fn segments(&self) -> &[T::String] {
-        &self.segments
-    }
-
     /// Returns `true` if the path is empty
     pub fn is_empty(&self) -> bool {
         self.segments.is_empty()
