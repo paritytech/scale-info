@@ -121,7 +121,7 @@ fn type_contains_idents(ty: &Type, idents: &[Ident]) -> bool {
         idents: &'a [Ident],
     }
 
-    impl<'a, 'ast> Visit<'ast> for ContainIdents<'a> {
+    impl<'ast> Visit<'ast> for ContainIdents<'_> {
         fn visit_ident(&mut self, i: &'ast Ident) {
             if self.idents.iter().any(|id| id == i) {
                 self.result = true;
@@ -145,7 +145,7 @@ fn type_or_sub_type_path_starts_with_ident(ty: &Type, ident: &Ident) -> bool {
         ident: &'a Ident,
     }
 
-    impl<'a, 'ast> Visit<'ast> for TypePathStartsWithIdent<'a> {
+    impl<'ast> Visit<'ast> for TypePathStartsWithIdent<'_> {
         fn visit_type_path(&mut self, i: &'ast TypePath) {
             if i.qself.is_none() {
                 if let Some(segment) = i.path.segments.first() {
