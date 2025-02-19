@@ -61,4 +61,5 @@ jobs:
     - name: test no-std
       run: |
         cd ./test_suite/derive_tests_no_std
-        cargo run --no-default-features
+        rustup target add x86_64-unknown-none
+        cargo run --target x86_64-unknown-none --no-default-features
