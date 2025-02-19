@@ -12,14 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #![allow(internal_features)]
-#![feature(lang_items, start)]
-#![feature(alloc_error_handler)]
+#![feature(lang_items, alloc_error_handler)]
 #![no_std]
+#![no_main]
 
-#[start]
-fn start(_argc: isize, _argv: *const *const u8) -> isize {
+#[no_mangle]
+pub extern "C" fn _start() {
     test();
-    0
+
+    use core::arch::asm;
+    unsafe {
+        asm!(
+            "syscall",
+            in("rax") 60,
+            in("rdi") 0,
+            options(noreturn)
+        );
+    }
 }
 
 #[lang = "eh_personality"]
